@@ -9,10 +9,23 @@
     "build": "rimraf dist && eslint --fix -c .eslintrc.js --ext .ts . && tsc"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
     "input": "^1.0.1",
+    "morgan": "^1.10.0",
+    "source-map-support": "^0.5.19",
     "telegram": "^1.8.9"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.2",
+    "@types/cors": "^2.8.12",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.13",
+    "@types/morgan": "^1.9.3",
+    "@types/node": "^16.7.2",
+    "@types/source-map-support": "^0.5.4",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
     "eslint": "^7.32.0",
