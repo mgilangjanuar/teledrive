@@ -4,3 +4,4 @@ dist/
 build/
 keys
 .env
+.vercel
