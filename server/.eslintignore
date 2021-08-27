@@ -1,0 +1,5 @@
+.vscode
+node_modules
+dist
+cert
+get_env.js

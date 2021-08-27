@@ -1,0 +1,17 @@
+{
+  "name": "teledrive",
+  "version": "0.1.0",
+  "main": "index.js",
+  "repository": "git@github.com:mgilangjanuar/photosgram.git",
+  "author": "M Gilang Januar <mgilangjanuar@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "server": "yarn workspace server",
+    "web": "yarn workspace web"
+  },
+  "workspaces": [
+    "server",
+    "web"
+  ]
+}
