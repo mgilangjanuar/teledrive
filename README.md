@@ -2,9 +2,7 @@
 
 This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternative using Telegram API for the free unlimited cloud storage.
 
-![img](https://lh6.googleusercontent.com/BSuWa2VPQu_LIiH8Luxf7AqIlqBcayv-pR_39Jm5IpTyqvbGmKKNYNS3uK-kaNhHI6Vawh6mqznNSpgMZ_FQ=w3360-h1880)
-
-*link: [https://twitter.com/telegram/status/1428703364737507332](https://twitter.com/telegram/status/1428703364737507332)*
+[![img](https://drive.google.com/uc?id=1o2HnKglEF0-cvtNmQqWZicJnSCSmnoEr)](https://twitter.com/telegram/status/1428703364737507332)
 
 ## Motivation
 
