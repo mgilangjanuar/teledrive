@@ -1,7 +1,5 @@
 import { Router } from 'express'
-import { Endpoints } from '../base/Endpoints'
-
-const endpoints = new Endpoints(__dirname)
+import { Endpoint } from '../base/Endpoint'
 
 export const V1 = Router()
-  .use(endpoints.run())
+  .use(Endpoint.register(__dirname))
