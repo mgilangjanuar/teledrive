@@ -1,15 +1,14 @@
 import React from 'react'
-import { Avatar, Flex, Heading, HStack, VStack } from '@chakra-ui/react'
+import { Avatar, Container, Flex, Heading, VStack } from '@chakra-ui/react'
 
 function Home(): React.ReactElement {
   return (
     <VStack w="100%" spacing={4}>
-      <Flex justify="space-between">
-        <Heading>teledrive</Heading>
-        <Avatar />
+      <Flex w="100%" p={4} justify="space-between" boxShadow="sm">
+        <Heading color="gray.600" size="lg">teledrive</Heading>
+        <Avatar size="sm" />
       </Flex>
-      <HStack>
-      </HStack>
+      <Container></Container>
     </VStack>
   )
 }
