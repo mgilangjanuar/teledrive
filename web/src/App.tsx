@@ -6,8 +6,8 @@ import Home from './pages/Home'
 import NotFound from './pages/NotFound'
 import { theme } from './styles/theme'
 
-import Album from './pages/dashboard/Album/Album'
-import Photo from './pages/dashboard/Photo/Photo'
+import Album from './pages/dashboard/Album'
+import Photo from './pages/dashboard/Photo'
 
 function App(): React.ReactElement {
   return (
