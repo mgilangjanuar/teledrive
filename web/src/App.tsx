@@ -8,6 +8,7 @@ import { theme } from './styles/theme'
 
 import Album from './pages/dashboard/Album'
 import Photo from './pages/dashboard/Photo'
+import Login from './pages/Login'
 
 function App(): React.ReactElement {
   return (
@@ -15,6 +16,7 @@ function App(): React.ReactElement {
       <BrowserRouter>
         <Switch>
           <Route path="/" exact component={Home} />
+          <Route path="/login" exact component={Login} />
           <Route path="/album/:id" exact component={Album} />
           <Route path="/photo/:id" exact component={Photo} />
           <Route component={NotFound} />
