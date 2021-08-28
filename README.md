@@ -56,7 +56,7 @@ Or, if you want to run in the local environment:
 
 Or, just send us an [issue](https://github.com/mgilangjanuar/teledrive/issues) for reporting bugs and/or ask the questions, share your ideas, etc in [discussions](https://github.com/mgilangjanuar/teledrive/discussions).
 
-⚠️ **We'll haven't any channel to chat/discuss platforms** like Discord/Slack/etc except the GitHub Discussions and Issues for the well-documented conversations.
+⚠️ **We'll have no any channel to chat/discuss** like Discord/Slack/etc except the GitHub Discussions and Issues for the well-documented conversations.
 
 ## Folder Structure
 

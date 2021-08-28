@@ -1,25 +1,26 @@
 import React from 'react'
-import logo from './logo.svg'
-import './App.css'
+import { BrowserRouter, Route, Switch } from 'react-router-dom'
+import { ChakraProvider } from '@chakra-ui/react'
+
+import Home from './pages/Home'
+import NotFound from './pages/NotFound'
+import { theme } from './styles/theme'
+
+import Album from './pages/dashboard/Album'
+import Photo from './pages/dashboard/Photo'
 
 function App(): React.ReactElement {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ChakraProvider theme={theme}>
+      <BrowserRouter>
+        <Switch>
+          <Route path="/" exact component={Home} />
+          <Route path="/album/:id" exact component={Album} />
+          <Route path="/photo/:id" exact component={Photo} />
+          <Route component={NotFound} />
+        </Switch>
+      </BrowserRouter>
+    </ChakraProvider>
   )
 }
 
