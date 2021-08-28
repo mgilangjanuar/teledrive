@@ -5,3 +5,5 @@ build/
 keys
 .env
 .vercel
+test.js
+sessions/
