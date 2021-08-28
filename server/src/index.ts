@@ -2,6 +2,7 @@ import 'source-map-support/register'
 require('dotenv').config({ path: '.env' })
 
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import express, {
   json,
   NextFunction,
@@ -11,10 +12,10 @@ import express, {
   static as serveStatic,
   urlencoded
 } from 'express'
-import cors from 'cors'
+import listEndpoints from 'express-list-endpoints'
 import morgan from 'morgan'
 import path from 'path'
-import { API } from './API'
+import { API } from './api'
 
 const app = express()
 app.use(cors({
@@ -53,3 +54,5 @@ app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: 
 })
 
 app.listen(process.env.PORT || 4000, () => console.log(`Running at :${process.env.PORT || 4000}...`))
+
+console.log(listEndpoints(app))
