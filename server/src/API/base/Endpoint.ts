@@ -1,5 +1,4 @@
 import { NextFunction, Request, RequestHandler, Response, Router } from 'express'
-import requireDir from 'require-dir'
 
 interface RouteOptions {
   path?: string,
@@ -16,8 +15,7 @@ interface Route {
 
 export const Endpoint = {
   _handlers: [],
-  register: function (dir: string): Router {
-    requireDir(dir)
+  register: function (..._classes: any[]): Router {
     const router = Router()
     for (const route of this._handlers?.filter((handler: Route) => !!handler.basepath)) {
       router[route.method](`${route.basepath}${route.path}`,
