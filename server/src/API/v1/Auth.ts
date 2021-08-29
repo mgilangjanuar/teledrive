@@ -1,5 +1,7 @@
 import { Request, Response } from 'express'
 import { Api } from 'telegram'
+import { Users } from '../../model/Users'
+import { Supabase } from '../../service/Supabase'
 import { TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
 import { TGClient } from '../middlewares/TGClient'
@@ -26,7 +28,23 @@ export class Auth {
       })
     }))
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`).send({ phoneCodeHash: phoneCodeHash, accessToken: session })
+    return res.cookie('authorization', `Bearer ${session}`)
+      .send({ phoneCodeHash, accessToken: session })
+  }
+
+  @Endpoint.POST({ middlewares: [TGSessionAuth] })
+  public async reSendCode(req: Request, res: Response): Promise<any> {
+    const { phoneNumber, phoneCodeHash } = req.body
+    if (!phoneNumber || !phoneCodeHash) {
+      throw { status: 400, body: { error: 'Phone number and phone code hash are required' } }
+    }
+
+    await req.tg.connect()
+    const { phoneCodeHash: newPhoneCodeHash } = await req.tg.invoke(new Api.auth.ResendCode({
+      phoneNumber, phoneCodeHash }))
+    const session = req.tg.session.save()
+    return res.cookie('authorization', `Bearer ${session}`)
+      .send({ phoneCodeHash: newPhoneCodeHash, accessToken: session })
   }
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
@@ -38,11 +56,14 @@ export class Auth {
 
     await req.tg.connect()
     const signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
-    console.log(signIn)
-    // TODO: save user data to db
+    const user = signIn['user']
+    await Supabase.build().from<Users>('users').insert([
+      { username: user.username, name: `${user.firstName} ${user.lastName || ''}`.trim(), tg_id: user.id, tg_raw: user }
+    ])
 
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`).send({ user: signIn['user'], accessToken: session })
+    return res.cookie('authorization', `Bearer ${session}`)
+      .send({ user, accessToken: session })
   }
 
   @Endpoint.GET({ middlewares: [TGSessionAuth] })
