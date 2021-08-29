@@ -23,7 +23,6 @@
     "telegram": "^1.8.9"
   },
   "devDependencies": {
-    "@types/": "supabase/supabase-js",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.12",
     "@types/dotenv": "^8.2.0",
