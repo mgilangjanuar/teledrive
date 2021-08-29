@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { Api } from 'telegram'
-import { User } from '../../model/User'
+import { Users } from '../../model/Users'
 import { Supabase } from '../../service/Supabase'
 import { TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
@@ -57,7 +57,7 @@ export class Auth {
     await req.tg.connect()
     const signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
     const user = signIn['user']
-    await Supabase.build().from<User>('users').insert([
+    await Supabase.build().from<Users>('users').insert([
       { username: user.username, name: `${user.firstName} ${user.lastName || ''}`.trim(), tg_id: user.id, tg_raw: user }
     ])
 
