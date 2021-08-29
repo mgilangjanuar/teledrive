@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import { serializeError } from 'serialize-error'
 import { Api } from 'telegram'
 import { TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
