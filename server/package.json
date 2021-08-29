@@ -17,6 +17,7 @@
     "input": "^1.0.1",
     "morgan": "^1.10.0",
     "require-dir": "^1.2.0",
+    "serialize-error": "^8.1.0",
     "source-map-support": "^0.5.19",
     "telegram": "^1.8.9"
   },
@@ -29,6 +30,7 @@
     "@types/morgan": "^1.9.3",
     "@types/node": "^16.7.2",
     "@types/require-dir": "^1.0.2",
+    "@types/serialize-error": "^4.0.1",
     "@types/source-map-support": "^0.5.4",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
