@@ -20,7 +20,7 @@ function App(): React.ReactElement {
           <Route path="/login" exact component={Login} />
           <Route path="/dashboard" exact component={ManageFile} />
           <Route path="/album/:id" exact component={Album} />
-          <Route path="/photo/:id" exact component={Photo} />
+          <Route path="/image/:id" exact component={Photo} />
           <Route component={NotFound} />
         </Switch>
       </BrowserRouter>

@@ -15,43 +15,52 @@ import React from 'react'
 import TableFile from './components/ManageFile/TableFile'
 
 
-const dummyData = {
-  images: [
-    {
-      id: '1',
-      name: 'Test.png',
-      mime: 'image/png',
-      date: new Date()
-    },
-    {
-      id: '2',
-      name: 'Test.jpg',
-      mime: 'image/jpeg',
-      date: new Date()
-    }
-  ],
-  video: [
-    {
-      id: '1',
-      name: 'Test.mp4',
-      mime: 'video/mp4',
-      date: new Date()
-    },
-    {
-      id: '2',
-      name: 'Test.mpeg',
-      mime: 'video/mpeg',
-      date: new Date()
-    }
-  ],
-  document: [
-    {
-      id: '1',
-      name: 'Test.pdf',
-      mime: 'application/pdf',
-      date: new Date()
-    }],
-  others: []
+
+interface DataFile {
+  id: string,
+  name: string,
+  fileSize: number,
+  mime: string,
+  date: Date
+}
+interface DummyFileObj{
+  [file: string]: DataFile[]
+}
+
+
+
+const dummyData: DummyFileObj = {
+  'image': [{
+    id: '1',
+    name: 'photo1.png',
+    fileSize: 2345,
+    mime: 'images/png',
+    date: new Date()
+  },{
+    id: '2',
+    name: 'photo2.png',
+    fileSize: 2345,
+    mime: 'images/jpg',
+    date: new Date()
+  }],  'video': [{
+    id: '3',
+    name: 'video1.mp4',
+    fileSize: 2345,
+    mime: 'video/mp4',
+    date: new Date()
+  },{
+    id: '4',
+    name: 'video2.mpeg',
+    fileSize: 2345,
+    mime: 'video/mpeg',
+    date: new Date()
+  },],'document': [{
+    id: '6',
+    name: 'doc1.pdf',
+    fileSize: 2345,
+    mime: 'application/pdf',
+    date: new Date()
+  }]
 }
 
 function ManageFile(): React.ReactElement {
@@ -64,11 +73,9 @@ function ManageFile(): React.ReactElement {
           <Input
             bg="white"
             placeholder="Search file"
-            w={['sm', 'md', '2xl']}
-            borderColor="blue.300"
+            w={['sm', 'md', 'xl']}
             borderWidth="2px"
           />
-
           <Box w={['sm', 'md', '2xl']} mt="10" bg="white" minH="100vh">
             <Tabs isFitted variant="enclosed">
               <TabList>
@@ -81,18 +88,15 @@ function ManageFile(): React.ReactElement {
               </TabList>
 
               <TabPanels>
-                <TabPanel>
-                  <TableFile />
+                {
+                  Object.keys(dummyData).map((key) => {
+                    console.log(dummyData[key])
+                  })
+                }
+                {dummyData && Object.keys(dummyData).map((key) => <TabPanel key={key}>
+                  <TableFile dataFile={dummyData[key]} category={key}/>
                 </TabPanel>
-                <TabPanel>
-                  <TableFile />
-                </TabPanel>
-                <TabPanel>
-                  <TableFile />
-                </TabPanel>
-                <TabPanel>
-                  <TableFile />
-                </TabPanel>
+                )}
               </TabPanels>
             </Tabs>
           </Box>
