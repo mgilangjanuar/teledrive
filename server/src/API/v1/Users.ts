@@ -27,11 +27,24 @@ export class Users {
 
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
+    const { page, size, sort, ...filters } = req.query
     let query = Supabase.build().from<UsersModel>('users').select('*')
-    for (const param of Object.keys(req.query)) {
+
+    for (const param of Object.keys(filters)) {
       const [column, op] = param.split('.')
-      query = query.filter(column as keyof UsersModel, op || 'eq' as any, req.query[param])
+      query = query.filter(column as keyof UsersModel, op || 'eq' as any, filters[param])
     }
+
+    if (page && size) {
+      query = query.range(Number(size) * Number(page),
+        Number(size) * Number(page) + Number(size) - 1)
+    }
+
+    if (sort) {
+      const [column, type] = sort.toString().split('.')
+      query = query.order(column as keyof UsersModel, { ascending: !type || type.toLowerCase() === 'asc' || type.toLowerCase() === 'ascending' })
+    }
+
     const { data: users } = await query
     return res.send({ users })
   }
