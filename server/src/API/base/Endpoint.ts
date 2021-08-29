@@ -1,4 +1,5 @@
 import { NextFunction, Request, RequestHandler, Response, Router } from 'express'
+import { serializeError } from 'serialize-error'
 
 interface RouteOptions {
   path?: string,
@@ -59,7 +60,7 @@ export const Endpoint = {
       } catch (error) {
         console.error(error)
         req.tg?.disconnect()
-        return next(error)
+        return next(error.code ? { status: error.code, body: { error: error.message, details: serializeError(error) } } : error)
       }
     }
   },
@@ -96,7 +97,7 @@ export const Endpoint = {
         } catch (error) {
           console.error(error)
           req.tg?.disconnect()
-          return next(error)
+          return next(error.code ? { status: error.code, body: { error: error.message, details: serializeError(error) } } : error)
         }
       }
     }

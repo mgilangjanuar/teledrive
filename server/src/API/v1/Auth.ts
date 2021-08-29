@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { serializeError } from 'serialize-error'
 import { Api } from 'telegram'
 import { TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
@@ -16,7 +17,7 @@ export class Auth {
     }
 
     await req.tg.connect()
-    const data = await req.tg.invoke(new Api.auth.SendCode({
+    const { phoneCodeHash } = await req.tg.invoke(new Api.auth.SendCode({
       ...TG_CREDS,
       phoneNumber,
       settings: new Api.CodeSettings({
@@ -26,7 +27,7 @@ export class Auth {
       })
     }))
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`).send({ phoneCodeHash: data.phoneCodeHash, accessToken: session })
+    return res.cookie('authorization', `Bearer ${session}`).send({ phoneCodeHash: phoneCodeHash, accessToken: session })
   }
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
