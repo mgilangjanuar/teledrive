@@ -2742,6 +2742,13 @@
   resolved "https://registry.yarnpkg.com/@types/scheduler/-/scheduler-0.16.2.tgz#1a62f89525723dde24ba1b01b092bf5df8ad4d39"
   integrity sha512-hppQEBDmlwhFAXKJX2KnWLYu5yMfi91yazPb2l+lbJiwW+wdo1gNeRA+3RgNSO39WYX2euey41KEwnqesU2Jew==
 
+"@types/serialize-error@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@types/serialize-error/-/serialize-error-4.0.1.tgz#6c872b2eee28fef13533d36e2cfd5ae3baa0df3f"
+  integrity sha512-hb75EHpnDajMUIskN1q6kNgciFQ81NP8wnowIF3kDd/Mcux7fNXCZiJJ/jQXtBQ6T1gEZ7Jk2LSayzbNPLHDtg==
+  dependencies:
+    serialize-error "*"
+
 "@types/serve-static@*":
   version "1.13.10"
   resolved "https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.10.tgz#f5e0ce8797d2d7cc5ebeda48a52c96c4fa47a8d9"
@@ -11419,6 +11426,13 @@ send@0.17.1:
     on-finished "~2.3.0"
     range-parser "~1.2.1"
     statuses "~1.5.0"
+
+serialize-error@*, serialize-error@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/serialize-error/-/serialize-error-8.1.0.tgz#3a069970c712f78634942ddd50fbbc0eaebe2f67"
+  integrity sha512-3NnuWfM6vBYoy5gZFvHiYsVbafvI9vZv/+jlIigFn4oP4zjNPK3LhcY0xSCgeb1a5L8jO71Mit9LlNoi2UfDDQ==
+  dependencies:
+    type-fest "^0.20.2"
 
 serialize-javascript@^4.0.0:
   version "4.0.0"
