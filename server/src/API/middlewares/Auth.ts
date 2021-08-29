@@ -21,12 +21,12 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
   await req.tg.connect()
   const data = await req.tg.getMe()
 
-  const { data: users } = await Supabase.build().from<Users>('users').select('*')
-    .eq('tg_id', data['id']).eq('username', data['username'])
-  if (!users?.length) {
+  const { data: user } = await Supabase.build().from<Users>('users').select('*')
+    .eq('tg_id', data['id']).eq('username', data['username']).single()
+  if (!user) {
     throw { status: 401, body: { error: 'User not found' } }
   }
-  req.user = users[0]
+  req.user = user
 
   return next()
 }
