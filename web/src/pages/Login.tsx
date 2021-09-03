@@ -1,4 +1,4 @@
-import React,{ useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Flex,
   Box,
@@ -18,13 +18,19 @@ function Login(): React.ReactElement {
   const { register: registerPhone, formState: { errors: errorsPhone }, handleSubmit: handleSubmitPhone } = useForm()
   const { register: registerCode, formState: { errors: errorsCode }, handleSubmit: handleSubmitCode } = useForm()
   const [sendFinish, setsendFinish] = useState<boolean>(false)
+
   const sendCode = (): void => {
     setsendFinish(true)
     console.log('sending code')
   }
+
   const signIn = (): void => {
     console.log('sign in')
   }
+
+  useEffect(() => {
+    console.log(errorsCode)
+  }, [errorsCode])
 
   return (
     <Flex
@@ -35,7 +41,7 @@ function Login(): React.ReactElement {
       bg={useColorModeValue('gray.50', 'gray.800')}
     >
       <Stack spacing={8} mx={'auto'} maxW={['md', 'md', 'xl']} py={12} px={6}>
-        <Heading fontSize={'4xl'} textAlign="center">Sign in Teledrive</Heading>
+        <Heading fontSize={'4xl'} textAlign="center">Sign in TeleDrive</Heading>
         <Box
           rounded={'lg'}
           bg={useColorModeValue('white', 'gray.700')}
@@ -47,7 +53,7 @@ function Login(): React.ReactElement {
               <FormControl id="phone">
                 <FormLabel>Phone number</FormLabel>
                 <HStack spacing={2}>
-                  <Input {...registerPhone('phone',{ required:true })} type="tel" required w={['40', '40', '64']} />
+                  <Input {...registerPhone('phone', { required:true })} type="tel" required w={['40', '40', '64']} />
                   <Button
                     form="login-form"
                     type="submit"
@@ -71,7 +77,7 @@ function Login(): React.ReactElement {
             <form onSubmit={handleSubmitCode(signIn)}>
               <FormControl id="code">
                 <FormLabel>Code</FormLabel>
-                <Input {...registerCode('code',{ required:true })} type="number" w={['40', '40', '64']} required/>
+                <Input {...registerCode('code', { required: true })} type="number" w={['40', '40', '64']} required />
               </FormControl>
               {errorsCode.code && <Text color="red">Code cannot be empty</Text>}
               <Button
