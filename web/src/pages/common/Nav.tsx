@@ -19,7 +19,7 @@ function Nav(): React.ReactElement {
       <Box bg={useColorModeValue('blue.400', 'blue.400')} px={4}>
         <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
           <HStack spacing={8} alignItems={'center'}>
-            <Heading size="md" as="h1" color="white">Teledrive</Heading>
+            <Heading size="md" as="h1" color="white">TeleDrive</Heading>
           </HStack>
           <Flex alignItems={'center'}>
             <Menu>
