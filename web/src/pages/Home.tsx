@@ -54,7 +54,7 @@ function Home(): React.ReactElement {
         </Text>
         <Stack>
           <Text color={'gray.500'} maxW={'3xl'}>
-            We coming very soon!
+            👋 Coming very soon!
           </Text>
           <InputGroup>
             <InputLeftElement
