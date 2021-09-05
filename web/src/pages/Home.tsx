@@ -1,18 +1,21 @@
 import { EmailIcon } from '@chakra-ui/icons'
 import {
-  Button, Container, Flex, Heading, Input, InputGroup, InputLeftElement, Stack,
-  Text, useToast
+  Avatar, Button, Container, Flex, Heading, Input, InputGroup, InputLeftElement, Link, Stack,
+  Text, useToast, Wrap, WrapItem
 } from '@chakra-ui/react'
-import axios from 'axios'
 import React, { useState } from 'react'
+import { Follow } from 'react-twitter-widgets'
+import useSWR from 'swr'
+import { fetcher, req } from '../utils'
 
 function Home(): React.ReactElement {
   const [email, setEmail] = useState<string>()
+  const { data: contributors } = useSWR('/github/contributors', fetcher)
   const toast = useToast()
 
   const subscribe = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL || ''}/api/v1/waitings`, { email })
+      await req.post('/waitings', { email })
       setEmail(undefined)
       toast({
         title: 'Thank you!',
@@ -81,6 +84,21 @@ function Home(): React.ReactElement {
             <img src="https://drive.google.com/uc?id=1o2HnKglEF0-cvtNmQqWZicJnSCSmnoEr" width="100%" />
           </a>
         </Flex>
+        <Stack>
+          <Heading as="h4" size="md">
+            Contributors
+          </Heading>
+          <Wrap>
+            {contributors?.contributors?.map((contributor: any, i: number) => <WrapItem key={i}>
+              <Link href={contributor.html_url} isExternal>
+                <Avatar name={contributor.login} src={contributor.avatar_url} />
+              </Link>
+            </WrapItem>)}
+          </Wrap>
+        </Stack>
+        <Stack>
+          <Follow username="teledriveapp" options={{ size: 'large' }} />
+        </Stack>
       </Stack>
     </Container>
   )

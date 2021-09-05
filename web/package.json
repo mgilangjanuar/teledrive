@@ -14,8 +14,8 @@
     "react-hook-form": "^7.14.0",
     "react-router-dom": "^5.2.1",
     "react-scripts": "4.0.3",
+    "react-twitter-widgets": "^1.10.0",
     "swr": "^1.0.0",
-    "typescript": "^4.0.3",
     "web-vitals": "^0.2.4",
     "workbox-background-sync": "^5.1.3",
     "workbox-broadcast-update": "^5.1.3",
@@ -66,6 +66,7 @@
     "@types/react-router-dom": "^5.1.8",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
-    "eslint": "^7.32.0"
+    "eslint": "^7.32.0",
+    "typescript": "^4.4.2"
   }
 }

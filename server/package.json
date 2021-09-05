@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^1.22.3",
+    "axios": "^0.21.3",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
@@ -23,6 +24,7 @@
     "telegram": "^1.8.9"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.12",
     "@types/dotenv": "^8.2.0",

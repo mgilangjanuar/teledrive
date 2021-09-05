@@ -2,7 +2,7 @@ import React from 'react'
 import { Container, Heading, HStack } from '@chakra-ui/react'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
-import { chunk, temporaryFetcher } from '../../utils/utils'
+import { chunk, temporaryFetcher } from '../../utils'
 import PhotoCard from './components/Album/PhotoCard'
 
 const Album: React.FC = () => {
