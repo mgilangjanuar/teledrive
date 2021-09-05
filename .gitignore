@@ -5,6 +5,6 @@ build/
 keys
 .env
 .vercel
-test.js
+lab/
 sessions/
 *.crt

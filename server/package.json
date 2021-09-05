@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "axios": "^0.21.3",
+    "big-integer": "^1.6.48",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/big-integer": "^0.0.31",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.12",
     "@types/dotenv": "^8.2.0",

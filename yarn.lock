@@ -2481,6 +2481,13 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/big-integer@^0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@types/big-integer/-/big-integer-0.0.31.tgz#021c505b5d8ad592cb7ffcda7af88b4fc12d4995"
+  integrity sha512-nYrYenHwC07vTBXoQ8jUUi6sednNYHGQxh0ecvfWm46n3djgxxbe7AZIJVaGjzQaEQVEcH6KmB6VMt//vAP0AA==
+  dependencies:
+    big-integer "*"
+
 "@types/body-parser@*":
   version "1.19.1"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.19.1.tgz#0c0174c42a7d017b818303d4b5d969cb0b75929c"
@@ -3808,7 +3815,7 @@ bfj@^7.0.2:
     hoopy "^0.1.4"
     tryer "^1.0.1"
 
-big-integer@^1.6.48:
+big-integer@*, big-integer@^1.6.48:
   version "1.6.48"
   resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.48.tgz#8fd88bd1632cba4a1c8c3e3d7159f08bb95b4b9e"
   integrity sha512-j51egjPa7/i+RdiRuJbPdJ2FIUYYPhvYLjzoYbcMMm62ooO6F94fETG4MTs46zPAF9Brs04OajboA/qTGuz78w==

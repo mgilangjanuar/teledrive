@@ -56,7 +56,6 @@ export const Endpoint = {
     return async function (req: Request, res: Response, next: NextFunction) {
       try {
         await target(req, res, next)
-        req.tg?.disconnect()
       } catch (error) {
         console.error(error)
         req.tg?.disconnect()
