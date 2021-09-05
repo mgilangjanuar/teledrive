@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm'
+import { Column, Entity, OneToMany } from 'typeorm'
 import { BaseModelWithID } from '../base/BaseModel'
+import { Files } from './Files'
 
 @Entity()
 export class Users extends BaseModelWithID {
@@ -15,4 +16,7 @@ export class Users extends BaseModelWithID {
 
   @Column('jsonb', { default: null })
   tg_raw?: any
+
+  @OneToMany(() => Files, files => files.user)
+  files?: Files[]
 }

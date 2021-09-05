@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm'
+import { Column, Entity, ManyToOne } from 'typeorm'
 import { BaseModelWithID } from '../base/BaseModel'
+import { Users } from './Users'
 
 @Entity()
 export class Files extends BaseModelWithID {
@@ -21,4 +22,10 @@ export class Files extends BaseModelWithID {
 
   @Column('jsonb', { default: null })
   upload_progress?: any
+
+  @Column()
+  user_id: string
+
+  @ManyToOne(() => Users, users => users.files, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  user?: Users
 }
