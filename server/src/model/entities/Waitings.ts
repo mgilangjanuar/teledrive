@@ -1,7 +1,7 @@
 import { Column, Entity } from 'typeorm'
 import { BaseModelWithID } from '../base/BaseModel'
 
-@Entity({ name: 'waitings' })
+@Entity()
 export class Waitings extends BaseModelWithID {
 
   @Column()
