@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
-import { Users } from '../../model/Users'
-import { Supabase } from '../../service/Supabase'
+import { Users } from '../../model/entities/Users'
 import { TG_CREDS } from '../../utils/Constant'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {
@@ -21,8 +20,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
   await req.tg.connect()
   const data = await req.tg.getMe()
 
-  const { data: user } = await Supabase.build().from<Users>('users').select('*')
-    .eq('tg_id', data['id']).eq('username', data['username']).single()
+  const user = await Users.findOne({ tg_id: data['id'], username: data['username'] })
   if (!user) {
     throw { status: 401, body: { error: 'User not found' } }
   }

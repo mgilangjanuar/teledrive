@@ -1,5 +1,5 @@
 import { TelegramClient } from 'telegram'
-import { Users } from './model/Users'
+import { Users } from './model/entities/Users'
 
 declare module 'http' {
   interface IncomingMessage {

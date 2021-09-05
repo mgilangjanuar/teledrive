@@ -5,12 +5,12 @@ import {
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import { Follow } from 'react-twitter-widgets'
-import useSWR from 'swr'
+import useSWRImmutable from 'swr/immutable'
 import { fetcher, req } from '../utils'
 
 function Home(): React.ReactElement {
   const [email, setEmail] = useState<string>()
-  const { data: contributors } = useSWR('/github/contributors', fetcher)
+  const { data: contributors } = useSWRImmutable('/github/contributors', fetcher)
   const toast = useToast()
 
   const subscribe = async () => {

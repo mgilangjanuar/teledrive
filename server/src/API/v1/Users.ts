@@ -1,9 +1,8 @@
 import { Request, Response } from 'express'
-import { Supabase } from '../../service/Supabase'
+import { Users as Model } from '../../model/entities/Users'
+import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
-import { Users as UsersModel } from '../../model/Users'
-import { filterQuery } from '../../utils/FilterQuery'
 
 @Endpoint.API()
 export class Users {
@@ -16,9 +15,7 @@ export class Users {
   @Endpoint.GET('/:username', { middlewares: [Auth] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { username } = req.params
-    const { data: user } = await Supabase.build().from<UsersModel>('users')
-      .select('*')
-      .eq('username', username).single()
+    const user = await Model.findOne({ username: username === 'me' ? req.user.username : username })
     if (!user) {
       throw { status: 404, body: { error: 'User not found' } }
     }
@@ -28,7 +25,13 @@ export class Users {
 
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
-    const users = await filterQuery(Supabase.build().from<UsersModel>('users').select('*'), req.query)
+    const { sort, skip, take, ...filters } = req.query
+    const users = await Model.createQueryBuilder('users')
+      .where(buildWhereQuery(filters))
+      .skip(Number(skip) || undefined)
+      .take(Number(take) || undefined)
+      .orderBy(buildSort(sort as string))
+      .getMany()
     return res.send({ users })
   }
 }

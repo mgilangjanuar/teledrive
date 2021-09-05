@@ -7,3 +7,4 @@ keys
 .vercel
 test.js
 sessions/
+*.crt
