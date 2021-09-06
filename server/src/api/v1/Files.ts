@@ -118,6 +118,8 @@ export class Files {
 
     res.status(202).send({ accepted: true })
 
+    let isUpdateProgress = true
+
     const data = await req.tg.sendFile('me', {
       file: file.buffer,
       fileSize: file.size,
@@ -125,8 +127,12 @@ export class Files {
         new Api.DocumentAttributeFilename({ fileName: file.originalname })
       ],
       progressCallback: async progress => {
-        saved.upload_progress = Number(progress)
-        await saved.save()
+        if (isUpdateProgress) {
+          await Model.update(saved.id, { upload_progress: progress })
+
+          isUpdateProgress = false
+          setTimeout(() => isUpdateProgress = true, 2000)
+        }
       },
       workers: 15
     })
