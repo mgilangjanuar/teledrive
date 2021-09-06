@@ -67,4 +67,30 @@ export class Files {
       }
     }))
   }
+
+  @Endpoint.GET({ middlewares: [Auth] })
+  public async test(req: Request, res: Response): Promise<any> {
+    const chat = await req.tg.invoke(new Api.messages.GetMessages({ id: [241152 as any] }))
+
+    let cancelled = false
+    req.on('close', () => cancelled = true)
+
+    const size = 1278989808
+    res.setHeader('Content-disposition', 'attachment; filename=The.Suicide.Squad.(2021).WEBDL.720p[Moviegan.live].mkv')
+    res.setHeader('Content-Type', 'video/x-matroska')
+    res.setHeader('Content-Length', size)
+    let data = null
+    const oneMB = 512 * 1024
+    let page = 0
+    while (!cancelled && (data === null || data.length && page * oneMB < size)) {
+      data = await req.tg.downloadMedia(chat['messages'][0].media, {
+        start: page++ * oneMB,
+        end: size < page * oneMB - 1 ? size : page * oneMB - 1,
+        workers: 15,
+        progressCallback: console.log
+      } as any)
+      res.write(data)
+    }
+    res.end()
+  }
 }
