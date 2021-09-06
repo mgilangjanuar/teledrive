@@ -26,17 +26,14 @@ export class Files extends BaseModelWithID {
   @Column({ type: 'timestamptz', default: null })
   uploaded_at?: Date
 
-  @Column('jsonb', { default: null })
-  upload_progress?: any
+  @Column({ default: null })
+  upload_progress?: number
 
   @Column()
   user_id: string
 
   @ManyToOne(() => Users, users => users.files, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
   user?: Users
-
-  @Column('jsonb')
-  media?: any
 
   @DeleteDateColumn({ type: 'timestamptz' })
   deleted_at?: Date

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import multer from 'multer'
 import { Api } from 'telegram'
 import { Files as Model } from '../../model/entities/Files'
 import { Endpoint } from '../base/Endpoint'
@@ -57,10 +58,9 @@ export class Files {
       return {
         name,
         message_id: chat.id,
-        path: '/',
+        path: './',
         mime_type: mimeType,
         size,
-        media: chat.media,
         user_id: req.user.id,
         uploaded_at: new Date(chat.date * 1000),
         type
@@ -70,14 +70,14 @@ export class Files {
 
   @Endpoint.GET({ middlewares: [Auth] })
   public async test(req: Request, res: Response): Promise<any> {
-    const chat = await req.tg.invoke(new Api.messages.GetMessages({ id: [241152 as any] }))
+    const chat = await req.tg.invoke(new Api.messages.GetMessages({ id: [241255 as any] }))
 
     let cancelled = false
     req.on('close', () => cancelled = true)
 
-    const size = 1278989808
-    res.setHeader('Content-disposition', 'attachment; filename=The.Suicide.Squad.(2021).WEBDL.720p[Moviegan.live].mkv')
-    res.setHeader('Content-Type', 'video/x-matroska')
+    const size = 28261
+    res.setHeader('Content-disposition', 'attachment; filename=ttest.png')
+    res.setHeader('Content-Type', 'application/octet-stream')
     res.setHeader('Content-Length', size)
     let data = null
     const oneMB = 512 * 1024
@@ -92,5 +92,48 @@ export class Files {
       res.write(data)
     }
     res.end()
+  }
+
+  @Endpoint.POST({ middlewares: [Auth, multer().single('upload')] })
+  public async test1(req: Request, res: Response): Promise<any> {
+    const file = req.file
+    let type = null
+    if (file.mimetype.match(/^image/gi)) {
+      type = 'image'
+    } else if (file.mimetype.match(/^video/gi)) {
+      type = 'video'
+    } else if (file.mimetype.match(/pdf$/gi)) {
+      type = 'document'
+    }
+
+    const saved = new Model()
+
+    saved.name = file.originalname,
+    saved.path = './'
+    saved.mime_type = file.mimetype
+    saved.size = file.size
+    saved.user_id = req.user.id
+    saved.type = type
+    await saved.save()
+
+    res.status(202).send({ accepted: true })
+
+    const data = await req.tg.sendFile('me', {
+      file: file.buffer,
+      fileSize: file.size,
+      attributes: [
+        new Api.DocumentAttributeFilename({ fileName: file.originalname })
+      ],
+      progressCallback: async progress => {
+        saved.upload_progress = Number(progress)
+        await saved.save()
+      },
+      workers: 15
+    })
+
+    saved.message_id = data.id
+    saved.updated_at = new Date(data.date * 1000)
+    await saved.save()
+
   }
 }
