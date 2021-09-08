@@ -1,8 +1,16 @@
 import React from 'react'
-import { Heading, HStack, VStack, Image, Text } from '@chakra-ui/react'
+import {
+  Heading,
+  Box,
+  Image,
+  Button,
+  Container,
+  useColorModeValue,
+} from '@chakra-ui/react'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import { temporaryFetcher } from '../../utils'
+import Nav from '../common/Nav'
 
 const Photo: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -12,26 +20,38 @@ const Photo: React.FC = () => {
     temporaryFetcher
   )
 
+  console.log(data)
+
   return (
-    <VStack mt={16}>
-      {data ?
-        <HStack justify="space-between" w="container.lg">
-          <Image
-            borderRadius="8px"
-            src={data.url}
-            w="500px"
-            h="500px"
-            objectFit="cover"
-          />
-          <VStack w="800px" h="400px" align="flex-start" p={8}>
-            <Heading size="lg" color="gray.600" mb={4}>Photo id: {id}</Heading>
-            <Text>Author name</Text>
-          </VStack>
-        </HStack>
-        :
-        <Text>Loading...</Text>
-      }
-    </VStack>
+    <Box bg={useColorModeValue('gray.50', 'gray.800')} minH="100vh">
+      <Container maxW="1400px" mx="auto" padding="0">
+        <Nav />
+        <Box
+          flexDir={['column', 'column', 'row']}
+          display="flex"
+          padding={['5', '5', '10']}
+          gridGap="10"
+        >
+          <Box width="max-content" mx={['auto', 'auto', '0']}>
+            <Image
+              borderRadius="8px"
+              src={data.url}
+              w={['300px', '300px', '500px']}
+              h={['300px', '300px', '500px']}
+              objectFit="cover"
+            />
+          </Box>
+          <Box>
+            <Heading size="lg" color="gray.600" mb={4}>
+              Picture of someone
+            </Heading>
+            <a href={data.url} download>
+              <Button colorScheme="blue">Download Image</Button>
+            </a>
+          </Box>
+        </Box>
+      </Container>
+    </Box>
   )
 }
 

@@ -10,8 +10,10 @@ import {
   MenuList,
   MenuItem,
   useColorModeValue,
-  Heading
+  Heading,
 } from '@chakra-ui/react'
+
+import { Link } from 'react-router-dom'
 
 function Nav(): React.ReactElement {
   return (
@@ -19,7 +21,11 @@ function Nav(): React.ReactElement {
       <Box bg={useColorModeValue('blue.400', 'blue.400')} px={4}>
         <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
           <HStack spacing={8} alignItems={'center'}>
-            <Heading size="md" as="h1" color="white">TeleDrive</Heading>
+            <Link to="/dashboard" aria-label="back to dashboard">
+              <Heading size="md" as="h1" color="white">
+                TeleDrive
+              </Heading>
+            </Link>
           </HStack>
           <Flex alignItems={'center'}>
             <Menu>
