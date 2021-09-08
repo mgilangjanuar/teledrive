@@ -16,6 +16,9 @@ import listEndpoints from 'express-list-endpoints'
 import morgan from 'morgan'
 import path from 'path'
 import { API } from './api'
+import { runDB } from './model'
+
+runDB()
 
 const app = express()
 app.use(cors({

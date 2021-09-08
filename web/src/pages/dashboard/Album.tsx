@@ -2,8 +2,8 @@ import React from 'react'
 import { Container, Heading, HStack } from '@chakra-ui/react'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
-import { chunk, temporaryFetcher } from '../../utils/utils'
-import PhotoCard from './components/PhotoCard'
+import { chunk, temporaryFetcher } from '../../utils'
+import PhotoCard from './components/Album/PhotoCard'
 
 const Album: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -18,10 +18,9 @@ const Album: React.FC = () => {
   return (
     <Container maxW="container.lg" my={16} alignSelf="center">
       <Heading size="lg">Album id: {id}</Heading>
-      {dataToRows.map(row =>
+      {dataToRows.map((row) =>
         <HStack mt={4}>
-          {row.map((item) =>
-            <PhotoCard key={item.id} id={item.id} imageUrl={item.url} />
+          {row.map((item) => <PhotoCard key={item.id} id={item.id} imageUrl={item.url} />
           )}
         </HStack>
       )}

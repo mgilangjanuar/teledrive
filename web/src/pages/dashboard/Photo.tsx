@@ -2,7 +2,7 @@ import React from 'react'
 import { Heading, HStack, VStack, Image, Text } from '@chakra-ui/react'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
-import { temporaryFetcher } from '../../utils/utils'
+import { temporaryFetcher } from '../../utils'
 
 const Photo: React.FC = () => {
   const { id } = useParams<{ id: string }>()
