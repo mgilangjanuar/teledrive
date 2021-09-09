@@ -35,7 +35,7 @@ const Photo: React.FC = () => {
           <Box width="max-content" mx={['auto', 'auto', '0']}>
             <Image
               borderRadius="8px"
-              src={data.url}
+              src={'#'}
               w={['300px', '300px', '500px']}
               h={['300px', '300px', '500px']}
               objectFit="cover"
@@ -45,7 +45,7 @@ const Photo: React.FC = () => {
             <Heading size="lg" color="gray.600" mb={4}>
               Picture of someone
             </Heading>
-            <a href={data.url} download>
+            <a href={'#'} download>
               <Button colorScheme="blue">Download Image</Button>
             </a>
           </Box>
