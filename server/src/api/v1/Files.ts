@@ -67,26 +67,42 @@ export class Files {
     }))
   }
 
-  @Endpoint.GET({ middlewares: [Auth] })
-  public async test(req: Request, res: Response): Promise<any> {
-    const chat = await req.tg.invoke(new Api.messages.GetMessages({ id: [241255 as any] }))
+  @Endpoint.GET('/download/:id', { middlewares: [Auth] })
+  public async download(req: Request, res: Response): Promise<any> {
+    const { id } = req.params
+    const file = await Model.findOne(id)
+    if (!file) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
 
-    let cancelled = false
-    req.on('close', () => cancelled = true)
+    const chat = await req.tg.invoke(new Api.messages.GetMessages({
+      id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+    }))
 
-    const size = 28261
-    res.setHeader('Content-disposition', 'attachment; filename=ttest.png')
-    res.setHeader('Content-Type', 'application/octet-stream')
+    let cancel = false
+    req.on('close', () => cancel = true)
+
+    const size = file.size
+    res.setHeader('Content-Disposition', `inline; filename=${file.name}`)
+    res.setHeader('Content-Type', file.mime_type)
     res.setHeader('Content-Length', size)
     let data = null
-    const oneMB = 512 * 1024
-    let page = 0
-    while (!cancelled && (data === null || data.length && page * oneMB < size)) {
+
+    const chunk = 512 * 1024
+    let idx = 0
+
+    while (!cancel && data === null || data.length && idx * chunk < size) {
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
-        start: page++ * oneMB,
-        end: size < page * oneMB - 1 ? size : page * oneMB - 1,
-        workers: 15,
-        progressCallback: console.log
+        start: idx++ * chunk,
+        end: size < idx * chunk - 1 ? size : idx * chunk - 1,
+        workers: 1,
+        progressCallback: (() => {
+          const updateProgess: any = (progress: number) => {
+            console.log('progress', progress)
+            updateProgess.isCanceled = cancel
+          }
+          return updateProgess
+        })()
       } as any)
       res.write(data)
     }
