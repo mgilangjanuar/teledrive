@@ -1,4 +1,4 @@
-import { Column, DeleteDateColumn, Entity, ManyToOne } from 'typeorm'
+import { Column, DeleteDateColumn, Entity, ManyToOne, OneToMany } from 'typeorm'
 import { BaseModelWithID } from '../base/BaseModel'
 import { Users } from './Users'
 
@@ -7,9 +7,6 @@ export class Files extends BaseModelWithID {
 
   @Column()
   name: string
-
-  @Column()
-  path: string
 
   @Column({ default: null })
   type?: string
@@ -34,6 +31,15 @@ export class Files extends BaseModelWithID {
 
   @ManyToOne(() => Users, users => users.files, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
   user?: Users
+
+  @Column({ default: null })
+  parent_id?: string
+
+  @ManyToOne(() => Files, file => file.children, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  parent?: Files
+
+  @OneToMany(() => Files, file => file.parent)
+  children?: Files[]
 
   @DeleteDateColumn({ type: 'timestamptz' })
   deleted_at?: Date
