@@ -52,6 +52,11 @@ export const Endpoint = {
       this._handlers.push(this._buildRouteHandler('put', method, descriptor, ...args))
     }
   },
+  DELETE: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
+    return (_: any, method: string, descriptor: PropertyDescriptor): void => {
+      this._handlers.push(this._buildRouteHandler('delete', method, descriptor, ...args))
+    }
+  },
   RequestWrapper: (target: RequestHandler): RequestHandler => {
     return async function (req: Request, res: Response, next: NextFunction) {
       try {
