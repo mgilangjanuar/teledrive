@@ -39,7 +39,7 @@ export class Files {
       return !excludeIds.includes(data.id.toString())
     }) : filteredData
 
-    // storing
+    // insert many
     await Model.insert(insertedData?.map(chat => {
       const mimeType = chat.media.photo ? 'image/jpeg' : chat.media.document.mimeType || 'unknown'
       const name = chat.media.photo ? `${chat.media.photo.id}.jpg` : chat.media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
@@ -82,20 +82,19 @@ export class Files {
     let cancel = false
     req.on('close', () => cancel = true)
 
-    const size = file.size
     res.setHeader('Content-Disposition', `inline; filename=${file.name}`)
     res.setHeader('Content-Type', file.mime_type)
-    res.setHeader('Content-Length', size)
+    res.setHeader('Content-Length', file.size)
     let data = null
 
     const chunk = 512 * 1024
     let idx = 0
 
-    while (!cancel && data === null || data.length && idx * chunk < size) {
+    while (!cancel && data === null || data.length && idx * chunk < file.size) {
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
         start: idx++ * chunk,
-        end: size < idx * chunk - 1 ? size : idx * chunk - 1,
-        workers: 1,
+        end: file.size < idx * chunk - 1 ? file.size : idx * chunk - 1,
+        workers: 1,   // using 1 for stable
         progressCallback: (() => {
           const updateProgess: any = (progress: number) => {
             console.log('progress', progress)
@@ -109,72 +108,73 @@ export class Files {
     res.end()
   }
 
+  @Endpoint.DELETE('/cancel/:id', { middlewares: [Auth] })
+  public async cancel(req: Request, res: Response): Promise<any> {
+    const { id } = req.params
+    const { affected } = await Model.delete({ id, user_id: req.user.id })
+    if (!affected) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+    return res.status(202).send({ accepted: true, file: { id } })
+  }
+
   @Endpoint.POST({ middlewares: [Auth, multer().single('upload')] })
-  public async test1(req: Request, res: Response): Promise<any> {
-    let saved: Model
+  public async upload(req: Request, res: Response): Promise<any> {
     const file = req.file
-    if (req.query.cancel) {
-      const { affected } = await Model.delete(req.query.cancel as string)
-      if (!affected) {
-        throw { status: 404, body: { error: 'File not found' } }
-      }
-      return res.status(202).send({ accepted: true, file: { id: req.query.cancel } })
-    } else if (file) {
-      let type = null
-      if (file.mimetype.match(/^image/gi)) {
-        type = 'image'
-      } else if (file.mimetype.match(/^video/gi)) {
-        type = 'video'
-      } else if (file.mimetype.match(/pdf$/gi)) {
-        type = 'document'
-      }
+    if (!file) {
+      throw { status: 400, body: { error: 'File upload is required' } }
+    }
 
-      saved = new Model()
-      saved.name = file.originalname,
-      saved.mime_type = file.mimetype
-      saved.size = file.size
-      saved.user_id = req.user.id
-      saved.type = type
-      await saved.save()
-      res.status(202).send({ accepted: true, file: { id: req.query.cancel || saved.id } })
+    let type = null
+    if (file.mimetype.match(/^image/gi)) {
+      type = 'image'
+    } else if (file.mimetype.match(/^video/gi)) {
+      type = 'video'
+    } else if (file.mimetype.match(/pdf$/gi)) {
+      type = 'document'
+    }
 
-      let isUpdateProgress = true
-      let cancel = false
-      const updateProgress = () => {
-        const updateProgess: any = async (progress: number) => {
-          if (isUpdateProgress) {
-            const { affected } = await Model.update(saved.id, { upload_progress: progress }, { reload: true })
-            if (affected) {
-              isUpdateProgress = false
-              setTimeout(() => isUpdateProgress = true, 2000)
-            } else {
-              cancel = true
+    const model = new Model()
+    model.name = file.originalname,
+    model.mime_type = file.mimetype
+    model.size = file.size
+    model.user_id = req.user.id
+    model.type = type
+    await model.save()
+    res.status(202).send({ accepted: true, file: { id: model.id } })
+
+    let isUpdateProgress = true
+    let cancel = false
+
+    let data: any
+    try {
+      data = await req.tg.sendFile('me', {
+        file: file.buffer,
+        fileSize: file.size,
+        attributes: [
+          new Api.DocumentAttributeFilename({ fileName: file.originalname })
+        ],
+        progressCallback: (() => {
+          const updateProgess: any = async (progress: number) => {
+            if (isUpdateProgress) {
+              const { affected } = await Model.update(model.id, { upload_progress: progress }, { reload: true })
+              if (affected) {
+                isUpdateProgress = false
+                setTimeout(() => isUpdateProgress = true, 2000)
+              } else {
+                cancel = true
+              }
             }
+            updateProgess.isCanceled = cancel
           }
-          updateProgess.isCanceled = cancel
-        }
-        return updateProgess
-      }
+          return updateProgess
+        })(),
+        workers: 1
+      })
 
-      let data: any
-      try {
-        data = await req.tg.sendFile('me', {
-          file: file.buffer,
-          fileSize: file.size,
-          attributes: [
-            new Api.DocumentAttributeFilename({ fileName: file.originalname })
-          ],
-          progressCallback: updateProgress(),
-          workers: 15
-        })
-
-        await Model.update(saved.id, { message_id: data.id, updated_at: new Date(data.date * 1000) })
-      } catch (error) {
-        await Model.delete(saved.id)
-      }
-
-    } else {
-      throw { status: 400, body: { error: 'Upload file is required' } }
+      await Model.update(model.id, { message_id: data.id, uploaded_at: new Date(data.date * 1000) })
+    } catch (error) {
+      await Model.delete(model.id)
     }
   }
 }
