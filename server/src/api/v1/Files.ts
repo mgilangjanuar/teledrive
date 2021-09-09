@@ -70,7 +70,7 @@ export class Files {
   @Endpoint.GET('/download/:id', { middlewares: [Auth] })
   public async download(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const file = await Model.findOne(id)
+    const file = await Model.findOne({ id, user_id: req.user.id })
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
     }
