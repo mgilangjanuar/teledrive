@@ -27,7 +27,8 @@ export async function filterQuery<T = any>(base: Record<string, any>, query: Rec
 export function buildWhereQuery(data: Record<string, any>): string {
   const res = Object.keys(data).reduce((res, key) => {
     let item = ''
-    const [column, op] = key.split(/(.+)\./).slice(1)
+
+    const [column, op] = key.split(/(.+)\./).filter(Boolean)
     if (!op) {
       item = `${column} = '${data[key].trim()}'`
     } else if (op === 'lt') {
@@ -42,7 +43,7 @@ export function buildWhereQuery(data: Record<string, any>): string {
       const [from, to] = data[key].trim().split('_')
       item = `${column} between '${from.trim()}' and '${to.trim()}'`
     } else {
-      item = `${column} ${op} '${data[key].trim()}'`
+      item = `${column} ${op} ${data[key].trim()}`
     }
     return [...res, item]
   }, []).join(' and ')

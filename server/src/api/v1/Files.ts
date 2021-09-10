@@ -2,11 +2,71 @@ import { Request, Response } from 'express'
 import multer from 'multer'
 import { Api } from 'telegram'
 import { Files as Model } from '../../model/entities/Files'
+import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
 
 @Endpoint.API()
 export class Files {
+
+  @Endpoint.GET('/', { middlewares: [Auth] })
+  public async find(req: Request, res: Response): Promise<any> {
+    const { sort, skip, take, ...filters } = req.query
+    const files = await Model.createQueryBuilder('files')
+      .where(buildWhereQuery(filters))
+      .skip(Number(skip) || undefined)
+      .take(Number(take) || undefined)
+      .orderBy(buildSort(sort as string))
+      .getMany()
+    return res.send({ files })
+  }
+
+  @Endpoint.GET('/:id', { middlewares: [Auth] })
+  public async retrieve(req: Request, res: Response): Promise<any> {
+    const { id } = req.params
+    const { raw } = req.query
+
+    const file = await Model.findOne({ id, user_id: req.user.id })
+    if (!file) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    if (!raw || Number(raw) === 0) {
+      return res.send({ file })
+    }
+
+    const chat = await req.tg.invoke(new Api.messages.GetMessages({
+      id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+    }))
+
+    let cancel = false
+    req.on('close', () => cancel = true)
+
+    res.setHeader('Content-Disposition', `inline; filename=${file.name}`)
+    res.setHeader('Content-Type', file.mime_type)
+    res.setHeader('Content-Length', file.size)
+    let data = null
+
+    const chunk = 512 * 1024
+    let idx = 0
+
+    while (!cancel && data === null || data.length && idx * chunk < file.size) {
+      data = await req.tg.downloadMedia(chat['messages'][0].media, {
+        start: idx++ * chunk,
+        end: file.size < idx * chunk - 1 ? file.size : idx * chunk - 1,
+        workers: 1,   // using 1 for stable
+        progressCallback: (() => {
+          const updateProgess: any = (progress: number) => {
+            console.log('progress', progress)
+            updateProgess.isCanceled = cancel
+          }
+          return updateProgess
+        })()
+      } as any)
+      res.write(data)
+    }
+    res.end()
+  }
 
   @Endpoint.POST({ middlewares: [Auth] })
   public async sync(req: Request, res: Response): Promise<any> {
@@ -67,55 +127,37 @@ export class Files {
     }))
   }
 
-  @Endpoint.GET('/download/:id', { middlewares: [Auth] })
-  public async download(req: Request, res: Response): Promise<any> {
+  @Endpoint.DELETE('/:id', { middlewares: [Auth] })
+  public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const file = await Model.findOne({ id, user_id: req.user.id })
-    if (!file) {
-      throw { status: 404, body: { error: 'File not found' } }
-    }
-
-    const chat = await req.tg.invoke(new Api.messages.GetMessages({
-      id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-    }))
-
-    let cancel = false
-    req.on('close', () => cancel = true)
-
-    res.setHeader('Content-Disposition', `inline; filename=${file.name}`)
-    res.setHeader('Content-Type', file.mime_type)
-    res.setHeader('Content-Length', file.size)
-    let data = null
-
-    const chunk = 512 * 1024
-    let idx = 0
-
-    while (!cancel && data === null || data.length && idx * chunk < file.size) {
-      data = await req.tg.downloadMedia(chat['messages'][0].media, {
-        start: idx++ * chunk,
-        end: file.size < idx * chunk - 1 ? file.size : idx * chunk - 1,
-        workers: 1,   // using 1 for stable
-        progressCallback: (() => {
-          const updateProgess: any = (progress: number) => {
-            console.log('progress', progress)
-            updateProgess.isCanceled = cancel
-          }
-          return updateProgess
-        })()
-      } as any)
-      res.write(data)
-    }
-    res.end()
-  }
-
-  @Endpoint.DELETE('/cancel/:id', { middlewares: [Auth] })
-  public async cancel(req: Request, res: Response): Promise<any> {
-    const { id } = req.params
-    const { affected } = await Model.delete({ id, user_id: req.user.id })
+    const { affected, raw } = await Model.createQueryBuilder('files')
+      .delete()
+      .where({ id, user_id: req.user.id })
+      .returning('*')
+      .execute()
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
     }
-    return res.status(202).send({ accepted: true, file: { id } })
+    return res.send({ file: raw[0] })
+  }
+
+  @Endpoint.PATCH('/:id', { middlewares: [Auth] })
+  public async update(req: Request, res: Response): Promise<any> {
+    const { id } = req.params
+    const { file } = req.body
+    if (!file) {
+      throw { status: 400, body: { error: 'File is required in body.' } }
+    }
+
+    const { affected, raw } = await Model.createQueryBuilder('files')
+      .update(file)
+      .where({ id, user_id: req.user.id })
+      .returning('*')
+      .execute()
+    if (!affected) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+    return res.send({ file: raw[0] })
   }
 
   @Endpoint.POST({ middlewares: [Auth, multer().single('upload')] })
