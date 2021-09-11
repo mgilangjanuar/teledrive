@@ -21,6 +21,19 @@ export class Files {
     return res.send({ files })
   }
 
+  @Endpoint.POST({ middlewares: [Auth] })
+  public async addFolder(req: Request, res: Response): Promise<any> {
+    const count = await Model.count({ type: 'folder', user_id: req.user.id })
+    const file = new Model()
+    file.name = `New Folder${count ? ` (${count})` : ''}`,
+    file.mime_type = 'teledrive/folder'
+    file.size = 0
+    file.user_id = req.user.id
+    file.type = 'folder'
+    await file.save()
+    return res.send({ file })
+  }
+
   @Endpoint.GET('/:id', { middlewares: [Auth] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
