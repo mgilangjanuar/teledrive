@@ -42,7 +42,7 @@ export class Files {
     const { raw } = req.query
 
     const file = await Model.createQueryBuilder('files')
-      .where('id = :id and (user_id = :user_id or :user_id = any(sharing_options)) or \'*\' = any(sharing_options)', {
+      .where('id = :id and (user_id = :user_id or :user_id = any(sharing_options) or \'*\' = any(sharing_options))', {
         id, user_id: req.user.id })
       .getOne()
     if (!file) {
