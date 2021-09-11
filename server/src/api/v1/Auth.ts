@@ -56,9 +56,14 @@ export class Auth {
     await req.tg.connect()
     const signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
     const user = signIn['user']
-    await Users.insert([
-      { username: user.username, name: `${user.firstName} ${user.lastName || ''}`.trim(), tg_id: user.id, tg_raw: user }
-    ])
+    if (!await Users.findOne({ tg_id: user.id })) {
+      await Users.insert([{
+        username: user.username,
+        name: `${user.firstName} ${user.lastName || ''}`.trim(),
+        tg_id: user.id,
+        tg_raw: user
+      }])
+    }
 
     const session = req.tg.session.save()
     return res.cookie('authorization', `Bearer ${session}`)
