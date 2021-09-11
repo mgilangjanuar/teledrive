@@ -71,4 +71,11 @@ export class Auth {
     const data = await req.tg.getMe()
     return res.send({ user: data })
   }
+
+  @Endpoint.POST({ middlewares: [TGSessionAuth] })
+  public async logout(req: Request, res: Response): Promise<any> {
+    await req.tg.connect()
+    const data = await req.tg.invoke(new Api.auth.LogOut())
+    return res.send({ success: data })
+  }
 }

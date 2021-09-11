@@ -23,14 +23,14 @@ export class Files {
 
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
-    const count = await Model.count({ type: 'folder', user_id: req.user.id })
-    const file = new Model()
-    file.name = `New Folder${count ? ` (${count})` : ''}`,
-    file.mime_type = 'teledrive/folder'
-    file.size = 0
-    file.user_id = req.user.id
-    file.type = 'folder'
-    await file.save()
+    const { file: data } = req.body
+    const count = data.name ? null : await Model.count({ type: 'folder', user_id: req.user.id })
+    const file = await Model.insert({
+      name: data.name || `New Folder${count ? ` (${count})` : ''}`,
+      mime_type: 'teledrive/folder',
+      user_id: req.user.id,
+      type: 'folder',
+    })
     return res.send({ file })
   }
 
