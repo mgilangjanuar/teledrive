@@ -43,4 +43,7 @@ export class Files extends BaseModelWithID {
 
   @DeleteDateColumn({ type: 'timestamptz' })
   deleted_at?: Date
+
+  @Column('jsonb', { default: null })
+  sharing_options?: string[]
 }
