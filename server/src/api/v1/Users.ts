@@ -7,14 +7,18 @@ import { Auth } from '../middlewares/Auth'
 @Endpoint.API()
 export class Users {
 
-  @Endpoint.GET({ middlewares: [Auth] })
-  public async me(req: Request, res: Response): Promise<any> {
-    return res.send({ user: req.user })
-  }
-
-  @Endpoint.GET('/:username', { middlewares: [Auth] })
+  @Endpoint.GET('/:username/:photo?', { middlewares: [Auth] })
   public async retrieve(req: Request, res: Response): Promise<any> {
-    const { username } = req.params
+    const { username, photo } = req.params
+    if (photo === 'photo') {
+      const file = await req.tg.downloadProfilePhoto(username, { isBig: false })
+      res.setHeader('Content-Disposition', `inline; filename=${username === 'me' ? req.user.username : username}.jpg`)
+      res.setHeader('Content-Type', 'image/jpeg')
+      res.setHeader('Content-Length', file.length)
+      res.write(file)
+      return res.end()
+    }
+
     const user = await Model.findOne({ username: username === 'me' ? req.user.username : username })
     if (!user) {
       throw { status: 404, body: { error: 'User not found' } }
