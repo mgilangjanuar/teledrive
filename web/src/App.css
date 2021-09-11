@@ -1,0 +1,27 @@
+body, p {
+  font-size: 1.125rem;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+.ant-layout, footer, .ant-layout-footer {
+  background: #fff;
+}
+
+.container {
+  padding: 24px 12px;
+}
+
+.logo {
+  float: left;
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.2em;
+}
+
+.ant-drawer-content-wrapper {
+  width: 100% !important;
+  max-width: 480px;
+}
