@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
 import multer from 'multer'
 import { Api } from 'telegram'
-import { Any } from 'typeorm'
 import { Files as Model } from '../../model/entities/Files'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
