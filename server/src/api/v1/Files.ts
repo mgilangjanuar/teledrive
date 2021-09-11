@@ -13,7 +13,8 @@ export class Files {
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, skip, take, ...filters } = req.query
     const files = await Model.createQueryBuilder('files')
-      .where(buildWhereQuery(filters))
+      .where('files.user_id = :user_id', { user_id: req.user.id })
+      .andWhere(buildWhereQuery(filters) || 'true')
       .skip(Number(skip) || undefined)
       .take(Number(take) || undefined)
       .orderBy(buildSort(sort as string))
@@ -24,14 +25,15 @@ export class Files {
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
-    const count = data.name ? null : await Model.count({ type: 'folder', user_id: req.user.id })
-    const file = await Model.insert({
-      name: data.name || `New Folder${count ? ` (${count})` : ''}`,
+    const count = data?.name ? null : await Model.count({ type: 'folder', user_id: req.user.id })
+    const { raw } = await Model.createQueryBuilder('files').insert().values({
+      name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
       mime_type: 'teledrive/folder',
       user_id: req.user.id,
       type: 'folder',
-    })
-    return res.send({ file })
+      parent_id: data?.parent_id
+    }).returning('*').execute()
+    return res.send({ file: raw[0] })
   }
 
   @Endpoint.GET('/:id', { middlewares: [Auth] })
@@ -39,7 +41,10 @@ export class Files {
     const { id } = req.params
     const { raw } = req.query
 
-    const file = await Model.findOne({ id, user_id: req.user.id })
+    const file = await Model.createQueryBuilder('files')
+      .where('id = :id and (user_id = :user_id or :user_id = any(sharing_options) or \'*\' = any(sharing_options))', {
+        id, user_id: req.user.id })
+      .getOne()
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
     }
@@ -119,6 +124,7 @@ export class Files {
 
       const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
       const size = chat.media.photo ? getSizes(chat.media.photo.sizes.pop()) : chat.media.document?.size
+
       let type = chat.media.photo ? 'image' : null
       if (!type) {
         if (chat.media.document.mimeType.match(/^video/gi)) {

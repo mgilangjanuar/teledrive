@@ -38,6 +38,11 @@ app.use(morgan('tiny'))
 app.get('/ping', (_, res) => res.send({ pong: true }))
 app.use('/api', API)
 
+// error handler
+app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
+  return res.status(err.status || 500).send(err.body || { error: 'Something error' })
+})
+
 // serve web
 app.use(serveStatic(path.join(__dirname, '..', '..', 'web', 'build')))
 app.use((req: Request, res: Response) => {
@@ -49,11 +54,6 @@ app.use((req: Request, res: Response) => {
   } catch (error) {
     return res.send({ empty: true })
   }
-})
-
-// error handler
-app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
-  return res.status(err.status || 500).send(err.body || { error: 'Something error' })
 })
 
 app.listen(process.env.PORT || 4000, () => console.log(`Running at :${process.env.PORT || 4000}...`))

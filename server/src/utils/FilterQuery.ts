@@ -47,7 +47,6 @@ export function buildWhereQuery(data: Record<string, any>): string {
     }
     return [...res, item]
   }, []).join(' and ')
-  console.log(res)
   return res
 }
 
