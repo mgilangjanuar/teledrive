@@ -1,7 +1,8 @@
 import axios from 'axios'
 
 export const req = axios.create({
-  baseURL: `${process.env.REACT_APP_API_URL || ''}/api/v1`
+  baseURL: `${process.env.REACT_APP_API_URL || ''}/api/v1`,
+  withCredentials: true
 })
 
 export const fetcher = async (url: string, authorization?: string): Promise<any> => {

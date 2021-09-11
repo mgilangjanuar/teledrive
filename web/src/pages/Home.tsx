@@ -1,6 +1,7 @@
 import { CloudOutlined, DollarCircleOutlined, RightOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Button, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
+import React from 'react'
 import { Follow } from 'react-twitter-widgets'
 import { req } from '../utils/Fetcher'
 import Footer from './components/Footer'
