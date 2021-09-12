@@ -49,10 +49,10 @@ const Home: React.FC = () => {
             <Layout.Content style={{ marginTop: '40px' }}>
               <Form form={form} layout="inline" onFinish={submit}>
                 <Form.Item name="email" rules={[{ required: true, message: 'Email required.' }]}>
-                  <Input style={{ width: '132px' }} size="large" type="email" placeholder="Email" />
+                  <Input style={{ width: '148px' }} type="email" placeholder="Email" />
                 </Form.Item>
                 <Form.Item>
-                  <Button size="large" htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
+                  <Button htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
                     Get Early Access <RightOutlined />
                   </Button>
                 </Form.Item>
@@ -116,7 +116,7 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '50px 0', background: '#f0f2f5', textAlign: 'right' }}>
+      <Row style={{ marginTop: '50px', padding: '50px 0', background: '#f0f2f5', textAlign: 'center' }}>
         <Col span={20} offset={2}>
           <Typography.Title level={2}>Our Contributors</Typography.Title>
           <Space wrap>

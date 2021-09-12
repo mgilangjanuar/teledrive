@@ -29,6 +29,10 @@ body, p {
   font-size: 1.2em;
 }
 
+.upload .ant-drawer-content-wrapper {
+  height: 50% !important;
+}
+
 .input-search-round input {
   border-radius: 32px 0 0 32px !important;
   padding: 4px 16px;

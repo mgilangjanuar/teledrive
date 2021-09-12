@@ -8,7 +8,8 @@ import {
   FolderOpenOutlined,
   SyncOutlined,
   UploadOutlined,
-  VideoCameraOutlined
+  VideoCameraOutlined,
+  InboxOutlined
 } from '@ant-design/icons'
 import {
   Button,
@@ -21,7 +22,8 @@ import {
   Table,
   TablePaginationConfig,
   Tooltip,
-  Typography
+  Typography,
+  Upload
 } from 'antd'
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
 import moment from 'moment'
@@ -30,7 +32,7 @@ import qs from 'qs'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
 import useSWR, { mutate } from 'swr'
-import { fetcher, req } from '../../utils/Fetcher'
+import { apiUrl, fetcher, req } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
@@ -49,6 +51,7 @@ const Dashboard: React.FC = () => {
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, error: errorFiles } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
+  const { data: filesUpload, error: errorFilesUpload } = useSWR(upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null, fetcher, { refreshInterval: 3000 })
 
   useEffect(() => {
     if (errorMe) {
@@ -57,14 +60,14 @@ const Dashboard: React.FC = () => {
   }, [errorMe])
 
   useEffect(() => {
+    fetch()
+  }, [])
+
+  useEffect(() => {
     if (files?.files) {
       setData(files.files.map((file: any) => ({ ...file, key: file.id })))
     }
   }, [files])
-
-  useEffect(() => {
-    fetch()
-  }, [])
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
@@ -102,6 +105,68 @@ const Dashboard: React.FC = () => {
     })
   }
 
+  const columns = [
+    {
+      title: 'File',
+      dataIndex: 'name',
+      key: 'name',
+      ellipsis: true,
+      render: (value: any, row: any) => {
+        let component
+        if (row.type === 'image') {
+          component = <FileImageOutlined />
+        } else if (row.type === 'video') {
+          component = <VideoCameraOutlined />
+        } else if (row.type === 'document') {
+          component = <FilePdfOutlined />
+        } else if (row.type === 'folder') {
+          component = <FolderOpenOutlined />
+        } else if (row.type === 'audio') {
+          component = <AudioOutlined />
+        } else {
+          component = <FileOutlined />
+        }
+        return <Button type="link" size="small">{component} {value}</Button>
+      }
+    },
+    {
+      title: 'Size',
+      dataIndex: 'size',
+      key: 'size',
+      responsive: ['md'],
+      width: 100,
+      align: 'center',
+      render: (value: any) => prettyBytes(value)
+    },
+    {
+      title: 'Uploaded At',
+      dataIndex: 'uploaded_at',
+      key: 'uploaded_at',
+      responsive: ['md'],
+      width: 220,
+      align: 'center',
+      render: (value: any, row: any) => row.upload_progress ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).format('llll')
+    },
+    {
+      title: 'Actions',
+      dataIndex: 'actions',
+      key: 'actions',
+      width: 90,
+      align: 'center',
+      render: () => <Dropdown placement="bottomRight" overlay={<Menu>
+        <Menu.Item key="download">Download</Menu.Item>
+        <Menu.Item key="rename">Rename</Menu.Item>
+        <Menu.SubMenu key="submenu" title="Move to">
+
+        </Menu.SubMenu>
+        <Menu.Item key="share">Share</Menu.Item>
+        <Menu.Item key="delete" danger>Delete</Menu.Item>
+      </Menu>}>
+        <EllipsisOutlined />
+      </Dropdown>
+    }
+  ]
+
   return <>
     <Navbar user={me?.user} />
     <Layout.Content className="container">
@@ -127,70 +192,9 @@ const Dashboard: React.FC = () => {
             </Space>
           </Typography.Paragraph>
           <Table loading={!files && !errorFiles}
-            rowSelection={{ type: 'checkbox', selectedRowKeys: selected, onChange: (keys: React.Key[]) => {
-              setSelected(keys)
-            } }} dataSource={data}
-            columns={[
-              {
-                title: 'File',
-                dataIndex: 'name',
-                key: 'name',
-                ellipsis: true,
-                render: (value, row) => {
-                  let component
-                  if (row.type === 'image') {
-                    component = <FileImageOutlined />
-                  } else if (row.type === 'video') {
-                    component = <VideoCameraOutlined />
-                  } else if (row.type === 'document') {
-                    component = <FilePdfOutlined />
-                  } else if (row.type === 'folder') {
-                    component = <FolderOpenOutlined />
-                  } else if (row.type === 'audio') {
-                    component = <AudioOutlined />
-                  } else {
-                    component = <FileOutlined />
-                  }
-                  return <Button type="link" size="small">{component} {value}</Button>
-                }
-              },
-              {
-                title: 'Size',
-                dataIndex: 'size',
-                key: 'size',
-                responsive: ['md'],
-                width: 100,
-                align: 'center',
-                render: value => prettyBytes(value)
-              },
-              {
-                title: 'Uploaded At',
-                dataIndex: 'uploaded_at',
-                key: 'uploaded_at',
-                responsive: ['md'],
-                width: 220,
-                align: 'center',
-                render: (value, row) => row.upload_progress ? <>Uploading ${Number(row.upload_progress * 100)}%</> : moment(value).format('llll')
-              },
-              {
-                title: 'Actions',
-                dataIndex: 'actions',
-                key: 'actions',
-                width: 90,
-                align: 'center',
-                render: () => <Dropdown placement="bottomRight" overlay={<Menu>
-                  <Menu.Item key="download">Download</Menu.Item>
-                  <Menu.Item key="rename">Rename</Menu.Item>
-                  <Menu.SubMenu key="submenu" title="Move to">
-
-                  </Menu.SubMenu>
-                  <Menu.Item key="share">Share</Menu.Item>
-                  <Menu.Item key="delete" danger>Delete</Menu.Item>
-                </Menu>}>
-                  <EllipsisOutlined />
-                </Dropdown>
-              }
-            ]} onChange={change} pagination={{
+            rowSelection={{ type: 'checkbox', selectedRowKeys: selected, onChange: (keys: React.Key[]) => setSelected(keys) }}
+            dataSource={data}
+            columns={columns as any} onChange={change} pagination={{
               current: dataChanges?.pagination.current,
               pageSize: PAGE_SIZE,
               total: files?.length,
@@ -198,8 +202,19 @@ const Dashboard: React.FC = () => {
             }} scroll={{ x: 480 }} />
         </Col>
       </Row>
-      <Drawer title="Uploading..." visible={upload} onClose={() => setUpload(false)} placement="bottom">
-
+      <Drawer className="upload" title="Uploading..." visible={upload} onClose={() => setUpload(false)} placement="bottom">
+        <Typography.Paragraph>
+          <Upload.Dragger name="upload" action={`${apiUrl}/files/upload`} withCredentials maxCount={1}>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">Click or drag file to this area to upload</p>
+          </Upload.Dragger>
+        </Typography.Paragraph>
+        <Table loading={!filesUpload && !errorFilesUpload}
+          columns={columns as any}
+          dataSource={filesUpload?.files}
+          pagination={false} />
       </Drawer>
     </Layout.Content>
     <Footer />
