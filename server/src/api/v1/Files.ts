@@ -31,7 +31,8 @@ export class Files {
       mime_type: 'teledrive/folder',
       user_id: req.user.id,
       type: 'folder',
-      parent_id: data?.parent_id
+      parent_id: data?.parent_id,
+      uploaded_at: new Date()
     }).returning('*').execute()
     return res.send({ file: raw[0] })
   }

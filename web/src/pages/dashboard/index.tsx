@@ -21,8 +21,10 @@ import {
   TablePaginationConfig,
   Tooltip,
   Typography,
-  Upload
+  Upload,
+  Form
 } from 'antd'
+import { useForm } from 'antd/lib/form/Form'
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -47,6 +49,8 @@ const Dashboard: React.FC = () => {
   const [params, setParams] = useState<any>()
   const [upload, setUpload] = useState<boolean>()
   const [loadingSync, setLoadingSync] = useState<boolean>()
+  const [addFolder, setAddFolder] = useState<boolean>()
+  const [formAddFolder] = useForm()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, error: errorFiles } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
@@ -84,7 +88,9 @@ const Dashboard: React.FC = () => {
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         return { ...res, ...filters?.[key]?.[0] !== undefined ? { [key]: filters[key]?.[0] } : {} }
       }, {}),
-      ...(sorter as SorterResult<any>)?.order ? { sort: `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}` } : {},
+      ...(sorter as SorterResult<any>)?.order ? {
+        sort: `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
+      } : { sort: 'uploaded_at:desc' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {}
     })
   }
@@ -97,7 +103,7 @@ const Dashboard: React.FC = () => {
   const sync = async () => {
     setLoadingSync(true)
     await req.post('/files/sync')
-    await new Promise(res => setTimeout(res, 2000))
+    await new Promise(res => setTimeout(res, 3000))
     mutate(`/files?${qs.stringify(params)}`)
     setLoadingSync(false)
   }
@@ -117,6 +123,21 @@ const Dashboard: React.FC = () => {
     mutate(`/files?${qs.stringify(params)}`)
     setSelected([])
     setSelectDeleted([])
+  }
+
+  const createFolder = async () => {
+    const { name } = formAddFolder.getFieldsValue()
+    try {
+      const { data } = await req.post('/files/addFolder', {
+        file: { name, parent_id: parent }
+      })
+      message.success(`Folder ${data.file.name} created successfully!`)
+      formAddFolder.resetFields()
+      mutate(`/files?${qs.stringify(params)}`)
+      setAddFolder(false)
+    } catch (error) {
+      return message.error('Failed to create new folder')
+    }
   }
 
   const columns = [
@@ -150,7 +171,7 @@ const Dashboard: React.FC = () => {
       responsive: ['md'],
       width: 100,
       align: 'center',
-      render: (value: any) => prettyBytes(value)
+      render: (value: any) => value ? prettyBytes(value) : '-'
     },
     {
       title: 'Uploaded At',
@@ -170,12 +191,11 @@ const Dashboard: React.FC = () => {
       render: (_: any, row: any) => row.upload_progress ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
         <Button size="small" type="link">Cancel</Button>
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
-        <Menu.Item key="download">Download</Menu.Item>
         <Menu.Item key="rename">Rename</Menu.Item>
+        <Menu.Item key="share">Share</Menu.Item>
         <Menu.SubMenu key="submenu" title="Move to">
 
         </Menu.SubMenu>
-        <Menu.Item key="share">Share</Menu.Item>
         <Menu.Item key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
       </Menu>}>
         <EllipsisOutlined />
@@ -197,7 +217,7 @@ const Dashboard: React.FC = () => {
                 <Button shape="circle" icon={<SyncOutlined />} onClick={sync} loading={loadingSync} />
               </Tooltip>
               <Tooltip title="Add folder">
-                <Button shape="circle" icon={<FolderAddOutlined />} />
+                <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
               </Tooltip>
               <Tooltip title="Delete">
                 <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
@@ -247,11 +267,16 @@ const Dashboard: React.FC = () => {
         okText="Remove"
         okButtonProps={{ danger: true, type: 'primary' }}>
         <Typography.Paragraph>
-          Are you to delete this?
+          Are you sure to delete {selectDeleted?.length > 1 ? `${selectDeleted?.length} objects` : selectDeleted?.[0]?.name }?
         </Typography.Paragraph>
-        <ul>
-          {selectDeleted?.map(data => <li>{data.name}</li>)}
-        </ul>
+      </Modal>
+
+      <Modal visible={addFolder} onCancel={() => setAddFolder(false)} okText="Add" title="Add Folder" onOk={() => formAddFolder.submit()}>
+        <Form form={formAddFolder} layout="vertical" onFinish={createFolder}>
+          <Form.Item name="name" label="Name">
+            <Input placeholder="New Folder" />
+          </Form.Item>
+        </Form>
       </Modal>
     </Layout.Content>
     <Footer />
