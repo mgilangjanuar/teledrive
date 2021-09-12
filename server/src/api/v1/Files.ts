@@ -31,7 +31,8 @@ export class Files {
       mime_type: 'teledrive/folder',
       user_id: req.user.id,
       type: 'folder',
-      parent_id: data?.parent_id
+      parent_id: data?.parent_id,
+      uploaded_at: new Date()
     }).returning('*').execute()
     return res.send({ file: raw[0] })
   }
@@ -191,11 +192,11 @@ export class Files {
     let type = null
     if (file.mimetype.match(/^image/gi)) {
       type = 'image'
-    } else if (file.mimetype.match(/^video/gi)) {
+    } else if (file.mimetype.match(/^video/gi) || file.originalname.match(/\.mp4$/gi) || file.originalname.match(/\.mkv$/gi) || file.originalname.match(/\.mov$/gi)) {
       type = 'video'
     } else if (file.mimetype.match(/pdf$/gi) || file.originalname.match(/\.doc$/gi) || file.originalname.match(/\.docx$/gi) || file.originalname.match(/\.xls$/gi) || file.originalname.match(/\.xlsx$/gi)) {
       type = 'document'
-    } else if (file.mimetype.match(/audio$/gi)) {
+    } else if (file.mimetype.match(/audio$/gi) || file.originalname.match(/\.mp3$/gi) || file.originalname.match(/\.ogg$/gi)) {
       type = 'audio'
     }
 
