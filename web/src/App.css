@@ -10,6 +10,10 @@ body, p {
   min-height: 100vh;
 }
 
+.ant-layout-header {
+  padding: 0 30px;
+}
+
 .ant-layout, footer, .ant-layout-footer {
   background: #fff;
 }

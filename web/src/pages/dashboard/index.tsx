@@ -69,6 +69,15 @@ const Dashboard: React.FC = () => {
 
   const change = async (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[], _: TableCurrentDataSource<any>) => {
     setDataChanges({ pagination, filters, sorter })
+    setParams({
+      parent_id: parent || undefined,
+      take: PAGE_SIZE,
+      skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
+      ...Object.keys(filters || {})?.reduce((res, key: string) => {
+        return { ...res, ...filters?.[key]?.[0] !== undefined ? { [key]: filters[key]?.[0] } : {} }
+      }, {}),
+      sort: (sorter as SorterResult<any>)?.order ? `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}` : 'uploaded_at'
+    })
   }
 
   const sync = async () => {
@@ -170,7 +179,7 @@ const Dashboard: React.FC = () => {
             pageSize: PAGE_SIZE,
             total: files?.length,
             showTotal: (total: any, range: any) => `${range[0]}-${range[1]} of ${total} items`
-          }} scroll={{ x: 360 }} />
+          }} scroll={{ x: 480 }} />
         </Col>
       </Row>
 
