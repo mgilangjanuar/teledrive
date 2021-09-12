@@ -13,6 +13,7 @@ import {
 import {
   Button,
   Col,
+  Drawer,
   Dropdown,
   Input,
   Layout, Menu, Popconfirm, Row,
@@ -34,14 +35,16 @@ import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
 const Dashboard: React.FC = () => {
-  const PAGE_SIZE = 5
+  const PAGE_SIZE = 10
 
   const location = useHistory()
   const [parent, _setParent] = useState<string | null>(null)
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
+  const [keyword, setKeyword] = useState<string>()
   const [params, setParams] = useState<any>()
+  const [upload, setUpload] = useState<boolean>()
   const [loadingSync, setLoadingSync] = useState<boolean>()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
@@ -54,21 +57,16 @@ const Dashboard: React.FC = () => {
   }, [errorMe])
 
   useEffect(() => {
-    setParams({
-      parent_id: parent || undefined,
-      skip: 0,
-      take: PAGE_SIZE
-    })
-  }, [parent])
-
-  useEffect(() => {
     if (files?.files) {
       setData(files.files.map((file: any) => ({ ...file, key: file.id })))
     }
   }, [files])
 
-  const change = async (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[], _: TableCurrentDataSource<any>) => {
-    setDataChanges({ pagination, filters, sorter })
+  useEffect(() => {
+    fetch()
+  }, [])
+
+  const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
       parent_id: parent || undefined,
       take: PAGE_SIZE,
@@ -76,8 +74,14 @@ const Dashboard: React.FC = () => {
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         return { ...res, ...filters?.[key]?.[0] !== undefined ? { [key]: filters[key]?.[0] } : {} }
       }, {}),
-      sort: (sorter as SorterResult<any>)?.order ? `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}` : 'uploaded_at'
+      ...(sorter as SorterResult<any>)?.order ? { sort: `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}` } : {},
+      ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {}
     })
+  }
+
+  const change = async (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[], _: TableCurrentDataSource<any>) => {
+    setDataChanges({ pagination, filters, sorter })
+    fetch(pagination, filters, sorter)
   }
 
   const sync = async () => {
@@ -88,28 +92,38 @@ const Dashboard: React.FC = () => {
     setLoadingSync(false)
   }
 
+  const search = async (value: string) => {
+    setKeyword(value)
+    setParams({
+      parent_id: parent || undefined,
+      take: PAGE_SIZE,
+      skip: 0,
+      'name.ilike': `'%${value}%'`
+    })
+  }
+
   return <>
     <Navbar user={me?.user} />
     <Layout.Content className="container">
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
-          <Typography.Paragraph>
+          <Typography.Paragraph style={{ textAlign: 'right' }}>
             <Space wrap>
               <Tooltip title="Upload">
-                <Button shape="round" icon={<UploadOutlined />} type="primary" />
+                <Button onClick={() => setUpload(true)} shape="circle" icon={<UploadOutlined />} type="primary" />
               </Tooltip>
               <Tooltip title="Sync">
-                <Button shape="round" icon={<SyncOutlined />} onClick={sync} loading={loadingSync} />
+                <Button shape="circle" icon={<SyncOutlined />} onClick={sync} loading={loadingSync} />
               </Tooltip>
               <Tooltip title="Add folder">
-                <Button shape="round" icon={<FolderAddOutlined />} />
+                <Button shape="circle" icon={<FolderAddOutlined />} />
               </Tooltip>
               <Tooltip title="Delete">
                 <Popconfirm title={`Are you sure to delete ${selected?.length} objects?`}>
-                  <Button shape="round" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} />
+                  <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} />
                 </Popconfirm>
               </Tooltip>
-              <Input.Search className="input-search-round" placeholder="Search..." enterButton />
+              <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={search} />
             </Space>
           </Typography.Paragraph>
           <Table loading={!files && !errorFiles}
@@ -171,7 +185,7 @@ const Dashboard: React.FC = () => {
 
                   </Menu.SubMenu>
                   <Menu.Item key="share">Share</Menu.Item>
-                  <Menu.Item key="delete" icon={<DeleteOutlined />} danger>Delete</Menu.Item>
+                  <Menu.Item key="delete" danger>Delete</Menu.Item>
                 </Menu>}>
                   <EllipsisOutlined />
                 </Dropdown>
@@ -184,7 +198,9 @@ const Dashboard: React.FC = () => {
             }} scroll={{ x: 480 }} />
         </Col>
       </Row>
+      <Drawer title="Uploading..." visible={upload} onClose={() => setUpload(false)} placement="bottom">
 
+      </Drawer>
     </Layout.Content>
     <Footer />
   </>

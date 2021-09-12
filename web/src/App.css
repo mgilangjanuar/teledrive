@@ -29,13 +29,8 @@ body, p {
   font-size: 1.2em;
 }
 
-.ant-drawer-content-wrapper {
-  width: 100% !important;
-  max-width: 480px;
-}
-
 .input-search-round input {
-  border-radius: 32px 0 0 32px;
+  border-radius: 32px 0 0 32px !important;
   padding: 4px 16px;
 }
 
