@@ -1,13 +1,15 @@
 import { CloudOutlined, DollarCircleOutlined, RightOutlined, SecurityScanOutlined } from '@ant-design/icons'
-import { Button, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
+import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
 import { Follow } from 'react-twitter-widgets'
-import { req } from '../utils/Fetcher'
+import useSWRImmutable from 'swr/immutable'
+import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
 const Home: React.FC = () => {
+  const { data } = useSWRImmutable('/github/contributors', fetcher)
   const [form] = useForm()
 
   const submit = async () => {
@@ -46,11 +48,11 @@ const Home: React.FC = () => {
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
               <Form form={form} layout="inline" onFinish={submit}>
-                <Form.Item name="email" rules={[{ required: true, message: 'Please input your email' }]}>
-                  <Input size="large" type="email" placeholder="Email" />
+                <Form.Item name="email" rules={[{ required: true, message: 'Email required.' }]}>
+                  <Input style={{ width: '132px' }} size="large" type="email" placeholder="Email" />
                 </Form.Item>
                 <Form.Item>
-                  <Button shape="round" size="large" htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
+                  <Button size="large" htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
                     Get Early Access <RightOutlined />
                   </Button>
                 </Form.Item>
@@ -111,6 +113,19 @@ const Home: React.FC = () => {
               </Typography.Paragraph>
             </Col>
           </Row>
+        </Col>
+      </Row>
+
+      <Row style={{ marginTop: '50px', padding: '50px 0', background: '#f0f2f5', textAlign: 'right' }}>
+        <Col span={20} offset={2}>
+          <Typography.Title level={2}>Our Contributors</Typography.Title>
+          <Space wrap>
+            {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>
+              <a href={contributor.html_url} target="_blank">
+                <Avatar size="large" src={contributor.avatar_url} />
+              </a>
+            </Tooltip>)}
+          </Space>
         </Col>
       </Row>
     </Layout.Content>
