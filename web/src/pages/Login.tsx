@@ -34,7 +34,10 @@ const Login: React.FC = () => {
       setCountdown(60)
     } catch (error: any) {
       setLoadingSendCode(false)
-      return message.error(error?.response?.data?.error || 'Something error')
+      message.error(error?.response?.data?.error || 'Something error')
+      if (error?.response?.status === 400) {
+        message.info('Please reload your browser and try it again...')
+      }
     }
   }
 

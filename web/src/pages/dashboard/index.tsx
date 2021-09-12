@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
   const PAGE_SIZE = 5
 
   const location = useHistory()
-  const [parent, setParent] = useState<string | null>(null)
+  const [parent, _setParent] = useState<string | null>(null)
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
@@ -112,74 +112,76 @@ const Dashboard: React.FC = () => {
               <Input.Search className="input-search-round" placeholder="Search..." enterButton />
             </Space>
           </Typography.Paragraph>
-          <Table rowSelection={{ type: 'checkbox', selectedRowKeys: selected, onChange: (keys: React.Key[]) => {
-            setSelected(keys)
-          } }} dataSource={data} columns={[
-            {
-              title: 'File',
-              dataIndex: 'name',
-              key: 'name',
-              ellipsis: true,
-              render: (value, row) => {
-                let component
-                if (row.type === 'image') {
-                  component = <FileImageOutlined />
-                } else if (row.type === 'video') {
-                  component = <VideoCameraOutlined />
-                } else if (row.type === 'document') {
-                  component = <FilePdfOutlined />
-                } else if (row.type === 'folder') {
-                  component = <FolderOpenOutlined />
-                } else if (row.type === 'audio') {
-                  component = <AudioOutlined />
-                } else {
-                  component = <FileOutlined />
+          <Table loading={!files && !errorFiles}
+            rowSelection={{ type: 'checkbox', selectedRowKeys: selected, onChange: (keys: React.Key[]) => {
+              setSelected(keys)
+            } }} dataSource={data}
+            columns={[
+              {
+                title: 'File',
+                dataIndex: 'name',
+                key: 'name',
+                ellipsis: true,
+                render: (value, row) => {
+                  let component
+                  if (row.type === 'image') {
+                    component = <FileImageOutlined />
+                  } else if (row.type === 'video') {
+                    component = <VideoCameraOutlined />
+                  } else if (row.type === 'document') {
+                    component = <FilePdfOutlined />
+                  } else if (row.type === 'folder') {
+                    component = <FolderOpenOutlined />
+                  } else if (row.type === 'audio') {
+                    component = <AudioOutlined />
+                  } else {
+                    component = <FileOutlined />
+                  }
+                  return <Button type="link" size="small">{component} {value}</Button>
                 }
-                return <Button type="link" size="small">{component} {value}</Button>
-              }
-            },
-            {
-              title: 'Size',
-              dataIndex: 'size',
-              key: 'size',
-              responsive: ['md'],
-              width: 100,
-              align: 'center',
-              render: value => prettyBytes(value)
-            },
-            {
-              title: 'Uploaded At',
-              dataIndex: 'uploaded_at',
-              key: 'uploaded_at',
-              responsive: ['md'],
-              width: 220,
-              align: 'center',
-              render: (value, row) => row.upload_progress ? <>Uploading ${Number(row.upload_progress * 100)}%</> : moment(value).format('llll')
-            },
-            {
-              title: 'Actions',
-              dataIndex: 'actions',
-              key: 'actions',
-              width: 90,
-              align: 'center',
-              render: (_, row) => <Dropdown placement="bottomRight" overlay={<Menu>
-                <Menu.Item key="download">Download</Menu.Item>
-                <Menu.Item key="rename">Rename</Menu.Item>
-                <Menu.SubMenu key="submenu" title="Move to">
+              },
+              {
+                title: 'Size',
+                dataIndex: 'size',
+                key: 'size',
+                responsive: ['md'],
+                width: 100,
+                align: 'center',
+                render: value => prettyBytes(value)
+              },
+              {
+                title: 'Uploaded At',
+                dataIndex: 'uploaded_at',
+                key: 'uploaded_at',
+                responsive: ['md'],
+                width: 220,
+                align: 'center',
+                render: (value, row) => row.upload_progress ? <>Uploading ${Number(row.upload_progress * 100)}%</> : moment(value).format('llll')
+              },
+              {
+                title: 'Actions',
+                dataIndex: 'actions',
+                key: 'actions',
+                width: 90,
+                align: 'center',
+                render: () => <Dropdown placement="bottomRight" overlay={<Menu>
+                  <Menu.Item key="download">Download</Menu.Item>
+                  <Menu.Item key="rename">Rename</Menu.Item>
+                  <Menu.SubMenu key="submenu" title="Move to">
 
-                </Menu.SubMenu>
-                <Menu.Item key="share">Share</Menu.Item>
-                <Menu.Item key="delete" icon={<DeleteOutlined />} danger>Delete</Menu.Item>
-              </Menu>}>
-                <EllipsisOutlined />
-              </Dropdown>
-            }
-          ]} onChange={change} pagination={{
-            current: dataChanges?.pagination.current,
-            pageSize: PAGE_SIZE,
-            total: files?.length,
-            showTotal: (total: any, range: any) => `${range[0]}-${range[1]} of ${total} items`
-          }} scroll={{ x: 480 }} />
+                  </Menu.SubMenu>
+                  <Menu.Item key="share">Share</Menu.Item>
+                  <Menu.Item key="delete" icon={<DeleteOutlined />} danger>Delete</Menu.Item>
+                </Menu>}>
+                  <EllipsisOutlined />
+                </Dropdown>
+              }
+            ]} onChange={change} pagination={{
+              current: dataChanges?.pagination.current,
+              pageSize: PAGE_SIZE,
+              total: files?.length,
+              showTotal: (total: any, range: any) => `${range[0]}-${range[1]} of ${total} items`
+            }} scroll={{ x: 480 }} />
         </Col>
       </Row>
 
