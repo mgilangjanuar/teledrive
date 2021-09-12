@@ -114,7 +114,7 @@ export class Files {
       .where('message_id in (:...ids)', { ids: filteredData.map(data => data.id) }).getMany() : null
     const excludeIds = existingData?.map(data => data.message_id) || []
     const insertedData = existingData ? filteredData.filter(data => {
-      return !excludeIds.includes(data.id.toString())
+      return !excludeIds.includes(data.id)
     }) : filteredData
 
     // insert many
@@ -127,10 +127,12 @@ export class Files {
 
       let type = chat.media.photo ? 'image' : null
       if (!type) {
-        if (chat.media.document.mimeType.match(/^video/gi)) {
+        if (chat.media.document.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
           type = 'video'
-        } else if (chat.media.document.mimeType.match(/pdf$/gi)) {
+        } else if (chat.media.document.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
           type = 'document'
+        } else if (chat.media.document.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+          type = 'audio'
         }
       }
 
@@ -191,8 +193,10 @@ export class Files {
       type = 'image'
     } else if (file.mimetype.match(/^video/gi)) {
       type = 'video'
-    } else if (file.mimetype.match(/pdf$/gi)) {
+    } else if (file.mimetype.match(/pdf$/gi) || file.originalname.match(/\.doc$/gi) || file.originalname.match(/\.docx$/gi) || file.originalname.match(/\.xls$/gi) || file.originalname.match(/\.xlsx$/gi)) {
       type = 'document'
+    } else if (file.mimetype.match(/audio$/gi)) {
+      type = 'audio'
     }
 
     const model = new Model()

@@ -1,27 +1,33 @@
 import {
   DeleteOutlined,
-  EllipsisOutlined, FileImageOutlined,
+  EllipsisOutlined,
+  FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
   FolderAddOutlined,
   FolderOpenOutlined,
-  VideoCameraOutlined,
-  SyncOutlined
+  SyncOutlined,
+  UploadOutlined,
+  VideoCameraOutlined
 } from '@ant-design/icons'
 import {
   Button,
   Col,
+  Dropdown,
   Layout, Menu, Row,
   Space,
   Table,
+  TablePaginationConfig,
   Typography
 } from 'antd'
+import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
+import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import qs from 'qs'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
-import useSWR from 'swr'
-import { fetcher } from '../../utils/Fetcher'
+import useSWR, { mutate } from 'swr'
+import { fetcher, req } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
@@ -31,8 +37,10 @@ const Dashboard: React.FC = () => {
   const location = useHistory()
   const [parent, setParent] = useState<string | null>(null)
   const [data, setData] = useState<any[]>([])
+  const [dataChanges, setDataChanges] = useState<{ pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
   const [params, setParams] = useState<any>()
+  const [loadingSync, setLoadingSync] = useState<boolean>()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, error: errorFiles } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
@@ -51,20 +59,39 @@ const Dashboard: React.FC = () => {
     })
   }, [parent])
 
+  useEffect(() => {
+    if (files?.files) {
+      setData(files.files.map((file: any) => ({ ...file, key: file.id })))
+    }
+  }, [files])
+
+  const change = async (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[], _: TableCurrentDataSource<any>) => {
+    setDataChanges({ pagination, filters, sorter })
+  }
+
+  const sync = async () => {
+    setLoadingSync(true)
+    await req.post('/files/sync')
+    await new Promise(res => setTimeout(res, 2000))
+    mutate(`/files?${qs.stringify(params)}`)
+    setLoadingSync(false)
+  }
+
   return <>
     <Navbar user={me?.user} />
     <Layout.Content className="container">
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
-            <Space>
-              <Button icon={<SyncOutlined />}>Sync</Button>
-              <Button icon={<FolderAddOutlined />}>Add Folder</Button>
-              <Button icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length}>Delete</Button>
+            <Space wrap>
+              <Button size="small" icon={<UploadOutlined />} type="primary">Upload</Button>
+              <Button size="small" icon={<SyncOutlined />} onClick={sync} loading={loadingSync}>Sync</Button>
+              <Button size="small" icon={<FolderAddOutlined />}>Add Folder</Button>
+              <Button size="small" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length}>Delete</Button>
             </Space>
           </Typography.Paragraph>
-          <Table rowSelection={{ type: 'checkbox', onChange: (_: React.Key[], selectedRows: any[]) => {
-            setSelected(selectedRows)
+          <Table rowSelection={{ type: 'checkbox', selectedRowKeys: selected, onChange: (keys: React.Key[]) => {
+            setSelected(keys)
           } }} dataSource={data} columns={[
             {
               title: 'File',
@@ -98,28 +125,28 @@ const Dashboard: React.FC = () => {
               dataIndex: 'uploaded_at',
               key: 'uploaded_at',
               responsive: ['md'],
-              render: (value, row) => row.upload_progress ? <>Uploading ${Number(row.upload_progress * 100)}%</> : value
+              render: (value, row) => row.upload_progress ? <>Uploading ${Number(row.upload_progress * 100)}%</> : moment(value).format('llll')
             },
             {
               title: 'Actions',
               dataIndex: 'actions',
               key: 'actions',
-              render: (_, row) => <Menu>
-                <Menu.SubMenu key="menu" icon={<EllipsisOutlined />}>
-                  <Menu.Item key="rename">Rename</Menu.Item>
-                  <Menu.SubMenu key="submenu" title="Move to">
+              render: (_, row) => <Dropdown placement="bottomRight" overlay={<Menu>
+                <Menu.Item key="rename">Rename</Menu.Item>
+                <Menu.SubMenu key="submenu" title="Move to">
 
-                  </Menu.SubMenu>
-                  <Menu.Item key="delete" icon={<DeleteOutlined />} danger>Delete</Menu.Item>
                 </Menu.SubMenu>
-              </Menu>
+                <Menu.Item key="delete" icon={<DeleteOutlined />} danger>Delete</Menu.Item>
+              </Menu>}>
+                <EllipsisOutlined />
+              </Dropdown>
             }
-          ]} pagination={{
-            // current: dataChanges?.pagination.current,
+          ]} onChange={change} pagination={{
+            current: dataChanges?.pagination.current,
             pageSize: PAGE_SIZE,
             total: files?.length,
             showTotal: (total: any, range: any) => `${range[0]}-${range[1]} of ${total} items`
-          }} />
+          }} scroll={{ x: 360 }} />
         </Col>
       </Row>
 

@@ -77,8 +77,7 @@ export class Auth {
         username: user.username,
         name: `${user.firstName} ${user.lastName || ''}`.trim(),
         email: waiting.email,
-        tg_id: user.id,
-        tg_raw: user
+        tg_id: user.id
       }])
     }
 
