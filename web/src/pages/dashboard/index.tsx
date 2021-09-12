@@ -9,7 +9,8 @@ import {
   SyncOutlined,
   UploadOutlined,
   VideoCameraOutlined,
-  InboxOutlined
+  InboxOutlined,
+  WarningOutlined
 } from '@ant-design/icons'
 import {
   Button,
@@ -17,7 +18,7 @@ import {
   Drawer,
   Dropdown,
   Input,
-  Layout, Menu, Popconfirm, Row,
+  Layout, Menu, message, Modal, Popconfirm, Row,
   Space,
   Table,
   TablePaginationConfig,
@@ -44,6 +45,7 @@ const Dashboard: React.FC = () => {
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
+  const [selectDeleted, setSelectDeleted] = useState<any[]>([])
   const [keyword, setKeyword] = useState<string>()
   const [params, setParams] = useState<any>()
   const [upload, setUpload] = useState<boolean>()
@@ -51,7 +53,9 @@ const Dashboard: React.FC = () => {
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, error: errorFiles } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
-  const { data: filesUpload, error: errorFilesUpload } = useSWR(upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null, fetcher, { refreshInterval: 3000 })
+  const { data: filesUpload, error: errorFilesUpload } = useSWR(
+    upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null,
+    fetcher, { refreshInterval: 3000 })
 
   useEffect(() => {
     if (errorMe) {
@@ -60,7 +64,7 @@ const Dashboard: React.FC = () => {
   }, [errorMe])
 
   useEffect(() => {
-    fetch()
+    fetch({}, {}, { column: { key: 'uploaded_at' }, order: 'descend' })
   }, [])
 
   useEffect(() => {
@@ -68,6 +72,12 @@ const Dashboard: React.FC = () => {
       setData(files.files.map((file: any) => ({ ...file, key: file.id })))
     }
   }, [files])
+
+  useEffect(() => {
+    if (!upload) {
+      mutate(`/files?${qs.stringify(params)}`)
+    }
+  }, [upload])
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
@@ -103,6 +113,13 @@ const Dashboard: React.FC = () => {
       skip: 0,
       'name.ilike': `'%${value}%'`
     })
+  }
+
+  const remove = async (ids: string[]) => {
+    await Promise.all(ids.map(async id => await req.delete(`/files/${id}`)))
+    mutate(`/files?${qs.stringify(params)}`)
+    setSelected([])
+    setSelectDeleted([])
   }
 
   const columns = [
@@ -153,14 +170,16 @@ const Dashboard: React.FC = () => {
       key: 'actions',
       width: 90,
       align: 'center',
-      render: () => <Dropdown placement="bottomRight" overlay={<Menu>
+      render: (_: any, row: any) => row.upload_progress ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
+        <Button size="small" type="link">Cancel</Button>
+      </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
         <Menu.Item key="download">Download</Menu.Item>
         <Menu.Item key="rename">Rename</Menu.Item>
         <Menu.SubMenu key="submenu" title="Move to">
 
         </Menu.SubMenu>
         <Menu.Item key="share">Share</Menu.Item>
-        <Menu.Item key="delete" danger>Delete</Menu.Item>
+        <Menu.Item key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
       </Menu>}>
         <EllipsisOutlined />
       </Dropdown>
@@ -184,15 +203,13 @@ const Dashboard: React.FC = () => {
                 <Button shape="circle" icon={<FolderAddOutlined />} />
               </Tooltip>
               <Tooltip title="Delete">
-                <Popconfirm title={`Are you sure to delete ${selected?.length} objects?`}>
-                  <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} />
-                </Popconfirm>
+                <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
               </Tooltip>
-              <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={search} />
+              <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={search} allowClear />
             </Space>
           </Typography.Paragraph>
           <Table loading={!files && !errorFiles}
-            rowSelection={{ type: 'checkbox', selectedRowKeys: selected, onChange: (keys: React.Key[]) => setSelected(keys) }}
+            rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
             dataSource={data}
             columns={columns as any} onChange={change} pagination={{
               current: dataChanges?.pagination.current,
@@ -202,9 +219,18 @@ const Dashboard: React.FC = () => {
             }} scroll={{ x: 480 }} />
         </Col>
       </Row>
-      <Drawer className="upload" title="Uploading..." visible={upload} onClose={() => setUpload(false)} placement="bottom">
+
+      <Drawer className="upload" title="Upload" visible={upload} onClose={() => setUpload(false)} placement="bottom">
         <Typography.Paragraph>
-          <Upload.Dragger name="upload" action={`${apiUrl}/files/upload`} withCredentials maxCount={1}>
+          <Upload.Dragger name="upload"
+            action={`${apiUrl}/files/upload`}
+            withCredentials
+            maxCount={1}
+            onChange={({ file }) => {
+              if (file.status === 'done') {
+                message.info('Uploading to Telegram...')
+              }
+            }}>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
@@ -216,6 +242,20 @@ const Dashboard: React.FC = () => {
           dataSource={filesUpload?.files}
           pagination={false} />
       </Drawer>
+
+      <Modal visible={!!selectDeleted?.length}
+        title={<><WarningOutlined /> Confirmation</>}
+        onCancel={() => setSelectDeleted([])}
+        onOk={() => remove(selectDeleted.map(data => data.id))}
+        okText="Remove"
+        okButtonProps={{ danger: true, type: 'primary' }}>
+        <Typography.Paragraph>
+          Are you to delete this?
+        </Typography.Paragraph>
+        <ul>
+          {selectDeleted?.map(data => <li>{data.name}</li>)}
+        </ul>
+      </Modal>
     </Layout.Content>
     <Footer />
   </>

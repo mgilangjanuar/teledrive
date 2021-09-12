@@ -1,10 +1,11 @@
 import { GithubOutlined, TwitterOutlined } from '@ant-design/icons'
-import { Button, Layout, Space, Typography } from 'antd'
+import { Button, Divider, Layout, Space, Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
 const Footer: React.FC = () => {
   return <Layout.Footer style={{ textAlign: 'center' }}>
+    <Divider />
     <Typography.Paragraph>
       <Typography.Text>TeleDrive &copy; 2021</Typography.Text>
     </Typography.Paragraph>

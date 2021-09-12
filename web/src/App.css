@@ -30,10 +30,10 @@ body, p {
 }
 
 .upload .ant-drawer-content-wrapper {
-  height: 50% !important;
+  height: 52% !important;
 }
 
-.input-search-round input {
+.input-search-round input, .input-search-round .ant-input-affix-wrapper {
   border-radius: 32px 0 0 32px !important;
   padding: 4px 16px;
 }
