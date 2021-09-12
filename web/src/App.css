@@ -1,3 +1,7 @@
+html, body {
+  overflow-x: hidden !important;
+}
+
 body, p {
   font-size: 1.125rem;
 }

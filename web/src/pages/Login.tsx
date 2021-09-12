@@ -1,17 +1,27 @@
 import { Button, Card, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
-import JSCookie from 'js-cookie'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useHistory } from 'react-router'
 import { req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
 const Login: React.FC = () => {
+  const history = useHistory()
   const [formLogin] = useForm()
   const [loadingSendCode, setLoadingSendCode] = useState<boolean>()
   const [loadingLogin, setLoadingLogin] = useState<boolean>()
   const [countdown, setCountdown] = useState<number>()
+  const [token, setToken] = useState<string>()
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (!params?.get('token')) {
+      return history.replace('/')
+    }
+    setToken(params.get('token') as string)
+  }, [])
 
   const sendCode = async (phoneNumber: string) => {
     if (!phoneNumber) {
@@ -19,8 +29,7 @@ const Login: React.FC = () => {
     }
     try {
       setLoadingSendCode(true)
-      const { data } = await req.post('/auth/sendCode', { phoneNumber })
-      JSCookie.set('authorization', `Bearer ${data.accessToken}`)
+      const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { token, phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { token, phoneNumber })
       setPhoneCodeHash(data.phoneCodeHash)
       setCountdown(60)
     } catch (error: any) {
@@ -36,10 +45,10 @@ const Login: React.FC = () => {
     setLoadingLogin(true)
     const { phoneNumber, phoneCode } = formLogin.getFieldsValue()
     try {
-      const { data } = await req.post('/auth/login', { phoneNumber, phoneCode, phoneCodeHash })
-      JSCookie.set('authorization', `Bearer ${data.accessToken}`)
+      const { data } = await req.post('/auth/login', { token, phoneNumber, phoneCode, phoneCodeHash })
       setLoadingLogin(false)
-      return message.success(`Welcome back, ${data.user.username}!`)
+      message.success(`Welcome back, ${data.user.username}!`)
+      return history.replace('/dashboard')
     } catch (error: any) {
       setLoadingLogin(false)
       return message.error(error?.response?.data?.error || 'Something error')
@@ -65,10 +74,10 @@ const Login: React.FC = () => {
             </Typography.Paragraph>
             <Form layout="horizontal" form={formLogin} onFinish={login} labelCol={{ span: 9 }} wrapperCol={{ span: 15 }}>
               <Form.Item label="Phone Number" name="phoneNumber" rules={[{ required: true, message: 'Please input your phone number' }]}>
-                <Input.Search placeholder="628912345678" enterButton={countdown ? `Wait in ${countdown}s...` : 'Send code'} loading={loadingSendCode} onSearch={sendCode} />
+                <Input.Search type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} />
               </Form.Item>
               <Form.Item label="Code" name="phoneCode" rules={[{ required: true, message: 'Please input your code' }]}>
-                <Input placeholder="98765" />
+                <Input />
               </Form.Item>
               <Form.Item wrapperCol={{ span: 15, offset: 9 }}>
                 <Button type="primary" htmlType="submit" loading={loadingLogin}>Login</Button>

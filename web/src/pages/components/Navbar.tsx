@@ -1,13 +1,23 @@
-import { UserOutlined } from '@ant-design/icons'
-import { Layout, Menu } from 'antd'
-import { Link } from 'react-router-dom'
+import { LogoutOutlined } from '@ant-design/icons'
+import { Avatar, Layout, Menu } from 'antd'
 import React from 'react'
+import { useHistory } from 'react-router'
+import { Link } from 'react-router-dom'
+import { apiUrl, req } from '../../utils/Fetcher'
 
 interface Props {
   user?: any
 }
 
+
 const Navbar: React.FC<Props> = ({ user }) => {
+  const history = useHistory()
+
+  const logout = () => {
+    req.post('/auth/logout')
+    history.replace('/')
+  }
+
   return <>
     <Layout.Header style={{ background: '#0088CC' }}>
       <div key="logo" className="logo">
@@ -15,9 +25,9 @@ const Navbar: React.FC<Props> = ({ user }) => {
           <img style={{ width: '24px' }} src="/logo192.png" alt="icon.png" />&nbsp; TeleDrive
         </Link>
       </div>
-      {user ? <Menu key="menu" mode="horizontal" theme="dark" style={{ float: 'right' }}>
-        <Menu.SubMenu key="user" icon={<UserOutlined />}>
-          <Menu.Item key="email">{user?.email || 'Anonymous'}</Menu.Item>
+      {user ? <Menu key="menu" mode="horizontal" style={{ float: 'right', background: '#0088CC' }}>
+        <Menu.SubMenu key="user" icon={<Avatar src={`${apiUrl}/users/me/photo`} />}>
+          <Menu.Item danger key="logout" onClick={logout} icon={<LogoutOutlined />}>Logout</Menu.Item>
         </Menu.SubMenu>
       </Menu> : ''}
     </Layout.Header>

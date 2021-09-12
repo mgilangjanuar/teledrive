@@ -47,7 +47,7 @@ const Home: React.FC = () => {
             <Layout.Content style={{ marginTop: '40px' }}>
               <Form form={form} layout="inline" onFinish={submit}>
                 <Form.Item name="email" rules={[{ required: true, message: 'Please input your email' }]}>
-                  <Input style={{ width: '132px' }} size="large" type="email" placeholder="Email" />
+                  <Input size="large" type="email" placeholder="Email" />
                 </Form.Item>
                 <Form.Item>
                   <Button size="large" htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
@@ -70,7 +70,7 @@ const Home: React.FC = () => {
           <Typography.Title level={2}>Want to know why we can do this?</Typography.Title>
           <Typography.Paragraph>
             In Aug 20, 2021, Telegram said that they give an unlimited cloud storage for free via their <a href="https://twitter.com/telegram/status/1428703364737507332" target="_blank">Twitter account</a>.
-            So, we use their API to build TeleDrive 🚀
+            So, we're using their API to build TeleDrive 🚀
           </Typography.Paragraph>
           <Typography.Paragraph>
             <a href="https://twitter.com/telegram/status/1428703364737507332" target="_blank">

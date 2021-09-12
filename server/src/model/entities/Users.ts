@@ -12,6 +12,9 @@ export class Users extends BaseModelWithID {
   name?: string
 
   @Column({ default: null })
+  email?: string
+
+  @Column({ default: null })
   tg_id?: number
 
   @Column('jsonb', { default: null })
