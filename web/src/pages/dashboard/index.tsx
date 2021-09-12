@@ -50,7 +50,9 @@ const Dashboard: React.FC = () => {
   const [upload, setUpload] = useState<boolean>()
   const [loadingSync, setLoadingSync] = useState<boolean>()
   const [addFolder, setAddFolder] = useState<boolean>()
+  const [fileRename, setFileRename] = useState<any>()
   const [formAddFolder] = useForm()
+  const [formRename] = useForm()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, error: errorFiles } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
@@ -140,6 +142,27 @@ const Dashboard: React.FC = () => {
     }
   }
 
+  const renameFile = async () => {
+    const { name } = formRename.getFieldsValue()
+    try {
+      const { data } = await req.patch(`/files/${fileRename?.id}`, {
+        file: { name }
+      })
+      message.success(`${data.file.name} renamed successfully!`)
+      formRename.resetFields()
+      mutate(`/files?${qs.stringify(params)}`)
+      setFileRename(undefined)
+    } catch (error) {
+      return message.error('Failed to rename a file')
+    }
+  }
+
+  useEffect(() => {
+    if (fileRename) {
+      formRename.setFieldsValue({ name: fileRename.name })
+    }
+  }, [fileRename])
+
   const columns = [
     {
       title: 'File',
@@ -191,7 +214,7 @@ const Dashboard: React.FC = () => {
       render: (_: any, row: any) => row.upload_progress ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
         <Button size="small" type="link">Cancel</Button>
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
-        <Menu.Item key="rename">Rename</Menu.Item>
+        <Menu.Item key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>
         <Menu.Item key="share">Share</Menu.Item>
         <Menu.SubMenu key="submenu" title="Move to">
 
@@ -275,6 +298,14 @@ const Dashboard: React.FC = () => {
         <Form form={formAddFolder} layout="vertical" onFinish={createFolder}>
           <Form.Item name="name" label="Name">
             <Input placeholder="New Folder" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal visible={fileRename} onCancel={() => setFileRename(undefined)} okText="Add" title={`Rename ${fileRename?.name}`} onOk={() => formRename.submit()}>
+        <Form form={formRename} layout="vertical" onFinish={renameFile}>
+          <Form.Item name="name" label="Name">
+            <Input />
           </Form.Item>
         </Form>
       </Modal>
