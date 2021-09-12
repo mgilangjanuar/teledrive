@@ -5,12 +5,9 @@ import {
   FileOutlined,
   FilePdfOutlined,
   FolderAddOutlined,
-  FolderOpenOutlined,
-  SyncOutlined,
+  FolderOpenOutlined, InboxOutlined, SyncOutlined,
   UploadOutlined,
-  VideoCameraOutlined,
-  InboxOutlined,
-  WarningOutlined
+  VideoCameraOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
   Button,
