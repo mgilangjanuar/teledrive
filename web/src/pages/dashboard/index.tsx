@@ -13,16 +13,14 @@ import {
   Button,
   Col,
   Drawer,
-  Dropdown,
-  Input,
+  Dropdown, Form, Input,
   Layout, Menu, message, Modal, Popconfirm, Row,
   Space,
   Table,
   TablePaginationConfig,
   Tooltip,
   Typography,
-  Upload,
-  Form
+  Upload
 } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
@@ -31,13 +29,13 @@ import prettyBytes from 'pretty-bytes'
 import qs from 'qs'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
-import useSWR, { mutate } from 'swr'
+import useSWR from 'swr'
 import { apiUrl, fetcher, req } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
 const Dashboard: React.FC = () => {
-  const PAGE_SIZE = 10
+  const PAGE_SIZE = 12
 
   const location = useHistory()
   const [parent, _setParent] = useState<string | null>(null)
@@ -49,13 +47,16 @@ const Dashboard: React.FC = () => {
   const [params, setParams] = useState<any>()
   const [upload, setUpload] = useState<boolean>()
   const [loadingSync, setLoadingSync] = useState<boolean>()
+  const [loadingRemove, setLoadingRemove] = useState<boolean>()
+  const [loadingAddFolder, setLoadingAddFolder] = useState<boolean>()
+  const [loadingRename, setLoadingRename] = useState<boolean>()
   const [addFolder, setAddFolder] = useState<boolean>()
   const [fileRename, setFileRename] = useState<any>()
   const [formAddFolder] = useForm()
   const [formRename] = useForm()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
-  const { data: files, error: errorFiles } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
+  const { data: files, error: errorFiles, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
   const { data: filesUpload, error: errorFilesUpload } = useSWR(
     upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null,
     fetcher, { refreshInterval: 3000 })
@@ -78,7 +79,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (!upload) {
-      mutate(`/files?${qs.stringify(params)}`)
+      refetch()
     }
   }, [upload])
 
@@ -106,7 +107,7 @@ const Dashboard: React.FC = () => {
     setLoadingSync(true)
     await req.post('/files/sync')
     await new Promise(res => setTimeout(res, 3000))
-    mutate(`/files?${qs.stringify(params)}`)
+    refetch()
     setLoadingSync(false)
   }
 
@@ -121,13 +122,16 @@ const Dashboard: React.FC = () => {
   }
 
   const remove = async (ids: string[]) => {
+    setLoadingRemove(true)
     await Promise.all(ids.map(async id => await req.delete(`/files/${id}`)))
-    mutate(`/files?${qs.stringify(params)}`)
+    refetch()
     setSelected([])
     setSelectDeleted([])
+    setLoadingRemove(false)
   }
 
   const createFolder = async () => {
+    setLoadingAddFolder(true)
     const { name } = formAddFolder.getFieldsValue()
     try {
       const { data } = await req.post('/files/addFolder', {
@@ -135,14 +139,17 @@ const Dashboard: React.FC = () => {
       })
       message.success(`Folder ${data.file.name} created successfully!`)
       formAddFolder.resetFields()
-      mutate(`/files?${qs.stringify(params)}`)
+      refetch()
       setAddFolder(false)
+      setLoadingAddFolder(false)
     } catch (error) {
+      setLoadingAddFolder(false)
       return message.error('Failed to create new folder')
     }
   }
 
   const renameFile = async () => {
+    setLoadingRename(true)
     const { name } = formRename.getFieldsValue()
     try {
       const { data } = await req.patch(`/files/${fileRename?.id}`, {
@@ -150,9 +157,11 @@ const Dashboard: React.FC = () => {
       })
       message.success(`${data.file.name} renamed successfully!`)
       formRename.resetFields()
-      mutate(`/files?${qs.stringify(params)}`)
+      refetch()
       setFileRename(undefined)
+      setLoadingRename(false)
     } catch (error) {
+      setLoadingRename(false)
       return message.error('Failed to rename a file')
     }
   }
@@ -231,7 +240,7 @@ const Dashboard: React.FC = () => {
     <Layout.Content className="container">
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
-          <Typography.Paragraph style={{ textAlign: 'right' }}>
+          <Typography.Paragraph>
             <Space wrap>
               <Tooltip title="Upload">
                 <Button onClick={() => setUpload(true)} shape="circle" icon={<UploadOutlined />} type="primary" />
@@ -255,7 +264,7 @@ const Dashboard: React.FC = () => {
               current: dataChanges?.pagination.current,
               pageSize: PAGE_SIZE,
               total: files?.length,
-              showTotal: (total: any, range: any) => `${range[0]}-${range[1]} of ${total} items`
+              // showTotal: (total: any) => `${total} items`
             }} scroll={{ x: 480 }} />
         </Col>
       </Row>
@@ -288,13 +297,18 @@ const Dashboard: React.FC = () => {
         onCancel={() => setSelectDeleted([])}
         onOk={() => remove(selectDeleted.map(data => data.id))}
         okText="Remove"
-        okButtonProps={{ danger: true, type: 'primary' }}>
+        okButtonProps={{ danger: true, type: 'primary', loading: loadingRemove }}>
         <Typography.Paragraph>
           Are you sure to delete {selectDeleted?.length > 1 ? `${selectDeleted?.length} objects` : selectDeleted?.[0]?.name }?
         </Typography.Paragraph>
       </Modal>
 
-      <Modal visible={addFolder} onCancel={() => setAddFolder(false)} okText="Add" title="Add Folder" onOk={() => formAddFolder.submit()}>
+      <Modal visible={addFolder}
+        onCancel={() => setAddFolder(false)}
+        okText="Add"
+        title="Add Folder"
+        onOk={() => formAddFolder.submit()}
+        okButtonProps={{ loading: loadingAddFolder }}>
         <Form form={formAddFolder} layout="vertical" onFinish={createFolder}>
           <Form.Item name="name" label="Name">
             <Input placeholder="New Folder" />
@@ -302,7 +316,12 @@ const Dashboard: React.FC = () => {
         </Form>
       </Modal>
 
-      <Modal visible={fileRename} onCancel={() => setFileRename(undefined)} okText="Add" title={`Rename ${fileRename?.name}`} onOk={() => formRename.submit()}>
+      <Modal visible={fileRename}
+        onCancel={() => setFileRename(undefined)}
+        okText="Add"
+        title={`Rename ${fileRename?.name}`}
+        onOk={() => formRename.submit()}
+        okButtonProps={{ loading: loadingRename }}>
         <Form form={formRename} layout="vertical" onFinish={renameFile}>
           <Form.Item name="name" label="Name">
             <Input />
