@@ -12,14 +12,14 @@ export class Files {
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, skip, take, ...filters } = req.query
-    const files = await Model.createQueryBuilder('files')
+    const [files, length] = await Model.createQueryBuilder('files')
       .where('files.user_id = :user_id', { user_id: req.user.id })
       .andWhere(buildWhereQuery(filters) || 'true')
       .skip(Number(skip) || undefined)
       .take(Number(take) || undefined)
       .orderBy(buildSort(sort as string))
-      .getMany()
-    return res.send({ files })
+      .getManyAndCount()
+    return res.send({ files, length })
   }
 
   @Endpoint.POST({ middlewares: [Auth] })
@@ -114,7 +114,7 @@ export class Files {
       .where('message_id in (:...ids)', { ids: filteredData.map(data => data.id) }).getMany() : null
     const excludeIds = existingData?.map(data => data.message_id) || []
     const insertedData = existingData ? filteredData.filter(data => {
-      return !excludeIds.includes(data.id.toString())
+      return !excludeIds.includes(data.id)
     }) : filteredData
 
     // insert many
@@ -127,10 +127,12 @@ export class Files {
 
       let type = chat.media.photo ? 'image' : null
       if (!type) {
-        if (chat.media.document.mimeType.match(/^video/gi)) {
+        if (chat.media.document.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
           type = 'video'
-        } else if (chat.media.document.mimeType.match(/pdf$/gi)) {
+        } else if (chat.media.document.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
           type = 'document'
+        } else if (chat.media.document.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+          type = 'audio'
         }
       }
 
@@ -191,8 +193,10 @@ export class Files {
       type = 'image'
     } else if (file.mimetype.match(/^video/gi)) {
       type = 'video'
-    } else if (file.mimetype.match(/pdf$/gi)) {
+    } else if (file.mimetype.match(/pdf$/gi) || file.originalname.match(/\.doc$/gi) || file.originalname.match(/\.docx$/gi) || file.originalname.match(/\.xls$/gi) || file.originalname.match(/\.xlsx$/gi)) {
       type = 'document'
+    } else if (file.mimetype.match(/audio$/gi)) {
+      type = 'audio'
     }
 
     const model = new Model()
@@ -201,6 +205,7 @@ export class Files {
     model.size = file.size
     model.user_id = req.user.id
     model.type = type
+    model.parent_id = req.query?.parent_id as string || null
     await model.save()
     res.status(202).send({ accepted: true, file: { id: model.id } })
 
@@ -233,7 +238,7 @@ export class Files {
         workers: 1
       })
 
-      await Model.update(model.id, { message_id: data.id, uploaded_at: new Date(data.date * 1000) })
+      await Model.update(model.id, { message_id: data.id, uploaded_at: new Date(data.date * 1000), upload_progress: null })
     } catch (error) {
       await Model.delete(model.id)
     }

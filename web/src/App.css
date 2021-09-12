@@ -1,0 +1,40 @@
+html, body {
+  overflow-x: hidden !important;
+}
+
+body, p {
+  font-size: 1.125rem;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+.ant-layout-header {
+  padding: 0 30px;
+}
+
+.ant-layout, footer, .ant-layout-footer {
+  background: #fff;
+}
+
+.container {
+  padding: 24px 12px;
+}
+
+.logo {
+  float: left;
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.2em;
+}
+
+.input-search-round input {
+  border-radius: 32px 0 0 32px !important;
+  padding: 4px 16px;
+}
+
+.input-search-round button.ant-btn.ant-btn-primary.ant-input-search-button {
+  border-radius: 0 32px 32px 0 !important;
+  padding: 4px 16px;
+}

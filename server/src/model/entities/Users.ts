@@ -11,11 +11,11 @@ export class Users extends BaseModelWithID {
   @Column({ default: null })
   name?: string
 
+  @Column({ default: null, select: false })
+  email?: string
+
   @Column({ default: null })
   tg_id?: number
-
-  @Column('jsonb', { default: null })
-  tg_raw?: any
 
   @OneToMany(() => Files, files => files.user)
   files?: Files[]
