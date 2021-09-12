@@ -83,9 +83,26 @@ const Dashboard: React.FC = () => {
     }
   }, [upload])
 
+  useEffect(() => {
+    if (fileRename) {
+      formRename.setFieldsValue({ name: fileRename.name })
+    }
+  }, [fileRename])
+
+  useEffect(() => {
+    if (parent) {
+      setParams({
+        'parent_id.is': parent ? `'${parent}'` : 'null',
+        take: PAGE_SIZE,
+        skip: 0,
+        ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {}
+      })
+    }
+  }, [parent])
+
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
-      parent_id: parent || undefined,
+      'parent_id.is': parent ? `'${parent}'` : 'null',
       take: PAGE_SIZE,
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
@@ -111,13 +128,13 @@ const Dashboard: React.FC = () => {
     setLoadingSync(false)
   }
 
-  const search = async (value: string) => {
-    setKeyword(value)
+  const search = async (keyword?: string) => {
+    setKeyword(keyword)
     setParams({
-      parent_id: parent || undefined,
+      'parent_id.is': parent ? `'${parent}'` : 'null',
       take: PAGE_SIZE,
       skip: 0,
-      'name.ilike': `'%${value}%'`
+      ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {}
     })
   }
 
@@ -165,12 +182,6 @@ const Dashboard: React.FC = () => {
       return message.error('Failed to rename a file')
     }
   }
-
-  useEffect(() => {
-    if (fileRename) {
-      formRename.setFieldsValue({ name: fileRename.name })
-    }
-  }, [fileRename])
 
   const columns = [
     {
@@ -264,7 +275,6 @@ const Dashboard: React.FC = () => {
               current: dataChanges?.pagination.current,
               pageSize: PAGE_SIZE,
               total: files?.length,
-              // showTotal: (total: any) => `${total} items`
             }} scroll={{ x: 480 }} />
         </Col>
       </Row>
