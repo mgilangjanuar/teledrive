@@ -1,5 +1,5 @@
 import {
-  DeleteOutlined,
+  AudioOutlined, DeleteOutlined,
   EllipsisOutlined,
   FileImageOutlined,
   FileOutlined,
@@ -14,10 +14,12 @@ import {
   Button,
   Col,
   Dropdown,
-  Layout, Menu, Row,
+  Input,
+  Layout, Menu, Popconfirm, Row,
   Space,
   Table,
   TablePaginationConfig,
+  Tooltip,
   Typography
 } from 'antd'
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
@@ -84,10 +86,21 @@ const Dashboard: React.FC = () => {
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
             <Space wrap>
-              <Button size="small" icon={<UploadOutlined />} type="primary">Upload</Button>
-              <Button size="small" icon={<SyncOutlined />} onClick={sync} loading={loadingSync}>Sync</Button>
-              <Button size="small" icon={<FolderAddOutlined />}>Add Folder</Button>
-              <Button size="small" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length}>Delete</Button>
+              <Tooltip title="Upload">
+                <Button shape="round" icon={<UploadOutlined />} type="primary" />
+              </Tooltip>
+              <Tooltip title="Sync">
+                <Button shape="round" icon={<SyncOutlined />} onClick={sync} loading={loadingSync} />
+              </Tooltip>
+              <Tooltip title="Add folder">
+                <Button shape="round" icon={<FolderAddOutlined />} />
+              </Tooltip>
+              <Tooltip title="Delete">
+                <Popconfirm title={`Are you sure to delete ${selected?.length} objects?`}>
+                  <Button shape="round" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} />
+                </Popconfirm>
+              </Tooltip>
+              <Input.Search className="input-search-round" placeholder="Search..." enterButton />
             </Space>
           </Typography.Paragraph>
           <Table rowSelection={{ type: 'checkbox', selectedRowKeys: selected, onChange: (keys: React.Key[]) => {
@@ -97,20 +110,23 @@ const Dashboard: React.FC = () => {
               title: 'File',
               dataIndex: 'name',
               key: 'name',
+              ellipsis: true,
               render: (value, row) => {
+                let component
                 if (row.type === 'image') {
-                  return <><FileImageOutlined /> {value}</>
+                  component = <FileImageOutlined />
+                } else if (row.type === 'video') {
+                  component = <VideoCameraOutlined />
+                } else if (row.type === 'document') {
+                  component = <FilePdfOutlined />
+                } else if (row.type === 'folder') {
+                  component = <FolderOpenOutlined />
+                } else if (row.type === 'audio') {
+                  component = <AudioOutlined />
+                } else {
+                  component = <FileOutlined />
                 }
-                if (row.type === 'video') {
-                  return <><VideoCameraOutlined /> {value}</>
-                }
-                if (row.type === 'document') {
-                  return <><FilePdfOutlined /> {value}</>
-                }
-                if (row.type === 'folder') {
-                  return <><FolderOpenOutlined /> {value}</>
-                }
-                return <><FileOutlined /> {value}</>
+                return <Button type="link" size="small">{component} {value}</Button>
               }
             },
             {
@@ -118,6 +134,8 @@ const Dashboard: React.FC = () => {
               dataIndex: 'size',
               key: 'size',
               responsive: ['md'],
+              width: 100,
+              align: 'center',
               render: value => prettyBytes(value)
             },
             {
@@ -125,17 +143,23 @@ const Dashboard: React.FC = () => {
               dataIndex: 'uploaded_at',
               key: 'uploaded_at',
               responsive: ['md'],
+              width: 220,
+              align: 'center',
               render: (value, row) => row.upload_progress ? <>Uploading ${Number(row.upload_progress * 100)}%</> : moment(value).format('llll')
             },
             {
               title: 'Actions',
               dataIndex: 'actions',
               key: 'actions',
+              width: 90,
+              align: 'center',
               render: (_, row) => <Dropdown placement="bottomRight" overlay={<Menu>
+                <Menu.Item key="download">Download</Menu.Item>
                 <Menu.Item key="rename">Rename</Menu.Item>
                 <Menu.SubMenu key="submenu" title="Move to">
 
                 </Menu.SubMenu>
+                <Menu.Item key="share">Share</Menu.Item>
                 <Menu.Item key="delete" icon={<DeleteOutlined />} danger>Delete</Menu.Item>
               </Menu>}>
                 <EllipsisOutlined />

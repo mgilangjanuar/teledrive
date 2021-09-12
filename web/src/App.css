@@ -29,3 +29,13 @@ body, p {
   width: 100% !important;
   max-width: 480px;
 }
+
+.input-search-round input {
+  border-radius: 32px 0 0 32px;
+  padding: 4px 16px;
+}
+
+.input-search-round button.ant-btn.ant-btn-primary.ant-input-search-button {
+  border-radius: 0 32px 32px 0 !important;
+  padding: 4px 16px;
+}
