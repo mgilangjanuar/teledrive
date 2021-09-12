@@ -12,14 +12,14 @@ export class Files {
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, skip, take, ...filters } = req.query
-    const files = await Model.createQueryBuilder('files')
+    const [files, length] = await Model.createQueryBuilder('files')
       .where('files.user_id = :user_id', { user_id: req.user.id })
       .andWhere(buildWhereQuery(filters) || 'true')
       .skip(Number(skip) || undefined)
       .take(Number(take) || undefined)
       .orderBy(buildSort(sort as string))
-      .getMany()
-    return res.send({ files })
+      .getManyAndCount()
+    return res.send({ files, length })
   }
 
   @Endpoint.POST({ middlewares: [Auth] })
@@ -42,8 +42,8 @@ export class Files {
     const { raw } = req.query
 
     const file = await Model.createQueryBuilder('files')
-      .where('id = :id and (user_id = :user_id or :username = any(sharing_options) or \'*\' = any(sharing_options))', {
-        id, user_id: req.user.id, username: req.user.username })
+      .where('id = :id and (user_id = :user_id or :user_id = any(sharing_options) or \'*\' = any(sharing_options))', {
+        id, user_id: req.user.id })
       .getOne()
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
@@ -201,6 +201,7 @@ export class Files {
     model.size = file.size
     model.user_id = req.user.id
     model.type = type
+    model.parent_id = req.query?.parent_id as string || null
     await model.save()
     res.status(202).send({ accepted: true, file: { id: model.id } })
 
@@ -233,7 +234,7 @@ export class Files {
         workers: 1
       })
 
-      await Model.update(model.id, { message_id: data.id, uploaded_at: new Date(data.date * 1000) })
+      await Model.update(model.id, { message_id: data.id, uploaded_at: new Date(data.date * 1000), upload_progress: null })
     } catch (error) {
       await Model.delete(model.id)
     }
