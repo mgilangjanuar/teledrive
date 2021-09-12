@@ -10,6 +10,7 @@ import {
   VideoCameraOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Col,
   Drawer,
@@ -38,7 +39,8 @@ const Dashboard: React.FC = () => {
   const PAGE_SIZE = 12
 
   const location = useHistory()
-  const [parent, _setParent] = useState<string | null>(null)
+  const [parent, setParent] = useState<string | null>(null)
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string }>>([{ id: null, name: 'Home' }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
@@ -82,6 +84,8 @@ const Dashboard: React.FC = () => {
       refetch()
     }
   }, [upload])
+
+  console.log('what is parent', { parent, selected, data, params })
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
@@ -193,7 +197,18 @@ const Dashboard: React.FC = () => {
         } else {
           component = <FileOutlined />
         }
-        return <Button type="link" size="small">{component} {value}</Button>
+
+        return (
+          <Button type="link" size="small" onClick={() => {
+            if (row.type === 'folder') {
+              setParent(row.id)
+              setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
+              fetch()
+            }
+          }}>
+            {component} {value}
+          </Button>
+        )
       }
     },
     {
@@ -239,7 +254,26 @@ const Dashboard: React.FC = () => {
     <Navbar user={me?.user} />
     <Layout.Content className="container">
       <Row>
+        {parent}
         <Col md={{ span: 20, offset: 2 }} span={24}>
+          <Typography.Paragraph>
+            <Breadcrumb>
+              {breadcrumbs.map(crumb =>
+                <Breadcrumb.Item key={crumb.id}>
+                  {crumb.id === parent ? crumb.name :
+                    <Button type="link" size="small" onClick={() => {
+                      setParent(crumb.id)
+                      const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb.id)
+                      setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
+                      fetch()
+                    }}>
+                      {crumb.name}
+                    </Button>
+                  }
+                </Breadcrumb.Item>
+              )}
+            </Breadcrumb>
+          </Typography.Paragraph>
           <Typography.Paragraph>
             <Space wrap>
               <Tooltip title="Upload">
