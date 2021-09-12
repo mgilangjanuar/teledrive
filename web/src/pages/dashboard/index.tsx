@@ -85,7 +85,9 @@ const Dashboard: React.FC = () => {
     }
   }, [upload])
 
-  console.log('what is parent', { parent, selected, data, params })
+  useEffect(() => {
+    refetch()
+  }, [parent, params])
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
@@ -203,7 +205,7 @@ const Dashboard: React.FC = () => {
             if (row.type === 'folder') {
               setParent(row.id)
               setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
-              fetch()
+              setParams({ ...params, parent_id: row.id || undefined })
             }
           }}>
             {component} {value}
@@ -254,7 +256,6 @@ const Dashboard: React.FC = () => {
     <Navbar user={me?.user} />
     <Layout.Content className="container">
       <Row>
-        {parent}
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
             <Breadcrumb>
@@ -265,7 +266,7 @@ const Dashboard: React.FC = () => {
                       setParent(crumb.id)
                       const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb.id)
                       setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
-                      fetch()
+                      setParams({ ...params, parent_id: crumb.id || undefined })
                     }}>
                       {crumb.name}
                     </Button>
