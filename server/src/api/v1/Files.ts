@@ -241,6 +241,7 @@ export class Files {
 
       await Model.update(model.id, { message_id: data.id, uploaded_at: new Date(data.date * 1000), upload_progress: null })
     } catch (error) {
+      console.error(error)
       await Model.delete(model.id)
     }
   }

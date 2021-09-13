@@ -36,7 +36,7 @@ import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
 const Dashboard: React.FC = () => {
-  const PAGE_SIZE = 12
+  const PAGE_SIZE = 10
 
   const location = useHistory()
   const [parent, setParent] = useState<string | null>(null)
@@ -56,14 +56,12 @@ const Dashboard: React.FC = () => {
   const [fileRename, setFileRename] = useState<any>()
   const [formAddFolder] = useForm()
   const [formRename] = useForm()
-  const [folders, setFolders] = useState<{ current: any, data: any[] }>()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, error: errorFiles, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
   const { data: filesUpload, error: errorFilesUpload } = useSWR(
     upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null,
     fetcher, { refreshInterval: 2000 })
-  const { data: foldersData } = useSWR(`/files?type=folder&parent_id.is=${folders?.current ? `'${folders?.current.id}'` : 'null'}&sort=name:asc`, fetcher)
 
   useEffect(() => {
     if (errorMe) {
@@ -92,12 +90,6 @@ const Dashboard: React.FC = () => {
       formRename.setFieldsValue({ name: fileRename.name })
     }
   }, [fileRename])
-
-  useEffect(() => {
-    if (foldersData?.files) {
-      setFolders({ data: foldersData?.files, current: foldersData?.files?.[0]?.parent_id })
-    }
-  }, [foldersData])
 
   useEffect(() => {
     fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
@@ -181,6 +173,8 @@ const Dashboard: React.FC = () => {
       title: 'File',
       dataIndex: 'name',
       key: 'name',
+      sorter: true,
+      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'name' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
       ellipsis: true,
       render: (value: any, row: any) => {
         let component
@@ -214,6 +208,8 @@ const Dashboard: React.FC = () => {
       title: 'Size',
       dataIndex: 'size',
       key: 'size',
+      sorter: true,
+      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'size' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
       responsive: ['md'],
       width: 100,
       align: 'center',
@@ -223,6 +219,8 @@ const Dashboard: React.FC = () => {
       title: 'Uploaded At',
       dataIndex: 'uploaded_at',
       key: 'uploaded_at',
+      sorter: true,
+      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'uploaded_at' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
       responsive: ['md'],
       width: 250,
       align: 'center',
@@ -239,9 +237,6 @@ const Dashboard: React.FC = () => {
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
         <Menu.Item key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>
         <Menu.Item key="share">Share</Menu.Item>
-        <Menu.SubMenu key="submenu" title="Move to">
-
-        </Menu.SubMenu>
         <Menu.Item key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
       </Menu>}>
         <EllipsisOutlined />
@@ -302,8 +297,16 @@ const Dashboard: React.FC = () => {
       <Drawer className="upload" title="Upload" visible={upload} onClose={() => setUpload(false)} placement="bottom">
         <Typography.Paragraph>
           <Upload.Dragger name="upload"
+            beforeUpload={file => {
+              if (file.size / 1_000_000_000 > 2) {
+                message.error('Maximum file size is 2 GB')
+                return false
+              }
+              return true
+            }}
             action={`${apiUrl}/files/upload`}
             withCredentials
+            headers={{ 'Accept-Ranges': 'bytes' }}
             maxCount={1}
             onChange={({ file }) => {
               if (file.status === 'done') {
