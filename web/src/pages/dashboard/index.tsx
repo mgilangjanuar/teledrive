@@ -10,6 +10,7 @@ import {
   VideoCameraOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
+  Breadcrumb,
   Button,
   Col,
   Drawer,
@@ -38,9 +39,10 @@ const Dashboard: React.FC = () => {
   const PAGE_SIZE = 12
 
   const location = useHistory()
-  const [parent, _setParent] = useState<string | null>(null)
+  const [parent, setParent] = useState<string | null>(null)
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string }>>([{ id: null, name: 'Home' }])
   const [data, setData] = useState<any[]>([])
-  const [dataChanges, setDataChanges] = useState<{ pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[] }>()
+  const [dataChanges, setDataChanges] = useState<{ pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
   const [selectDeleted, setSelectDeleted] = useState<any[]>([])
   const [keyword, setKeyword] = useState<string>()
@@ -92,25 +94,19 @@ const Dashboard: React.FC = () => {
   }, [fileRename])
 
   useEffect(() => {
-    if (parent) {
-      setParams({
-        'parent_id.is': parent ? `'${parent}'` : 'null',
-        take: PAGE_SIZE,
-        skip: 0,
-        ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {}
-      })
-    }
-  }, [parent])
-
-  useEffect(() => {
     if (foldersData?.files) {
       setFolders({ data: foldersData?.files, current: foldersData?.files?.[0]?.parent_id })
     }
   }, [foldersData])
 
+  useEffect(() => {
+    fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
+  }, [keyword, parent])
+
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
-      'parent_id.is': parent ? `'${parent}'` : 'null',
+      ...parent ? { parent_id: parent } : { 'parent_id.is': 'null' },
+      ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
       take: PAGE_SIZE,
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
@@ -119,7 +115,6 @@ const Dashboard: React.FC = () => {
       ...(sorter as SorterResult<any>)?.order ? {
         sort: `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
       } : { sort: 'uploaded_at:desc' },
-      ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {}
     })
   }
 
@@ -134,16 +129,6 @@ const Dashboard: React.FC = () => {
     await new Promise(res => setTimeout(res, 3000))
     refetch()
     setLoadingSync(false)
-  }
-
-  const search = async (keyword?: string) => {
-    setKeyword(keyword)
-    setParams({
-      'parent_id.is': parent ? `'${parent}'` : 'null',
-      take: PAGE_SIZE,
-      skip: 0,
-      ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {}
-    })
   }
 
   const remove = async (ids: string[]) => {
@@ -212,7 +197,17 @@ const Dashboard: React.FC = () => {
         } else {
           component = <FileOutlined />
         }
-        return <Button type="link" size="small">{component} {value}</Button>
+
+        return (
+          <Button type="link" size="small" onClick={() => {
+            if (row.type === 'folder') {
+              setParent(row.id)
+              setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
+            }
+          }}>
+            {component} {value}
+          </Button>
+        )
       }
     },
     {
@@ -229,7 +224,7 @@ const Dashboard: React.FC = () => {
       dataIndex: 'uploaded_at',
       key: 'uploaded_at',
       responsive: ['md'],
-      width: 220,
+      width: 250,
       align: 'center',
       render: (value: any, row: any) => row.upload_progress ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).format('llll')
     },
@@ -260,6 +255,23 @@ const Dashboard: React.FC = () => {
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
+            <Breadcrumb>
+              {breadcrumbs.map(crumb =>
+                <Breadcrumb.Item key={crumb.id}>
+                  {crumb.id === parent ? <Button type="text" size="small">{crumb.name}</Button> :
+                    <Button type="link" size="small" onClick={() => {
+                      setParent(crumb.id)
+                      const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb.id)
+                      setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
+                    }}>
+                      {crumb.name}
+                    </Button>
+                  }
+                </Breadcrumb.Item>
+              )}
+            </Breadcrumb>
+          </Typography.Paragraph>
+          <Typography.Paragraph>
             <Space wrap>
               <Tooltip title="Upload">
                 <Button onClick={() => setUpload(true)} shape="circle" icon={<UploadOutlined />} type="primary" />
@@ -273,14 +285,14 @@ const Dashboard: React.FC = () => {
               <Tooltip title="Delete">
                 <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
               </Tooltip>
-              <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={search} allowClear />
+              <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
           </Typography.Paragraph>
           <Table loading={!files && !errorFiles}
             rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
             dataSource={data}
             columns={columns as any} onChange={change} pagination={{
-              current: dataChanges?.pagination.current,
+              current: dataChanges?.pagination?.current,
               pageSize: PAGE_SIZE,
               total: files?.length,
             }} scroll={{ x: 480 }} />
