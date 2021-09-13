@@ -54,12 +54,14 @@ const Dashboard: React.FC = () => {
   const [fileRename, setFileRename] = useState<any>()
   const [formAddFolder] = useForm()
   const [formRename] = useForm()
+  const [folders, setFolders] = useState<{ current: any, data: any[] }>()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, error: errorFiles, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
   const { data: filesUpload, error: errorFilesUpload } = useSWR(
     upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null,
-    fetcher, { refreshInterval: 3000 })
+    fetcher, { refreshInterval: 2000 })
+  const { data: foldersData } = useSWR(`/files?type=folder&parent_id.is=${folders?.current ? `'${folders?.current.id}'` : 'null'}&sort=name:asc`, fetcher)
 
   useEffect(() => {
     if (errorMe) {
@@ -99,6 +101,12 @@ const Dashboard: React.FC = () => {
       })
     }
   }, [parent])
+
+  useEffect(() => {
+    if (foldersData?.files) {
+      setFolders({ data: foldersData?.files, current: foldersData?.files?.[0]?.parent_id })
+    }
+  }, [foldersData])
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
@@ -296,10 +304,10 @@ const Dashboard: React.FC = () => {
             <p className="ant-upload-text">Click or drag file to this area to upload</p>
           </Upload.Dragger>
         </Typography.Paragraph>
-        <Table loading={!filesUpload && !errorFilesUpload}
+        {filesUpload?.length > 0 ? <Table loading={!filesUpload && !errorFilesUpload}
           columns={columns as any}
           dataSource={filesUpload?.files}
-          pagination={false} />
+          pagination={false} /> : ''}
       </Drawer>
 
       <Modal visible={!!selectDeleted?.length}
