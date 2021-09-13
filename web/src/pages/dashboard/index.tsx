@@ -55,12 +55,12 @@ const Dashboard: React.FC = () => {
   const [fileRename, setFileRename] = useState<any>()
   const [formAddFolder] = useForm()
   const [formRename] = useForm()
+  const [currentUploads, setCurrentUploads] = useState<any[]>(JSON.parse(localStorage.getItem('currentUploads') || '[]'))
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
-  const { data: filesUpload, error: errorFilesUpload } = useSWR(
-    upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null,
-    fetcher, { refreshInterval: 2000 })
+  const { data: filesUpload } = useSWR(currentUploads?.length && upload
+    ? `/files?sort=created_at:desc&id.in=(${currentUploads?.map(file => `'${file.id}'`).join(',')})` : null, fetcher, { refreshInterval: 3000 })
 
   useEffect(() => {
     if (errorMe) {
@@ -85,6 +85,20 @@ const Dashboard: React.FC = () => {
   }, [upload])
 
   useEffect(() => {
+    filesUpload?.files?.map((file: any) => {
+      if (file.upload_progress === null) {
+        setTimeout(() => {
+          setCurrentUploads(currentUploads.filter(upload => upload.id !== file.id))
+        }, 10_000)
+      }
+    })
+  }, [filesUpload])
+
+  useEffect(() => {
+    localStorage.setItem('currentUploads', JSON.stringify(currentUploads || []))
+  }, [currentUploads])
+
+  useEffect(() => {
     if (fileRename) {
       formRename.setFieldsValue({ name: fileRename.name })
     }
@@ -96,9 +110,9 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (action === 'copy') {
-      message.info(`${selected?.length} files are ready to copy`)
+      message.info(`${selected?.length} ${selected?.length > 1 ? 'files are' : 'file is'} ready to copy`)
     } else if (action === 'cut') {
-      message.info(`${selected?.length} files are ready to move`)
+      message.info(`${selected?.length} ${selected?.length > 1 ? 'files are' : 'file is'} ready to move`)
     }
   }, [action])
 
@@ -124,7 +138,11 @@ const Dashboard: React.FC = () => {
 
   const remove = async (ids: string[]) => {
     setLoadingRemove(true)
-    await Promise.all(ids.map(async id => await req.delete(`/files/${id}`)))
+    try {
+      await Promise.all(ids.map(async id => await req.delete(`/files/${id}`)))
+    } catch (error) {
+      // ignore
+    }
     refetch()
     setSelected([])
     setSelectDeleted([])
@@ -170,10 +188,14 @@ const Dashboard: React.FC = () => {
   const paste = async (rows: any[]) => {
     rows = rows?.filter(row => row.id !== parent)
     setLoadingPaste(true)
-    if (action === 'copy') {
-      await Promise.all(rows?.map(async row => await req.post('/files', { file: { ...row, parent_id: parent, id: undefined } })))
-    } else if (action === 'cut') {
-      await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent } })))
+    try {
+      if (action === 'copy') {
+        await Promise.all(rows?.map(async row => await req.post('/files', { file: { ...row, parent_id: parent, id: undefined } })))
+      } else if (action === 'cut') {
+        await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent } })))
+      }
+    } catch (error) {
+      // ignore
     }
     refetch()
     setAction(undefined)
@@ -355,9 +377,11 @@ const Dashboard: React.FC = () => {
             withCredentials
             headers={{ 'Accept-Ranges': 'bytes' }}
             maxCount={1}
-            onChange={({ file }) => {
+            onChange={async ({ file }) => {
               if (file.status === 'done') {
                 message.info('Uploading to Telegram...')
+                const { data } = await req.get(`/files/${file.response.file.id}`)
+                setCurrentUploads([data.file, ...currentUploads || []])
               }
             }}>
             <p className="ant-upload-drag-icon">
@@ -366,7 +390,7 @@ const Dashboard: React.FC = () => {
             <p className="ant-upload-text">Click or drag file to this area to upload</p>
           </Upload.Dragger>
         </Typography.Paragraph>
-        {filesUpload?.length > 0 ? <Table loading={!filesUpload && !errorFilesUpload}
+        {filesUpload?.files?.length ? <Table
           columns={columns as any}
           dataSource={filesUpload?.files}
           pagination={false} /> : ''}
