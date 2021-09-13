@@ -22,6 +22,16 @@ export class Files {
     return res.send({ files, length })
   }
 
+  @Endpoint.POST('/', { middlewares: [Auth] })
+  public async save(req: Request, res: Response): Promise<any> {
+    const { file } = req.body
+    if (!file) {
+      throw { status: 400, body: { error: 'File is required in body.' } }
+    }
+    const { raw } = await Model.createQueryBuilder('files').insert().values(file).returning('*').execute()
+    return res.send({ file: raw[0] })
+  }
+
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body

@@ -7,7 +7,12 @@ import {
   FolderAddOutlined,
   FolderOpenOutlined, InboxOutlined, SyncOutlined,
   UploadOutlined,
-  VideoCameraOutlined, WarningOutlined
+  VideoCameraOutlined, WarningOutlined,
+  ShareAltOutlined,
+  EditOutlined,
+  ScissorOutlined,
+  CopyOutlined,
+  SnippetsOutlined
 } from '@ant-design/icons'
 import {
   Breadcrumb,
@@ -44,12 +49,14 @@ const Dashboard: React.FC = () => {
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
+  const [action, setAction] = useState<string>()
   const [selectDeleted, setSelectDeleted] = useState<any[]>([])
   const [keyword, setKeyword] = useState<string>()
   const [params, setParams] = useState<any>()
   const [upload, setUpload] = useState<boolean>()
   const [loadingSync, setLoadingSync] = useState<boolean>()
   const [loadingRemove, setLoadingRemove] = useState<boolean>()
+  const [loadingPaste, setLoadingPaste] = useState<boolean>()
   const [loadingAddFolder, setLoadingAddFolder] = useState<boolean>()
   const [loadingRename, setLoadingRename] = useState<boolean>()
   const [addFolder, setAddFolder] = useState<boolean>()
@@ -94,6 +101,14 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
   }, [keyword, parent])
+
+  useEffect(() => {
+    if (action === 'copy') {
+      message.info(`${selected?.length} files are ready to copy`)
+    } else if (action === 'cut') {
+      message.info(`${selected?.length} files are ready to move`)
+    }
+  }, [action])
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
@@ -168,6 +183,22 @@ const Dashboard: React.FC = () => {
     }
   }
 
+  const paste = async (rows: any[]) => {
+    rows = rows?.filter(row => row.id !== parent)
+    setLoadingPaste(true)
+    if (action === 'copy') {
+      await Promise.all(rows?.map(async row => await req.post('/files', { file: { ...row, parent_id: parent, id: undefined } })))
+    } else if (action === 'cut') {
+      await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent } })))
+    }
+    refetch()
+    setAction(undefined)
+    setSelected([])
+    setSelectDeleted([])
+    setLoadingPaste(false)
+    message.success('Files are moved successfully!')
+  }
+
   const columns = [
     {
       title: 'File',
@@ -235,9 +266,9 @@ const Dashboard: React.FC = () => {
       render: (_: any, row: any) => row.upload_progress ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
         <Button size="small" type="link">Cancel</Button>
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
-        <Menu.Item key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>
-        <Menu.Item key="share">Share</Menu.Item>
-        <Menu.Item key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
+        <Menu.Item icon={<EditOutlined />} key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>
+        <Menu.Item icon={<ShareAltOutlined />} key="share">Share</Menu.Item>
+        <Menu.Item icon={<DeleteOutlined />} key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
       </Menu>}>
         <EllipsisOutlined />
       </Dropdown>
@@ -276,6 +307,15 @@ const Dashboard: React.FC = () => {
               </Tooltip>
               <Tooltip title="Add folder">
                 <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
+              </Tooltip>
+              <Tooltip title="Copy">
+                <Button shape="circle" icon={<CopyOutlined />} disabled={!selected?.length} onClick={() => setAction('copy')} />
+              </Tooltip>
+              <Tooltip title="Cut">
+                <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
+              </Tooltip>
+              <Tooltip title="Paste">
+                <Button shape="circle" icon={<SnippetsOutlined />} disabled={!selected?.length} loading={loadingPaste} onClick={() => paste(selected)} />
               </Tooltip>
               <Tooltip title="Delete">
                 <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
