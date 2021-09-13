@@ -144,6 +144,8 @@ export class Files {
           type = 'document'
         } else if (chat.media.document.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
           type = 'audio'
+        } else {
+          type = 'unknown'
         }
       }
 
@@ -208,6 +210,8 @@ export class Files {
       type = 'document'
     } else if (file.mimetype.match(/audio$/gi) || file.originalname.match(/\.mp3$/gi) || file.originalname.match(/\.ogg$/gi)) {
       type = 'audio'
+    } else {
+      type = 'unknown'
     }
 
     const model = new Model()

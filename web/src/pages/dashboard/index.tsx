@@ -1,18 +1,11 @@
 import {
-  AudioOutlined, DeleteOutlined,
-  EllipsisOutlined,
+  AudioOutlined, CopyOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined,
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
   FolderAddOutlined,
-  FolderOpenOutlined, InboxOutlined, SyncOutlined,
-  UploadOutlined,
-  VideoCameraOutlined, WarningOutlined,
-  ShareAltOutlined,
-  EditOutlined,
-  ScissorOutlined,
-  CopyOutlined,
-  SnippetsOutlined
+  FolderOpenOutlined, InboxOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, UploadOutlined,
+  VideoCameraOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
   Breadcrumb,
@@ -54,7 +47,6 @@ const Dashboard: React.FC = () => {
   const [keyword, setKeyword] = useState<string>()
   const [params, setParams] = useState<any>()
   const [upload, setUpload] = useState<boolean>()
-  const [loadingSync, setLoadingSync] = useState<boolean>()
   const [loadingRemove, setLoadingRemove] = useState<boolean>()
   const [loadingPaste, setLoadingPaste] = useState<boolean>()
   const [loadingAddFolder, setLoadingAddFolder] = useState<boolean>()
@@ -65,7 +57,7 @@ const Dashboard: React.FC = () => {
   const [formRename] = useForm()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
-  const { data: files, error: errorFiles, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
+  const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
   const { data: filesUpload, error: errorFilesUpload } = useSWR(
     upload ? '/files?upload_progress.is=not null&sort=created_at:desc' : null,
     fetcher, { refreshInterval: 2000 })
@@ -117,7 +109,7 @@ const Dashboard: React.FC = () => {
       take: PAGE_SIZE,
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
-        return { ...res, ...filters?.[key]?.[0] !== undefined ? { [key]: filters[key]?.[0] } : {} }
+        return { ...res, ...filters?.[key]?.[0] !== undefined ? { [`${key}.in`]: `(${filters[key]?.map(val => `'${val}'`).join(',')})` } : {} }
       }, {}),
       ...(sorter as SorterResult<any>)?.order ? {
         sort: `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
@@ -128,14 +120,6 @@ const Dashboard: React.FC = () => {
   const change = async (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[], _: TableCurrentDataSource<any>) => {
     setDataChanges({ pagination, filters, sorter })
     fetch(pagination, filters, sorter)
-  }
-
-  const sync = async () => {
-    setLoadingSync(true)
-    await req.post('/files/sync')
-    await new Promise(res => setTimeout(res, 3000))
-    refetch()
-    setLoadingSync(false)
   }
 
   const remove = async (ids: string[]) => {
@@ -203,11 +187,37 @@ const Dashboard: React.FC = () => {
     {
       title: 'File',
       dataIndex: 'name',
-      key: 'name',
+      key: 'type',
       sorter: true,
-      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'name' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'type' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+      filters: [
+        {
+          text: 'Folder',
+          value: 'folder'
+        },
+        {
+          text: 'Image',
+          value: 'image'
+        },
+        {
+          text: 'Video',
+          value: 'video'
+        },
+        {
+          text: 'Audio',
+          value: 'audio'
+        },
+        {
+          text: 'Document',
+          value: 'document'
+        },
+        {
+          text: 'Unknown',
+          value: 'unknown'
+        }
+      ],
       ellipsis: true,
-      render: (value: any, row: any) => {
+      render: (_: any, row: any) => {
         let component
         if (row.type === 'image') {
           component = <FileImageOutlined />
@@ -230,7 +240,7 @@ const Dashboard: React.FC = () => {
               setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
             }
           }}>
-            {component} {value}
+            {component} {row.name}
           </Button>
         )
       }
@@ -302,9 +312,6 @@ const Dashboard: React.FC = () => {
               <Tooltip title="Upload">
                 <Button onClick={() => setUpload(true)} shape="circle" icon={<UploadOutlined />} type="primary" />
               </Tooltip>
-              <Tooltip title="Sync">
-                <Button shape="circle" icon={<SyncOutlined />} onClick={sync} loading={loadingSync} />
-              </Tooltip>
               <Tooltip title="Add folder">
                 <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
               </Tooltip>
@@ -323,14 +330,14 @@ const Dashboard: React.FC = () => {
               <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
           </Typography.Paragraph>
-          <Table loading={!files && !errorFiles}
+          <Table loading={!files}
             rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
             dataSource={data}
             columns={columns as any} onChange={change} pagination={{
               current: dataChanges?.pagination?.current,
               pageSize: PAGE_SIZE,
               total: files?.length,
-            }} scroll={{ x: 480 }} />
+            }} scroll={{ x: 420 }} />
         </Col>
       </Row>
 
