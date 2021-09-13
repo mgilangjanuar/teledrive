@@ -25,7 +25,7 @@ export class Files {
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
-    const count = data?.name ? null : await Model.count({ type: 'folder', user_id: req.user.id })
+    const count = data?.name ? null : await Model.count({ type: 'folder', user_id: req.user.id, ...data?.parent_id ? { parent_id: data?.parent_id } : {} })
     const { raw } = await Model.createQueryBuilder('files').insert().values({
       name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
       mime_type: 'teledrive/folder',
