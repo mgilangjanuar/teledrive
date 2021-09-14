@@ -55,12 +55,14 @@ const Dashboard: React.FC = () => {
   const [fileRename, setFileRename] = useState<any>()
   const [formAddFolder] = useForm()
   const [formRename] = useForm()
-  const [currentUploads, setCurrentUploads] = useState<any[]>(JSON.parse(localStorage.getItem('currentUploads') || '[]'))
+  const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
-  const { data: filesUpload } = useSWR(currentUploads?.length && upload
-    ? `/files?sort=created_at:desc&id.in=(${currentUploads?.map(file => `'${file.id}'`).join(',')})` : null, fetcher, { refreshInterval: 3000 })
+  const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length && upload
+    ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
+    refreshInterval: 3000
+  })
 
   useEffect(() => {
     if (errorMe) {
@@ -85,18 +87,12 @@ const Dashboard: React.FC = () => {
   }, [upload])
 
   useEffect(() => {
-    filesUpload?.files?.map((file: any) => {
-      if (file.upload_progress === null) {
-        setTimeout(() => {
-          setCurrentUploads(currentUploads.filter(upload => upload.id !== file.id))
-        }, 10_000)
-      }
-    })
-  }, [filesUpload])
+    setFileList(fileList?.filter(file => file.status !== 'success'))
+  }, [upload])
 
   useEffect(() => {
-    localStorage.setItem('currentUploads', JSON.stringify(currentUploads || []))
-  }, [currentUploads])
+    localStorage.setItem('fileList', JSON.stringify(fileList || []))
+  }, [fileList])
 
   useEffect(() => {
     if (fileRename) {
@@ -116,6 +112,27 @@ const Dashboard: React.FC = () => {
     }
   }, [action])
 
+  useEffect(() => {
+    if (filesUpload?.files) {
+      setFileList(fileList?.map(file => {
+        if (!file.response?.file.id) return file
+        const found = filesUpload.files.find((f: any) => f.id === file.response?.file.id)
+        if (!found) {
+          return null
+        }
+        const getPercent = (fixed?: number) => found.upload_progress ? Number(found.upload_progress * 100).toFixed(fixed) : 100
+        return {
+          ...file,
+          name: `${getPercent(2)}% ${found.name} (${prettyBytes(found.size)})`,
+          percent: getPercent(),
+          status: found.upload_progress !== null ? 'uploading' : 'success',
+          url: `/view/${found.id}`,
+          response: { file: found }
+        }
+      }).filter(Boolean))
+    }
+  }, [filesUpload])
+
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
     setParams({
       ...parent ? { parent_id: parent } : { 'parent_id.is': 'null' },
@@ -126,7 +143,7 @@ const Dashboard: React.FC = () => {
         return { ...res, ...filters?.[key]?.[0] !== undefined ? { [`${key}.in`]: `(${filters[key]?.map(val => `'${val}'`).join(',')})` } : {} }
       }, {}),
       ...(sorter as SorterResult<any>)?.order ? {
-        sort: `${(sorter as SorterResult<any>).column?.key}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
+        sort: `${(sorter as SorterResult<any>).column?.dataIndex}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
       } : { sort: 'uploaded_at:desc' },
     })
   }
@@ -210,34 +227,36 @@ const Dashboard: React.FC = () => {
       title: 'File',
       dataIndex: 'name',
       key: 'type',
-      sorter: true,
-      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'type' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
-      filters: [
-        {
-          text: 'Folder',
-          value: 'folder'
-        },
-        {
-          text: 'Image',
-          value: 'image'
-        },
-        {
-          text: 'Video',
-          value: 'video'
-        },
-        {
-          text: 'Audio',
-          value: 'audio'
-        },
-        {
-          text: 'Document',
-          value: 'document'
-        },
-        {
-          text: 'Unknown',
-          value: 'unknown'
-        }
-      ],
+      ...upload ? {} : {
+        sorter: true,
+        sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.dataIndex === 'name' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+        filters: [
+          {
+            text: 'Folder',
+            value: 'folder'
+          },
+          {
+            text: 'Image',
+            value: 'image'
+          },
+          {
+            text: 'Video',
+            value: 'video'
+          },
+          {
+            text: 'Audio',
+            value: 'audio'
+          },
+          {
+            text: 'Document',
+            value: 'document'
+          },
+          {
+            text: 'Unknown',
+            value: 'unknown'
+          }
+        ],
+      },
       ellipsis: true,
       render: (_: any, row: any) => {
         let component
@@ -260,6 +279,8 @@ const Dashboard: React.FC = () => {
             if (row.type === 'folder') {
               setParent(row.id)
               setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
+            } else {
+              location.push(`/view/${row.id}`)
             }
           }}>
             {component} {row.name}
@@ -271,8 +292,10 @@ const Dashboard: React.FC = () => {
       title: 'Size',
       dataIndex: 'size',
       key: 'size',
-      sorter: true,
-      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'size' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+      ...upload ? {} : {
+        sorter: true,
+        sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'size' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+      },
       responsive: ['md'],
       width: 100,
       align: 'center',
@@ -282,8 +305,10 @@ const Dashboard: React.FC = () => {
       title: 'Uploaded At',
       dataIndex: 'uploaded_at',
       key: 'uploaded_at',
-      sorter: true,
-      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'uploaded_at' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+      ...upload ? {} : {
+        sorter: true,
+        sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'uploaded_at' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+      },
       responsive: ['md'],
       width: 250,
       align: 'center',
@@ -344,7 +369,7 @@ const Dashboard: React.FC = () => {
                 <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
               </Tooltip>
               <Tooltip title="Paste">
-                <Button shape="circle" icon={<SnippetsOutlined />} disabled={!selected?.length} loading={loadingPaste} onClick={() => paste(selected)} />
+                <Button shape="circle" icon={<SnippetsOutlined />} disabled={!action} loading={loadingPaste} onClick={() => paste(selected)} />
               </Tooltip>
               <Tooltip title="Delete">
                 <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
@@ -373,27 +398,29 @@ const Dashboard: React.FC = () => {
               }
               return true
             }}
-            action={`${apiUrl}/files/upload`}
+            action={`${apiUrl}/files/upload${parent ? `?parent_id=${parent}` : ''}`}
             withCredentials
-            headers={{ 'Accept-Ranges': 'bytes' }}
-            maxCount={1}
-            onChange={async ({ file }) => {
+            fileList={fileList}
+            onRemove={file => {
+              if (!file.response?.file) return true
+              setSelectDeleted([file.response?.file])
+              return false
+            }}
+            onChange={async ({ file, fileList }) => {
+              setFileList(fileList)
               if (file.status === 'done') {
                 message.info('Uploading to Telegram...')
-                const { data } = await req.get(`/files/${file.response.file.id}`)
-                setCurrentUploads([data.file, ...currentUploads || []])
               }
             }}>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
             <p className="ant-upload-text">Click or drag file to this area to upload</p>
+            <p className="ant-upload-hint">
+              Maximum file size is 2 GB
+            </p>
           </Upload.Dragger>
         </Typography.Paragraph>
-        {filesUpload?.files?.length ? <Table
-          columns={columns as any}
-          dataSource={filesUpload?.files}
-          pagination={false} /> : ''}
       </Drawer>
 
       <Modal visible={!!selectDeleted?.length}

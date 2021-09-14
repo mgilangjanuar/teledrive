@@ -30,7 +30,7 @@ body, p {
 }
 
 .upload .ant-drawer-content-wrapper {
-  height: 50% !important;
+  height: 40% !important;
 }
 
 .input-search-round input, .input-search-round .ant-input-affix-wrapper {

@@ -253,7 +253,7 @@ export class Files {
         workers: 1
       })
 
-      await Model.update(model.id, { message_id: data.id, uploaded_at: new Date(data.date * 1000), upload_progress: null })
+      await Model.update(model.id, { message_id: data.id, uploaded_at: data.date ? new Date(data.date * 1000) : null, upload_progress: null })
     } catch (error) {
       console.error(error)
       await Model.delete(model.id)
