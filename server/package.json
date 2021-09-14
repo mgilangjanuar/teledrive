@@ -23,7 +23,7 @@
     "pg": "^8.7.1",
     "serialize-error": "^8.1.0",
     "source-map-support": "^0.5.19",
-    "telegram": "^1.8.10",
+    "telegram": "^1.8.13",
     "typeorm": "^0.2.37",
     "typeorm-naming-strategies": "^2.0.0"
   },

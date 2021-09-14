@@ -12192,10 +12192,10 @@ tar@^6.0.2:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-telegram@^1.8.10:
-  version "1.8.10"
-  resolved "https://registry.yarnpkg.com/telegram/-/telegram-1.8.10.tgz#9d513036ecc3c657083da0055af392184a6c2f8e"
-  integrity sha512-NEulcl/J1OGieIbEUhWWGFCwDNQWB+RfUP+8p5VLSjNUxcZb+LDNsh7MPMNBrrrL6rMlF4HODGPf5iFKOVIfyQ==
+telegram@^1.8.13:
+  version "1.8.13"
+  resolved "https://registry.yarnpkg.com/telegram/-/telegram-1.8.13.tgz#5e53c25505b8facdeac5398b8ad0b5c2d8929e3d"
+  integrity sha512-mgkZNytA7BKALQA0nmOa6axcSXGb/r/Wd/Z6lHIIvNTq51PvV21eih4puin6Y4KMl0WA/2/LkDMNHkm/Jh/D0A==
   dependencies:
     "@cryptography/aes" "^0.1.1"
     async-mutex "^0.3.0"

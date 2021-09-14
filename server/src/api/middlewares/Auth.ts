@@ -12,7 +12,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
 
   try {
     const session = new StringSession(authkey)
-    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { requestRetries: 5 })
+    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }
   }
