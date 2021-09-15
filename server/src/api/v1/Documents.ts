@@ -8,13 +8,13 @@ export class Documents {
   public async privacy(_: Request, res: Response): Promise<any> {
     return res.send({ document: `# PRIVACY POLICY
 
-Your privacy is important to us, so TeleDrive, a Indonesia, has created the following Privacy Policy ("Policy") to let you know what information we collect when you visit our Site https://teledrive.vercel.app ("Site"), why we collect it and how we use it.
+Your privacy is important to us, so TeleDrive, a Indonesia, has created the following Privacy Policy ("Policy") to let you know what information we collect when you visit our Site https://teledriveapp.com ("Site"), why we collect it and how we use it.
 
 The terms "You," "Your," "Yours" and "User" refer to the entity/person/organization using our Site.
 When this Policy mentions "We", "Us," and "Our" it refers to TeleDrive and its subsidiaries and affiliates.
 
 
-This Privacy Policy is governed by our [Terms of Services](https://teledrive.vercel.app/terms).
+This Privacy Policy is governed by our [Terms of Services](https://teledriveapp.com/terms).
 
 For any questions regarding this Policy or any requests regarding the processing of personal data, please contact us at mgilangjanuar@gmail.com.
 
@@ -131,8 +131,8 @@ PLEASE READ THIS TERMS OF SERVICE AGREEMENT CAREFULLY, AS IT CONTAINS IMPORTANT 
 Last Revised: 2021-09-15 04:28:11
 
 ## 1. OVERVIEW
-This Terms of Service Agreement ("Agreement") is entered into by and between TeleDrive, registered address South Jakarta, Indonesia, Indonesia ("Company") and you, and is made effective as of the date of your use of this website https://teledrive.vercel.app ("Site") or the date of electronic acceptance.
-This Agreement sets forth the general terms and conditions of your use of the https://teledrive.vercel.app as well as the products and/or services purchased or accessed through this Site (the "Services").Whether you are simply browsing or using this Site or purchase Services, your use of this Site and your electronic acceptance of this Agreement signifies that you have read, understand, acknowledge and agree to be bound by this Agreement our [Privacy policy](https://teledrive.vercel.app/privacy). The terms "we", "us" or "our" shall refer to Company. The terms "you", "your", "User" or "customer" shall refer to any individual or entity who accepts this Agreement, uses our Site, has access or uses the Services. Nothing in this Agreement shall be deemed to confer any third-party rights or benefits.
+This Terms of Service Agreement ("Agreement") is entered into by and between TeleDrive, registered address South Jakarta, Indonesia, Indonesia ("Company") and you, and is made effective as of the date of your use of this website https://teledriveapp.com ("Site") or the date of electronic acceptance.
+This Agreement sets forth the general terms and conditions of your use of the https://teledriveapp.com as well as the products and/or services purchased or accessed through this Site (the "Services").Whether you are simply browsing or using this Site or purchase Services, your use of this Site and your electronic acceptance of this Agreement signifies that you have read, understand, acknowledge and agree to be bound by this Agreement our [Privacy policy](https://teledriveapp.com/privacy). The terms "we", "us" or "our" shall refer to Company. The terms "you", "your", "User" or "customer" shall refer to any individual or entity who accepts this Agreement, uses our Site, has access or uses the Services. Nothing in this Agreement shall be deemed to confer any third-party rights or benefits.
 Company may, in its sole and absolute discretion, change or modify this Agreement, and any policies or agreements which are incorporated herein, at any time, and such changes or modifications shall be effective immediately upon posting to this Site. Your use of this Site or the Services after such changes or modifications have been made shall constitute your acceptance of this Agreement as last revised.
 IF YOU DO NOT AGREE TO BE BOUND BY THIS AGREEMENT AS LAST REVISED, DO NOT USE (OR CONTINUE TO USE) THIS SITE OR THE SERVICES.
 

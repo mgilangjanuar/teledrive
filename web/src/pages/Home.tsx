@@ -46,8 +46,8 @@ const Home: React.FC = () => {
             </Typography.Paragraph>
             <Typography.Paragraph>
               <Space>
-                <Follow username="teledriveapp" options={{}} />
-                <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
+                <Follow username="teledriveapp" options={{ dnt: true }} />
+                <GitHubButton data-size="large" href="https://github.com/mgilangjanuar/teledrive" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
               </Space>
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
@@ -141,31 +141,6 @@ const Home: React.FC = () => {
           </Typography.Paragraph>
         </Col>
       </Row>
-
-      {/* <Row style={{ marginTop: '100px', padding: '50px 0' }}>
-        <Col span={20} offset={2}>
-          <Row gutter={72}>
-            <Col lg={{ span: 8, offset: 4 }} span={24} style={{ marginBottom: '30px' }}>
-              <Card actions={[<Button block type="link" href="#top">Get Early Access</Button>]}>
-                <Card.Meta title="Free" description={<ul>
-                  <li>
-                    test
-                  </li>
-                </ul>} />
-              </Card>
-            </Col>
-            <Col lg={8} span={24} style={{ marginBottom: '30px' }}>
-              <div style={{ fontSize: '2em', color: '#0088CC' }}>
-                <CloudOutlined />
-              </div>
-              <Typography.Title style={{ fontWeight: 'lighter' }}>Unlimited</Typography.Title>
-              <Typography.Paragraph>
-                Because Telegram promises us to give the unlimited cloud storage from their <a href="https://twitter.com/telegram/status/1428703364737507332" target="_blank">tweet</a>. So, here we go 🚀
-              </Typography.Paragraph>
-            </Col>
-          </Row>
-        </Col>
-      </Row> */}
 
     </Layout.Content>
     <Footer />

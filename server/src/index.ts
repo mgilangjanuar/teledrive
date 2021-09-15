@@ -25,8 +25,8 @@ app.use(cors({
   credentials: true,
   origin: [
     /localhost:[0-9]{1,7}$/,
-    /.*\.telebit\.io/,
-    'teledrive.vercel.app'
+    'teledrive.vercel.app',
+    'teledriveapp.com'
   ]
 }))
 app.use(json())
