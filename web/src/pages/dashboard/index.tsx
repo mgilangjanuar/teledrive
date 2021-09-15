@@ -27,6 +27,7 @@ import qs from 'qs'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
 import useSWR from 'swr'
+import useSWRImmutable from 'swr/immutable'
 import { useDebounce } from 'use-debounce'
 import { apiUrl, fetcher, req } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
@@ -61,7 +62,7 @@ const Dashboard: React.FC = () => {
   const [formShare] = useForm()
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
 
-  const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
+  const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
     ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
@@ -70,7 +71,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (errorMe) {
-      location.replace('/')
+      location.replace('/login')
     }
   }, [errorMe])
 

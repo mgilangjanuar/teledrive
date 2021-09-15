@@ -1,9 +1,10 @@
-import { QuestionCircleOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Form, Input, Layout, message, Row, Tooltip, Typography } from 'antd'
+import { Button, Card, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
+import JSCookie from 'js-cookie'
 import { useHistory } from 'react-router'
-import { req } from '../utils/Fetcher'
+import useSWRImmutable from 'swr/immutable'
+import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
@@ -13,13 +14,15 @@ const Login: React.FC = () => {
   const [loadingSendCode, setLoadingSendCode] = useState<boolean>()
   const [loadingLogin, setLoadingLogin] = useState<boolean>()
   const [countdown, setCountdown] = useState<number>()
-  const [token, setToken] = useState<string>(localStorage.getItem('activationCode') as string)
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
+  const [needPassword, setNeedPassword] = useState<boolean>()
+  const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   const sendCode = async (phoneNumber: string) => {
     if (!phoneNumber) {
       return message.error('Please input your valid phone number with country code')
     }
+    const token = localStorage.getItem('invitationCode')
     try {
       setLoadingSendCode(true)
       const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { token, phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { token, phoneNumber })
@@ -39,17 +42,38 @@ const Login: React.FC = () => {
       return message.error('Please send code first')
     }
     setLoadingLogin(true)
-    const { phoneNumber, phoneCode } = formLogin.getFieldsValue()
+    const token = localStorage.getItem('invitationCode')
+    const { phoneNumber, phoneCode, password } = formLogin.getFieldsValue()
     try {
-      const { data } = await req.post('/auth/login', { token, phoneNumber, phoneCode, phoneCodeHash })
+      const { data } = needPassword ? await req.post('/auth/checkPassword', { token, password }) : await req.post('/auth/login', { token, phoneNumber, phoneCode, phoneCodeHash })
       setLoadingLogin(false)
       message.success(`Welcome back, ${data.user.username}!`)
       return history.replace('/dashboard')
     } catch (error: any) {
       setLoadingLogin(false)
-      return message.error(error?.response?.data?.error || 'Something error')
+      const { data } = error?.response
+      if (data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+        message.info('Please input your 2FA password')
+        return setNeedPassword(true)
+      }
+      return message.error(data?.error || 'Something error')
     }
   }
+
+  useEffect(() => {
+    if (!localStorage.getItem('invitationCode')) {
+      message.error('Oops, you don\'t have an invitation code')
+      message.info('Please wait and always check your inbox 🍻')
+      return history.replace('/')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (JSCookie.get('authorization') && me?.user) {
+      console.log(me.user)
+      history.replace('/dashboard')
+    }
+  }, [me])
 
   useEffect(() => {
     if (countdown) {
@@ -58,10 +82,6 @@ const Login: React.FC = () => {
       setLoadingSendCode(false)
     }
   }, [countdown])
-
-  useEffect(() => {
-    localStorage.setItem('activationCode', token)
-  }, [token])
 
   return <>
     <Navbar />
@@ -76,14 +96,14 @@ const Login: React.FC = () => {
           </Typography.Paragraph>
           <Card>
             <Form layout="horizontal" form={formLogin} onFinish={login} labelCol={{ span: 9 }} wrapperCol={{ span: 15 }}>
-              <Form.Item label={<>Magic Code &nbsp;<Tooltip title="Use the code from email"><QuestionCircleOutlined /></Tooltip></>} name="token" rules={[{ required: true, message: 'Please input your activation code' }]}>
-                <Input defaultValue={token} value={token} onChange={({ target }) => setToken(target.value)} />
-              </Form.Item>
               <Form.Item label="Phone Number" name="phoneNumber" rules={[{ required: true, message: 'Please input your phone number' }]}>
                 <Input.Search placeholder="6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} />
               </Form.Item>
-              <Form.Item label={<>Code &nbsp;<Tooltip title="Get the code from your Telegram account"><QuestionCircleOutlined /></Tooltip></>} name="phoneCode" rules={[{ required: true, message: 'Please input your code' }]}>
+              <Form.Item label="Code" name="phoneCode" rules={[{ required: true, message: 'Please input your code' }]}>
                 <Input disabled={!phoneCodeHash} />
+              </Form.Item>
+              <Form.Item label="Password 2FA" name="password" hidden={!needPassword}>
+                <Input.Password />
               </Form.Item>
               <Form.Item style={{ marginTop: '50px' }} wrapperCol={{ span: 24 }}>
                 <Button block size="large" type="primary" htmlType="submit" loading={loadingLogin}>Login</Button>
