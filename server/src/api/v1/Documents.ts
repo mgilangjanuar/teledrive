@@ -6,7 +6,120 @@ export class Documents {
 
   @Endpoint.GET()
   public async privacy(_: Request, res: Response): Promise<any> {
-    return res.send({ document: '' })
+    return res.send({ document: `# PRIVACY POLICY
+
+Your privacy is important to us, so TeleDrive, a Indonesia, has created the following Privacy Policy ("Policy") to let you know what information we collect when you visit our Site https://teledrive.vercel.app ("Site"), why we collect it and how we use it.
+
+The terms "You," "Your," "Yours" and "User" refer to the entity/person/organization using our Site.
+When this Policy mentions "We", "Us," and "Our" it refers to TeleDrive and its subsidiaries and affiliates.
+
+
+This Privacy Policy is governed by our [Terms of Services](https://teledrive.vercel.app/terms).
+
+For any questions regarding this Policy or any requests regarding the processing of personal data, please contact us at mgilangjanuar@gmail.com.
+
+## 1. INFORMATION WE COLLECT FROM YOU
+We collect the information You provide to us and this information is necessary for the adequate performance of the contractual arrangement which is in place between You and us and allow us to comply with our legal obligations.
+
+  - Account Signup Information. When You create the account, we ask You to provide the signup information, such as Email, Name, Username.
+  - Login information. We collect Login information if You are logging to our account with Authentication Data.
+  - Other Personal Information Provided by You. We may collect other data provided by You from surveys, feedback, financial information (purchase history), Message ID That Contains Media and Document and other similar data.
+
+
+
+## 2. INFORMATION WE COLLECT AUTOMATICALLY
+When you use our Site or contact us directly we may collect information, including your personal information, about the way you act in our Site, the services You use and how You use them.
+This information is necessary for the adequate performance of the contract between You and us, to enable us to comply with legal obligations and given our legitimate interest in being able to provide and improve the functionalities of the Site.
+
+  - Log data and Device information. We automatically collect log data and device information when you access and use the Site, even if you have not created an Account or logged in. That information includes, among other things: Internet protocol (IP) addresses, Browser type, Operating system, Date/time stamp.
+  - Tracking technologies and Cookies. We use Cookies. We also automatically collect information about device’s operating system, .
+
+
+
+## 3. THE WAY WE USE YOUR INFORMATION
+We process your information adhering to the general data processing principles.
+We may use the information we collect through our Site for a number of reasons, including to:
+
+  - to identify user
+  - to create account
+  - to create trusted environment
+  - to create statistics and analyze market
+  - to stay connected
+  - to send billing information
+  - to manage user orders
+  - to contact user
+  - to improve services
+  - to ensure data security and prevent fraud
+  - to comply with applicable laws
+  - to request feedback
+  - to post testimonials
+  - to provide support
+
+We will normally collect personal information from you only where we have your consent to do so, where we need the personal information to perform a contract with you, or where the processing is in our legitimate business interests.
+
+
+## 4. COOKIES
+Cookies are small text files stored by your browser on your computer when you visit our Site. We use cookies to improve our Site and make it easier to use. Cookies permit us to recognize users and avoid repetitive requests for the same information.
+Cookies from our Site cannot be read by other Sites. Most browsers will accept cookies unless you change your browser settings to refuse them.
+Cookies we use on our Site:
+
+  - Strictly necessary cookies - These cookies are required for the operation of our Site. They help us to show you the right information, customize your experience, and allow us to implement and maintain security features as well as to help us detect malicious activities. Without these cookies operation of the Website would be impossible or its functioning may be severely affected.
+
+You may find more information about how to delete cookies, as well as the other useful information related to the use of the cookies, on the website http://www.allaboutcookies.org/.
+
+
+## 5. SENSITIVE INFORMATION
+We do not collect sensitive information such as political opinions, religious or philosophical beliefs, racial or ethnic origin, genetic data, biometric data, health data or data related a sexual orientation.
+Please do not send, upload, or provide us any sensitive data and contact us using the contact details below if you believe that we might have such information. We have a right to delete any information we believe it might contain sensitive data.
+
+
+## 6. PAYMENT INFORMATION
+To order and use our services we may require you to provide certain financial information to facilitate the processing of payments. We will not store or collect your payment card details. That information is provided directly to our third-party payment processors whose use of your Personal information is governed by their Privacy Policy. All payment data is stored by . You may find their privacy policy link(s) here: .
+
+
+## 7. THIRD PARTY LINKS
+Our Site may have links to other websites. Please review their privacy policies to learn more about how they collect and use your personal data, because we do not control their policies and personal data processing practices.
+
+
+## 8. RETENTION
+We retain your personal information to provide services to you and as otherwise necessary to comply with our legal obligation, resolve disputes, and enforce our agreements.
+We will retain your personal information as long as we need it to provide services to you, unless we are otherwise required by law or regulations to retain your personal information longer.
+
+
+## 9. SECURITY
+We have implemented security measures designed to protect the personal information you share with us, including physical, electronic and procedural measures. Among other things, we regularly monitor our systems for possible vulnerabilities and attacks.
+Regardless of the measures and efforts taken by us, the transmission of information via internet, email or text message is not completely secure. We do not guarantee the absolute protection and security of your personal information.
+We therefore encourage you to avoid providing us or anyone with any sensitive information of which you believe its disclosure could cause you substantial or irreparable harm.
+If you have any questions regarding the security of our Site or Services, you are welcome to contact us at mgilangjanuar@gmail.com.
+
+
+## 10. YOUR RIGHTS
+You are entitled to a range of rights regarding the protection of your personal information. Those rights are:
+
+  - The right to access the information we have about you. If you wish to access your personal information that we collect, you can do so at any time by contacting us using the contact details provided below.
+  - The right to rectify inaccurate information about you. You can correct, update or request deletion of your personal information by contacting us using the contact details provided below.
+  - The right to object the processing. When we rely on your consent to process your personal information, you may withdraw consent at any time by contacting us using the contact details provided below. This will not affect the lawfulness of processing prior to the withdrawal of your consent.
+  - The right to lodge a complaint. You can raise questions or complaints to the national Data Protection Agency in your country of residence in the event where your rights may have been infringed. However, we recommend attempting to reach a peaceful resolution of the possible dispute by contacting us first.
+  - The right to erase any data concerning you. You may demand erasure of data without undue delay for legitimate reasons, e.g. where data is no longer necessary for the purposes it was collected, or where the data has been unlawfully processed.
+
+
+
+## 11. APPLICATION OF POLICY
+This Policy was created with the help of the [TermsHub.io](https://termshub.io?utm_source=referral&utm_medium=generated_documents&utm_campaign=referral_documents&utm_content=pp_th_text) and the [Privacy Policy Generator](https://termshub.io/privacy-policy?utm_source=referral&utm_medium=generated_documents&utm_campaign=referral_documents&utm_content=pp_th_text) and applies only to the services offered by our Company. Our Policy does not apply to services offered by other companies or individuals, including products or sites that may be displayed to you in search results, sites that may include our services or other sites linked from our Site or Services.
+
+
+## 12. AMENDMENTS
+Our Policy may change from time to time. We will post any Policy changes on our Site and, if the changes are significant, we may consider providing a more explicit notice (including, for certain services, email notification of Policy changes).
+
+
+## 13. ACCEPTANCE OF THIS POLICY
+We assume that all Users of this Site have carefully read this document and agree to its contents. If someone does not agree with this Policy, they should refrain from using our Site. We reserve the right to change our Policy at any time and inform by using the way as indicated in Section 12. Continued use of this Site implies acceptance of the revised Policy.
+
+
+## 14. FURTHER INFORMATION
+If you have any further questions regarding the data we collect, or how we use it, then please feel free to contact us at the details as indicated above.
+
+` })
   }
 
   @Endpoint.GET()
@@ -19,7 +132,7 @@ Last Revised: 2021-09-15 04:28:11
 
 ## 1. OVERVIEW
 This Terms of Service Agreement ("Agreement") is entered into by and between TeleDrive, registered address South Jakarta, Indonesia, Indonesia ("Company") and you, and is made effective as of the date of your use of this website https://teledrive.vercel.app ("Site") or the date of electronic acceptance.
-This Agreement sets forth the general terms and conditions of your use of the https://teledrive.vercel.app as well as the products and/or services purchased or accessed through this Site (the "Services").Whether you are simply browsing or using this Site or purchase Services, your use of this Site and your electronic acceptance of this Agreement signifies that you have read, understand, acknowledge and agree to be bound by this Agreement our [Privacy policy](https://portal.termshub.com/teledrive.vercel.app#privacy_policy). The terms "we", "us" or "our" shall refer to Company. The terms "you", "your", "User" or "customer" shall refer to any individual or entity who accepts this Agreement, uses our Site, has access or uses the Services. Nothing in this Agreement shall be deemed to confer any third-party rights or benefits.
+This Agreement sets forth the general terms and conditions of your use of the https://teledrive.vercel.app as well as the products and/or services purchased or accessed through this Site (the "Services").Whether you are simply browsing or using this Site or purchase Services, your use of this Site and your electronic acceptance of this Agreement signifies that you have read, understand, acknowledge and agree to be bound by this Agreement our [Privacy policy](https://teledrive.vercel.app/privacy). The terms "we", "us" or "our" shall refer to Company. The terms "you", "your", "User" or "customer" shall refer to any individual or entity who accepts this Agreement, uses our Site, has access or uses the Services. Nothing in this Agreement shall be deemed to confer any third-party rights or benefits.
 Company may, in its sole and absolute discretion, change or modify this Agreement, and any policies or agreements which are incorporated herein, at any time, and such changes or modifications shall be effective immediately upon posting to this Site. Your use of this Site or the Services after such changes or modifications have been made shall constitute your acceptance of this Agreement as last revised.
 IF YOU DO NOT AGREE TO BE BOUND BY THIS AGREEMENT AS LAST REVISED, DO NOT USE (OR CONTINUE TO USE) THIS SITE OR THE SERVICES.
 
