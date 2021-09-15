@@ -1,5 +1,5 @@
 import { CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
+import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
 import GitHubButton from 'react-github-btn'
