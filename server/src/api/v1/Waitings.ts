@@ -9,7 +9,10 @@ export class Waitings {
   @Endpoint.POST('/')
   public async create(req: Request, res: Response): Promise<any> {
     const { email } = req.body
-    const data = await getRepository<Model>(Model).save({ email: email as string })
+    let data = await Model.findOne({ email })
+    if (!data) {
+      data = await getRepository<Model>(Model).save({ email: email as string })
+    }
     return res.send({ waiting: data })
   }
 }

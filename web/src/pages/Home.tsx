@@ -1,9 +1,9 @@
-import { CloudOutlined, DollarCircleOutlined, RightOutlined, SecurityScanOutlined } from '@ant-design/icons'
-import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
+import { CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
+import { Avatar, Button, Card, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
 import GitHubButton from 'react-github-btn'
-import { Follow } from 'react-twitter-widgets'
+import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
 import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
@@ -26,7 +26,7 @@ const Home: React.FC = () => {
 
   return <>
     <Navbar />
-    <Layout.Content>
+    <Layout.Content id="top">
       <Row align="middle" style={{ marginTop: '50px' }}>
         <Col lg={{ span: 10, offset: 2 }} md={{ span: 20, offset: 2 }} span={22} offset={1}>
           <Layout.Content>
@@ -35,14 +35,14 @@ const Home: React.FC = () => {
                 The Free Unlimited
               </Typography.Text>
               <br style={{ 'lineHeight': 1.5 }} />
-              <Typography.Text style={{ background: '#0088CC', color: '#fff', padding: '4px 53px 7px 10px' }}>
+              <Typography.Text style={{ background: '#0088CC', color: '#fff', padding: '4px 13px' }}>
                 Cloud Storage
               </Typography.Text>
             </Typography.Title>
             <Typography.Paragraph style={{ marginTop: '30px' }}>
               The open source project to give you what you deserve.
               Using the <strong>Telegram API</strong> as your unlimited storage.
-              So, you can upload as many as you want without any limit.
+              So, you can upload as many as you want without any limit 👌
             </Typography.Paragraph>
             <Typography.Paragraph>
               <Space>
@@ -53,7 +53,7 @@ const Home: React.FC = () => {
             <Layout.Content style={{ marginTop: '40px' }}>
               <Form form={form} layout="inline" onFinish={submit}>
                 <Form.Item name="email" rules={[{ required: true, message: 'Email required.' }]}>
-                  <Input size="large" style={{ width: '148px' }} type="email" placeholder="Email" />
+                  <Input size="large" style={{ width: '143px' }} type="email" placeholder="Email" />
                 </Form.Item>
                 <Form.Item>
                   <Button size="large" htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
@@ -75,16 +75,14 @@ const Home: React.FC = () => {
       </Row>
 
       <Row style={{ marginTop: '100px', padding: '100px 0', background: '#f0f2f5' }}>
-        <Col lg={{ span: 14 }} span={20} offset={2}>
+        <Col lg={14} span={20} offset={2}>
           <Typography.Title level={2}>Want to know why we can do this?</Typography.Title>
-          <Typography.Paragraph>
+          <Typography.Paragraph style={{ marginBottom: '50px' }}>
             In Aug 20, 2021, <a href="https://telegram.org/">Telegram</a> said that they give an unlimited cloud storage for free via their official <a href="https://twitter.com/telegram/status/1428703364737507332" target="_blank">Twitter account</a>.
-            So, we're using their API to build TeleDrive 🚀
+            So, we're using their API to build <strong>TeleDrive</strong> 🚀
           </Typography.Paragraph>
           <Typography.Paragraph>
-            <a href="https://twitter.com/telegram/status/1428703364737507332" target="_blank">
-              <img style={{ width: '100%', maxWidth: '620px' }} src="https://drive.google.com/uc?id=1o2HnKglEF0-cvtNmQqWZicJnSCSmnoEr" />
-            </a>
+            <Tweet options={{ width: 360 }} tweetId="1428703364737507332" />
           </Typography.Paragraph>
         </Col>
       </Row>
@@ -144,19 +142,19 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '100px', padding: '50px 0', textAlign: 'center' }}>
+      {/* <Row style={{ marginTop: '100px', padding: '50px 0' }}>
         <Col span={20} offset={2}>
           <Row gutter={72}>
-            <Col lg={12} span={24} style={{ marginBottom: '30px' }}>
-              <div style={{ fontSize: '2em', color: '#0088CC' }}>
-                <DollarCircleOutlined />
-              </div>
-              <Typography.Title style={{ fontWeight: 'lighter' }}>Free</Typography.Title>
-              <Typography.Paragraph>
-                Seriously, you can use this service FREE with no limit. Everyone can even do a self-hosted for TeleDrive.
-              </Typography.Paragraph>
+            <Col lg={{ span: 8, offset: 4 }} span={24} style={{ marginBottom: '30px' }}>
+              <Card actions={[<Button block type="link" href="#top">Get Early Access</Button>]}>
+                <Card.Meta title="Free" description={<ul>
+                  <li>
+                    test
+                  </li>
+                </ul>} />
+              </Card>
             </Col>
-            <Col lg={12} span={24} style={{ marginBottom: '30px' }}>
+            <Col lg={8} span={24} style={{ marginBottom: '30px' }}>
               <div style={{ fontSize: '2em', color: '#0088CC' }}>
                 <CloudOutlined />
               </div>
@@ -167,7 +165,7 @@ const Home: React.FC = () => {
             </Col>
           </Row>
         </Col>
-      </Row>
+      </Row> */}
 
     </Layout.Content>
     <Footer />
