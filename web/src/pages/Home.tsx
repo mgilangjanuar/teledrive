@@ -53,11 +53,11 @@ const Home: React.FC = () => {
             <Layout.Content style={{ marginTop: '40px' }}>
               <Form form={form} layout="inline" onFinish={submit}>
                 <Form.Item name="email" rules={[{ required: true, message: 'Email required.' }]}>
-                  <Input style={{ width: '148px' }} type="email" placeholder="Email" />
+                  <Input size="large" style={{ width: '148px' }} type="email" placeholder="Email" />
                 </Form.Item>
                 <Form.Item>
-                  <Button htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
-                    Get Early Access <RightOutlined />
+                  <Button size="large" htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
+                    Get Early Access
                   </Button>
                 </Form.Item>
               </Form>
@@ -66,13 +66,16 @@ const Home: React.FC = () => {
         </Col>
         <Col lg={{ span: 10 }} span={24} style={{ textAlign: 'center', marginTop: '50px' }}>
           <Layout.Content>
-            <img style={{ width: '100%', maxWidth: '640px' }} src="./Illustration.svg" alt="Illustration.svg" />
+            <img style={{ width: '100%', maxWidth: '640px' }} src="./uploading-animate.svg" alt="Illustration.svg" />
+            <p style={{ fontSize: '11px' }}>
+              <a href="https://storyset.com/online">Online illustrations by Storyset</a>
+            </p>
           </Layout.Content>
         </Col>
       </Row>
 
       <Row style={{ marginTop: '100px', padding: '100px 0', background: '#f0f2f5' }}>
-        <Col span={20} offset={2}>
+        <Col lg={{ span: 14 }} span={20} offset={2}>
           <Typography.Title level={2}>Want to know why we can do this?</Typography.Title>
           <Typography.Paragraph>
             In Aug 20, 2021, <a href="https://telegram.org/">Telegram</a> said that they give an unlimited cloud storage for free via their official <a href="https://twitter.com/telegram/status/1428703364737507332" target="_blank">Twitter account</a>.
@@ -86,7 +89,7 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '100px', padding: '100px 0' }}>
+      <Row style={{ marginTop: '100px', padding: '50px 0' }}>
         <Col span={20} offset={2}>
           <Row gutter={72}>
             <Col lg={8} span={24} style={{ textAlign: 'center', marginBottom: '30px' }}>
@@ -122,8 +125,8 @@ const Home: React.FC = () => {
 
       <Row style={{ marginTop: '100px', padding: '100px 0', background: '#f0f2f5', textAlign: 'center' }}>
         <Col span={20} offset={2}>
-          <Typography.Title level={2}>Our Contributors</Typography.Title>
-          <Typography.Paragraph>
+          <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Contributors</Typography.Title>
+          <Typography.Paragraph style={{ marginBottom: '20px' }}>
             <Space wrap>
               {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>
                 <a href={contributor.html_url} target="_blank">
@@ -133,10 +136,39 @@ const Home: React.FC = () => {
             </Space>
           </Typography.Paragraph>
           <Typography.Paragraph>
-            <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-size="large" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
+            <Space>
+              <GitHubButton href="https://github.com/mgilangjanuar/teledrive/fork" data-size="large" data-show-count="true" aria-label="Fork mgilangjanuar/teledrive on GitHub">Fork</GitHubButton>
+              <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-size="large" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
+            </Space>
           </Typography.Paragraph>
         </Col>
       </Row>
+
+      <Row style={{ marginTop: '100px', padding: '50px 0', textAlign: 'center' }}>
+        <Col span={20} offset={2}>
+          <Row gutter={72}>
+            <Col lg={12} span={24} style={{ marginBottom: '30px' }}>
+              <div style={{ fontSize: '2em', color: '#0088CC' }}>
+                <DollarCircleOutlined />
+              </div>
+              <Typography.Title style={{ fontWeight: 'lighter' }}>Free</Typography.Title>
+              <Typography.Paragraph>
+                Seriously, you can use this service FREE with no limit. Everyone can even do a self-hosted for TeleDrive.
+              </Typography.Paragraph>
+            </Col>
+            <Col lg={12} span={24} style={{ marginBottom: '30px' }}>
+              <div style={{ fontSize: '2em', color: '#0088CC' }}>
+                <CloudOutlined />
+              </div>
+              <Typography.Title style={{ fontWeight: 'lighter' }}>Unlimited</Typography.Title>
+              <Typography.Paragraph>
+                Because Telegram promises us to give the unlimited cloud storage from their <a href="https://twitter.com/telegram/status/1428703364737507332" target="_blank">tweet</a>. So, here we go 🚀
+              </Typography.Paragraph>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+
     </Layout.Content>
     <Footer />
   </>
