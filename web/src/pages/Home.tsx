@@ -2,6 +2,7 @@ import { CloudOutlined, DollarCircleOutlined, RightOutlined, SecurityScanOutline
 import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
+import GitHubButton from 'react-github-btn'
 import { Follow } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
 import { fetcher, req } from '../utils/Fetcher'
@@ -44,7 +45,10 @@ const Home: React.FC = () => {
               So, you can upload as many as you want without any limit.
             </Typography.Paragraph>
             <Typography.Paragraph>
-              <Follow username="teledriveapp" />
+              <Space>
+                <Follow username="teledriveapp" options={{}} />
+                <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
+              </Space>
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
               <Form form={form} layout="inline" onFinish={submit}>
@@ -60,14 +64,14 @@ const Home: React.FC = () => {
             </Layout.Content>
           </Layout.Content>
         </Col>
-        <Col lg={{ span: 10 }} span={24} style={{ textAlign: 'center' }}>
+        <Col lg={{ span: 10 }} span={24} style={{ textAlign: 'center', marginTop: '50px' }}>
           <Layout.Content>
-            <img style={{ width: '100%', maxWidth: '560px' }} src="./Illustration.svg" alt="Illustration.svg" />
+            <img style={{ width: '100%', maxWidth: '640px' }} src="./Illustration.svg" alt="Illustration.svg" />
           </Layout.Content>
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '50px 0', background: '#f0f2f5' }}>
+      <Row style={{ marginTop: '100px', padding: '100px 0', background: '#f0f2f5' }}>
         <Col span={20} offset={2}>
           <Typography.Title level={2}>Want to know why we can do this?</Typography.Title>
           <Typography.Paragraph>
@@ -82,7 +86,7 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '50px 0' }}>
+      <Row style={{ marginTop: '100px', padding: '100px 0' }}>
         <Col span={20} offset={2}>
           <Row gutter={72}>
             <Col lg={8} span={24} style={{ textAlign: 'center', marginBottom: '30px' }}>
@@ -116,16 +120,21 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '50px 0', background: '#f0f2f5', textAlign: 'center' }}>
+      <Row style={{ marginTop: '100px', padding: '100px 0', background: '#f0f2f5', textAlign: 'center' }}>
         <Col span={20} offset={2}>
           <Typography.Title level={2}>Our Contributors</Typography.Title>
-          <Space wrap>
-            {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>
-              <a href={contributor.html_url} target="_blank">
-                <Avatar size="large" src={contributor.avatar_url} />
-              </a>
-            </Tooltip>)}
-          </Space>
+          <Typography.Paragraph>
+            <Space wrap>
+              {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>
+                <a href={contributor.html_url} target="_blank">
+                  <Avatar size="large" src={contributor.avatar_url} />
+                </a>
+              </Tooltip>)}
+            </Space>
+          </Typography.Paragraph>
+          <Typography.Paragraph>
+            <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-size="large" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
+          </Typography.Paragraph>
         </Col>
       </Row>
     </Layout.Content>

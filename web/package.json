@@ -9,6 +9,7 @@
     "pretty-bytes": "^5.6.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-github-btn": "^1.2.1",
     "react-router-dom": "^5.3.0",
     "react-scripts": "4.0.3",
     "react-twitter-widgets": "^1.10.0",

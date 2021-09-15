@@ -196,56 +196,6 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    /**
-     * Deprecated: use /forward instead
-     */
-    // handle for sharing options
-    // if (file.sharing_options) {
-    //   // delete all shared files
-    //   if (!file.sharing_options.length) {
-    //     await Model.createQueryBuilder('files')
-    //       .delete()
-    //       .where({ prev_message_id: raw[0].message_id })
-    //       .execute()
-    //   } else {
-    //     const users = await Users.createQueryBuilder('users').where('username in (:...usernames)', { usernames: file.sharing_options }).getMany()
-    //     const files = await Model.find({ prev_message_id: raw[0].message_id })
-
-    //     // remove files from unshared user
-    //     if (files?.length && users?.length) {
-    //       await Model.createQueryBuilder('files')
-    //         .delete()
-    //         .where('id in (:...ids) and user_id not in (:...userIds)', {
-    //           ids: files.map(file => file.id), userIds: users.map(user => user.id) })
-    //         .execute()
-    //     }
-
-    //     // save new file for shared users
-    //     await Promise.all(users?.map(async user => {
-    //       if (!files?.find(f => f.user_id === user.id)) {
-    //         const data = await req.tg.invoke(new Api.messages.ForwardMessages({
-    //           fromPeer: 'me',
-    //           id: [raw[0].message_id],
-    //           toPeer: user.username
-    //         }))
-    //         console.log(data)
-    //         const message = data['updates'].find((update: any) => update.className === 'UpdateNewMessage').message
-    //         await Model.insert({
-    //           name: raw[0].name,
-    //           mime_type: raw[0].mime_type,
-    //           size: raw[0].size,
-    //           user_id: user.id,
-    //           type: raw[0].type,
-    //           message_id: null,
-    //           uploaded_at: new Date(message.date * 1000),
-    //           upload_progress: null,
-    //           prev_message_id: raw[0].message_id
-    //         })
-    //       }
-    //     }))
-    //   }
-    // }
-
     return res.send({ file: raw[0] })
   }
 

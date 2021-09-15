@@ -2,15 +2,15 @@ import {
   AudioOutlined, DownloadOutlined, FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
-  FolderOpenOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined, ShareAltOutlined, VideoCameraOutlined
+  FolderOpenOutlined, HomeOutlined, MenuFoldOutlined,
+  MenuUnfoldOutlined, VideoCameraOutlined
 } from '@ant-design/icons'
 import { Button, Col, Descriptions, Layout, Result, Row, Space, Typography } from 'antd'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import React, { useState } from 'react'
 import { RouteComponentProps } from 'react-router'
+import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 import { apiUrl, fetcher } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
@@ -71,7 +71,9 @@ const View: React.FC<PageProps> = ({ match }) => {
           </Descriptions>
           <Space>
             <Button type="primary" loading={!data && !error} icon={<DownloadOutlined />} href={`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`}>Download</Button>
-            <Button loading={!data && !error} icon={<ShareAltOutlined />}>Share</Button>
+            <Link to="/dashboard">
+              <Button loading={!data && !error} icon={<HomeOutlined />}>Back Home</Button>
+            </Link>
           </Space>
         </Layout.Content>}
       </Layout.Sider>
