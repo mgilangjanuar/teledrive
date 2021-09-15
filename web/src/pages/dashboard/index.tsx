@@ -84,10 +84,6 @@ const Dashboard: React.FC = () => {
     }
   }, [files])
 
-  // useEffect(() => {
-  //   setFileList(fileList?.filter(file => file.status !== 'success'))
-  // }, [filesUpload])
-
   useEffect(() => {
     localStorage.setItem('fileList', JSON.stringify(fileList || []))
   }, [fileList])
@@ -112,21 +108,22 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (getUser) {
-      req.get('/users', {
+      req.get('/users/search', {
         params: {
-          'username.ilike': `'%${getUser}%'`,
-          skip: 0,
-          take: 5
+          username: getUser
         }
       }).then(({ data }) => {
-        setUsers(data.users?.filter((user: any) => user.id !== me?.user.id))
+        setUsers(data.users?.filter((user: any) => user.id !== Number(me?.user.tg_id)))
       })
     }
   }, [getUser])
 
   useEffect(() => {
     if (selectShare) {
-      formShare.setFieldsValue(selectShare)
+      formShare.setFieldsValue({
+        id: selectShare.id,
+        users: ['']
+      })
     }
   }, [selectShare])
 
@@ -144,7 +141,7 @@ const Dashboard: React.FC = () => {
           name: `${getPercent(2)}% ${found.name} (${prettyBytes(found.size)})`,
           percent: getPercent(),
           status: found.upload_progress !== null ? 'uploading' : 'success',
-          url: `/view/${found.id}`,
+          url: found.upload_progress === null ? `/view/${found.id}` : undefined,
           response: { file: found }
         }
       }).filter(file => file && file?.status !== 'success'))
@@ -243,16 +240,17 @@ const Dashboard: React.FC = () => {
 
   const share = async () => {
     setLoadingShare(true)
-    const { id, sharing_options: members } = formShare.getFieldsValue()
+    const { id, users } = formShare.getFieldsValue()
+    let results: any[] = []
     try {
-      await req.patch(`/files/${id}`, { file: { sharing_options: members } })
+      results = await Promise.all(users?.map(async (user: any) => await req.post(`/files/forward/${id}/${user}`, {})))
     } catch (error) {
       // ignore
     }
     formShare.resetFields()
     setLoadingShare(false)
     setSelectShare(undefined)
-    message.success('Saved')
+    message.success(`Shared to ${results.filter(Boolean).length} user(s) successfully!`)
   }
 
   const columns = [
@@ -351,10 +349,10 @@ const Dashboard: React.FC = () => {
         <Button size="small" type="link">Cancel</Button>
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
         <Menu.Item icon={<EditOutlined />} key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>
-        <Menu.Item icon={<ShareAltOutlined />} key="share" onClick={() => setSelectShare(row)}>Share</Menu.Item>
+        {row.type !== 'folder' ? <Menu.Item icon={<ShareAltOutlined />} key="share" onClick={() => setSelectShare(row)}>Share</Menu.Item> : ''}
         <Menu.Item icon={<DeleteOutlined />} key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
       </Menu>}>
-        <EllipsisOutlined />
+        <Button type="link" size="small" icon={<EllipsisOutlined />}/>
       </Dropdown>
     }
   ]
@@ -483,7 +481,7 @@ const Dashboard: React.FC = () => {
 
       <Modal visible={selectShare}
         onCancel={() => setSelectShare(undefined)}
-        okText="Save"
+        okText="Share"
         title={`Share ${selectShare?.name}`}
         onOk={() => formShare.submit()}
         okButtonProps={{ loading: loadingShare }}>
@@ -491,7 +489,7 @@ const Dashboard: React.FC = () => {
           <Form.Item name="id" hidden>
             <Input />
           </Form.Item>
-          <Form.List name="sharing_options">
+          <Form.List name="users">
             {(fields, { add, remove }) => <>
               {fields.map((field, i) => <Row gutter={14} key={i}>
                 <Col span={22}>
@@ -506,7 +504,7 @@ const Dashboard: React.FC = () => {
                 </Col>
               </Row>)}
               <Form.Item style={{ marginTop: '10px' }}>
-                <Button onClick={() => add()}>Add member</Button>
+                <Button block shape="round" onClick={() => add()}>Add user</Button>
               </Form.Item>
             </>}
           </Form.List>
