@@ -4,15 +4,13 @@ import {
   FileOutlined,
   FilePdfOutlined,
   FolderAddOutlined,
-  FolderOpenOutlined, InboxOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, UploadOutlined,
-  VideoCameraOutlined, WarningOutlined
+  FolderOpenOutlined, HomeOutlined, InboxOutlined, MinusCircleOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, VideoCameraOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
+  AutoComplete,
   Breadcrumb,
   Button,
-  Col,
-  Drawer,
-  Dropdown, Form, Input,
+  Col, Dropdown, Form, Input,
   Layout, Menu, message, Modal, Popconfirm, Row,
   Space,
   Table,
@@ -29,6 +27,7 @@ import qs from 'qs'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
 import useSWR from 'swr'
+import { useDebounce } from 'use-debounce'
 import { apiUrl, fetcher, req } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
@@ -38,28 +37,33 @@ const Dashboard: React.FC = () => {
 
   const location = useHistory()
   const [parent, setParent] = useState<string | null>(null)
-  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string }>>([{ id: null, name: 'Home' }])
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string | React.ReactElement }>>([{ id: null, name: <><HomeOutlined /> Home</> }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
   const [action, setAction] = useState<string>()
   const [selectDeleted, setSelectDeleted] = useState<any[]>([])
+  const [selectShare, setSelectShare] = useState<any>()
   const [keyword, setKeyword] = useState<string>()
   const [params, setParams] = useState<any>()
-  const [upload, setUpload] = useState<boolean>()
   const [loadingRemove, setLoadingRemove] = useState<boolean>()
   const [loadingPaste, setLoadingPaste] = useState<boolean>()
   const [loadingAddFolder, setLoadingAddFolder] = useState<boolean>()
   const [loadingRename, setLoadingRename] = useState<boolean>()
+  const [loadingShare, setLoadingShare] = useState<boolean>()
+  const [username, setUsername] = useState<string>()
+  const [getUser] = useDebounce(username, 500)
+  const [users, setUsers] = useState<any[]>([])
   const [addFolder, setAddFolder] = useState<boolean>()
   const [fileRename, setFileRename] = useState<any>()
   const [formAddFolder] = useForm()
   const [formRename] = useForm()
+  const [formShare] = useForm()
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
-  const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length && upload
+  const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
     ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
     refreshInterval: 3000
   })
@@ -80,15 +84,9 @@ const Dashboard: React.FC = () => {
     }
   }, [files])
 
-  useEffect(() => {
-    if (!upload) {
-      refetch()
-    }
-  }, [upload])
-
-  useEffect(() => {
-    setFileList(fileList?.filter(file => file.status !== 'success'))
-  }, [upload])
+  // useEffect(() => {
+  //   setFileList(fileList?.filter(file => file.status !== 'success'))
+  // }, [filesUpload])
 
   useEffect(() => {
     localStorage.setItem('fileList', JSON.stringify(fileList || []))
@@ -113,6 +111,26 @@ const Dashboard: React.FC = () => {
   }, [action])
 
   useEffect(() => {
+    if (getUser) {
+      req.get('/users', {
+        params: {
+          'username.ilike': `'%${getUser}%'`,
+          skip: 0,
+          take: 5
+        }
+      }).then(({ data }) => {
+        setUsers(data.users?.filter((user: any) => user.id !== me?.user.id))
+      })
+    }
+  }, [getUser])
+
+  useEffect(() => {
+    if (selectShare) {
+      formShare.setFieldsValue(selectShare)
+    }
+  }, [selectShare])
+
+  useEffect(() => {
     if (filesUpload?.files) {
       setFileList(fileList?.map(file => {
         if (!file.response?.file.id) return file
@@ -120,7 +138,7 @@ const Dashboard: React.FC = () => {
         if (!found) {
           return null
         }
-        const getPercent = (fixed?: number) => found.upload_progress ? Number(found.upload_progress * 100).toFixed(fixed) : 100
+        const getPercent = (fixed?: number) => found.upload_progress !== null ? Number(found.upload_progress * 100).toFixed(fixed) : 100
         return {
           ...file,
           name: `${getPercent(2)}% ${found.name} (${prettyBytes(found.size)})`,
@@ -129,7 +147,8 @@ const Dashboard: React.FC = () => {
           url: `/view/${found.id}`,
           response: { file: found }
         }
-      }).filter(Boolean))
+      }).filter(file => file && file?.status !== 'success'))
+      refetch()
     }
   }, [filesUpload])
 
@@ -222,41 +241,53 @@ const Dashboard: React.FC = () => {
     message.success('Files are moved successfully!')
   }
 
+  const share = async () => {
+    setLoadingShare(true)
+    const { id, sharing_options: members } = formShare.getFieldsValue()
+    try {
+      await req.patch(`/files/${id}`, { file: { sharing_options: members } })
+    } catch (error) {
+      // ignore
+    }
+    formShare.resetFields()
+    setLoadingShare(false)
+    setSelectShare(undefined)
+    message.success('Saved')
+  }
+
   const columns = [
     {
       title: 'File',
       dataIndex: 'name',
       key: 'type',
-      ...upload ? {} : {
-        sorter: true,
-        sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.dataIndex === 'name' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
-        filters: [
-          {
-            text: 'Folder',
-            value: 'folder'
-          },
-          {
-            text: 'Image',
-            value: 'image'
-          },
-          {
-            text: 'Video',
-            value: 'video'
-          },
-          {
-            text: 'Audio',
-            value: 'audio'
-          },
-          {
-            text: 'Document',
-            value: 'document'
-          },
-          {
-            text: 'Unknown',
-            value: 'unknown'
-          }
-        ],
-      },
+      sorter: true,
+      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.dataIndex === 'name' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
+      filters: [
+        {
+          text: 'Folder',
+          value: 'folder'
+        },
+        {
+          text: 'Image',
+          value: 'image'
+        },
+        {
+          text: 'Video',
+          value: 'video'
+        },
+        {
+          text: 'Audio',
+          value: 'audio'
+        },
+        {
+          text: 'Document',
+          value: 'document'
+        },
+        {
+          text: 'Unknown',
+          value: 'unknown'
+        }
+      ],
       ellipsis: true,
       render: (_: any, row: any) => {
         let component
@@ -292,10 +323,8 @@ const Dashboard: React.FC = () => {
       title: 'Size',
       dataIndex: 'size',
       key: 'size',
-      ...upload ? {} : {
-        sorter: true,
-        sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'size' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
-      },
+      sorter: true,
+      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'size' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
       responsive: ['md'],
       width: 100,
       align: 'center',
@@ -305,14 +334,12 @@ const Dashboard: React.FC = () => {
       title: 'Uploaded At',
       dataIndex: 'uploaded_at',
       key: 'uploaded_at',
-      ...upload ? {} : {
-        sorter: true,
-        sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'uploaded_at' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
-      },
+      sorter: true,
+      sortOrder: (dataChanges?.sorter as SorterResult<any>)?.column?.key === 'uploaded_at' ? (dataChanges?.sorter as SorterResult<any>).order : undefined,
       responsive: ['md'],
       width: 250,
       align: 'center',
-      render: (value: any, row: any) => row.upload_progress ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).format('llll')
+      render: (value: any, row: any) => row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).format('llll')
     },
     {
       title: 'Actions',
@@ -324,7 +351,7 @@ const Dashboard: React.FC = () => {
         <Button size="small" type="link">Cancel</Button>
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
         <Menu.Item icon={<EditOutlined />} key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>
-        <Menu.Item icon={<ShareAltOutlined />} key="share">Share</Menu.Item>
+        <Menu.Item icon={<ShareAltOutlined />} key="share" onClick={() => setSelectShare(row)}>Share</Menu.Item>
         <Menu.Item icon={<DeleteOutlined />} key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
       </Menu>}>
         <EllipsisOutlined />
@@ -356,9 +383,6 @@ const Dashboard: React.FC = () => {
           </Typography.Paragraph>
           <Typography.Paragraph>
             <Space wrap>
-              <Tooltip title="Upload">
-                <Button onClick={() => setUpload(true)} shape="circle" icon={<UploadOutlined />} type="primary" />
-              </Tooltip>
               <Tooltip title="Add folder">
                 <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
               </Tooltip>
@@ -377,6 +401,38 @@ const Dashboard: React.FC = () => {
               <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
           </Typography.Paragraph>
+          <Typography.Paragraph>
+            <Upload.Dragger name="upload"
+              beforeUpload={file => {
+                if (file.size / 1_000_000_000 > 2) {
+                  message.error('Maximum file size is 2 GB')
+                  return false
+                }
+                return true
+              }}
+              action={`${apiUrl}/files/upload${parent ? `?parent_id=${parent}` : ''}`}
+              withCredentials
+              fileList={fileList}
+              onRemove={file => {
+                if (!file.response?.file) return true
+                setSelectDeleted([file.response?.file])
+                return false
+              }}
+              onChange={async ({ file, fileList }) => {
+                setFileList(fileList)
+                if (file.status === 'done') {
+                  message.info('Uploading to Telegram...')
+                }
+              }}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">Click or drag file to this area to upload</p>
+              <p className="ant-upload-hint">
+                Maximum file size is 2 GB
+              </p>
+            </Upload.Dragger>
+          </Typography.Paragraph>
           <Table loading={!files}
             rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
             dataSource={data}
@@ -387,41 +443,6 @@ const Dashboard: React.FC = () => {
             }} scroll={{ x: 420 }} />
         </Col>
       </Row>
-
-      <Drawer className="upload" title="Upload" visible={upload} onClose={() => setUpload(false)} placement="bottom">
-        <Typography.Paragraph>
-          <Upload.Dragger name="upload"
-            beforeUpload={file => {
-              if (file.size / 1_000_000_000 > 2) {
-                message.error('Maximum file size is 2 GB')
-                return false
-              }
-              return true
-            }}
-            action={`${apiUrl}/files/upload${parent ? `?parent_id=${parent}` : ''}`}
-            withCredentials
-            fileList={fileList}
-            onRemove={file => {
-              if (!file.response?.file) return true
-              setSelectDeleted([file.response?.file])
-              return false
-            }}
-            onChange={async ({ file, fileList }) => {
-              setFileList(fileList)
-              if (file.status === 'done') {
-                message.info('Uploading to Telegram...')
-              }
-            }}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">Click or drag file to this area to upload</p>
-            <p className="ant-upload-hint">
-              Maximum file size is 2 GB
-            </p>
-          </Upload.Dragger>
-        </Typography.Paragraph>
-      </Drawer>
 
       <Modal visible={!!selectDeleted?.length}
         title={<><WarningOutlined /> Confirmation</>}
@@ -457,6 +478,38 @@ const Dashboard: React.FC = () => {
           <Form.Item name="name" label="Name">
             <Input />
           </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal visible={selectShare}
+        onCancel={() => setSelectShare(undefined)}
+        okText="Save"
+        title={`Share ${selectShare?.name}`}
+        onOk={() => formShare.submit()}
+        okButtonProps={{ loading: loadingShare }}>
+        <Form form={formShare} layout="vertical" onFinish={share}>
+          <Form.Item name="id" hidden>
+            <Input />
+          </Form.Item>
+          <Form.List name="sharing_options">
+            {(fields, { add, remove }) => <>
+              {fields.map((field, i) => <Row gutter={14} key={i}>
+                <Col span={22}>
+                  <Form.Item {...field} rules={[{ required: true, message: 'Username is required' }]}>
+                    <AutoComplete options={users?.map((user: any) => ({ value: user.username }))}>
+                      <Input placeholder="username" prefix="@" onChange={e => setUsername(e.target.value)} />
+                    </AutoComplete>
+                  </Form.Item>
+                </Col>
+                <Col span={2}>
+                  <Button icon={<MinusCircleOutlined />} type="link" danger onClick={() => remove(field.name)} />
+                </Col>
+              </Row>)}
+              <Form.Item style={{ marginTop: '10px' }}>
+                <Button onClick={() => add()}>Add member</Button>
+              </Form.Item>
+            </>}
+          </Form.List>
         </Form>
       </Modal>
     </Layout.Content>

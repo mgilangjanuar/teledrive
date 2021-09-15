@@ -4,6 +4,7 @@ import { Users } from './model/entities/Users'
 declare module 'http' {
   interface IncomingMessage {
     tg?: TelegramClient,
-    user?: Users
+    user?: Users,
+    userAuth?: any
   }
 }

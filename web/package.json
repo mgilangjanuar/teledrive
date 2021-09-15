@@ -14,6 +14,7 @@
     "react-twitter-widgets": "^1.10.0",
     "swr": "^1.0.0",
     "typescript": "^4.0.3",
+    "use-debounce": "^7.0.0",
     "web-vitals": "^0.2.4"
   },
   "scripts": {

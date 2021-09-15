@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import multer from 'multer'
 import { Api } from 'telegram'
 import { Files as Model } from '../../model/entities/Files'
+import { Users } from '../../model/entities/Users'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
@@ -20,6 +21,24 @@ export class Files {
       .orderBy(buildSort(sort as string))
       .getManyAndCount()
     return res.send({ files, length })
+  }
+
+  @Endpoint.GET({ middlewares: [Auth] })
+  public async test(req: Request, res: Response): Promise<any> {
+    // const file
+    try {
+      const chat = await req.tg.invoke(new Api.messages.SearchGlobal({
+        q: 'photo_2021-09-12 19.59.45.jpeg',
+        filter: new Api.InputMessagesFilterDocument(),
+        limit: 10,
+        offsetPeer: new Api.InputPeerEmpty()
+      }))
+      console.log(chat)
+      return res.send({ chat })
+    } catch (error) {
+      console.error(error)
+      return res.send({})
+    }
   }
 
   @Endpoint.POST('/', { middlewares: [Auth] })
@@ -53,8 +72,8 @@ export class Files {
     const { raw } = req.query
 
     const file = await Model.createQueryBuilder('files')
-      .where('id = :id and (user_id = :user_id or :user_id = any(sharing_options) or \'*\' = any(sharing_options))', {
-        id, user_id: req.user.id })
+      .where('id = :id and (user_id = :user_id or :username = any(sharing_options) or \'*\' = any(sharing_options))', {
+        id, user_id: req.user.id, username: req.user.username })
       .getOne()
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
@@ -92,6 +111,7 @@ export class Files {
           return updateProgess
         })()
       } as any)
+      console.log(data, chat['messages'][0])
       res.write(data)
     }
     res.end()
@@ -191,6 +211,54 @@ export class Files {
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
     }
+
+    // handle for sharing options
+    if (file.sharing_options) {
+      // delete all shared files
+      if (!file.sharing_options.length) {
+        await Model.createQueryBuilder('files')
+          .delete()
+          .where({ prev_message_id: raw[0].message_id })
+          .execute()
+      } else {
+        const users = await Users.createQueryBuilder('users').where('username in (:...usernames)', { usernames: file.sharing_options }).getMany()
+        const files = await Model.find({ prev_message_id: raw[0].message_id })
+
+        // remove files from unshared user
+        if (files?.length && users?.length) {
+          await Model.createQueryBuilder('files')
+            .delete()
+            .where('id in (:...ids) and user_id not in (:...userIds)', {
+              ids: files.map(file => file.id), userIds: users.map(user => user.id) })
+            .execute()
+        }
+
+        // save new file for shared users
+        await Promise.all(users?.map(async user => {
+          if (!files?.find(f => f.user_id === user.id)) {
+            const data = await req.tg.invoke(new Api.messages.ForwardMessages({
+              fromPeer: 'me',
+              id: [raw[0].message_id],
+              toPeer: user.username
+            }))
+            console.log(data)
+            const message = data['updates'].find((update: any) => update.className === 'UpdateNewMessage').message
+            await Model.insert({
+              name: raw[0].name,
+              mime_type: raw[0].mime_type,
+              size: raw[0].size,
+              user_id: user.id,
+              type: raw[0].type,
+              message_id: null,
+              uploaded_at: new Date(message.date * 1000),
+              upload_progress: null,
+              prev_message_id: raw[0].message_id
+            })
+          }
+        }))
+      }
+    }
+
     return res.send({ file: raw[0] })
   }
 

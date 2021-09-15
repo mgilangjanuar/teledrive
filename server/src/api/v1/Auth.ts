@@ -73,9 +73,10 @@ export class Auth {
     const signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
     const user = signIn['user']
     if (!await Users.findOne({ tg_id: user.id })) {
+      const username = user.username || user.phone || phoneNumber
       await Users.insert([{
-        username: user.username,
-        name: `${user.firstName} ${user.lastName || ''}`.trim(),
+        username,
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || username,
         email: waiting.email,
         tg_id: user.id
       }])

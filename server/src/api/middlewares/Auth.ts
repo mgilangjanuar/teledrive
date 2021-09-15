@@ -20,11 +20,12 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
   await req.tg.connect()
   const data = await req.tg.getMe()
 
-  const user = await Users.findOne({ tg_id: data['id'], username: data['username'] })
+  const user = await Users.findOne({ tg_id: data['id'] })
   if (!user) {
     throw { status: 401, body: { error: 'User not found' } }
   }
   req.user = user
+  req.userAuth = data
 
   return next()
 }

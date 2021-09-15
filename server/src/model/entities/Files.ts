@@ -15,6 +15,9 @@ export class Files extends BaseModelWithID {
   message_id?: number
 
   @Column({ default: null })
+  prev_message_id?: number
+
+  @Column({ default: null })
   mime_type?: string
 
   @Column({ default: null })
@@ -44,6 +47,6 @@ export class Files extends BaseModelWithID {
   @DeleteDateColumn({ type: 'timestamptz' })
   deleted_at?: Date
 
-  @Column('jsonb', { default: null })
+  @Column('varchar', { array: true, default: null })
   sharing_options?: string[]
 }

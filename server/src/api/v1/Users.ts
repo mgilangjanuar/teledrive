@@ -19,6 +19,14 @@ export class Users {
       return res.end()
     }
 
+    if (username === 'me' || username === req.user.username) {
+      const username = req.userAuth.username || req.userAuth.phone
+      Model.update(req.user.id, {
+        ...username ? { username } : {},
+        name: `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
+      })
+    }
+
     const user = await Model.findOne({ username: username === 'me' ? req.user.username : username })
     if (!user) {
       throw { status: 404, body: { error: 'User not found' } }
