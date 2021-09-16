@@ -202,6 +202,7 @@ export class Files {
   @Endpoint.POST('/forward/:id/:username', { middlewares: [Auth] })
   public async forward(req: Request, res: Response): Promise<any> {
     const { id, username } = req.params
+    const { message } = req.body
     const file = await Model.createQueryBuilder('files')
       .where('id = :id and (user_id = :user_id or :username = any(sharing_options) or \'*\' = any(sharing_options))', {
         id, user_id: req.user.id, username: req.user.username })
@@ -215,6 +216,9 @@ export class Files {
       id: [file.message_id],
       toPeer: username
     }))
+    if (message) {
+      await req.tg.sendMessage(username, { message })
+    }
     return res.send({ success: true })
   }
 

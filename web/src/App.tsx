@@ -5,6 +5,7 @@ import NotFound from './pages/errors/NotFound'
 import Dashboard from './pages/dashboard'
 import Home from './pages/Home'
 import Login from './pages/Login'
+import Pricing from './pages/Pricing'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import View from './pages/dashboard/View'
@@ -21,6 +22,7 @@ function App(): React.ReactElement {
         <Route path="/login" exact component={Login} />
         <Route path="/terms" exact component={Terms} />
         <Route path="/privacy" exact component={Privacy} />
+        <Route path="/pricing" exact component={Pricing} />
         <Route path="/" exact component={Home} />
         <Route component={NotFound} />
       </Switch>

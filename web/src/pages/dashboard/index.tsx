@@ -3,8 +3,7 @@ import {
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
-  FolderAddOutlined,
-  FolderOpenOutlined, HomeOutlined, InboxOutlined, MinusCircleOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, VideoCameraOutlined, WarningOutlined
+  FolderAddOutlined, FolderOpenOutlined, HomeOutlined, InboxOutlined, MinusCircleOutlined, PlusOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, VideoCameraOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
   AutoComplete,
@@ -123,6 +122,7 @@ const Dashboard: React.FC = () => {
     if (selectShare) {
       formShare.setFieldsValue({
         id: selectShare.id,
+        message: 'Hey, please check this out! 👆',
         users: ['']
       })
     }
@@ -240,11 +240,14 @@ const Dashboard: React.FC = () => {
   }
 
   const share = async () => {
+    const { id, users, message: msg } = formShare.getFieldsValue()
+    if (!users?.length) {
+      return message.error('Share to at least 1 user')
+    }
     setLoadingShare(true)
-    const { id, users } = formShare.getFieldsValue()
     let results: any[] = []
     try {
-      results = await Promise.all(users?.map(async (user: any) => await req.post(`/files/forward/${id}/${user}`, {})))
+      results = await Promise.all(users?.map(async (user: any) => await req.post(`/files/forward/${id}/${user}`, { message: msg || undefined })))
     } catch (error) {
       // ignore
     }
@@ -504,11 +507,14 @@ const Dashboard: React.FC = () => {
                   <Button icon={<MinusCircleOutlined />} type="link" danger onClick={() => remove(field.name)} />
                 </Col>
               </Row>)}
-              <Form.Item style={{ marginTop: '10px' }}>
-                <Button block shape="round" onClick={() => add()}>Add user</Button>
+              <Form.Item style={{ textAlign: 'center' }}>
+                <Button shape="round" onClick={() => add()} icon={<PlusOutlined />}>Add user</Button>
               </Form.Item>
             </>}
           </Form.List>
+          <Form.Item name="message" label="Message">
+            <Input.TextArea />
+          </Form.Item>
         </Form>
       </Modal>
     </Layout.Content>
