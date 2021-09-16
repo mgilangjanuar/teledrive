@@ -92,7 +92,6 @@ export class Files {
           return updateProgess
         })()
       } as any)
-      console.log(data, chat['messages'][0])
       res.write(data)
     }
     res.end()
