@@ -65,7 +65,7 @@ const Dashboard: React.FC = () => {
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
     ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
-    refreshInterval: 3000
+    refreshInterval: 5000
   })
 
   useEffect(() => {
@@ -349,7 +349,7 @@ const Dashboard: React.FC = () => {
       key: 'actions',
       width: 90,
       align: 'center',
-      render: (_: any, row: any) => row.upload_progress ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
+      render: (_: any, row: any) => row.upload_progress !== null ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
         <Button size="small" type="link">Cancel</Button>
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
         <Menu.Item icon={<EditOutlined />} key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>

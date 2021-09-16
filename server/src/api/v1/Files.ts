@@ -187,7 +187,7 @@ export class Files {
     const { affected, raw } = await Model.createQueryBuilder('files')
       .update({
         ...file.name ? { name: file.name } : {},
-        ...file.parent_id ? { parent_id: file.parent_id } : {}
+        ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {}
       })
       .where({ id, user_id: req.user.id })
       .returning('*')
@@ -265,6 +265,7 @@ export class Files {
         ],
         progressCallback: (() => {
           const updateProgess: any = async (progress: number) => {
+            console.log('progress', progress)
             if (isUpdateProgress) {
               const { affected } = await Model.update(model.id, { upload_progress: progress }, { reload: true })
               if (affected) {
@@ -278,7 +279,7 @@ export class Files {
           }
           return updateProgess
         })(),
-        workers: 15
+        workers: 1
       })
 
       await Model.update(model.id, { message_id: data.id, uploaded_at: data.date ? new Date(data.date * 1000) : null, upload_progress: null })
