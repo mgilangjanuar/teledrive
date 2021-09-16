@@ -27,7 +27,8 @@
     "source-map-support": "^0.5.19",
     "telegram": "^1.8.13",
     "typeorm": "^0.2.37",
-    "typeorm-naming-strategies": "^2.0.0"
+    "typeorm-naming-strategies": "^2.0.0",
+    "uuid-random": "^1.3.2"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",

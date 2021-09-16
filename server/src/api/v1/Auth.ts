@@ -1,7 +1,10 @@
 import { Request, Response } from 'express'
-import { Api } from 'telegram'
+import { sign, verify } from 'jsonwebtoken'
+import { Api, TelegramClient } from 'telegram'
 import { generateRandomBytes } from 'telegram/Helpers'
 import { computeCheck } from 'telegram/Password'
+import { StringSession } from 'telegram/sessions'
+import { getRepository } from 'typeorm'
 import { Users } from '../../model//entities/Users'
 import { Waitings } from '../../model/entities/Waitings'
 import { COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
@@ -35,8 +38,9 @@ export class Auth {
       })
     }))
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`)
-      .send({ phoneCodeHash, accessToken: session })
+    const accessToken = sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '3h' })
+    return res.cookie('authorization', `Bearer ${accessToken}`)
+      .send({ phoneCodeHash, accessToken })
   }
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
@@ -55,14 +59,18 @@ export class Auth {
     const { phoneCodeHash: newPhoneCodeHash } = await req.tg.invoke(new Api.auth.ResendCode({
       phoneNumber, phoneCodeHash }))
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`)
-      .send({ phoneCodeHash: newPhoneCodeHash, accessToken: session })
+    const accessToken = sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '3h' })
+    return res.cookie('authorization', `Bearer ${accessToken}`)
+      .send({ phoneCodeHash: newPhoneCodeHash, accessToken })
   }
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
   public async login(req: Request, res: Response): Promise<any> {
-    const { token: id, phoneNumber, phoneCode, phoneCodeHash } = req.body
-    if (!id || !phoneNumber || !phoneCode || !phoneCodeHash) {
+    const { token: id, phoneNumber, phoneCode, phoneCodeHash, password } = req.body
+    if ((!id || (!phoneNumber || !phoneCode || !phoneCodeHash)) && !password) {
+      if (!password) {
+        throw { status: 400, body: { error: 'Token and password are required' } }
+      }
       throw { status: 400, body: { error: 'Token, phone number, phone code, and phone code hash are required' } }
     }
 
@@ -72,54 +80,72 @@ export class Auth {
     }
 
     await req.tg.connect()
-    const signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
-    const user = signIn['user']
-    if (!await Users.findOne({ tg_id: user.id })) {
-      const username = user.username || user.phone || phoneNumber
-      await Users.insert([{
+    let signIn: any
+    if (password) {
+      const data = await req.tg.invoke(new Api.account.GetPassword())
+      data.newAlgo['salt1'] = Buffer.concat([data.newAlgo['salt1'], generateRandomBytes(32)])
+      signIn = await req.tg.invoke(new Api.auth.CheckPassword({ password: await computeCheck(data, password) }))
+    } else {
+      signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
+    }
+    const userAuth = signIn['user']
+    let user = await Users.findOne({ tg_id: userAuth.id })
+    if (!user) {
+      const username = userAuth.username || userAuth.phone || phoneNumber
+      user = await getRepository<Users>(Users).save({
         username,
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || username,
+        name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
         email: waiting.email,
-        tg_id: user.id
-      }])
+        tg_id: userAuth.id
+      }, { reload: true })
     }
 
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`, { expires: new Date(Date.now() + COOKIE_AGE) })
-      .send({ user, accessToken: session })
+    const auth = {
+      accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+      expiredAfter: Date.now() + COOKIE_AGE
+    }
+    return res.cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+      .send({ user, ...auth })
   }
 
-  @Endpoint.POST({ middlewares: [TGSessionAuth] })
-  public async checkPassword(req: Request, res: Response): Promise<any> {
-    const { token: id, password } = req.body
-    if (!id || !password) {
-      throw { status: 400, body: { error: 'Token and password are required' } }
+  @Endpoint.POST()
+  public async refreshToken(req: Request, res: Response): Promise<any> {
+    const { refreshToken } = req.body
+    if (!refreshToken) {
+      throw { status: 400, body: { error: 'Refresh token is required' } }
     }
 
-    const waiting = await Waitings.findOne({ id })
-    if (!waiting) {
-      throw { status: 400, body: { error: 'Invalid token' } }
+    let data: { session: string }
+    try {
+      data = verify(refreshToken, process.env.API_JWT_SECRET) as { session: string }
+    } catch (error) {
+      throw { status: 401, body: { error: 'Refresh token is invalid' } }
+    }
+
+    try {
+      const session = new StringSession(data.session)
+      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
+    } catch (error) {
+      throw { status: 401, body: { error: 'Invalid key' } }
     }
 
     await req.tg.connect()
-    const data = await req.tg.invoke(new Api.account.GetPassword())
-    data.newAlgo['salt1'] = Buffer.concat([data.newAlgo['salt1'], generateRandomBytes(32)])
-    const pass = await computeCheck(data, password)
-    const signIn = await req.tg.invoke(new Api.auth.CheckPassword({ password: pass }))
-    const user = signIn['user']
-    if (!await Users.findOne({ tg_id: user.id })) {
-      const username = user.username || user.phone
-      await Users.insert([{
-        username,
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || username,
-        email: waiting.email,
-        tg_id: user.id
-      }])
+    const userAuth = await req.tg.getMe()
+    const user = await Users.findOne({ tg_id: userAuth['id'] })
+    if (!user) {
+      throw { status: 401, body: { error: 'User not found' } }
     }
 
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`, { expires: new Date(Date.now() + COOKIE_AGE) })
-      .send({ user, accessToken: session })
+    const auth = {
+      accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+      expiredAfter: Date.now() + COOKIE_AGE
+    }
+    return res.cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+      .send({ user, ...auth })
   }
 
   /**

@@ -45,8 +45,9 @@ const Login: React.FC = () => {
     const token = localStorage.getItem('invitationCode')
     const { phoneNumber, phoneCode, password } = formLogin.getFieldsValue()
     try {
-      const { data } = needPassword ? await req.post('/auth/checkPassword', { token, password }) : await req.post('/auth/login', { token, phoneNumber, phoneCode, phoneCodeHash })
+      const { data } = await req.post('/auth/login', { token, ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
       setLoadingLogin(false)
+      localStorage.setItem('refreshToken', data.refreshToken)
       message.success(`Welcome back, ${data.user.username}!`)
       return history.replace('/dashboard')
     } catch (error: any) {
@@ -100,7 +101,7 @@ const Login: React.FC = () => {
                 <Input.Search placeholder="6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} />
               </Form.Item>
               <Form.Item label="Code" name="phoneCode" rules={[{ required: true, message: 'Please input your code' }]}>
-                <Input disabled={!phoneCodeHash} />
+                <Input disabled={!phoneCodeHash || needPassword} />
               </Form.Item>
               <Form.Item label="Password 2FA" name="password" hidden={!needPassword}>
                 <Input.Password />

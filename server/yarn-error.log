@@ -1,8 +1,8 @@
 Arguments: 
-  /Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node /Users/mgilangjanuar/.yarn/lib/cli.js add @types/crypto -D
+  /Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node /Users/mgilangjanuar/.yarn/lib/cli.js add @types/uuid-random -D
 
 PATH: 
-  /var/folders/fd/_46vmhcd68qcp7mh4h7r44lh0000gn/T/yarn--1631722225997-0.842781836296006:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.config/yarn/link/node_modules/.bin:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/libexec/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5/bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5@global/bin:/Users/mgilangjanuar/.rvm/rubies/ruby-2.6.5/bin:/Users/mgilangjanuar/.deta/bin:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/Downloads/google-cloud-sdk/bin:/Users/mgilangjanuar/.yarn/bin:/Users/mgilangjanuar/.config/yarn/global/node_modules/.bin:/Users/mgilangjanuar/.pyenv/shims:/Users/mgilangjanuar/.pyenv/bin:/Users/mgilangjanuar/Documents/apps/elasticsearch-7.6.1/bin:/usr/local/sbin:/usr/local/opt/gettext/bin:/Users/mgilangjanuar/go/bin:usr/local/sbin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/.rvm/bin
+  /var/folders/fd/_46vmhcd68qcp7mh4h7r44lh0000gn/T/yarn--1631806576911-0.20831223035563462:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.config/yarn/link/node_modules/.bin:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/libexec/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5/bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5@global/bin:/Users/mgilangjanuar/.rvm/rubies/ruby-2.6.5/bin:/Users/mgilangjanuar/.deta/bin:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/Downloads/google-cloud-sdk/bin:/Users/mgilangjanuar/.yarn/bin:/Users/mgilangjanuar/.config/yarn/global/node_modules/.bin:/Users/mgilangjanuar/.pyenv/shims:/Users/mgilangjanuar/.pyenv/bin:/Users/mgilangjanuar/Documents/apps/elasticsearch-7.6.1/bin:/usr/local/sbin:/usr/local/opt/gettext/bin:/Users/mgilangjanuar/go/bin:usr/local/sbin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/.rvm/bin
 
 Yarn version: 
   1.22.5
@@ -14,7 +14,7 @@ Platform:
   darwin x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/@types%2fcrypto: Not found
+  Error: https://registry.yarnpkg.com/@types%2fuuid-random: Not found
       at Request.params.callback [as _callback] (/Users/mgilangjanuar/.yarn/lib/cli.js:66988:18)
       at Request.self.callback (/Users/mgilangjanuar/.yarn/lib/cli.js:140749:22)
       at Request.emit (events.js:375:28)
@@ -56,7 +56,8 @@ npm manifest:
       "source-map-support": "^0.5.19",
       "telegram": "^1.8.13",
       "typeorm": "^0.2.37",
-      "typeorm-naming-strategies": "^2.0.0"
+      "typeorm-naming-strategies": "^2.0.0",
+      "uuid-random": "^1.3.2"
     },
     "devDependencies": {
       "@types/axios": "^0.14.0",
@@ -10883,6 +10884,11 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
     integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
   
+  qr.js@0.0.0:
+    version "0.0.0"
+    resolved "https://registry.yarnpkg.com/qr.js/-/qr.js-0.0.0.tgz#cace86386f59a0db8050fa90d9b6b0e88a1e364f"
+    integrity sha1-ys6GOG9ZoNuAUPqQ2baw6IoeNk8=
+  
   qs@6.7.0:
     version "6.7.0"
     resolved "https://registry.yarnpkg.com/qs/-/qs-6.7.0.tgz#41dc1a015e3d581f1621776be31afb2876a9b1bc"
@@ -11403,6 +11409,14 @@ Lockfile:
       unified "^10.0.0"
       unist-util-visit "^4.0.0"
       vfile "^5.0.0"
+  
+  react-qr-code@^2.0.2:
+    version "2.0.2"
+    resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.2.tgz#64107c869079aceb897c97496d163720ab2820e8"
+    integrity sha512-73VGe81MgeE5FJNFgdY42ez/wPPJTHuooU3iE4CX+6F8M88O1Gg4zNA0L4bKEpoySQ0QjqreJgyXjFrG/QfsdA==
+    dependencies:
+      prop-types "^15.7.2"
+      qr.js "0.0.0"
   
   react-refresh@^0.8.3:
     version "0.8.3"
@@ -13704,6 +13718,11 @@ Lockfile:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
     integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
+  
+  uuid-random@^1.3.2:
+    version "1.3.2"
+    resolved "https://registry.yarnpkg.com/uuid-random/-/uuid-random-1.3.2.tgz#96715edbaef4e84b1dcf5024b00d16f30220e2d0"
+    integrity sha512-UOzej0Le/UgkbWEO8flm+0y+G+ljUon1QWTEZOq1rnMAsxo2+SckbiZdKzAHHlVh6gJqI1TjC/xwgR50MuCrBQ==
   
   uuid@^3.3.2, uuid@^3.4.0:
     version "3.4.0"

@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
+import { verify } from 'jsonwebtoken'
 import { TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
 import { TG_CREDS } from '../../utils/Constant'
@@ -9,9 +10,15 @@ export async function TGSessionAuth(req: Request, _: Response, next: NextFunctio
     throw { status: 401, body: { error: 'Auth key is required' } }
   }
 
-  console.log('UAHSSA', authkey)
+  let data: { session: string }
   try {
-    const session = new StringSession(authkey)
+    data = verify(authkey, process.env.API_JWT_SECRET) as { session: string }
+  } catch (error) {
+    throw { status: 401, body: { error: 'Access token is invalid' } }
+  }
+
+  try {
+    const session = new StringSession(data.session)
     req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }

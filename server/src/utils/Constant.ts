@@ -3,4 +3,5 @@ export const TG_CREDS = {
   apiHash: process.env.TG_API_HASH
 }
 
-export const COOKIE_AGE = 3.154e+12
+// export const COOKIE_AGE = 3.154e+12
+export const COOKIE_AGE = 54e6
