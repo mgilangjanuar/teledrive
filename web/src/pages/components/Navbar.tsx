@@ -1,5 +1,5 @@
 import { LoginOutlined, LogoutOutlined } from '@ant-design/icons'
-import { Avatar, Button, Form, Input, Layout, Menu, Modal } from 'antd'
+import { Avatar, Button, Form, Input, Layout, Menu, Modal, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
 import JSCookie from 'js-cookie'
@@ -51,6 +51,12 @@ const Navbar: React.FC<Props> = ({ user }) => {
       </Menu> : <Button onClick={() => setWantToLogin(true)} size="large" type="link" style={{ color: '#ffff', float: 'right', top: '11px' }} icon={<LoginOutlined />}>Login</Button>}
     </Layout.Header>
     <Modal visible={wantToLogin} title="Invitation Code" onCancel={() => setWantToLogin(false)} onOk={form.submit} okText="Continue">
+      <Typography.Paragraph>
+        The access is limited for early users<br />
+        <Typography.Text type="secondary">
+          Please <a href="/">join</a> the waiting list first and always check your inbox.
+        </Typography.Text>
+      </Typography.Paragraph>
       <Form form={form} onFinish={saveInvitationCode}>
         <Form.Item label="Code" name="code" rules={[{ required: true, message: 'Please input your invitation code' }]}>
           <Input />

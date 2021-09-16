@@ -52,11 +52,11 @@ const Home: React.FC = () => {
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
               <Form form={form} layout="inline" onFinish={submit}>
-                <Form.Item name="email" rules={[{ required: true, message: 'Email required.' }]}>
+                <Form.Item name="email" rules={[{ required: true, message: 'Email is required' }]}>
                   <Input size="large" style={{ width: '143px' }} type="email" placeholder="Email" />
                 </Form.Item>
                 <Form.Item>
-                  <Button size="large" htmlType="submit" style={{ background: '#0088CC', color: '#fff' }}>
+                  <Button size="large" htmlType="submit" type="primary">
                     Get Early Access
                   </Button>
                 </Form.Item>
@@ -139,6 +139,17 @@ const Home: React.FC = () => {
               <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-size="large" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
             </Space>
           </Typography.Paragraph>
+        </Col>
+      </Row>
+
+      <Row style={{ marginTop: '50px', padding: '50px 0', textAlign: 'center' }}>
+        <Col lg={{ span: 6, offset: 9 }} md={{ span: 10, offset: 7 }} span={20} offset={2}>
+          <Typography.Paragraph>
+            Join the waiting list now! 🚀
+          </Typography.Paragraph>
+          <Button block href="#top" size="large" type="primary">
+            Getting Started
+          </Button>
         </Col>
       </Row>
 

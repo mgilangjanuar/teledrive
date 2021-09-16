@@ -4,7 +4,7 @@ import { generateRandomBytes } from 'telegram/Helpers'
 import { computeCheck } from 'telegram/Password'
 import { Users } from '../../model//entities/Users'
 import { Waitings } from '../../model/entities/Waitings'
-import { TG_CREDS } from '../../utils/Constant'
+import { COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
 import { TGClient } from '../middlewares/TGClient'
 import { TGSessionAuth } from '../middlewares/TGSessionAuth'
@@ -85,7 +85,7 @@ export class Auth {
     }
 
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`, { expires: new Date(Date.now() + 3.154e+12) })
+    return res.cookie('authorization', `Bearer ${session}`, { expires: new Date(Date.now() + COOKIE_AGE) })
       .send({ user, accessToken: session })
   }
 
@@ -118,7 +118,7 @@ export class Auth {
     }
 
     const session = req.tg.session.save()
-    return res.cookie('authorization', `Bearer ${session}`, { expires: new Date(Date.now() + 3.154e+12) })
+    return res.cookie('authorization', `Bearer ${session}`, { expires: new Date(Date.now() + COOKIE_AGE) })
       .send({ user, accessToken: session })
   }
 

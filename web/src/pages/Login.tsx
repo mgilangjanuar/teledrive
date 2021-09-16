@@ -1,7 +1,7 @@
 import { Button, Card, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
-import React, { useEffect, useState } from 'react'
 import JSCookie from 'js-cookie'
+import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
 import useSWRImmutable from 'swr/immutable'
 import { fetcher, req } from '../utils/Fetcher'

@@ -13,6 +13,6 @@ export class Waitings {
     if (!data) {
       data = await getRepository<Model>(Model).save({ email: email as string })
     }
-    return res.send({ waiting: data })
+    return res.send({ success: true })
   }
 }
