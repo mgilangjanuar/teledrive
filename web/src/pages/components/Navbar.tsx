@@ -20,6 +20,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
   const logout = async () => {
     await req.post('/auth/logout')
     JSCookie.remove('authorization')
+    localStorage.removeItem('refreshToken')
     location.replace('/')
   }
 
