@@ -1,7 +1,13 @@
 import { Request, Response } from 'express'
+import { sign, verify } from 'jsonwebtoken'
 import multer from 'multer'
-import { Api } from 'telegram'
+import { nanoid } from 'nanoid'
+import { Api, TelegramClient } from 'telegram'
+import { StringSession } from 'telegram/sessions'
+import { getRepository } from 'typeorm'
 import { Files as Model } from '../../model/entities/Files'
+import { Links } from '../../model/entities/Links'
+import { TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
@@ -47,10 +53,73 @@ export class Files {
     return res.send({ file: raw[0] })
   }
 
+  @Endpoint.GET('/signedKey/:id', { middlewares: [Auth] })
+  public async signedKey(req: Request, res: Response): Promise<any> {
+    const { id } = req.params
+    const file = await Model.createQueryBuilder('files')
+      .where('id = :id and user_id = :user_id ', {
+        id, user_id: req.user.id })
+      .getOne()
+    if (!file) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    if (file.signed_key) {
+      const link = await Links.findOne({ signed_key: file.signed_key })
+      let key = link?.shorten
+      if (!link) {
+        key = nanoid()
+        getRepository<Links>(Links).save([{ signed_key: file.signed_key, shorten: key }])
+      }
+      return res.send({ key })
+    }
+
+    const signedKey = sign({ file: { id: file.id }, session: req.tg.session.save() }, process.env.FILES_JWT_SECRET)
+    const base64 = Buffer.from(signedKey).toString('base64')
+
+    const key = nanoid()
+    Model.update(id, { signed_key: base64 })
+    getRepository<Links>(Links).save([{ signed_key: base64, shorten: key }])
+    return res.send({ key })
+  }
+
+  @Endpoint.GET('/link/:id')
+  public async link(req: Request, res: Response): Promise<any> {
+    const { id } = req.params
+    const link = await Links.findOne({ shorten: id })
+    if (!link) {
+      throw { status: 404, body: { error: 'Link not found' } }
+    }
+
+    const key = Buffer.from(link.signed_key, 'base64').toString()
+    let data: { file: { id: string }, session: string }
+    try {
+      data = verify(key, process.env.FILES_JWT_SECRET) as { file: { id: string }, session: string }
+    } catch (error) {
+      console.error(error)
+      throw { status: 401, body: { error: 'Invalid token' } }
+    }
+    const file = await Model.createQueryBuilder('files')
+      .where('id = :id and \'*\' = any(sharing_options)', { id: data.file.id })
+      .getOne()
+    if (!file) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    try {
+      const session = new StringSession(data.session)
+      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
+    } catch (error) {
+      throw { status: 401, body: { error: 'Invalid key' } }
+    }
+    await req.tg.connect()
+
+    return await Files.download(req, res, file)
+  }
+
   @Endpoint.GET('/:id', { middlewares: [Auth] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const { raw, dl } = req.query
 
     const file = await Model.createQueryBuilder('files')
       .where('id = :id and (user_id = :user_id or :username = any(sharing_options) or \'*\' = any(sharing_options))', {
@@ -60,41 +129,7 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    if (!raw || Number(raw) === 0) {
-      return res.send({ file })
-    }
-
-    const chat = await req.tg.invoke(new Api.messages.GetMessages({
-      id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-    }))
-
-    let cancel = false
-    req.on('close', () => cancel = true)
-
-    res.setHeader('Content-Disposition', Number(dl) === 1 ? `attachment; filename=${file.name}` : `inline; filename=${file.name}`)
-    res.setHeader('Content-Type', file.mime_type)
-    res.setHeader('Content-Length', file.size)
-    let data = null
-
-    const chunk = 512 * 1024
-    let idx = 0
-
-    while (!cancel && data === null || data.length && idx * chunk < file.size) {
-      data = await req.tg.downloadMedia(chat['messages'][0].media, {
-        start: idx++ * chunk,
-        end: file.size < idx * chunk - 1 ? file.size : idx * chunk - 1,
-        workers: 1,   // using 1 for stable
-        progressCallback: (() => {
-          const updateProgess: any = (progress: number) => {
-            console.log('progress', progress)
-            updateProgess.isCanceled = cancel
-          }
-          return updateProgess
-        })()
-      } as any)
-      res.write(data)
-    }
-    res.end()
+    return await Files.download(req, res, file)
   }
 
   @Endpoint.POST({ middlewares: [Auth] })
@@ -172,7 +207,11 @@ export class Files {
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
     }
-    return res.send({ file: raw[0] })
+    if (raw[0].signed_key) {
+      await getRepository<Links>(Links).delete({ signed_key: raw[0].signed_key })
+    }
+
+    return res.send({ file: { id } })
   }
 
   @Endpoint.PATCH('/:id', { middlewares: [Auth] })
@@ -183,9 +222,10 @@ export class Files {
       throw { status: 400, body: { error: 'File is required in body.' } }
     }
 
-    const { affected, raw } = await Model.createQueryBuilder('files')
+    const { affected } = await Model.createQueryBuilder('files')
       .update({
         ...file.name ? { name: file.name } : {},
+        ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
         ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {}
       })
       .where({ id, user_id: req.user.id })
@@ -195,7 +235,7 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    return res.send({ file: raw[0] })
+    return res.send({ file: { id } })
   }
 
   @Endpoint.POST('/forward/:id/:username', { middlewares: [Auth] })
@@ -286,5 +326,44 @@ export class Files {
       console.error(error)
       await Model.delete(model.id)
     }
+  }
+
+  public static async download(req: Request, res: Response, file: Model): Promise<any> {
+    const { raw, dl } = req.query
+    if (!raw || Number(raw) === 0) {
+      return res.send({ file })
+    }
+
+    const chat = await req.tg.invoke(new Api.messages.GetMessages({
+      id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+    }))
+
+    let cancel = false
+    req.on('close', () => cancel = true)
+
+    res.setHeader('Content-Disposition', Number(dl) === 1 ? `attachment; filename=${file.name}` : `inline; filename=${file.name}`)
+    res.setHeader('Content-Type', file.mime_type)
+    res.setHeader('Content-Length', file.size)
+    let data = null
+
+    const chunk = 512 * 1024
+    let idx = 0
+
+    while (!cancel && data === null || data.length && idx * chunk < file.size) {
+      data = await req.tg.downloadMedia(chat['messages'][0].media, {
+        start: idx++ * chunk,
+        end: file.size < idx * chunk - 1 ? file.size : idx * chunk - 1,
+        workers: 1,   // using 1 for stable
+        progressCallback: (() => {
+          const updateProgess: any = (progress: number) => {
+            console.log('progress', progress)
+            updateProgess.isCanceled = cancel
+          }
+          return updateProgess
+        })()
+      } as any)
+      res.write(data)
+    }
+    res.end()
   }
 }

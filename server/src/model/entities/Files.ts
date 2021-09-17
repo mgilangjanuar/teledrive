@@ -49,4 +49,7 @@ export class Files extends BaseModelWithID {
 
   @Column('varchar', { array: true, default: null })
   sharing_options?: string[]
+
+  @Column({ default: null, select: false })
+  signed_key?: string
 }
