@@ -5,6 +5,7 @@
   "dependencies": {
     "antd": "^4.16.13",
     "axios": "^0.21.4",
+    "clipboardy": "^2.3.0",
     "js-cookie": "^3.0.1",
     "pretty-bytes": "^5.6.0",
     "react": "^17.0.2",
@@ -51,6 +52,7 @@
     "@testing-library/user-event": "^12.1.10",
     "@types/antd": "^1.0.0",
     "@types/axios": "^0.14.0",
+    "@types/clipboardy": "^2.0.1",
     "@types/jest": "^26.0.15",
     "@types/js-cookie": "^2.2.7",
     "@types/node": "^12.0.0",

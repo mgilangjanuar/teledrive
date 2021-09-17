@@ -36,7 +36,9 @@ export class Users {
       })
     }
 
-    const user = await Model.findOne({ username: username === 'me' ? req.user.username : username })
+    const user = await Model.findOne({ where: [
+      { username: username === 'me' ? req.user.username : username },
+      { id: username === 'me' ? req.user.id : username }] })
     if (!user) {
       throw { status: 404, body: { error: 'User not found' } }
     }

@@ -312,7 +312,8 @@ export class Files {
   public static async download(req: Request, res: Response, file: Model): Promise<any> {
     const { raw, dl } = req.query
     if (!raw || Number(raw) === 0) {
-      return res.send({ file })
+      const { signed_key: _, ...result } = file
+      return res.send({ file: result })
     }
 
     const chat = await req.tg.invoke(new Api.messages.GetMessages({
