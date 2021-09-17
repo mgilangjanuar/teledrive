@@ -86,32 +86,7 @@ export class Files {
   @Endpoint.GET('/link/:id')
   public async link(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const link = await Links.findOne({ shorten: id })
-    if (!link) {
-      throw { status: 404, body: { error: 'Link not found' } }
-    }
-
-    const key = Buffer.from(link.signed_key, 'base64').toString()
-    let data: { file: { id: string }, session: string }
-    try {
-      data = verify(key, process.env.FILES_JWT_SECRET) as { file: { id: string }, session: string }
-    } catch (error) {
-      console.error(error)
-      throw { status: 401, body: { error: 'Invalid token' } }
-    }
-    const file = await Model.createQueryBuilder('files')
-      .where('id = :id and \'*\' = any(sharing_options)', { id: data.file.id })
-      .getOne()
-    if (!file) {
-      throw { status: 404, body: { error: 'File not found' } }
-    }
-
-    try {
-      const session = new StringSession(data.session)
-      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
-    } catch (error) {
-      throw { status: 401, body: { error: 'Invalid key' } }
-    }
+    const file = await Files.initiateSessionTG(req, id)
     await req.tg.connect()
 
     return await Files.download(req, res, file)
@@ -124,9 +99,15 @@ export class Files {
     const file = await Model.createQueryBuilder('files')
       .where('id = :id and (user_id = :user_id or :username = any(sharing_options) or \'*\' = any(sharing_options))', {
         id, user_id: req.user.id, username: req.user.username })
+      .addSelect('files.signed_key')
       .getOne()
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    if (file.user_id !== req.user.id) {
+      await Files.initiateSessionTG(req, null, file.signed_key)
+      await req.tg.connect()
     }
 
     return await Files.download(req, res, file)
@@ -365,5 +346,35 @@ export class Files {
       res.write(data)
     }
     res.end()
+  }
+
+  public static async initiateSessionTG(req: Request, id?: string, signedKey?: string): Promise<Model> {
+    const link = await Links.findOne(id ? { shorten: id } : { signed_key: signedKey })
+    if (!link) {
+      throw { status: 404, body: { error: 'Link not found' } }
+    }
+
+    const key = Buffer.from(link.signed_key, 'base64').toString()
+    let data: { file: { id: string }, session: string }
+    try {
+      data = verify(key, process.env.FILES_JWT_SECRET) as { file: { id: string }, session: string }
+    } catch (error) {
+      console.error(error)
+      throw { status: 401, body: { error: 'Invalid token' } }
+    }
+    const file = await Model.createQueryBuilder('files')
+      .where('id = :id and \'*\' = any(sharing_options)', { id: data.file.id })
+      .getOne()
+    if (!file) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    try {
+      const session = new StringSession(data.session)
+      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
+    } catch (error) {
+      throw { status: 401, body: { error: 'Invalid key' } }
+    }
+    return file
   }
 }
