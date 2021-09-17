@@ -2,7 +2,8 @@ import {
   ArrowLeftOutlined, AudioOutlined, CopyOutlined, DownloadOutlined, FileImageOutlined,
   FileOutlined, FilePdfOutlined,
   FolderOpenOutlined, LinkOutlined, MenuFoldOutlined,
-  MenuUnfoldOutlined, VideoCameraOutlined
+  MenuUnfoldOutlined, VideoCameraOutlined,
+  ShareAltOutlined
 } from '@ant-design/icons'
 import { Button, Col, Descriptions, Divider, Input, Layout, message, Result, Row, Space, Typography } from 'antd'
 import * as clipboardy from 'clipboardy'
@@ -18,24 +19,25 @@ import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
 interface PageProps extends RouteComponentProps<{
+  type?: string,
   id: string
 }> {}
 
 const View: React.FC<PageProps> = ({ match }) => {
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
-  const { data, error } = useSWR(`/files${me ? '' : '/link'}/${match.params.id}`, fetcher)
+  const { data, error } = useSWR(`/files${match.params.type === 'public' ? '/link' : ''}/${match.params.id}`, fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
-  const [links, setLinks] = useState<{ raw: string, download: string }>()
+  const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
   const [contentStyle, setContentStyle] = useState<{ display: string } | undefined>()
 
   useEffect(() => {
     if (data?.file) {
       setLinks({
-        raw: `${apiUrl}/files${me ? '' : '/link'}/${match.params.id}?raw=1`,
-        download: `${apiUrl}/files${me ? '' : '/link'}/${match.params.id}?raw=1&dl=1`
+        raw: `${apiUrl}/files${match.params.type === 'public' ? '/link' : ''}/${match.params.id}?raw=1`,
+        download: `${apiUrl}/files${match.params.type === 'public' ? '/link' : ''}/${match.params.id}?raw=1&dl=1`,
+        share: `${window.location.origin}/view/public/${match.params.id}`
       })
     }
   }, [data])
@@ -118,6 +120,7 @@ const View: React.FC<PageProps> = ({ match }) => {
             labelStyle={{ color: '#fff' }} column={1}>
             <Descriptions.Item label={<><LinkOutlined /> &nbsp; Raw URL</>}><Input.Search enterButton={<CopyOutlined />} value={links?.raw} onSearch={copy} /></Descriptions.Item>
             <Descriptions.Item label={<><DownloadOutlined /> &nbsp; Download URL</>}><Input.Search enterButton={<CopyOutlined />} value={links?.download} onSearch={copy} /></Descriptions.Item>
+            {match.params.type === 'public' && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}><Input.Search enterButton={<CopyOutlined />} value={links?.share} onSearch={copy} /></Descriptions.Item>}
           </Descriptions>
         </Layout.Content>
       </Layout.Sider>

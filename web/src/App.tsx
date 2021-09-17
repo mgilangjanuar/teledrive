@@ -18,7 +18,7 @@ function App(): React.ReactElement {
     <Layout className="App">
       <Switch>
         <Route path="/dashboard" exact component={Dashboard} />
-        <Route path="/view/:id" exact component={View} />
+        <Route path="/view/:type?/:id" exact component={View} />
         <Route path="/login" exact component={Login} />
         <Route path="/terms" exact component={Terms} />
         <Route path="/privacy" exact component={Privacy} />
