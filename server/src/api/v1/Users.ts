@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { Api } from 'telegram'
 import { Users as Model } from '../../model/entities/Users'
+import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
 
@@ -44,5 +45,18 @@ export class Users {
     }
 
     return res.send({ user })
+  }
+
+  @Endpoint.GET('/', { middlewares: [Auth] })
+  public async find(req: Request, res: Response): Promise<any> {
+    const { sort, skip, take, ...filters } = req.query
+    const [users, length] = await Model.createQueryBuilder('users')
+      .select('users.username')
+      .where(buildWhereQuery(filters) || 'true')
+      .skip(Number(skip) || undefined)
+      .take(Number(take) || undefined)
+      .orderBy(buildSort(sort as string))
+      .getManyAndCount()
+    return res.send({ users, length })
   }
 }

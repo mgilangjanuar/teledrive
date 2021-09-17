@@ -2,16 +2,17 @@ import {
   AudioOutlined, CopyOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined,
   FileImageOutlined,
   FileOutlined,
-  FilePdfOutlined,
-  FolderAddOutlined, FolderOpenOutlined, HomeOutlined, InboxOutlined, MinusCircleOutlined, PlusOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, VideoCameraOutlined, WarningOutlined
+  FilePdfOutlined, FolderAddOutlined, FolderOpenOutlined, HomeOutlined, InboxOutlined, MinusCircleOutlined, PlusOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, VideoCameraOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
   AutoComplete,
   Breadcrumb,
   Button,
-  Col, Dropdown, Form, Input,
+  Col, Divider, Dropdown, Empty, Form, Input,
   Layout, Menu, message, Modal, Popconfirm, Row,
   Space,
+  Spin,
+  Switch,
   Table,
   TablePaginationConfig,
   Tooltip,
@@ -20,6 +21,7 @@ import {
 } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
+import * as clipboardy from 'clipboardy'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import qs from 'qs'
@@ -50,7 +52,7 @@ const Dashboard: React.FC = () => {
   const [loadingPaste, setLoadingPaste] = useState<boolean>()
   const [loadingAddFolder, setLoadingAddFolder] = useState<boolean>()
   const [loadingRename, setLoadingRename] = useState<boolean>()
-  const [loadingShare, setLoadingShare] = useState<boolean>()
+  const [loadingShare, setLoadingShare] = useState<boolean>(false)
   const [username, setUsername] = useState<string>()
   const [getUser] = useDebounce(username, 500)
   const [users, setUsers] = useState<any[]>([])
@@ -59,6 +61,7 @@ const Dashboard: React.FC = () => {
   const [formAddFolder] = useForm()
   const [formRename] = useForm()
   const [formShare] = useForm()
+  const [isPublic, setIsPublic] = useState<boolean>()
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
@@ -108,25 +111,40 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (getUser) {
-      req.get('/users/search', {
+      req.get('/users', {
         params: {
-          username: getUser
+          'username.ilike': `'%${getUser}%'`,
+          take: 10,
+          skip: 0
         }
       }).then(({ data }) => {
-        setUsers(data.users?.filter((user: any) => user.id !== Number(me?.user.tg_id)))
+        setUsers(data.users?.filter((user: any) => user.username !== me?.user.username))
       })
     }
   }, [getUser])
 
   useEffect(() => {
     if (selectShare) {
+      const isPublic = (selectShare.sharing_options || [])?.includes('*')
+      setIsPublic(isPublic)
       formShare.setFieldsValue({
         id: selectShare.id,
         message: 'Hey, please check this out! 👆',
-        users: ['']
+        public: isPublic,
+        sharing_options: selectShare.sharing_options?.length ? selectShare.sharing_options.filter((opt: string) => opt !== '*') : ['']
       })
     }
   }, [selectShare])
+
+  useEffect(() => {
+    if (isPublic) {
+      req.get(`/files/signedKey/${selectShare.id}`).then(({ data }) => {
+        formShare.setFieldsValue({ link: `${window.location.origin}/view/public/${data.key}` })
+      })
+    } else {
+      formShare.setFieldsValue({ link: `${window.location.origin}/view/${selectShare?.id}` })
+    }
+  }, [isPublic])
 
   useEffect(() => {
     if (filesUpload?.files) {
@@ -239,22 +257,16 @@ const Dashboard: React.FC = () => {
     message.success('Files are moved successfully!')
   }
 
+  const copy = (val: string) => {
+    clipboardy.write(val)
+    return message.info('Copied!')
+  }
+
   const share = async () => {
-    const { id, users, message: msg } = formShare.getFieldsValue()
-    if (!users?.length) {
-      return message.error('Share to at least 1 user')
-    }
     setLoadingShare(true)
-    let results: any[] = []
-    try {
-      results = await Promise.all(users?.map(async (user: any) => await req.post(`/files/forward/${id}/${user}`, { message: msg || undefined })))
-    } catch (error) {
-      // ignore
-    }
-    formShare.resetFields()
+    const { id, public: isPublic, sharing_options: sharingOptions } = formShare.getFieldsValue()
+    await req.patch(`/files/${id}`, { file: { sharing_options: [...new Set([...sharingOptions || [], isPublic ? '*' : null].filter(Boolean)) as any] } })
     setLoadingShare(false)
-    setSelectShare(undefined)
-    message.success(`Shared to ${results.filter(Boolean).length} user(s) successfully!`)
   }
 
   const columns = [
@@ -367,6 +379,38 @@ const Dashboard: React.FC = () => {
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
+            <Upload.Dragger name="upload"
+              beforeUpload={file => {
+                if (file.size / 1_000_000_000 > 2) {
+                  message.error('Maximum file size is 2 GB')
+                  return false
+                }
+                return true
+              }}
+              action={`${apiUrl}/files/upload${parent ? `?parent_id=${parent}` : ''}`}
+              withCredentials
+              fileList={fileList}
+              onRemove={file => {
+                if (!file.response?.file) return true
+                setSelectDeleted([file.response?.file])
+                return false
+              }}
+              onChange={async ({ file, fileList }) => {
+                setFileList(fileList)
+                if (file.status === 'done') {
+                  message.info('Uploading to Telegram...')
+                }
+              }}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">Click or drag file to this area to upload</p>
+              <p className="ant-upload-hint">
+                Maximum file size is 2 GB
+              </p>
+            </Upload.Dragger>
+          </Typography.Paragraph>
+          <Typography.Paragraph>
             <Breadcrumb>
               {breadcrumbs.map(crumb =>
                 <Breadcrumb.Item key={crumb.id}>
@@ -402,38 +446,6 @@ const Dashboard: React.FC = () => {
               </Tooltip>
               <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
-          </Typography.Paragraph>
-          <Typography.Paragraph>
-            <Upload.Dragger name="upload"
-              beforeUpload={file => {
-                if (file.size / 1_000_000_000 > 2) {
-                  message.error('Maximum file size is 2 GB')
-                  return false
-                }
-                return true
-              }}
-              action={`${apiUrl}/files/upload${parent ? `?parent_id=${parent}` : ''}`}
-              withCredentials
-              fileList={fileList}
-              onRemove={file => {
-                if (!file.response?.file) return true
-                setSelectDeleted([file.response?.file])
-                return false
-              }}
-              onChange={async ({ file, fileList }) => {
-                setFileList(fileList)
-                if (file.status === 'done') {
-                  message.info('Uploading to Telegram...')
-                }
-              }}>
-              <p className="ant-upload-drag-icon">
-                <InboxOutlined />
-              </p>
-              <p className="ant-upload-text">Click or drag file to this area to upload</p>
-              <p className="ant-upload-hint">
-                Maximum file size is 2 GB
-              </p>
-            </Upload.Dragger>
           </Typography.Paragraph>
           <Table loading={!files}
             rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
@@ -485,36 +497,56 @@ const Dashboard: React.FC = () => {
 
       <Modal visible={selectShare}
         onCancel={() => setSelectShare(undefined)}
-        okText="Share"
-        title={`Share ${selectShare?.name}`}
-        onOk={() => formShare.submit()}
-        okButtonProps={{ loading: loadingShare }}>
-        <Form form={formShare} layout="vertical" onFinish={share}>
+        footer={null}
+        title={`Share ${selectShare?.name}`}>
+        <Form form={formShare} layout="horizontal">
           <Form.Item name="id" hidden>
             <Input />
           </Form.Item>
-          <Form.List name="users">
+          <Form.Item name="public" label="Make public">
+            <Switch checked={isPublic} onClick={val => {
+              setIsPublic(val)
+              share()
+            }} />
+          </Form.Item>
+          {!isPublic && <Form.List name="sharing_options">
             {(fields, { add, remove }) => <>
               {fields.map((field, i) => <Row gutter={14} key={i}>
                 <Col span={22}>
                   <Form.Item {...field} rules={[{ required: true, message: 'Username is required' }]}>
-                    <AutoComplete options={users?.map((user: any) => ({ value: user.username }))}>
-                      <Input placeholder="username" prefix="@" onChange={e => setUsername(e.target.value)} />
+                    <AutoComplete notFoundContent={<Empty />} options={users?.map((user: any) => ({ value: user.username }))}>
+                      <Input onBlur={() => share()} placeholder="username" prefix="@" onChange={e => setUsername(e.target.value)} />
                     </AutoComplete>
                   </Form.Item>
                 </Col>
                 <Col span={2}>
-                  <Button icon={<MinusCircleOutlined />} type="link" danger onClick={() => remove(field.name)} />
+                  <Button icon={<MinusCircleOutlined />} type="link" danger onClick={() => {
+                    remove(field.name)
+                    share()
+                  }} />
                 </Col>
               </Row>)}
-              <Form.Item style={{ textAlign: 'center' }}>
-                <Button shape="round" onClick={() => add()} icon={<PlusOutlined />}>Add user</Button>
+              <Form.Item style={{ textAlign: 'left' }}>
+                <Button shape="round" onClick={() => {
+                  add()
+                  share()
+                }} icon={<PlusOutlined />}>Add user</Button>
               </Form.Item>
             </>}
-          </Form.List>
-          <Form.Item name="message" label="Message">
-            <Input.TextArea />
-          </Form.Item>
+          </Form.List>}
+          {formShare.getFieldValue('sharing_options')?.[0] || isPublic ? <>
+            <Divider />
+            <Spin spinning={loadingShare}>
+              <Typography.Paragraph type="secondary">
+                <WarningOutlined /> You are shared {isPublic ? 'with anyone.' :
+                  `with ${formShare.getFieldValue('sharing_options')?.[0]}
+                    ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length > 1 ? ` and ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length - 1} people` : ''}`}
+              </Typography.Paragraph>
+              <Form.Item label="Share URL" name="link">
+                <Input.Search contentEditable={false} enterButton={<CopyOutlined />} onSearch={copy} />
+              </Form.Item>
+            </Spin>
+          </> : ''}
         </Form>
       </Modal>
     </Layout.Content>

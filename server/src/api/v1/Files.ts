@@ -17,9 +17,10 @@ export class Files {
 
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, skip, take, ...filters } = req.query
+    const { sort, skip, take, shared, ...filters } = req.query
     const [files, length] = await Model.createQueryBuilder('files')
-      .where('files.user_id = :user_id', { user_id: req.user.id })
+      .where(!shared ? 'files.user_id = :user' : ':user = any(sharing_options)', {
+        user: !shared ? req.user.id : req.user.username })
       .andWhere(buildWhereQuery(filters) || 'true')
       .skip(Number(skip) || undefined)
       .take(Number(take) || undefined)
@@ -59,6 +60,7 @@ export class Files {
     const file = await Model.createQueryBuilder('files')
       .where('id = :id and user_id = :user_id ', {
         id, user_id: req.user.id })
+      .addSelect('files.signed_key')
       .getOne()
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
