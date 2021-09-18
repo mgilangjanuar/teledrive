@@ -1,11 +1,31 @@
 import {
-  ArrowLeftOutlined, AudioOutlined, CopyOutlined, DownloadOutlined, FileImageOutlined,
-  FileOutlined, FilePdfOutlined,
-  FolderOpenOutlined, LinkOutlined, MenuFoldOutlined,
-  MenuUnfoldOutlined, VideoCameraOutlined,
+  ArrowLeftOutlined,
+  AudioOutlined,
+  CopyOutlined,
+  DownloadOutlined,
+  FileImageOutlined,
+  FileOutlined,
+  FilePdfOutlined,
+  FolderOpenOutlined,
+  LinkOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  VideoCameraOutlined,
   ShareAltOutlined
 } from '@ant-design/icons'
-import { Button, Col, Descriptions, Divider, Input, Layout, message, Result, Row, Space, Typography } from 'antd'
+import {
+  Button,
+  Col,
+  Descriptions,
+  Divider,
+  Input,
+  Layout,
+  message,
+  Result,
+  Row,
+  Space,
+  Typography
+} from 'antd'
 import * as clipboardy from 'clipboardy'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -14,19 +34,18 @@ import { RouteComponentProps, useHistory } from 'react-router'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { useDebounce } from 'use-debounce/lib'
-import { apiUrl, fetcher } from '../../utils/Fetcher'
-import Footer from '../components/Footer'
-import Navbar from '../components/Navbar'
+import { apiUrl, fetcher } from '../utils/Fetcher'
+import Footer from './components/Footer'
+import Navbar from './components/Navbar'
 
 interface PageProps extends RouteComponentProps<{
-  type?: string,
   id: string
 }> {}
 
 const View: React.FC<PageProps> = ({ match }) => {
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
-  const { data, error } = useSWR(`/files${match.params.type === 'shared' ? '/link' : ''}/${match.params.id}`, fetcher)
+  const { data, error } = useSWR(`/files/${match.params.id}`, fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
@@ -35,8 +54,8 @@ const View: React.FC<PageProps> = ({ match }) => {
   useEffect(() => {
     if (data?.file) {
       setLinks({
-        raw: `${apiUrl}/files${match.params.type === 'shared' ? '/link' : ''}/${match.params.id}?raw=1`,
-        download: `${apiUrl}/files${match.params.type === 'shared' ? '/link' : ''}/${match.params.id}?raw=1&dl=1`,
+        raw: `${apiUrl}/files/${match.params.id}?raw=1`,
+        download: `${apiUrl}/files/${match.params.id}?raw=1&dl=1`,
         share: `${window.location.origin}/view/shared/${match.params.id}`
       })
     }
@@ -113,9 +132,9 @@ const View: React.FC<PageProps> = ({ match }) => {
 
             <Descriptions.Item label="Size">{data?.file?.size && prettyBytes(data?.file?.size)}</Descriptions.Item>
             <Descriptions.Item label="Uploaded At">{moment(data?.file.uploaded_at).format('llll')}</Descriptions.Item>
-            <Descriptions.Item label="Uploaded By">
+            {user?.user && <Descriptions.Item label="Uploaded By">
               <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>
-            </Descriptions.Item>
+            </Descriptions.Item>}
           </Descriptions>
           <Divider />
           <Descriptions colon={false} layout="vertical"
@@ -126,7 +145,7 @@ const View: React.FC<PageProps> = ({ match }) => {
             <Descriptions.Item label={<><DownloadOutlined /> &nbsp; Download URL</>}>
               <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.download} onSearch={copy} />
             </Descriptions.Item>
-            {match.params.type === 'shared' && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}>
+            {data?.file.sharing_options?.length === 'shared' && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}>
               <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.share} onSearch={copy} />
             </Descriptions.Item>}
           </Descriptions>

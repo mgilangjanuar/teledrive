@@ -8,7 +8,7 @@ import Login from './pages/Login'
 import Pricing from './pages/Pricing'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
-import View from './pages/dashboard/View'
+import View from './pages/View'
 
 import 'antd/dist/antd.min.css'
 import './App.css'
@@ -18,7 +18,7 @@ function App(): React.ReactElement {
     <Layout className="App">
       <Switch>
         <Route path="/dashboard" exact component={Dashboard} />
-        <Route path="/view/:type?/:id" exact component={View} />
+        <Route path="/view/:id" exact component={View} />
         <Route path="/login" exact component={Login} />
         <Route path="/terms" exact component={Terms} />
         <Route path="/privacy" exact component={Privacy} />

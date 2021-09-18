@@ -96,7 +96,6 @@ export class Auth {
         tg_id: userAuth.id,
         email: waiting.email
       }).getOne()
-    console.log('LANSAS', check)
     if (check) {
       await req.tg.invoke(new Api.auth.LogOut())
       throw { status: 400, body: { error: 'The invitation code is invalid' } }
