@@ -53,7 +53,7 @@ import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import qs from 'qs'
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router'
+import { RouteComponentProps, useHistory } from 'react-router'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { useDebounce } from 'use-debounce'
@@ -61,10 +61,14 @@ import { apiUrl, fetcher, req } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
-const Dashboard: React.FC = () => {
+interface PageProps extends RouteComponentProps<{
+  type?: string
+}> {}
+
+const Dashboard: React.FC<PageProps> = ({ match }) => {
   const PAGE_SIZE = 10
 
-  const location = useHistory()
+  const history = useHistory()
   const [parent, setParent] = useState<string | null>(null)
   const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string | React.ReactElement }>>([{ id: null, name: <><HomeOutlined /> Home</> }])
   const [data, setData] = useState<any[]>([])
@@ -74,6 +78,7 @@ const Dashboard: React.FC = () => {
   const [selectDeleted, setSelectDeleted] = useState<any[]>([])
   const [selectShare, setSelectShare] = useState<any>()
   const [keyword, setKeyword] = useState<string>()
+  const [shared, setShared] = useState<boolean>(match.params.type === 'shared')
   const [params, setParams] = useState<any>()
   const [loadingRemove, setLoadingRemove] = useState<boolean>()
   const [loadingPaste, setLoadingPaste] = useState<boolean>()
@@ -101,7 +106,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (errorMe) {
-      location.replace('/login')
+      history.replace('/login')
     }
   }, [errorMe])
 
@@ -127,7 +132,11 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
-  }, [keyword, parent])
+  }, [keyword, parent, shared])
+
+  useEffect(() => {
+    history.replace(`/dashboard${shared ? '/shared' : ''}`)
+  }, [shared])
 
   useEffect(() => {
     if (action === 'copy') {
@@ -193,6 +202,7 @@ const Dashboard: React.FC = () => {
     setParams({
       ...parent ? { parent_id: parent } : { 'parent_id.is': 'null' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
+      ...shared ? { shared: 1 } : {},
       take: PAGE_SIZE,
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
@@ -357,7 +367,7 @@ const Dashboard: React.FC = () => {
               setParent(row.id)
               setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
             } else {
-              location.push(`/view/${row.id}`)
+              history.push(`/view/${row.id}`)
             }
           }}>
             {component} {row.name}
@@ -410,6 +420,12 @@ const Dashboard: React.FC = () => {
     <Layout.Content className="container">
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
+          <Typography.Paragraph>
+            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => setShared(key === 'shared')}>
+              <Menu.Item key="mine">My Files</Menu.Item>
+              <Menu.Item key="shared">Shared</Menu.Item>
+            </Menu>
+          </Typography.Paragraph>
           <Typography.Paragraph>
             <Upload.Dragger name="upload"
               beforeUpload={file => {

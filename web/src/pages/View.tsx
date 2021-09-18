@@ -145,7 +145,7 @@ const View: React.FC<PageProps> = ({ match }) => {
             <Descriptions.Item label={<><DownloadOutlined /> &nbsp; Download URL</>}>
               <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.download} onSearch={copy} />
             </Descriptions.Item>
-            {data?.file.sharing_options?.length === 'shared' && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}>
+            {data?.file.sharing_options?.length && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}>
               <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.share} onSearch={copy} />
             </Descriptions.Item>}
           </Descriptions>
@@ -153,7 +153,7 @@ const View: React.FC<PageProps> = ({ match }) => {
       </Layout.Sider>
       <div style={{ position: 'absolute', right: 20, top: 30 }}>
         <Space direction="horizontal">
-          <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={() => history.replace('/dashboard')} />
+          <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={() => history.goBack()} />
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
           <Button type="primary" shape="circle" icon={<DownloadOutlined />} onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} />
         </Space>

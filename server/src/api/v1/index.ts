@@ -4,8 +4,9 @@ import { Auth } from './Auth'
 import { Documents } from './Documents'
 import { Files } from './Files'
 import { Github } from './GitHub'
+import { Messages } from './Messages'
 import { Users } from './Users'
 import { Waitings } from './Waitings'
 
 export const V1 = Router()
-  .use(Endpoint.register(Auth, Users, Waitings, Github, Files, Documents))
+  .use(Endpoint.register(Auth, Users, Waitings, Github, Files, Messages, Documents))

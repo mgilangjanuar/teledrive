@@ -72,75 +72,6 @@ export class Files {
     return await Files.download(req, res, file)
   }
 
-  /**
-   * Deprecated
-   * @param req
-   * @param res
-   */
-  @Endpoint.POST({ middlewares: [Auth] })
-  public async sync(req: Request, res: Response): Promise<any> {
-    res.status(202).send({ accepted: true })
-
-    const getData = async (offsetId?: number, messages?: any[]): Promise<any[]> => {
-      const data = await req.tg.invoke(new Api.messages.GetHistory({
-        peer: 'me',
-        limit: 10,
-        ...offsetId ? { offsetId } : {}
-      }))
-
-      const merged = [...messages || [], ...data['messages']]
-      const lastDate = merged?.[merged?.length - 1]?.date ? new Date(merged[merged.length - 1].date * 1000) : null
-
-      // get last 3 month messages
-      if (lastDate && lastDate.getTime() > new Date().getTime() - 90 * 86400_000) {
-        return await getData(merged[merged?.length - 1].id, merged)
-      }
-      return merged
-    }
-
-    // cleaning data
-    const data = await getData()
-    const filteredData = data?.filter(chat => chat.media?.document || chat.media?.photo)
-    const existingData = filteredData?.length ? await Model.createQueryBuilder('files')
-      .where('message_id in (:...ids)', { ids: filteredData.map(data => data.id) }).getMany() : null
-    const excludeIds = existingData?.map(data => data.message_id) || []
-    const insertedData = existingData ? filteredData.filter(data => {
-      return !excludeIds.includes(data.id)
-    }) : filteredData
-
-    // insert many
-    await Model.insert(insertedData?.map(chat => {
-      const mimeType = chat.media.photo ? 'image/jpeg' : chat.media.document.mimeType || 'unknown'
-      const name = chat.media.photo ? `${chat.media.photo.id}.jpg` : chat.media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
-
-      const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
-      const size = chat.media.photo ? getSizes(chat.media.photo.sizes.pop()) : chat.media.document?.size
-
-      let type = chat.media.photo ? 'image' : null
-      if (!type) {
-        if (chat.media.document.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
-          type = 'video'
-        } else if (chat.media.document.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
-          type = 'document'
-        } else if (chat.media.document.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
-          type = 'audio'
-        } else {
-          type = 'unknown'
-        }
-      }
-
-      return {
-        name,
-        message_id: chat.id,
-        mime_type: mimeType,
-        size,
-        user_id: req.user.id,
-        uploaded_at: new Date(chat.date * 1000),
-        type
-      }
-    }))
-  }
-
   @Endpoint.DELETE('/:id', { middlewares: [Auth] })
   public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
@@ -190,35 +121,6 @@ export class Files {
     }
 
     return res.send({ file: { id } })
-  }
-
-  /**
-   * Deprecated
-   * @param req
-   * @param res
-   * @returns
-   */
-  @Endpoint.POST('/forward/:id/:username', { middlewares: [Auth] })
-  public async forward(req: Request, res: Response): Promise<any> {
-    const { id, username } = req.params
-    const { message } = req.body
-    const file = await Model.createQueryBuilder('files')
-      .where('id = :id and (user_id = :user_id or :username = any(sharing_options) or \'*\' = any(sharing_options))', {
-        id, user_id: req.user.id, username: req.user.username })
-      .getOne()
-    if (!file) {
-      throw { status: 404, body: { error: 'File not found' } }
-    }
-
-    await req.tg.invoke(new Api.messages.ForwardMessages({
-      fromPeer: 'me',
-      id: [file.message_id],
-      toPeer: username
-    }))
-    if (message) {
-      await req.tg.sendMessage(username, { message })
-    }
-    return res.send({ success: true })
   }
 
   @Endpoint.POST({ middlewares: [Auth, multer().single('upload')] })
