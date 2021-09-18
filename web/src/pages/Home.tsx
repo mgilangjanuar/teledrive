@@ -24,9 +24,9 @@ const Home: React.FC = () => {
     }
   }
 
-  return <>
+  return <div id="top">
     <Navbar />
-    <Layout.Content id="top">
+    <Layout.Content style={{ fontSize: '1.125rem' }}>
       <Row align="middle" style={{ marginTop: '50px' }}>
         <Col lg={{ span: 10, offset: 2 }} md={{ span: 20, offset: 2 }} span={22} offset={1}>
           <Layout.Content>
@@ -155,7 +155,7 @@ const Home: React.FC = () => {
 
     </Layout.Content>
     <Footer />
-  </>
+  </div>
 }
 
 export default Home

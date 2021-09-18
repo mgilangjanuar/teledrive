@@ -22,6 +22,9 @@ export class Users {
     const { username, photo } = req.params
     if (photo === 'photo') {
       const file = await req.tg.downloadProfilePhoto(username, { isBig: false })
+      if (!file?.length) {
+        return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
+      }
       res.setHeader('Content-Disposition', `inline; filename=${username === 'me' ? req.user.username : username}.jpg`)
       res.setHeader('Content-Type', 'image/jpeg')
       res.setHeader('Content-Length', file.length)

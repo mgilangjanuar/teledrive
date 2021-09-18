@@ -6,6 +6,7 @@ import { computeCheck } from 'telegram/Password'
 import { StringSession } from 'telegram/sessions'
 import { getRepository } from 'typeorm'
 import { Users } from '../../model//entities/Users'
+import { Files } from '../../model/entities/Files'
 import { Waitings } from '../../model/entities/Waitings'
 import { COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
@@ -24,7 +25,7 @@ export class Auth {
 
     const waiting = await Waitings.findOne({ id })
     if (!waiting) {
-      throw { status: 400, body: { error: 'Invalid token' } }
+      throw { status: 400, body: { error: 'The invitation code is invalid' } }
     }
 
     await req.tg.connect()
@@ -52,7 +53,7 @@ export class Auth {
 
     const waiting = await Waitings.findOne({ id })
     if (!waiting) {
-      throw { status: 400, body: { error: 'Invalid token' } }
+      throw { status: 400, body: { error: 'The invitation code is invalid' } }
     }
 
     await req.tg.connect()
@@ -76,7 +77,7 @@ export class Auth {
 
     const waiting = await Waitings.findOne({ id })
     if (!waiting) {
-      throw { status: 400, body: { error: 'Invalid token' } }
+      throw { status: 400, body: { error: 'The invitation code is invalid' } }
     }
 
     await req.tg.connect()
@@ -90,6 +91,17 @@ export class Auth {
     }
     const userAuth = signIn['user']
     let user = await Users.findOne({ tg_id: userAuth.id })
+    const check = await Users.createQueryBuilder('users')
+      .where('(tg_id = :tg_id and email != :email) or (tg_id != :tg_id and email = :email)', {
+        tg_id: userAuth.id,
+        email: waiting.email
+      }).getOne()
+    console.log('LANSAS', check)
+    if (check) {
+      await req.tg.invoke(new Api.auth.LogOut())
+      throw { status: 400, body: { error: 'The invitation code is invalid' } }
+    }
+
     if (!user) {
       const username = userAuth.username || userAuth.phone || phoneNumber
       user = await getRepository<Users>(Users).save({
@@ -103,16 +115,28 @@ export class Auth {
     const session = req.tg.session.save()
     const auth = {
       accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
       expiredAfter: Date.now() + COOKIE_AGE
     }
-    return res.cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+
+    res
+      .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+      .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
       .send({ user, ...auth })
+
+    // sync all shared files in background, if any
+    Files.createQueryBuilder('files')
+      .where('user_id = :user_id and signed_key is not null', { user_id: user.id })
+      .getMany()
+      .then(files => files?.map(file => {
+        const signedKey = sign({ file: { id: file.id }, session }, process.env.FILES_JWT_SECRET)
+        Files.update(file.id, { signed_key: Buffer.from(signedKey).toString('base64') })
+      }))
   }
 
   @Endpoint.POST()
   public async refreshToken(req: Request, res: Response): Promise<any> {
-    const { refreshToken } = req.body
+    const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken
     if (!refreshToken) {
       throw { status: 400, body: { error: 'Refresh token is required' } }
     }
@@ -144,7 +168,9 @@ export class Auth {
       refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
       expiredAfter: Date.now() + COOKIE_AGE
     }
-    return res.cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+    return res
+      .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+      .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
       .send({ user, ...auth })
   }
 
@@ -194,6 +220,6 @@ export class Auth {
   public async logout(req: Request, res: Response): Promise<any> {
     await req.tg.connect()
     const data = await req.tg.invoke(new Api.auth.LogOut())
-    return res.clearCookie('authorization').send({ success: data })
+    return res.clearCookie('authorization').clearCookie('refreshToken').send({ success: data })
   }
 }

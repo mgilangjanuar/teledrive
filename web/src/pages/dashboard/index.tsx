@@ -139,11 +139,9 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (getUser) {
-      req.get('/users', {
+      req.get('/users/search', {
         params: {
-          'username.ilike': `'%${getUser}%'`,
-          take: 10,
-          skip: 0
+          username: getUser
         }
       }).then(({ data }) => {
         setUsers(data.users?.filter((user: any) => user.username !== me?.user.username))
@@ -160,13 +158,9 @@ const Dashboard: React.FC = () => {
         id: selectShare.id,
         message: 'Hey, please check this out! 👆',
         public: isPublic,
-        sharing_options: selectShare.sharing_options?.length ? selectShare.sharing_options.filter((opt: string) => opt !== '*') : ['']
+        sharing_options: selectShare.sharing_options?.length ? selectShare.sharing_options.filter((opt: string) => opt !== '*') : [''],
+        link: `${window.location.origin}/view/${selectShare.id}`
       })
-      if (selectShare.sharing_options?.length) {
-        req.get(`/files/signedKey/${selectShare.id}`).then(({ data }) => {
-          formShare.setFieldsValue({ link: `${window.location.origin}/view/shared/${data.key}` })
-        })
-      }
     } else {
       formShare.resetFields()
       refetch()
@@ -291,7 +285,7 @@ const Dashboard: React.FC = () => {
 
   const share = async () => {
     setLoadingShare(true)
-    const { id, public: isPublic, sharing_options: sharingOpts, link } = formShare.getFieldsValue()
+    const { id, public: isPublic, sharing_options: sharingOpts } = formShare.getFieldsValue()
 
     const sharing = [
       ...new Set([...sharingOpts === undefined ? sharingOptions : sharingOpts, isPublic ? '*' : null]
@@ -299,10 +293,6 @@ const Dashboard: React.FC = () => {
     ]
     setSharingOptions(sharing)
 
-    if (!link) {
-      const { data } = await req.get(`/files/signedKey/${selectShare.id}`)
-      formShare.setFieldsValue({ link: `${window.location.origin}/view/shared/${data.key}` })
-    }
     await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
     setLoadingShare(false)
   }

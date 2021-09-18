@@ -1,12 +1,9 @@
 import { Request, Response } from 'express'
 import { sign, verify } from 'jsonwebtoken'
 import multer from 'multer'
-import { nanoid } from 'nanoid'
 import { Api, TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
-import { getRepository } from 'typeorm'
 import { Files as Model } from '../../model/entities/Files'
-import { Links } from '../../model/entities/Links'
 import { TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
@@ -54,67 +51,32 @@ export class Files {
     return res.send({ file: raw[0] })
   }
 
-  @Endpoint.GET('/signedKey/:id', { middlewares: [Auth] })
-  public async signedKey(req: Request, res: Response): Promise<any> {
-    const { id } = req.params
-    const file = await Model.createQueryBuilder('files')
-      .where('id = :id and user_id = :user_id ', {
-        id, user_id: req.user.id })
-      .addSelect('files.signed_key')
-      .getOne()
-    if (!file) {
-      throw { status: 404, body: { error: 'File not found' } }
-    }
-
-    if (file.signed_key) {
-      const link = await Links.findOne({ signed_key: file.signed_key })
-      let key = link?.shorten
-      if (!link) {
-        key = nanoid()
-        getRepository<Links>(Links).save([{ signed_key: file.signed_key, shorten: key }])
-      }
-      return res.send({ key })
-    }
-
-    const signedKey = sign({ file: { id: file.id }, session: req.tg.session.save() }, process.env.FILES_JWT_SECRET)
-    const base64 = Buffer.from(signedKey).toString('base64')
-
-    const key = nanoid()
-    Model.update(id, { signed_key: base64 })
-    getRepository<Links>(Links).save([{ signed_key: base64, shorten: key }])
-    return res.send({ key })
-  }
-
-  @Endpoint.GET('/link/:id', { middlewares: [AuthMaybe] })
-  public async link(req: Request, res: Response): Promise<any> {
-    const { id } = req.params
-    const file = await Files.initiateSessionTG(req, id)
-    await req.tg.connect()
-
-    return await Files.download(req, res, file)
-  }
-
-  @Endpoint.GET('/:id', { middlewares: [Auth] })
+  @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
 
     const file = await Model.createQueryBuilder('files')
-      .where('id = :id and (user_id = :user_id or \'*\' = any(sharing_options))', {
-        id, user_id: req.user.id, username: req.user.username })
+      .where(`id = :id and (\'*\' = any(sharing_options) or ${req.user ? ':username = any(sharing_options) or user_id = :user_id' : 'false'})`, {
+        id, username: req.user?.username, user_id: req.user?.id })
       .addSelect('files.signed_key')
       .getOne()
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    if (file.user_id !== req.user.id) {
-      await Files.initiateSessionTG(req, null, file.signed_key)
+    if (!req.user || file.user_id !== req.user?.id) {
+      await Files.initiateSessionTG(req, file)
       await req.tg.connect()
     }
 
     return await Files.download(req, res, file)
   }
 
+  /**
+   * Deprecated
+   * @param req
+   * @param res
+   */
   @Endpoint.POST({ middlewares: [Auth] })
   public async sync(req: Request, res: Response): Promise<any> {
     res.status(202).send({ accepted: true })
@@ -182,16 +144,13 @@ export class Files {
   @Endpoint.DELETE('/:id', { middlewares: [Auth] })
   public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const { affected, raw } = await Model.createQueryBuilder('files')
+    const { affected } = await Model.createQueryBuilder('files')
       .delete()
       .where({ id, user_id: req.user.id })
       .returning('*')
       .execute()
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
-    }
-    if (raw[0].signed_key) {
-      await getRepository<Links>(Links).delete({ signed_key: raw[0].signed_key })
     }
 
     return res.send({ file: { id } })
@@ -202,14 +161,26 @@ export class Files {
     const { id } = req.params
     const { file } = req.body
     if (!file) {
-      throw { status: 400, body: { error: 'File is required in body.' } }
+      throw { status: 400, body: { error: 'File is required in body' } }
+    }
+
+    const currentFile = await Model.findOne(id)
+    if (!currentFile) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    let key: string = currentFile.signed_key
+    if (file.sharing_options?.length && !key) {
+      const signedKey = sign({ file: { id: file.id }, session: req.tg.session.save() }, process.env.FILES_JWT_SECRET)
+      key = Buffer.from(signedKey).toString('base64')
     }
 
     const { affected } = await Model.createQueryBuilder('files')
       .update({
         ...file.name ? { name: file.name } : {},
         ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
-        ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {}
+        ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
+        signed_key: key
       })
       .where({ id, user_id: req.user.id })
       .returning('*')
@@ -221,6 +192,12 @@ export class Files {
     return res.send({ file: { id } })
   }
 
+  /**
+   * Deprecated
+   * @param req
+   * @param res
+   * @returns
+   */
   @Endpoint.POST('/forward/:id/:username', { middlewares: [Auth] })
   public async forward(req: Request, res: Response): Promise<any> {
     const { id, username } = req.params
@@ -351,26 +328,18 @@ export class Files {
     res.end()
   }
 
-  public static async initiateSessionTG(req: Request, id?: string, signedKey?: string): Promise<Model> {
-    const link = await Links.findOne(id ? { shorten: id } : { signed_key: signedKey })
-    if (!link) {
-      throw { status: 404, body: { error: 'Link not found' } }
+  public static async initiateSessionTG(req: Request, file?: Model): Promise<Model> {
+    if (!file) {
+      throw { status: 404, body: { error: 'File not found' } }
     }
 
-    const key = Buffer.from(link.signed_key, 'base64').toString()
+    const key = Buffer.from(file.signed_key, 'base64').toString()
     let data: { file: { id: string }, session: string }
     try {
       data = verify(key, process.env.FILES_JWT_SECRET) as { file: { id: string }, session: string }
     } catch (error) {
       console.error(error)
       throw { status: 401, body: { error: 'Invalid token' } }
-    }
-    const file = await Model.createQueryBuilder('files')
-      .where(`id = :id and (\'*\' = any(sharing_options) or ${req.user ? ':username = any(sharing_options) or user_id = :userId' : 'false'})`, {
-        id: data.file.id, username: req.user?.username, userId: req.user?.id })
-      .getOne()
-    if (!file) {
-      throw { status: 404, body: { error: 'File not found' } }
     }
 
     try {

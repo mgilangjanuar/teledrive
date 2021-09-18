@@ -23,16 +23,22 @@ const Login: React.FC = () => {
       return message.error('Please input your valid phone number with country code')
     }
     const token = localStorage.getItem('invitationCode')
-    try {
-      setLoadingSendCode(true)
+
+    const fetch = async (phoneCodeHash?: string) => {
       const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { token, phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { token, phoneNumber })
       setPhoneCodeHash(data.phoneCodeHash)
       setCountdown(60)
+      message.info('Please check your Telegram app and input the code')
+    }
+
+    try {
+      setLoadingSendCode(true)
+      await fetch(phoneCodeHash)
     } catch (error: any) {
       setLoadingSendCode(false)
       message.error(error?.response?.data?.error || 'Something error')
       if (error?.response?.status === 400) {
-        message.info('Please reload your browser and try it again...')
+        await fetch()
       }
     }
   }
@@ -47,7 +53,6 @@ const Login: React.FC = () => {
     try {
       const { data } = await req.post('/auth/login', { token, ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
       setLoadingLogin(false)
-      localStorage.setItem('refreshToken', data.refreshToken)
       message.success(`Welcome back, ${data.user.username}!`)
       return history.replace('/dashboard')
     } catch (error: any) {
@@ -63,7 +68,6 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (!localStorage.getItem('invitationCode')) {
-      message.error('Oops, you don\'t have an invitation code')
       message.info('Please wait and always check your inbox 🍻')
       return history.replace('/')
     }

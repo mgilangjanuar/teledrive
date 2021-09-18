@@ -2,10 +2,6 @@ html, body {
   overflow-x: hidden !important;
 }
 
-body, p {
-  font-size: 1.125rem;
-}
-
 .App {
   min-height: 100vh;
 }

@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
     <Typography.Paragraph>
       <Typography.Text>TeleDrive &copy; 2021</Typography.Text>
     </Typography.Paragraph>
-    <Typography.Paragraph style={{ padding: '0 20px' }}>
+    <Typography.Paragraph style={{ padding: '0 40px' }}>
       <Button type="link" size="small"><Link to="/">Home</Link></Button>
       <Button type="link" size="small"><Link to="/privacy">Privacy</Link></Button>
       <Button type="link" size="small"><Link to="/terms">Terms</Link></Button>
