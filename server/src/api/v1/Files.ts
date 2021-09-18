@@ -10,7 +10,7 @@ import { Links } from '../../model/entities/Links'
 import { TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
-import { Auth } from '../middlewares/Auth'
+import { Auth, AuthMaybe } from '../middlewares/Auth'
 
 @Endpoint.API()
 export class Files {
@@ -85,7 +85,7 @@ export class Files {
     return res.send({ key })
   }
 
-  @Endpoint.GET('/link/:id')
+  @Endpoint.GET('/link/:id', { middlewares: [AuthMaybe] })
   public async link(req: Request, res: Response): Promise<any> {
     const { id } = req.params
     const file = await Files.initiateSessionTG(req, id)
@@ -99,7 +99,7 @@ export class Files {
     const { id } = req.params
 
     const file = await Model.createQueryBuilder('files')
-      .where('id = :id and (user_id = :user_id or :username = any(sharing_options) or \'*\' = any(sharing_options))', {
+      .where('id = :id and (user_id = :user_id or \'*\' = any(sharing_options))', {
         id, user_id: req.user.id, username: req.user.username })
       .addSelect('files.signed_key')
       .getOne()
@@ -366,7 +366,8 @@ export class Files {
       throw { status: 401, body: { error: 'Invalid token' } }
     }
     const file = await Model.createQueryBuilder('files')
-      .where('id = :id and \'*\' = any(sharing_options)', { id: data.file.id })
+      .where(`id = :id and (\'*\' = any(sharing_options) or ${req.user ? ':username = any(sharing_options) or user_id = :userId' : 'false'})`, {
+        id: data.file.id, username: req.user?.username, userId: req.user?.id })
       .getOne()
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }

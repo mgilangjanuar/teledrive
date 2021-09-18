@@ -1,15 +1,42 @@
 import {
-  AudioOutlined, CopyOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined,
+  AudioOutlined,
+  CopyOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  EllipsisOutlined,
   FileImageOutlined,
   FileOutlined,
-  FilePdfOutlined, FolderAddOutlined, FolderOpenOutlined, HomeOutlined, InboxOutlined, MinusCircleOutlined, PlusOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, VideoCameraOutlined, WarningOutlined
+  FilePdfOutlined,
+  FolderAddOutlined,
+  FolderOpenOutlined,
+  HomeOutlined,
+  InboxOutlined,
+  MinusCircleOutlined,
+  PlusOutlined,
+  ScissorOutlined,
+  ShareAltOutlined,
+  SnippetsOutlined,
+  VideoCameraOutlined,
+  LinkOutlined,
+  InfoCircleOutlined,
+  WarningOutlined
 } from '@ant-design/icons'
 import {
   AutoComplete,
   Breadcrumb,
   Button,
-  Col, Divider, Dropdown, Empty, Form, Input,
-  Layout, Menu, message, Modal, Popconfirm, Row,
+  Col,
+  Divider,
+  Dropdown,
+  Empty,
+  Form,
+  Input,
+  Layout,
+  Menu,
+  message,
+  Modal,
+  Popconfirm,
+  Row,
   Space,
   Spin,
   Switch,
@@ -62,6 +89,7 @@ const Dashboard: React.FC = () => {
   const [formRename] = useForm()
   const [formShare] = useForm()
   const [isPublic, setIsPublic] = useState<boolean>()
+  const [sharingOptions, setSharingOptions] = useState<string[]>()
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
@@ -127,24 +155,23 @@ const Dashboard: React.FC = () => {
     if (selectShare) {
       const isPublic = (selectShare.sharing_options || [])?.includes('*')
       setIsPublic(isPublic)
+      setSharingOptions(selectShare.sharing_options)
       formShare.setFieldsValue({
         id: selectShare.id,
         message: 'Hey, please check this out! 👆',
         public: isPublic,
         sharing_options: selectShare.sharing_options?.length ? selectShare.sharing_options.filter((opt: string) => opt !== '*') : ['']
       })
+      if (selectShare.sharing_options?.length) {
+        req.get(`/files/signedKey/${selectShare.id}`).then(({ data }) => {
+          formShare.setFieldsValue({ link: `${window.location.origin}/view/shared/${data.key}` })
+        })
+      }
+    } else {
+      formShare.resetFields()
+      refetch()
     }
   }, [selectShare])
-
-  useEffect(() => {
-    if (isPublic) {
-      req.get(`/files/signedKey/${selectShare.id}`).then(({ data }) => {
-        formShare.setFieldsValue({ link: `${window.location.origin}/view/public/${data.key}` })
-      })
-    } else {
-      formShare.setFieldsValue({ link: `${window.location.origin}/view/${selectShare?.id}` })
-    }
-  }, [isPublic])
 
   useEffect(() => {
     if (filesUpload?.files) {
@@ -264,10 +291,25 @@ const Dashboard: React.FC = () => {
 
   const share = async () => {
     setLoadingShare(true)
-    const { id, public: isPublic, sharing_options: sharingOptions } = formShare.getFieldsValue()
-    await req.patch(`/files/${id}`, { file: { sharing_options: [...new Set([...sharingOptions || [], isPublic ? '*' : null].filter(Boolean)) as any] } })
+    const { id, public: isPublic, sharing_options: sharingOpts, link } = formShare.getFieldsValue()
+
+    const sharing = [
+      ...new Set([...sharingOpts === undefined ? sharingOptions : sharingOpts, isPublic ? '*' : null]
+        .filter(sh => isPublic ? sh : sh !== '*').filter(Boolean)) as any
+    ]
+    setSharingOptions(sharing)
+
+    if (!link) {
+      const { data } = await req.get(`/files/signedKey/${selectShare.id}`)
+      formShare.setFieldsValue({ link: `${window.location.origin}/view/shared/${data.key}` })
+    }
+    await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
     setLoadingShare(false)
   }
+
+  useEffect(() => {
+
+  }, [sharingOptions])
 
   const columns = [
     {
@@ -534,19 +576,17 @@ const Dashboard: React.FC = () => {
               </Form.Item>
             </>}
           </Form.List>}
-          {formShare.getFieldValue('sharing_options')?.[0] || isPublic ? <>
-            <Divider />
-            <Spin spinning={loadingShare}>
-              <Typography.Paragraph type="secondary">
-                <WarningOutlined /> You are shared {isPublic ? 'with anyone.' :
-                  `with ${formShare.getFieldValue('sharing_options')?.[0]}
-                    ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length > 1 ? ` and ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length - 1} people` : ''}`}
-              </Typography.Paragraph>
-              <Form.Item label="Share URL" name="link">
-                <Input.Search contentEditable={false} enterButton={<CopyOutlined />} onSearch={copy} />
-              </Form.Item>
-            </Spin>
-          </> : ''}
+          <Divider />
+          <Spin spinning={loadingShare}>
+            <Typography.Paragraph type="secondary">
+              <InfoCircleOutlined /> You are shared {isPublic ? 'with anyone.' :
+                `with ${formShare.getFieldValue('sharing_options')?.[0] || 'no one'}
+                  ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length > 1 ? ` and ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length - 1} people` : ''}`}
+            </Typography.Paragraph>
+            {sharingOptions?.[0] ? <Form.Item label={<><LinkOutlined /> &nbsp;Share URL</>} name="link">
+              <Input.Search readOnly contentEditable={false} enterButton={<CopyOutlined />} onSearch={copy} />
+            </Form.Item> : ''}
+          </Spin>
         </Form>
       </Modal>
     </Layout.Content>

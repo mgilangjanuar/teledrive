@@ -5,3 +5,5 @@ export const TG_CREDS = {
 
 // export const COOKIE_AGE = 3.154e+12
 export const COOKIE_AGE = 54e6
+
+export const CONNECTION_RETRIES = 10

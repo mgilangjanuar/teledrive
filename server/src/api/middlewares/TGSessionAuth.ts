@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
 import { TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
-import { TG_CREDS } from '../../utils/Constant'
+import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function TGSessionAuth(req: Request, _: Response, next: NextFunction): Promise<any> {
   const authkey = (req.headers.authorization || req.cookies.authorization)?.replace(/^Bearer\ /gi, '')
@@ -19,7 +19,7 @@ export async function TGSessionAuth(req: Request, _: Response, next: NextFunctio
 
   try {
     const session = new StringSession(data.session)
-    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
+    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES })
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }
   }

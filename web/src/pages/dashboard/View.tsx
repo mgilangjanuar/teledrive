@@ -26,7 +26,7 @@ interface PageProps extends RouteComponentProps<{
 const View: React.FC<PageProps> = ({ match }) => {
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
-  const { data, error } = useSWR(`/files${match.params.type === 'public' ? '/link' : ''}/${match.params.id}`, fetcher)
+  const { data, error } = useSWR(`/files${match.params.type === 'shared' ? '/link' : ''}/${match.params.id}`, fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
@@ -35,9 +35,9 @@ const View: React.FC<PageProps> = ({ match }) => {
   useEffect(() => {
     if (data?.file) {
       setLinks({
-        raw: `${apiUrl}/files${match.params.type === 'public' ? '/link' : ''}/${match.params.id}?raw=1`,
-        download: `${apiUrl}/files${match.params.type === 'public' ? '/link' : ''}/${match.params.id}?raw=1&dl=1`,
-        share: `${window.location.origin}/view/public/${match.params.id}`
+        raw: `${apiUrl}/files${match.params.type === 'shared' ? '/link' : ''}/${match.params.id}?raw=1`,
+        download: `${apiUrl}/files${match.params.type === 'shared' ? '/link' : ''}/${match.params.id}?raw=1&dl=1`,
+        share: `${window.location.origin}/view/shared/${match.params.id}`
       })
     }
   }, [data])
@@ -113,14 +113,22 @@ const View: React.FC<PageProps> = ({ match }) => {
 
             <Descriptions.Item label="Size">{data?.file?.size && prettyBytes(data?.file?.size)}</Descriptions.Item>
             <Descriptions.Item label="Uploaded At">{moment(data?.file.uploaded_at).format('llll')}</Descriptions.Item>
-            <Descriptions.Item label="Uploaded By">{user?.user.name}</Descriptions.Item>
+            <Descriptions.Item label="Uploaded By">
+              <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>
+            </Descriptions.Item>
           </Descriptions>
           <Divider />
           <Descriptions colon={false} layout="vertical"
             labelStyle={{ color: '#fff' }} column={1}>
-            <Descriptions.Item label={<><LinkOutlined /> &nbsp; Raw URL</>}><Input.Search enterButton={<CopyOutlined />} value={links?.raw} onSearch={copy} /></Descriptions.Item>
-            <Descriptions.Item label={<><DownloadOutlined /> &nbsp; Download URL</>}><Input.Search enterButton={<CopyOutlined />} value={links?.download} onSearch={copy} /></Descriptions.Item>
-            {match.params.type === 'public' && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}><Input.Search enterButton={<CopyOutlined />} value={links?.share} onSearch={copy} /></Descriptions.Item>}
+            <Descriptions.Item label={<><LinkOutlined /> &nbsp; Raw URL</>}>
+              <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.raw} onSearch={copy} />
+            </Descriptions.Item>
+            <Descriptions.Item label={<><DownloadOutlined /> &nbsp; Download URL</>}>
+              <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.download} onSearch={copy} />
+            </Descriptions.Item>
+            {match.params.type === 'shared' && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}>
+              <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.share} onSearch={copy} />
+            </Descriptions.Item>}
           </Descriptions>
         </Layout.Content>
       </Layout.Sider>
