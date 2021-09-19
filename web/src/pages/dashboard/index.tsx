@@ -118,10 +118,8 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   useEffect(() => {
     if (files?.files) {
       const nextPage = () => {
-        if (document.body.scrollHeight - document.body.clientHeight === document.body.scrollTop) {
-          if (document.body.scrollTop > scrollTop) {
-            setScrollTop(document.body.scrollTop)
-          }
+        if (document.body.scrollHeight - document.body.clientHeight === document.body.scrollTop && document.body.scrollTop > scrollTop) {
+          setScrollTop(document.body.scrollTop)
         }
       }
       nextPage()
@@ -161,6 +159,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   useEffect(() => {
     change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+    setScrollTop(0)
   }, [keyword, parent])
 
 
@@ -171,6 +170,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       setParent(null)
     } else {
       change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      setScrollTop(0)
     }
   }, [tab])
 
