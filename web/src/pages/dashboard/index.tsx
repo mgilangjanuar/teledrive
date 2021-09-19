@@ -116,7 +116,15 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   useEffect(() => {
     if (files?.files) {
-      setData(files.files.map((file: any) => ({ ...file, key: file.id })))
+      if (!dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
+        return setData(files.files.map((file: any) => ({ ...file, key: file.id })))
+      }
+      setData([
+        ...data,
+        ...files.files.map((file: any) => ({ ...file, key: file.id }))
+      ].reduce((res, row) => [
+        ...res, !res.find((r: any) => r.id === row.id) ? row : null
+      ], []).filter(Boolean))
     }
   }, [files])
 
@@ -131,7 +139,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [fileRename])
 
   useEffect(() => {
-    fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
+    change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
   }, [keyword, parent])
 
   useEffect(() => {
@@ -140,7 +148,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     if (parent !== null) {
       setParent(null)
     } else {
-      fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
+      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
     }
   }, [shared])
 
@@ -220,8 +228,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     })
   }
 
-  const change = async (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[], _: TableCurrentDataSource<any>) => {
-    console.log(pagination)
+  const change = async (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], _?: TableCurrentDataSource<any>) => {
     setDataChanges({ pagination, filters, sorter })
     fetch(pagination, filters, sorter)
   }
@@ -313,10 +320,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
     setLoadingShare(false)
   }
-
-  useEffect(() => {
-
-  }, [sharingOptions])
 
   const columns = [
     {
@@ -424,7 +427,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   return <>
     <Navbar user={me?.user} />
-    <Layout.Content className="container" style={{ paddingTop: 0 }}>
+    <Layout.Content className="container" style={{ paddingTop: 0 }} onScroll={({ target }: any) => console.log(target.scrollHeight, target.scrollTop, target.clientHeight)}>
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
@@ -531,11 +534,17 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           <Table loading={!files}
             rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
             dataSource={data}
-            columns={columns as any} onChange={change} pagination={{
-              current: dataChanges?.pagination?.current,
-              pageSize: PAGE_SIZE,
-              total: files?.length,
-            }} scroll={{ x: 420 }} />
+            columns={columns as any} onChange={change}
+            // pagination={{
+            //   current: dataChanges?.pagination?.current,
+            //   pageSize: PAGE_SIZE,
+            //   total: files?.length,
+            // }}
+            pagination={false}
+            scroll={{ x: 420 }} />
+          <Button onClick={() => {
+            change({ ...dataChanges?.pagination, current: (dataChanges?.pagination?.current || 1) + 1 }, dataChanges?.filters, dataChanges?.sorter)
+          }}>Load more</Button>
         </Col>
       </Row>
 
