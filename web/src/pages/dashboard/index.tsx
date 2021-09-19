@@ -132,10 +132,16 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   useEffect(() => {
     fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
-  }, [keyword, parent, shared])
+  }, [keyword, parent])
 
   useEffect(() => {
     history.replace(`/dashboard${shared ? '/shared' : ''}`)
+    setBreadcrumbs(breadcrumbs.slice(0, 1))
+    if (parent !== null) {
+      setParent(null)
+    } else {
+      fetch(dataChanges?.pagination, dataChanges?.filters, dataChanges?.sorter)
+    }
   }, [shared])
 
   useEffect(() => {
@@ -202,7 +208,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setParams({
       ...parent ? { parent_id: parent } : { 'parent_id.is': 'null' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
-      ...shared ? { shared: 1 } : {},
+      ...shared ? { shared: 1, 'parent_id.is': undefined } : {},
       take: PAGE_SIZE,
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
@@ -215,6 +221,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }
 
   const change = async (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<any> | SorterResult<any>[], _: TableCurrentDataSource<any>) => {
+    console.log(pagination)
     setDataChanges({ pagination, filters, sorter })
     fetch(pagination, filters, sorter)
   }
@@ -577,12 +584,12 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           <Form.Item name="id" hidden>
             <Input />
           </Form.Item>
-          <Form.Item name="public" label="Make public">
+          {selectShare?.type !== 'folder' ? <Form.Item name="public" label="Make public">
             <Switch checked={isPublic} onClick={val => {
               setIsPublic(val)
               share()
             }} />
-          </Form.Item>
+          </Form.Item> : ''}
           {!isPublic && <Form.List name="sharing_options">
             {(fields, { add, remove }) => <>
               {fields.map((field, i) => <Row gutter={14} key={i}>
