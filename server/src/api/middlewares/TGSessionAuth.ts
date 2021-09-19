@@ -19,7 +19,7 @@ export async function TGSessionAuth(req: Request, _: Response, next: NextFunctio
 
   try {
     const session = new StringSession(data.session)
-    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES })
+    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }
   }

@@ -20,7 +20,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
 
   try {
     const session = new StringSession(data.session)
-    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES })
+    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }
   }
@@ -50,7 +50,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
 
     try {
       const session = new StringSession(data.session)
-      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES })
+      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
     } catch (error) {
       throw { status: 401, body: { error: 'Invalid key' } }
     }
