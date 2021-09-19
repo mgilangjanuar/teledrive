@@ -42,7 +42,6 @@ import {
   Switch,
   Table,
   TablePaginationConfig,
-  Tooltip,
   Typography,
   Upload
 } from 'antd'
@@ -99,11 +98,25 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
-  const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
     ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
     refreshInterval: 5000
   })
+  const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
+    if (files?.files) {
+      console.log('reset data', params?.skip, dataChanges?.pagination?.current)
+      if (!params?.skip || !dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
+        return setData(files.files.map((file: any) => ({ ...file, key: file.id })))
+      }
+      const filters = [
+        ...data.map(row => files.files.find((file: any) => file.id === row.id) || row).map(file => ({ ...file, key: file.id })),
+        ...files.files.map((file: any) => ({ ...file, key: file.id }))
+      ].reduce((res, row) => [
+        ...res, !res.filter(Boolean).find((r: any) => r.id === row.id) ? row : null
+      ], []).filter(Boolean)
+      setData(filters)
+    }
+  } })
 
   useEffect(() => {
     if (errorMe) {
@@ -118,9 +131,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   useEffect(() => {
     if (files?.files) {
       const nextPage = () => {
-        if (document.body.scrollHeight - document.body.clientHeight === document.body.scrollTop && document.body.scrollTop > scrollTop) {
-          setScrollTop(document.body.scrollTop)
-        }
+        setScrollTop(document.body.scrollTop)
       }
       nextPage()
       document.body.addEventListener('scroll', nextPage)
@@ -128,24 +139,10 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [files])
 
   useEffect(() => {
-    if (files?.files.length >= PAGE_SIZE) {
+    if (scrollTop === document.body.scrollHeight - document.body.clientHeight && files?.files.length >= PAGE_SIZE) {
       change({ ...dataChanges?.pagination, current: (dataChanges?.pagination?.current || 1) + 1 }, dataChanges?.filters, dataChanges?.sorter)
     }
   }, [scrollTop])
-
-  useEffect(() => {
-    if (files?.files) {
-      if (!dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
-        return setData(files.files.map((file: any) => ({ ...file, key: file.id })))
-      }
-      setData([
-        ...data,
-        ...files.files.map((file: any) => ({ ...file, key: file.id }))
-      ].reduce((res, row) => [
-        ...res, !res.find((r: any) => r.id === row.id) ? row : null
-      ], []).filter(Boolean))
-    }
-  }, [files])
 
   useEffect(() => {
     localStorage.setItem('fileList', JSON.stringify(fileList || []))
@@ -208,13 +205,12 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       })
     } else {
       formShare.resetFields()
-      refetch()
     }
   }, [selectShare])
 
   useEffect(() => {
     if (filesUpload?.files) {
-      setFileList(fileList?.map(file => {
+      const list = fileList?.map(file => {
         if (!file.response?.file.id) return file
         const found = filesUpload.files.find((f: any) => f.id === file.response?.file.id)
         if (!found) {
@@ -229,8 +225,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           url: found.upload_progress === null ? `/view/${found.id}` : undefined,
           response: { file: found }
         }
-      }).filter(file => file && file?.status !== 'success'))
-      refetch()
+      }).filter(file => file && file?.status !== 'success')
+      setFileList(list)
+      setData([...filesUpload.files?.map((file: any) => ({ ...file, key: file.id })), ...data].reduce((res, row) => [
+        ...res, !res.filter(Boolean).find((r: any) => r.id === row.id) ? row : null
+      ], []).filter(Boolean))
     }
   }, [filesUpload])
 
@@ -246,7 +245,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       }, {}),
       ...(sorter as SorterResult<any>)?.order ? {
         sort: `${(sorter as SorterResult<any>).column?.dataIndex}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
-      } : { sort: 'uploaded_at:desc' },
+      } : { sort: 'created_at:desc' },
     })
   }
 
@@ -262,7 +261,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     } catch (error) {
       // ignore
     }
-    refetch()
+    setData(data.filter(datum => !ids.includes(datum.id)))
     setSelected([])
     setSelectDeleted([])
     setLoadingRemove(false)
@@ -272,15 +271,16 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setLoadingAddFolder(true)
     const { name } = formAddFolder.getFieldsValue()
     try {
-      const { data } = await req.post('/files/addFolder', {
+      const { data: result } = await req.post('/files/addFolder', {
         file: { name, parent_id: parent }
       })
-      message.success(`Folder ${data.file.name} created successfully!`)
+      message.success(`Folder ${result.file.name} created successfully!`)
       formAddFolder.resetFields()
-      refetch()
+      setData([{ ...result.file, key: result.file.id }, ...data])
       setAddFolder(false)
       setLoadingAddFolder(false)
     } catch (error) {
+      console.log(error)
       setLoadingAddFolder(false)
       return message.error('Failed to create new folder')
     }
@@ -290,14 +290,14 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setLoadingRename(true)
     const { name } = formRename.getFieldsValue()
     try {
-      const { data } = await req.patch(`/files/${fileRename?.id}`, {
+      const { data: result } = await req.patch(`/files/${fileRename?.id}`, {
         file: { name }
       })
-      message.success(`${data.file.name} renamed successfully!`)
-      formRename.resetFields()
-      refetch()
+      message.success(`${name} renamed successfully!`)
+      setData(data.map((datum: any) => datum.id === result.file.id ? { ...datum, name } : datum))
       setFileRename(undefined)
       setLoadingRename(false)
+      formRename.resetFields()
     } catch (error) {
       setLoadingRename(false)
       return message.error('Failed to rename a file')
@@ -316,7 +316,12 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     } catch (error) {
       // ignore
     }
-    refetch()
+    // refetch()
+    if ((dataChanges?.pagination?.current || 0) > 1) {
+      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+    } else {
+      refetch()
+    }
     setAction(undefined)
     setSelected([])
     setSelectDeleted([])
@@ -341,10 +346,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
     await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
     setLoadingShare(false)
-  }
-
-  const updateTab = (key: string) => {
-    setTab(key === 'mine' ? undefined : key)
   }
 
   const columns = [
@@ -457,7 +458,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
-            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => updateTab(key)}>
+            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => setTab(key === 'mine' ? undefined : key)}>
               <Menu.Item key="mine">My Files</Menu.Item>
               <Menu.Item key="shared">Shared</Menu.Item>
             </Menu>
@@ -539,25 +540,15 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           </Typography.Paragraph>
           <Typography.Paragraph style={{ textAlign: 'right' }}>
             <Space wrap>
-              <Tooltip title="Add folder">
-                <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
-              </Tooltip>
-              <Tooltip title="Copy">
-                <Button shape="circle" icon={<CopyOutlined />} disabled={!selected?.length} onClick={() => setAction('copy')} />
-              </Tooltip>
-              <Tooltip title="Cut">
-                <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
-              </Tooltip>
-              <Tooltip title="Paste">
-                <Button shape="circle" icon={<SnippetsOutlined />} disabled={!action} loading={loadingPaste} onClick={() => paste(selected)} />
-              </Tooltip>
-              <Tooltip title="Delete">
-                <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
-              </Tooltip>
+              <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
+              <Button shape="circle" icon={<CopyOutlined />} disabled={!selected?.length} onClick={() => setAction('copy')} />
+              <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
+              <Button shape="circle" icon={<SnippetsOutlined />} disabled={!action} loading={loadingPaste} onClick={() => paste(selected)} />
+              <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
               <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
           </Typography.Paragraph>
-          <Table loading={!files}
+          <Table loading={!files} showSorterTooltip={false}
             rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
             dataSource={data}
             columns={columns as any} onChange={change}
