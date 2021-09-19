@@ -11,14 +11,14 @@ import {
   FolderOpenOutlined,
   HomeOutlined,
   InboxOutlined,
+  InfoCircleOutlined,
+  LinkOutlined,
   MinusCircleOutlined,
   PlusOutlined,
   ScissorOutlined,
   ShareAltOutlined,
   SnippetsOutlined,
   VideoCameraOutlined,
-  LinkOutlined,
-  InfoCircleOutlined,
   WarningOutlined
 } from '@ant-design/icons'
 import {
@@ -417,7 +417,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   return <>
     <Navbar user={me?.user} />
-    <Layout.Content className="container">
+    <Layout.Content className="container" style={{ paddingTop: 0 }}>
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
@@ -458,9 +458,9 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
               </p>
             </Upload.Dragger>
           </Typography.Paragraph>
-          <Typography.Paragraph>
+          <Typography.Paragraph style={{ float: 'left' }}>
             <Breadcrumb>
-              {breadcrumbs.map(crumb =>
+              {breadcrumbs.slice(0, 1).map(crumb =>
                 <Breadcrumb.Item key={crumb.id}>
                   {crumb.id === parent ? <Button type="text" size="small">{crumb.name}</Button> :
                     <Button type="link" size="small" onClick={() => {
@@ -473,9 +473,35 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                   }
                 </Breadcrumb.Item>
               )}
+              {breadcrumbs.length > 2 ? <Breadcrumb.Item key="ellipsis">
+                <Dropdown placement="bottomCenter" overlay={<Menu>
+                  {breadcrumbs.slice(1, breadcrumbs.length - 1).map(crumb => <Menu.Item key={crumb.id} onClick={() => {
+                    setParent(crumb.id)
+                    const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb.id)
+                    setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
+                  }}>
+                    {crumb.name}
+                  </Menu.Item>)}
+                </Menu>}>
+                  <Button type="text" size="small"><EllipsisOutlined /></Button>
+                </Dropdown>
+              </Breadcrumb.Item> : ''}
+              {breadcrumbs.length > 1 ? breadcrumbs.slice(breadcrumbs.length - 1).map(crumb =>
+                <Breadcrumb.Item key={crumb.id}>
+                  {crumb.id === parent ? <Button type="text" size="small">{crumb.name}</Button> :
+                    <Button type="link" size="small" onClick={() => {
+                      setParent(crumb.id)
+                      const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb.id)
+                      setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
+                    }}>
+                      {crumb.name}
+                    </Button>
+                  }
+                </Breadcrumb.Item>
+              ) : ''}
             </Breadcrumb>
           </Typography.Paragraph>
-          <Typography.Paragraph>
+          <Typography.Paragraph style={{ textAlign: 'right' }}>
             <Space wrap>
               <Tooltip title="Add folder">
                 <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
