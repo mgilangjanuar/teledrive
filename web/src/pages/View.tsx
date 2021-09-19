@@ -46,6 +46,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
   const { data, error } = useSWR(`/files/${match.params.id}`, fetcher)
+  const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
@@ -76,6 +77,17 @@ const View: React.FC<PageProps> = ({ match }) => {
   const copy = (val: string) => {
     clipboardy.write(val)
     return message.info('Copied!')
+  }
+
+  const back = () => {
+    if (errorMe) {
+      return history.push('/')
+    }
+    if (me?.user.id === data?.file.user_id) {
+      return history.push('/dashboard')
+    } else {
+      return history.push('/dashboard/shared')
+    }
   }
 
   const Icon = ({ type }: { type: string }) => {
@@ -153,7 +165,7 @@ const View: React.FC<PageProps> = ({ match }) => {
       </Layout.Sider>
       <div style={{ position: 'absolute', right: 20, top: 30 }}>
         <Space direction="horizontal">
-          <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={() => history.goBack()} />
+          <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
           <Button type="primary" shape="circle" icon={<DownloadOutlined />} onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} />
         </Space>

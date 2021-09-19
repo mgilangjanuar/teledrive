@@ -104,7 +104,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   })
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
     if (files?.files) {
-      console.log('reset data', params?.skip, dataChanges?.pagination?.current)
       if (!params?.skip || !dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
         return setData(files.files.map((file: any) => ({ ...file, key: file.id })))
       }
