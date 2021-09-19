@@ -78,7 +78,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [selectDeleted, setSelectDeleted] = useState<any[]>([])
   const [selectShare, setSelectShare] = useState<any>()
   const [keyword, setKeyword] = useState<string>()
-  const [shared, setShared] = useState<boolean>(match.params.type === 'shared')
+  const [tab, setTab] = useState<string | undefined>(match.params.type)
   const [params, setParams] = useState<any>()
   const [loadingRemove, setLoadingRemove] = useState<boolean>()
   const [loadingPaste, setLoadingPaste] = useState<boolean>()
@@ -94,6 +94,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [formRename] = useForm()
   const [formShare] = useForm()
   const [isPublic, setIsPublic] = useState<boolean>()
+  const [scrollTop, setScrollTop] = useState<number>(0)
   const [sharingOptions, setSharingOptions] = useState<string[]>()
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
 
@@ -113,6 +114,26 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   useEffect(() => {
     fetch({}, {}, { column: { key: 'uploaded_at' }, order: 'descend' })
   }, [])
+
+  useEffect(() => {
+    if (files?.files) {
+      const nextPage = () => {
+        if (document.body.scrollHeight - document.body.clientHeight === document.body.scrollTop) {
+          if (document.body.scrollTop > scrollTop) {
+            setScrollTop(document.body.scrollTop)
+          }
+        }
+      }
+      nextPage()
+      document.body.addEventListener('scroll', nextPage)
+    }
+  }, [files])
+
+  useEffect(() => {
+    if (files?.files.length >= PAGE_SIZE) {
+      change({ ...dataChanges?.pagination, current: (dataChanges?.pagination?.current || 1) + 1 }, dataChanges?.filters, dataChanges?.sorter)
+    }
+  }, [scrollTop])
 
   useEffect(() => {
     if (files?.files) {
@@ -142,15 +163,16 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
   }, [keyword, parent])
 
+
   useEffect(() => {
-    history.replace(`/dashboard${shared ? '/shared' : ''}`)
+    history.replace(`/dashboard${tab === 'shared' ? '/shared' : ''}`)
     setBreadcrumbs(breadcrumbs.slice(0, 1))
     if (parent !== null) {
       setParent(null)
     } else {
       change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
     }
-  }, [shared])
+  }, [tab])
 
   useEffect(() => {
     if (action === 'copy') {
@@ -216,7 +238,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setParams({
       ...parent ? { parent_id: parent } : { 'parent_id.is': 'null' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
-      ...shared ? { shared: 1, 'parent_id.is': undefined } : {},
+      ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       take: PAGE_SIZE,
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
@@ -319,6 +341,10 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
     await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
     setLoadingShare(false)
+  }
+
+  const updateTab = (key: string) => {
+    setTab(key === 'mine' ? undefined : key)
   }
 
   const columns = [
@@ -431,7 +457,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
-            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => setShared(key === 'shared')}>
+            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => updateTab(key)}>
               <Menu.Item key="mine">My Files</Menu.Item>
               <Menu.Item key="shared">Shared</Menu.Item>
             </Menu>
@@ -535,16 +561,8 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
             dataSource={data}
             columns={columns as any} onChange={change}
-            // pagination={{
-            //   current: dataChanges?.pagination?.current,
-            //   pageSize: PAGE_SIZE,
-            //   total: files?.length,
-            // }}
             pagination={false}
             scroll={{ x: 420 }} />
-          <Button onClick={() => {
-            change({ ...dataChanges?.pagination, current: (dataChanges?.pagination?.current || 1) + 1 }, dataChanges?.filters, dataChanges?.sorter)
-          }}>Load more</Button>
         </Col>
       </Row>
 

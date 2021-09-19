@@ -18,7 +18,7 @@ export const fetcher = async (url: string, authorization?: string): Promise<any>
   try {
     return await fetch()
   } catch ({ response }) {
-    if ((response as any)?.status === 401 && localStorage.getItem('refreshToken')) {
+    if ((response as any)?.status === 401) {
       try {
         await req.post('/auth/refreshToken')
         return await fetch()
