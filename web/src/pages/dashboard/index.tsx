@@ -434,7 +434,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       align: 'center',
       render: (value: any, row: any) => row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).format('llll')
     },
-    {
+    ...!tab ? [{
       title: 'Actions',
       dataIndex: 'actions',
       key: 'actions',
@@ -449,7 +449,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       </Menu>}>
         <Button type="link" size="small" icon={<EllipsisOutlined />}/>
       </Dropdown>
-    }
+    }] : []
   ]
 
   return <>
@@ -540,11 +540,13 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           </Typography.Paragraph>
           <Typography.Paragraph style={{ textAlign: 'right' }}>
             <Space wrap>
-              <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
-              <Button shape="circle" icon={<CopyOutlined />} disabled={!selected?.length} onClick={() => setAction('copy')} />
-              <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
-              <Button shape="circle" icon={<SnippetsOutlined />} disabled={!action} loading={loadingPaste} onClick={() => paste(selected)} />
-              <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
+              {!tab ? <>
+                <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
+                <Button shape="circle" icon={<CopyOutlined />} disabled={!selected?.length} onClick={() => setAction('copy')} />
+                <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
+                <Button shape="circle" icon={<SnippetsOutlined />} disabled={!action} loading={loadingPaste} onClick={() => paste(selected)} />
+                <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
+              </> : ''}
               <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
           </Typography.Paragraph>
