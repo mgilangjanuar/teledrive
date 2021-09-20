@@ -128,14 +128,12 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [])
 
   useEffect(() => {
-    if (files?.files) {
-      const nextPage = () => {
-        setScrollTop(document.body.scrollTop)
-      }
-      nextPage()
-      document.body.addEventListener('scroll', nextPage)
+    const nextPage = () => {
+      setScrollTop(document.body.scrollTop)
     }
-  }, [files])
+    nextPage()
+    document.body.addEventListener('scroll', nextPage)
+  }, [])
 
   useEffect(() => {
     if (scrollTop === document.body.scrollHeight - document.body.clientHeight && files?.files.length >= PAGE_SIZE) {

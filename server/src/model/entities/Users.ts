@@ -17,7 +17,7 @@ export class Users extends BaseModelWithID {
   @Column({ default: null })
   tg_id?: number
 
-  @Column({ default: null })
+  @Column({ default: 'free' })
   plan?: 'free' | 'premium' | 'business'
 
   @OneToMany(() => Files, files => files.user)
