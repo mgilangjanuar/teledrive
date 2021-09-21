@@ -1,4 +1,4 @@
-import { Button, Card, Col, Form, Layout, Row, Switch, Typography } from 'antd'
+import { Badge, Button, Card, Col, Form, Layout, Row, Switch, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
@@ -32,9 +32,51 @@ const Pricing: React.FC = () => {
     }
   }
 
+  const Free = () => <Card color="warning" hoverable title="FREE" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select</Button>]} onClick={() => select('free')}>
+    <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
+      <Typography.Text style={{ fontSize: '0.35em' }}>$ </Typography.Text>
+      0
+    </Typography.Title>
+    <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
+      <li><strong>Unlimited</strong> files size</li>
+      <li><strong>Unlimited</strong> total files</li>
+      <li>Up to <strong>30</strong> shared files</li>
+      <li>Up to <strong>10</strong> public files</li>
+      <li>Up to <strong>5</strong> sharing users</li>
+    </ul>
+  </Card>
+
+  const Premium = () => <Card hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select</Button>]} onClick={() => select('premium')}>
+    <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
+      <Typography.Text style={{ fontSize: '0.35em' }}>$ </Typography.Text>
+      {!annually ? '1' : '10'}
+    </Typography.Title>
+    <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
+      <li><strong>Unlimited</strong> files size</li>
+      <li><strong>Unlimited</strong> total files</li>
+      <li>Up to <strong>400</strong> shared files</li>
+      <li>Up to <strong>200</strong> public files</li>
+      <li>Up to <strong>60</strong> sharing users</li>
+    </ul>
+  </Card>
+
+  const Professional = () => <Card hoverable title="Professional" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select</Button>]} onClick={() => select('professional')}>
+    <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
+      <Typography.Text style={{ fontSize: '0.35em' }}>$ </Typography.Text>
+      {!annually ? '10' : '110'}
+    </Typography.Title>
+    <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
+      <li><strong>Unlimited</strong> files size</li>
+      <li><strong>Unlimited</strong> total files</li>
+      <li><strong>Unlimited</strong> shared files</li>
+      <li><strong>Unlimited</strong> public files</li>
+      <li><strong>Unlimited</strong> sharing users</li>
+    </ul>
+  </Card>
+
   return <>
     <Navbar user={me} />
-    <Layout.Content className="container" style={{ marginTop: '50px' }}>
+    <Layout.Content className="container" style={{ marginTop: '25px' }}>
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph style={{ textAlign: 'center' }}>
@@ -44,49 +86,13 @@ const Pricing: React.FC = () => {
           </Typography.Paragraph>
           <Row gutter={48}>
             <Col lg={8} span={24} style={{ marginBottom: '24px' }}>
-              <Card color="warning" hoverable title="FREE" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select</Button>]} onClick={() => select('free')}>
-                <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
-                  <Typography.Text style={{ fontSize: '0.35em' }}>$ </Typography.Text>
-                  0
-                </Typography.Title>
-                <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
-                  <li><strong>Unlimited</strong> files size</li>
-                  <li><strong>Unlimited</strong> total files</li>
-                  <li>Up to <strong>30</strong> shared files</li>
-                  <li>Up to <strong>10</strong> public files</li>
-                  <li>Up to <strong>5</strong> sharing users</li>
-                </ul>
-              </Card>
+              {me?.user.plan === 'free' ? <Badge.Ribbon text="Current" children={<Free />} /> : <Free />}
             </Col>
             <Col lg={8} span={24} style={{ marginBottom: '24px' }}>
-              <Card hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select</Button>]} onClick={() => select('premium')}>
-                <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
-                  <Typography.Text style={{ fontSize: '0.35em' }}>$ </Typography.Text>
-                  {!annually ? '1' : '10'}
-                </Typography.Title>
-                <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
-                  <li><strong>Unlimited</strong> files size</li>
-                  <li><strong>Unlimited</strong> total files</li>
-                  <li>Up to <strong>400</strong> shared files</li>
-                  <li>Up to <strong>200</strong> public files</li>
-                  <li>Up to <strong>60</strong> sharing users</li>
-                </ul>
-              </Card>
+              {me?.user.plan === 'premium' ? <Badge.Ribbon text="Current" children={<Premium />} /> : <Badge.Ribbon color="red" text="Popular" children={<Premium />} />}
             </Col>
             <Col lg={8} span={24} style={{ marginBottom: '24px' }}>
-              <Card hoverable title="Professional" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select</Button>]} onClick={() => select('professional')}>
-                <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
-                  <Typography.Text style={{ fontSize: '0.35em' }}>$ </Typography.Text>
-                  {!annually ? '10' : '110'}
-                </Typography.Title>
-                <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
-                  <li><strong>Unlimited</strong> files size</li>
-                  <li><strong>Unlimited</strong> total files</li>
-                  <li><strong>Unlimited</strong> shared files</li>
-                  <li><strong>Unlimited</strong> public files</li>
-                  <li><strong>Unlimited</strong> sharing users</li>
-                </ul>
-              </Card>
+              {me?.user.plan === 'professional' ? <Badge.Ribbon text="Current" children={<Professional />} /> : <Professional />}
             </Col>
           </Row>
           <br />

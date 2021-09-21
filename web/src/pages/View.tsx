@@ -122,8 +122,8 @@ const View: React.FC<PageProps> = ({ match }) => {
   }
 
   return <>
-    <Layout style={{ minHeight: '100vh', background: '#000' }}>
-      <Layout.Content className="container">
+    <Layout style={{ minHeight: '100vh', overflow: 'hidden' }}>
+      <Layout.Content>
         <iframe onLoad={(e: any) => {
           try {
             e.target.contentWindow.document.body.style.height = '100%'
@@ -165,9 +165,9 @@ const View: React.FC<PageProps> = ({ match }) => {
       </Layout.Sider>
       <div style={{ position: 'absolute', right: 20, top: 30 }}>
         <Space direction="horizontal">
-          <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />
+          {!showContent && <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />}
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
-          <Button type="primary" shape="circle" icon={<DownloadOutlined />} onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} />
+          {!showContent && <Button type="primary" shape="circle" icon={<DownloadOutlined />} onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} />}
         </Space>
       </div>
     </Layout>

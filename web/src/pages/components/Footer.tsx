@@ -9,11 +9,14 @@ const Footer: React.FC = () => {
     <Typography.Paragraph>
       <Typography.Text>TeleDrive &copy; 2021</Typography.Text>
     </Typography.Paragraph>
-    <Typography.Paragraph style={{ padding: '0 17px' }}>
+    <Typography.Paragraph style={{ padding: '0 20px' }}>
       <Button type="link" size="small"><Link to="/">Home</Link></Button>
+      <Button type="link" size="small"><Link to="/pricing">Pricing</Link></Button>
       <Button type="link" size="small"><Link to="/contact">Contact Us</Link></Button>
-      <Button type="link" size="small"><Link to="/privacy">Privacy</Link></Button>
+      <Button type="link" size="small"><Link to="/privacy">Privacy Policy</Link></Button>
       <Button type="link" size="small"><Link to="/terms">Terms</Link></Button>
+    </Typography.Paragraph>
+    <Typography.Paragraph style={{ padding: '0 20px' }}>
       <Button type="link" size="small" href="https://github.com/mgilangjanuar/teledrive" target="_blank" icon={<GithubOutlined />}>GitHub</Button>
       <Button type="link" size="small" href="https://twitter.com/teledriveapp" target="_blank" icon={<TwitterOutlined />}>Twitter</Button>
     </Typography.Paragraph>

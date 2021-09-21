@@ -2,7 +2,7 @@ import { SendOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useState } from 'react'
-import useSWRImmutable from 'swr/immutable'
+import useSWR from 'swr'
 import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
@@ -10,7 +10,7 @@ import Navbar from './components/Navbar'
 const Contact: React.FC = () => {
   const [form] = useForm()
   const [loading, setLoading] = useState<boolean>()
-  const { data: me } = useSWRImmutable('/users/me', fetcher, {
+  const { data: me } = useSWR('/users/me', fetcher, {
     onSuccess: ({ user }) => form.setFieldsValue({ from: user.username })
   })
 
