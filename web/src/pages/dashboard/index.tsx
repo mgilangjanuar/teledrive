@@ -396,7 +396,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         }
 
         return (
-          <Button type="link" size="small" onClick={() => {
+          <Button type="link" onClick={() => {
             if (row.type === 'folder') {
               setParent(row.id)
               setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
@@ -438,13 +438,13 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       width: 90,
       align: 'center',
       render: (_: any, row: any) => row.upload_progress !== null ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
-        <Button size="small" type="link">Cancel</Button>
+        <Button type="link">Cancel</Button>
       </Popconfirm> : <Dropdown placement="bottomRight" overlay={<Menu>
         <Menu.Item icon={<EditOutlined />} key="rename" onClick={() => setFileRename(row)}>Rename</Menu.Item>
         {row.type !== 'folder' ? <Menu.Item icon={<ShareAltOutlined />} key="share" onClick={() => setSelectShare(row)}>Share</Menu.Item> : ''}
         <Menu.Item icon={<DeleteOutlined />} key="delete" danger onClick={() => setSelectDeleted([row])}>Delete</Menu.Item>
       </Menu>}>
-        <Button type="link" size="small" icon={<EllipsisOutlined />}/>
+        <Button type="link" icon={<EllipsisOutlined />}/>
       </Dropdown>
     }] : []
   ]

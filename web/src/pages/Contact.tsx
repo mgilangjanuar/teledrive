@@ -30,7 +30,7 @@ const Contact: React.FC = () => {
             Contact Us
           </Typography.Title>
           <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
-            Fill in your Telegram username and we'll get back to you via Telegram.
+            Please fill in your Telegram username and we'll get back to you via Telegram.
           </Typography.Paragraph>
           <Card>
             <Form form={form} layout="horizontal" onFinish={send} wrapperCol={{ span: 18 }} labelCol={{ span: 6 }}>
