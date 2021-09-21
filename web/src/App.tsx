@@ -3,6 +3,7 @@ import React from 'react'
 import { Route, Switch } from 'react-router-dom'
 import NotFound from './pages/errors/NotFound'
 import Dashboard from './pages/dashboard'
+import Contact from './pages/Contact'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Pricing from './pages/Pricing'
@@ -23,6 +24,7 @@ function App(): React.ReactElement {
         <Route path="/terms" exact component={Terms} />
         <Route path="/privacy" exact component={Privacy} />
         <Route path="/pricing" exact component={Pricing} />
+        <Route path="/contact" exact component={Contact} />
         <Route path="/" exact component={Home} />
         <Route component={NotFound} />
       </Switch>

@@ -1,4 +1,4 @@
-import { CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
+import { CloudOutlined, DollarCircleOutlined, RightCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
@@ -12,6 +12,7 @@ import Navbar from './components/Navbar'
 const Home: React.FC = () => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
   const [form] = useForm()
+  const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   const submit = async () => {
     const { email } = form.getFieldsValue()
@@ -25,7 +26,7 @@ const Home: React.FC = () => {
   }
 
   return <div id="top">
-    <Navbar />
+    <Navbar user={me} />
     <Layout.Content style={{ fontSize: '1.125rem' }}>
       <Row align="middle" style={{ marginTop: '50px' }}>
         <Col lg={{ span: 10, offset: 2 }} md={{ span: 20, offset: 2 }} span={22} offset={1}>
@@ -47,11 +48,11 @@ const Home: React.FC = () => {
             <Typography.Paragraph>
               <Space>
                 <Follow username="teledriveapp" options={{ dnt: true }} />
-                <GitHubButton data-size="large" href="https://github.com/mgilangjanuar/teledrive" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
+                <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
               </Space>
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
-              <Form form={form} layout="inline" onFinish={submit}>
+              {me ? <Button size="large" type="primary" href="/dashboard">Go to Dashboard <RightCircleOutlined /></Button> : <Form form={form} layout="inline" onFinish={submit}>
                 <Form.Item name="email" rules={[{ required: true, message: 'Email is required' }]}>
                   <Input size="large" style={{ width: '143px' }} type="email" placeholder="Email" />
                 </Form.Item>
@@ -60,7 +61,7 @@ const Home: React.FC = () => {
                     Get Early Access
                   </Button>
                 </Form.Item>
-              </Form>
+              </Form>}
             </Layout.Content>
           </Layout.Content>
         </Col>

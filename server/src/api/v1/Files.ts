@@ -4,7 +4,7 @@ import multer from 'multer'
 import { Api, TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
 import { Files as Model } from '../../model/entities/Files'
-import { TG_CREDS } from '../../utils/Constant'
+import { PLANS, TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -98,6 +98,29 @@ export class Files {
     const currentFile = await Model.findOne(id)
     if (!currentFile) {
       throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    // checking plans
+    if (file.sharing_options?.length) {
+      const sharingUsers = file.sharing_options.filter((user: string) => user !== '*').length
+      if (sharingUsers > PLANS[req.user.plan].sharingUsers) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
+      const publicFiles = await Model.createQueryBuilder('files')
+        .where('\'*\' = any(sharing_options) and user_id = :user_id', {
+          user_id: req.user?.id })
+        .getCount()
+      if (publicFiles > PLANS[req.user.plan].publicFiles) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
+
+      const sharedFiles = await Model.createQueryBuilder('files')
+        .where('sharing_options is not null and sharing_options::text != \'{}\' and user_id = :user_id', {
+          user_id: req.user?.id })
+        .getCount()
+      if (sharedFiles > PLANS[req.user.plan].sharedFiles) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
     }
 
     let key: string = currentFile.signed_key
