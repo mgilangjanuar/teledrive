@@ -15,6 +15,9 @@ import 'antd/dist/antd.min.css'
 import './App.css'
 
 function App(): React.ReactElement {
+  if (location.host !== 'teledriveapp.com' && localStorage.getItem('environment') !== 'staging') {
+    location.replace(location.href.replace(location.host, 'teledriveapp.com'))
+  }
   return (
     <Layout className="App">
       <Switch>

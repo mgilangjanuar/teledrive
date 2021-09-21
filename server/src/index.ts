@@ -3,6 +3,7 @@ require('dotenv').config({ path: '.env' })
 
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import compression from 'compression'
 import express, {
   json,
   NextFunction,
@@ -29,6 +30,7 @@ app.use(cors({
     'teledriveapp.com'
   ]
 }))
+app.use(compression())
 app.use(json())
 app.use(urlencoded({ extended: true }))
 app.use(raw())

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express'
+import { readFileSync } from 'fs'
 import { sign, verify } from 'jsonwebtoken'
 import multer from 'multer'
+import os from 'os'
 import { Api, TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
 import { Files as Model } from '../../model/entities/Files'
@@ -146,9 +148,11 @@ export class Files {
     return res.send({ file: { id } })
   }
 
-  @Endpoint.POST({ middlewares: [Auth, multer().single('upload')] })
+  @Endpoint.POST({ middlewares: [Auth, multer({
+    storage: multer.diskStorage({ destination: (_, __, cb) => cb(null, os.tmpdir()) })
+  }).single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
-    const file = req.file
+    const file = { ...req.file, buffer: readFileSync(req.file.path) }
     if (!file) {
       throw { status: 400, body: { error: 'File upload is required' } }
     }

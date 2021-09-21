@@ -11,6 +11,7 @@
   "dependencies": {
     "axios": "^0.21.4",
     "big-integer": "^1.6.48",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -35,6 +36,7 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/big-integer": "^0.0.31",
+    "@types/compression": "^1.7.2",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.12",
     "@types/dotenv": "^8.2.0",
