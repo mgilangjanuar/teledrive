@@ -122,24 +122,40 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '100px', padding: '100px 0', background: '#f0f2f5', textAlign: 'center' }}>
+      <Row style={{ marginTop: '100px', padding: '100px 0', background: '#f0f2f5' }}>
         <Col span={20} offset={2}>
-          <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Contributors</Typography.Title>
-          <Typography.Paragraph style={{ marginBottom: '20px' }}>
-            <Space wrap>
-              {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>
-                <a href={contributor.html_url} target="_blank">
-                  <Avatar size="large" src={contributor.avatar_url} />
-                </a>
-              </Tooltip>)}
-            </Space>
-          </Typography.Paragraph>
-          <Typography.Paragraph>
-            <Space>
-              <GitHubButton href="https://github.com/mgilangjanuar/teledrive/fork" data-size="large" data-show-count="true" aria-label="Fork mgilangjanuar/teledrive on GitHub">Fork</GitHubButton>
-              <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-size="large" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
-            </Space>
-          </Typography.Paragraph>
+          <Row gutter={72}>
+            <Col lg={12} span={24} style={{ textAlign: 'right', marginBottom: '30px' }}>
+              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Contributors</Typography.Title>
+              <Typography.Paragraph style={{ marginBottom: '20px' }}>
+                <Space wrap>
+                  {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>
+                    <a href={contributor.html_url} target="_blank">
+                      <Avatar size="large" src={contributor.avatar_url} />
+                    </a>
+                  </Tooltip>)}
+                </Space>
+              </Typography.Paragraph>
+              <Typography.Paragraph>
+                <Space>
+                  <GitHubButton href="https://github.com/mgilangjanuar/teledrive/fork" data-size="large" data-show-count="true" aria-label="Fork mgilangjanuar/teledrive on GitHub">Fork</GitHubButton>
+                  <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-size="large" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
+                </Space>
+              </Typography.Paragraph>
+            </Col>
+            <Col lg={12} span={24} style={{ textAlign: 'left', marginBottom: '30px' }}>
+              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Beloved Sponsor</Typography.Title>
+              <Typography.Paragraph style={{ marginBottom: '20px' }}>
+                <Space wrap>
+                  <Tooltip placement="bottom" title="Bahasa.ai - Chatbot Which Serves Customers Fully" key="bahasa-ai">
+                    <a href="https://bahasa.ai" target="_blank">
+                      <img style={{ width: '100%', maxWidth: '212px' }} src="https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png" />
+                    </a>
+                  </Tooltip>
+                </Space>
+              </Typography.Paragraph>
+            </Col>
+          </Row>
         </Col>
       </Row>
 
