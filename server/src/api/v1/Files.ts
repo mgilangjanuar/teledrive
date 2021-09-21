@@ -152,7 +152,8 @@ export class Files {
     storage: multer.diskStorage({ destination: (_, __, cb) => cb(null, os.tmpdir()) })
   }).single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
-    const file = { ...req.file, buffer: readFileSync(req.file.path) }
+    // console.log('OUAHNKAS', req.files.upload)
+    const file = req.file
     if (!file) {
       throw { status: 400, body: { error: 'File upload is required' } }
     }
@@ -186,7 +187,7 @@ export class Files {
     let data: any
     try {
       data = await req.tg.sendFile('me', {
-        file: file.buffer,
+        file: readFileSync(file.path),
         fileSize: file.size,
         attributes: [
           new Api.DocumentAttributeFilename({ fileName: file.originalname })
