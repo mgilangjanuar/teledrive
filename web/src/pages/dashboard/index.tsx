@@ -453,7 +453,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     <Navbar user={me?.user} />
     <Layout.Content className="container" style={{ paddingTop: 0 }} onScroll={({ target }: any) => console.log(target.scrollHeight, target.scrollTop, target.clientHeight)}>
       <Row>
-        <Col md={{ span: 20, offset: 2 }} span={24}>
+        <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
             <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => setTab(key === 'mine' ? undefined : key)}>
               <Menu.Item key="mine">My Files</Menu.Item>

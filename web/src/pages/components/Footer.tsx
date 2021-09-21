@@ -9,8 +9,9 @@ const Footer: React.FC = () => {
     <Typography.Paragraph>
       <Typography.Text>TeleDrive &copy; 2021</Typography.Text>
     </Typography.Paragraph>
-    <Typography.Paragraph style={{ padding: '0 40px' }}>
+    <Typography.Paragraph style={{ padding: '0 17px' }}>
       <Button type="link" size="small"><Link to="/">Home</Link></Button>
+      <Button type="link" size="small"><Link to="/contact">Contact Us</Link></Button>
       <Button type="link" size="small"><Link to="/privacy">Privacy</Link></Button>
       <Button type="link" size="small"><Link to="/terms">Terms</Link></Button>
       <Button type="link" size="small" href="https://github.com/mgilangjanuar/teledrive" target="_blank" icon={<GithubOutlined />}>GitHub</Button>

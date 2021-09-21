@@ -9,7 +9,7 @@
     "build": "rimraf dist && eslint --fix -c .eslintrc.js --ext .ts . && tsc"
   },
   "dependencies": {
-    "axios": "^0.21.3",
+    "axios": "^0.21.4",
     "big-integer": "^1.6.48",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",

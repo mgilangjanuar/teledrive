@@ -20,8 +20,8 @@ export const PLANS = {
     sharingUsers: 60
   },
   business: {
-    sharedFiles: 2000,
-    publicFiles: 1500,
-    sharingUsers: 1000
+    sharedFiles: Infinity,
+    publicFiles: Infinity,
+    sharingUsers: Infinity
   }
 }
