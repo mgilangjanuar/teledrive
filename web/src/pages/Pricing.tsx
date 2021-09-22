@@ -16,6 +16,10 @@ const Pricing: React.FC = () => {
     if (plan === 'free' || me?.user.plan === plan) {
       return history.push('/dashboard')
     }
+
+    return history.push('/dashboard')
+
+    // TODO
     if (plan === 'premium') {
       if (annually) {
         return location.replace('https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-4BD33083VE669652KMFECHVA')

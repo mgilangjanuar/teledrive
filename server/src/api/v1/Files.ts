@@ -159,15 +159,17 @@ export class Files {
   @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer({
     storage: multer.diskStorage({
       destination: (_, __, cb) => cb(null, os.tmpdir()),
-      filename: (_, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, file.fieldname + '-' + uniqueSuffix)
-      }
+      // filename: (_, file, cb) => {
+      //   const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      //   cb(null, file.fieldname + '-' + uniqueSuffix)
+      // }
     })
   }).single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
-    const { parent_id: parentId, last } = req.query
-    const { originalname, size, mimetype } = req.body
+    const { name, size, mime_type: mimetype, parent_id: parentId, last } = req.query as Record<string, string>
+    if (!name || !size || !mimetype) {
+      throw { status: 400, body: { error: 'Name, size, and mimetype are required' } }
+    }
     const file = req.file
     if (!file) {
       throw { status: 400, body: { error: 'File upload is required' } }
@@ -182,24 +184,30 @@ export class Files {
       if (!model) {
         throw { status: 404, body: { error: 'File not found' } }
       }
+
+      // const base = createWriteStream(model.path, { flags: 'a' })
+      // base.write(readFileSync(file.path))
+      // base.end()
+      appendFileSync(model.path, readFileSync(file.path))
+      unlinkSync(file.path)
     } else {
       let type = null
       if (mimetype.match(/^image/gi)) {
         type = 'image'
-      } else if (mimetype.match(/^video/gi) || originalname.match(/\.mp4$/gi) || originalname.match(/\.mkv$/gi) || originalname.match(/\.mov$/gi)) {
+      } else if (mimetype.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
         type = 'video'
-      } else if (mimetype.match(/pdf$/gi) || originalname.match(/\.doc$/gi) || originalname.match(/\.docx$/gi) || originalname.match(/\.xls$/gi) || originalname.match(/\.xlsx$/gi)) {
+      } else if (mimetype.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
         type = 'document'
-      } else if (mimetype.match(/audio$/gi) || originalname.match(/\.mp3$/gi) || originalname.match(/\.ogg$/gi)) {
+      } else if (mimetype.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
         type = 'audio'
       } else {
         type = 'unknown'
       }
 
       model = new Model()
-      model.name = originalname,
+      model.name = name,
       model.mime_type = mimetype
-      model.size = size
+      model.size = Number(size)
       model.user_id = req.user.id
       model.type = type
       model.parent_id = parentId as string || null
@@ -211,11 +219,7 @@ export class Files {
     // response early accepted
     res.status(202).send({ accepted: true, file: { id: model.id } })
 
-    // append the chunk
-    if (Number(last) !== 1) {
-      appendFileSync(model.path, readFileSync(file.path))
-      return unlinkSync(file.path)
-    }
+    if (Number(last) !== 1) return
 
     // begin to uploading to telegram
     let isUpdateProgress = true
@@ -248,16 +252,24 @@ export class Files {
         workers: 1
       })
 
-      unlinkSync(model.path)
+      try {
+        // unlinkSync(model.path)
+      } catch (error) {
+        // ignore
+      }
       await Model.update(model.id, {
         message_id: data.id,
         uploaded_at: data.date ? new Date(data.date * 1000) : null,
         upload_progress: null,
-        path: null
+        // path: null
       })
     } catch (error) {
       console.error(error)
-      unlinkSync(model.path)
+      try {
+        unlinkSync(model.path)
+      } catch (error) {
+        // ignore
+      }
       await Model.delete(model.id)
     }
   }
@@ -287,7 +299,7 @@ export class Files {
     while (!cancel && data === null || data.length && idx * chunk < file.size) {
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
         start: idx++ * chunk,
-        end: file.size < idx * chunk - 1 ? file.size : idx * chunk - 1,
+        end: Math.min(file.size, idx * chunk - 1),
         workers: 1,   // using 1 for stable
         progressCallback: (() => {
           const updateProgess: any = (progress: number) => {

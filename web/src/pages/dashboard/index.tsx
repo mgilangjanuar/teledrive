@@ -50,9 +50,10 @@ import { useForm } from 'antd/lib/form/Form'
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
 import * as clipboardy from 'clipboardy'
 import moment from 'moment'
+import mime from 'mime-types'
 import prettyBytes from 'pretty-bytes'
 import qs from 'qs'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { RouteComponentProps, useHistory } from 'react-router'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
@@ -376,11 +377,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setLoadingShare(false)
   }
 
-  const upload = useCallback(async ({ onSuccess, onError, onProgress, file }: any) => {
+  const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
     notification.info({
       key: `upload-${file.uid}`,
-      message: 'Please wait',
-      description: 'Don\'t close your browser...',
+      message: 'Preparing to upload',
+      description: 'Please don\'t close your browser...',
       duration: null
     })
     const chunkSize = 5 * 1024 * 1024
@@ -394,19 +395,24 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           cancelUploading.current = null
           break
         }
+        const blobPart = file.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
         const data = new FormData()
-        data.append('upload', file.slice(i * chunkSize, Math.min(file.size, i * chunkSize + chunkSize)))
-        data.append('originalname', file.name)
-        data.append('size', file.size)
-        data.append('mimetype', file.mimetype)
+        data.append('upload', blobPart)
         const { data: response } = await req.post(`/files/upload${firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
-          ...i === parts - 1 ? { params: { last: 1 } } : {},
-          onUploadProgress: () => onProgress({ percent: 0 }, file)
+          params: {
+            ...i === parts - 1 ? { last: 1 } : {},
+            ...parent ? { parent_id: parent } : {},
+            name: file.name,
+            size: file.size,
+            mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream'
+          },
+          // onUploadProgress: () => onProgress({ percent: 0 }, file)
         })
 
         if (!firstResponse) {
           firstResponse = response
         }
+        onProgress({ percent: (i + 1) / parts * 100 }, file)
       }
       notification.close(`upload-${file.uid}`)
       return onSuccess(firstResponse, file)
@@ -414,7 +420,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       console.error(error)
       return onError(error.response?.data || error.response || { error: error.message }, file)
     }
-  }, [fileList])
+  }
 
   const columns = [
     {
@@ -506,7 +512,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       title: 'Actions',
       dataIndex: 'actions',
       key: 'actions',
-      width: 90,
+      width: 95,
       align: 'center',
       render: (_: any, row: any) => row.upload_progress !== null ? <Popconfirm placement="topRight" onConfirm={() => remove([row.id])} title={`Are you sure to cancel ${row.name}?`}>
         <Button type="link">Cancel</Button>
@@ -559,7 +565,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 setFileList(fileList)
                 if (file.status === 'done') {
                   notification.info({
-                    message: 'Upload',
+                    message: 'On it!',
                     description: `Uploading ${file.name} to Telegram...`
                   })
                 }
