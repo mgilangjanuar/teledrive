@@ -51,12 +51,12 @@ import * as clipboardy from 'clipboardy'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import qs from 'qs'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { RouteComponentProps, useHistory } from 'react-router'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { useDebounce } from 'use-debounce'
-import { apiUrl, fetcher, req } from '../../utils/Fetcher'
+import { fetcher, req } from '../../utils/Fetcher'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
@@ -96,6 +96,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [scrollTop, setScrollTop] = useState<number>(0)
   const [sharingOptions, setSharingOptions] = useState<string[]>()
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
+  const cancelUploading = useRef<string | null>(null)
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
@@ -258,7 +259,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     } catch (error) {
       // ignore
     }
-    setData(data.filter(datum => !ids.includes(datum.id)))
+    const newData = data.filter(datum => !ids.includes(datum.id))
+    setData(newData)
+    if (!newData?.length) {
+      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+    }
     setSelected([])
     setSelectDeleted([])
     setLoadingRemove(false)
@@ -344,6 +349,41 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
     setLoadingShare(false)
   }
+
+  const upload = useCallback(async ({ onSuccess, onError, onProgress, file }: any) => {
+    message.info('Please wait, don\'t close your browser...')
+    const chunkSize = 50 * 1024 * 1024
+    const parts = Math.ceil(file.size / chunkSize)
+    let firstResponse: any
+
+    try {
+      for (let i = 0; i < parts; i++) {
+        if (firstResponse?.file && cancelUploading.current && file.uid === cancelUploading.current) {
+          await req.delete(`/files/${firstResponse?.file.id}`)
+          cancelUploading.current = null
+          break
+        }
+        console.log(fileList)
+        const data = new FormData()
+        data.append('upload', file.slice(i * chunkSize, Math.min(file.size, i * chunkSize + chunkSize)))
+        data.append('originalname', file.name)
+        data.append('size', file.size)
+        data.append('mimetype', file.mimetype)
+        const { data: response } = await req.post(`/files/upload${firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
+          ...i === parts - 1 ? { params: { last: 1 } } : {},
+          onUploadProgress: () => onProgress({ percent: 0 }, file)
+        })
+
+        if (!firstResponse) {
+          firstResponse = response
+        }
+      }
+      return onSuccess(firstResponse, file)
+    } catch (error: any) {
+      console.error(error)
+      return onError(error.response?.data || error.response || { error: error.message }, file)
+    }
+  }, [fileList])
 
   const columns = [
     {
@@ -462,6 +502,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           </Typography.Paragraph>
           <Typography.Paragraph>
             <Upload.Dragger name="upload"
+              customRequest={upload}
               beforeUpload={file => {
                 if (file.size / 1_000_000_000 > 2) {
                   message.error('Maximum file size is 2 GB')
@@ -469,12 +510,15 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 }
                 return true
               }}
-              action={`${apiUrl}/files/upload${parent ? `?parent_id=${parent}` : ''}`}
-              withCredentials
               fileList={fileList}
               onRemove={file => {
-                if (!file.response?.file) return true
-                setSelectDeleted([file.response?.file])
+                if (!file.response?.file) {
+                  cancelUploading.current = file.uid
+                  return true
+                }
+                if (file.response?.file) {
+                  setSelectDeleted([file.response?.file])
+                }
                 return false
               }}
               onChange={async ({ file, fileList }) => {

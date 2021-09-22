@@ -52,4 +52,7 @@ export class Files extends BaseModelWithID {
 
   @Column({ default: null, select: false })
   signed_key?: string
+
+  @Column({ default: null, select: false })
+  path?: string
 }

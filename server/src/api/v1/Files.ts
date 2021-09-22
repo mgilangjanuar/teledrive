@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { readFileSync } from 'fs'
+import { appendFileSync, readFileSync, unlinkSync } from 'fs'
 import { sign, verify } from 'jsonwebtoken'
 import multer from 'multer'
 import os from 'os'
@@ -148,49 +148,78 @@ export class Files {
     return res.send({ file: { id } })
   }
 
-  @Endpoint.POST({ middlewares: [Auth, multer({
-    storage: multer.diskStorage({ destination: (_, __, cb) => cb(null, os.tmpdir()) })
+  @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer({
+    storage: multer.diskStorage({
+      destination: (_, __, cb) => cb(null, os.tmpdir()),
+      filename: (_, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, file.fieldname + '-' + uniqueSuffix)
+      }
+    })
   }).single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
-    // console.log('OUAHNKAS', req.files.upload)
+    const { parent_id: parentId, last } = req.query
+    const { originalname, size, mimetype } = req.body
     const file = req.file
     if (!file) {
       throw { status: 400, body: { error: 'File upload is required' } }
     }
 
-    let type = null
-    if (file.mimetype.match(/^image/gi)) {
-      type = 'image'
-    } else if (file.mimetype.match(/^video/gi) || file.originalname.match(/\.mp4$/gi) || file.originalname.match(/\.mkv$/gi) || file.originalname.match(/\.mov$/gi)) {
-      type = 'video'
-    } else if (file.mimetype.match(/pdf$/gi) || file.originalname.match(/\.doc$/gi) || file.originalname.match(/\.docx$/gi) || file.originalname.match(/\.xls$/gi) || file.originalname.match(/\.xlsx$/gi)) {
-      type = 'document'
-    } else if (file.mimetype.match(/audio$/gi) || file.originalname.match(/\.mp3$/gi) || file.originalname.match(/\.ogg$/gi)) {
-      type = 'audio'
+    let model: Model
+    if (req.params?.id) {
+      model = await Model.createQueryBuilder('files')
+        .where('id = :id', { id: req.params.id })
+        .addSelect('files.path')
+        .getOne()
+      if (!model) {
+        throw { status: 404, body: { error: 'File not found' } }
+      }
     } else {
-      type = 'unknown'
+      let type = null
+      if (mimetype.match(/^image/gi)) {
+        type = 'image'
+      } else if (mimetype.match(/^video/gi) || originalname.match(/\.mp4$/gi) || originalname.match(/\.mkv$/gi) || originalname.match(/\.mov$/gi)) {
+        type = 'video'
+      } else if (mimetype.match(/pdf$/gi) || originalname.match(/\.doc$/gi) || originalname.match(/\.docx$/gi) || originalname.match(/\.xls$/gi) || originalname.match(/\.xlsx$/gi)) {
+        type = 'document'
+      } else if (mimetype.match(/audio$/gi) || originalname.match(/\.mp3$/gi) || originalname.match(/\.ogg$/gi)) {
+        type = 'audio'
+      } else {
+        type = 'unknown'
+      }
+
+      model = new Model()
+      model.name = originalname,
+      model.mime_type = mimetype
+      model.size = size
+      model.user_id = req.user.id
+      model.type = type
+      model.parent_id = parentId as string || null
+      model.path = file.path
+      model.upload_progress = 0
+      await model.save()
     }
 
-    const model = new Model()
-    model.name = file.originalname,
-    model.mime_type = file.mimetype
-    model.size = file.size
-    model.user_id = req.user.id
-    model.type = type
-    model.parent_id = req.query?.parent_id as string || null
-    await model.save()
+    // response early accepted
     res.status(202).send({ accepted: true, file: { id: model.id } })
 
+    // append the chunk
+    if (Number(last) !== 1) {
+      appendFileSync(model.path, readFileSync(file.path))
+      return unlinkSync(file.path)
+    }
+
+    // begin to uploading to telegram
     let isUpdateProgress = true
     let cancel = false
 
     let data: any
     try {
       data = await req.tg.sendFile('me', {
-        file: readFileSync(file.path),
-        fileSize: file.size,
+        file: readFileSync(model.path),
+        fileSize: model.size,
         attributes: [
-          new Api.DocumentAttributeFilename({ fileName: file.originalname })
+          new Api.DocumentAttributeFilename({ fileName: model.name })
         ],
         progressCallback: (() => {
           const updateProgess: any = async (progress: number) => {
@@ -211,9 +240,16 @@ export class Files {
         workers: 1
       })
 
-      await Model.update(model.id, { message_id: data.id, uploaded_at: data.date ? new Date(data.date * 1000) : null, upload_progress: null })
+      unlinkSync(model.path)
+      await Model.update(model.id, {
+        message_id: data.id,
+        uploaded_at: data.date ? new Date(data.date * 1000) : null,
+        upload_progress: null,
+        path: null
+      })
     } catch (error) {
       console.error(error)
+      unlinkSync(model.path)
       await Model.delete(model.id)
     }
   }
@@ -279,5 +315,11 @@ export class Files {
       throw { status: 401, body: { error: 'Invalid key' } }
     }
     return file
+  }
+
+  @Endpoint.POST({ middlewares: [Auth] })
+  public async test(req: Request, res: Response): Promise<any> {
+    console.log((req as any).filePart)
+    return res.send('ok')
   }
 }
