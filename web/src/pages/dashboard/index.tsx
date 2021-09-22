@@ -352,7 +352,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   const upload = useCallback(async ({ onSuccess, onError, onProgress, file }: any) => {
     message.info('Please wait, don\'t close your browser...')
-    const chunkSize = 50 * 1024 * 1024
+    const chunkSize = 5 * 1024 * 1024
     const parts = Math.ceil(file.size / chunkSize)
     let firstResponse: any
 
