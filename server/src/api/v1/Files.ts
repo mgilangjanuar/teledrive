@@ -77,13 +77,21 @@ export class Files {
   @Endpoint.DELETE('/:id', { middlewares: [Auth] })
   public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const { affected } = await Model.createQueryBuilder('files')
+    const { affected, raw } = await Model.createQueryBuilder('files')
       .delete()
       .where({ id, user_id: req.user.id })
       .returning('*')
       .execute()
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    if (raw[0].path) {
+      try {
+        unlinkSync(raw[0].path)
+      } catch (error) {
+        // ignore
+      }
     }
 
     return res.send({ file: { id } })

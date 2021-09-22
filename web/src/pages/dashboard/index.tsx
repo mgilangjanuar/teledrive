@@ -35,6 +35,7 @@ import {
   Menu,
   message,
   Modal,
+  notification,
   Popconfirm,
   Row,
   Space,
@@ -171,9 +172,15 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   useEffect(() => {
     if (action === 'copy') {
-      message.info(`${selected?.length} ${selected?.length > 1 ? 'files are' : 'file is'} ready to copy`)
+      notification.info({
+        message: 'Ready to copy',
+        description: 'Please select a folder to copy these files.'
+      })
     } else if (action === 'cut') {
-      message.info(`${selected?.length} ${selected?.length > 1 ? 'files are' : 'file is'} ready to move`)
+      notification.info({
+        message: 'Ready to move',
+        description: 'Please select a folder to move these files to.'
+      })
     }
   }, [action])
 
@@ -262,7 +269,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     const newData = data.filter(datum => !ids.includes(datum.id))
     setData(newData)
     if (!newData?.length) {
-      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      if ((dataChanges?.pagination?.current || 0) > 1) {
+        change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      } else {
+        refetch()
+      }
     }
     setSelected([])
     setSelectDeleted([])
@@ -276,15 +287,21 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       const { data: result } = await req.post('/files/addFolder', {
         file: { name, parent_id: parent }
       })
-      message.success(`Folder ${result.file.name} created successfully!`)
+      notification.success({
+        message: 'Success',
+        description: `Folder ${result.file.name} created successfully!`
+      })
       formAddFolder.resetFields()
       setData([{ ...result.file, key: result.file.id }, ...data])
       setAddFolder(false)
       setLoadingAddFolder(false)
     } catch (error) {
-      console.log(error)
+      console.error(error)
       setLoadingAddFolder(false)
-      return message.error('Failed to create new folder')
+      return notification.error({
+        message: 'Error',
+        description: 'Failed to create new folder. Please try again!'
+      })
     }
   }
 
@@ -295,14 +312,20 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       const { data: result } = await req.patch(`/files/${fileRename?.id}`, {
         file: { name }
       })
-      message.success(`${name} renamed successfully!`)
+      notification.success({
+        message: 'Success',
+        description: `${name} renamed successfully!`
+      })
       setData(data.map((datum: any) => datum.id === result.file.id ? { ...datum, name } : datum))
       setFileRename(undefined)
       setLoadingRename(false)
       formRename.resetFields()
     } catch (error) {
       setLoadingRename(false)
-      return message.error('Failed to rename a file')
+      return notification.error({
+        message: 'Error',
+        description: 'Failed to rename a file. Please try again!'
+      })
     }
   }
 
@@ -328,7 +351,10 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setSelected([])
     setSelectDeleted([])
     setLoadingPaste(false)
-    message.success('Files are moved successfully!')
+    notification.success({
+      message: 'Success',
+      description: 'Files are moved successfully!'
+    })
   }
 
   const copy = (val: string) => {
@@ -351,7 +377,12 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }
 
   const upload = useCallback(async ({ onSuccess, onError, onProgress, file }: any) => {
-    message.info('Please wait, don\'t close your browser...')
+    notification.info({
+      key: `upload-${file.uid}`,
+      message: 'Please wait',
+      description: 'Don\'t close your browser...',
+      duration: null
+    })
     const chunkSize = 5 * 1024 * 1024
     const parts = Math.ceil(file.size / chunkSize)
     let firstResponse: any
@@ -363,7 +394,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           cancelUploading.current = null
           break
         }
-        console.log(fileList)
         const data = new FormData()
         data.append('upload', file.slice(i * chunkSize, Math.min(file.size, i * chunkSize + chunkSize)))
         data.append('originalname', file.name)
@@ -378,6 +408,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           firstResponse = response
         }
       }
+      notification.close(`upload-${file.uid}`)
       return onSuccess(firstResponse, file)
     } catch (error: any) {
       console.error(error)
@@ -491,7 +522,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   return <>
     <Navbar user={me?.user} />
-    <Layout.Content className="container" style={{ paddingTop: 0 }} onScroll={({ target }: any) => console.log(target.scrollHeight, target.scrollTop, target.clientHeight)}>
+    <Layout.Content className="container" style={{ paddingTop: 0 }}>
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
@@ -505,7 +536,10 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
               customRequest={upload}
               beforeUpload={file => {
                 if (file.size / 1_000_000_000 > 2) {
-                  message.error('Maximum file size is 2 GB')
+                  notification.error({
+                    message: 'Error',
+                    description: 'Maximum file size is 2 GB'
+                  })
                   return false
                 }
                 return true
@@ -524,7 +558,10 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
               onChange={async ({ file, fileList }) => {
                 setFileList(fileList)
                 if (file.status === 'done') {
-                  message.info('Uploading to Telegram...')
+                  notification.info({
+                    message: 'Upload',
+                    description: `Uploading ${file.name} to Telegram...`
+                  })
                 }
               }}>
               <p className="ant-upload-drag-icon">
