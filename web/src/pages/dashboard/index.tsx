@@ -380,11 +380,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
     notification.info({
       key: `upload-${file.uid}`,
-      message: 'Preparing to upload',
-      description: 'Please don\'t close your browser...',
+      message: 'On it!',
+      description: <>Uploading {file.name} (0%) to Telegram...</>,
       duration: null
     })
-    const chunkSize = 5 * 1024 * 1024
+    const chunkSize = 512 * 1024
     const parts = Math.ceil(file.size / chunkSize)
     let firstResponse: any
 
@@ -398,26 +398,40 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         const blobPart = file.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
         const data = new FormData()
         data.append('upload', blobPart)
+
         const { data: response } = await req.post(`/files/upload${firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
           params: {
-            ...i === parts - 1 ? { last: 1 } : {},
             ...parent ? { parent_id: parent } : {},
             name: file.name,
             size: file.size,
-            mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream'
+            mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+            part: i,
+            total_part: parts,
           },
-          // onUploadProgress: () => onProgress({ percent: 0 }, file)
         })
 
         if (!firstResponse) {
           firstResponse = response
         }
-        onProgress({ percent: (i + 1) / parts * 100 }, file)
+
+        const percent = ((i + 1) / parts * 100).toFixed(2)
+        notification.info({
+          key: `upload-${file.uid}`,
+          message: 'On it!',
+          description: <>Uploading {file.name} ({percent}%) to Telegram...</>,
+          duration: null
+        })
+        onProgress({ percent }, file)
       }
       notification.close(`upload-${file.uid}`)
       return onSuccess(firstResponse, file)
     } catch (error: any) {
       console.error(error)
+      notification.close(`upload-${file.uid}`)
+      notification.error({
+        message: error?.response?.status || 'Something error',
+        ...error?.response?.data ? { description: error.response.data.error } : {}
+      })
       return onError(error.response?.data || error.response || { error: error.message }, file)
     }
   }
@@ -561,15 +575,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 }
                 return false
               }}
-              onChange={async ({ file, fileList }) => {
-                setFileList(fileList)
-                if (file.status === 'done') {
-                  notification.info({
-                    message: 'On it!',
-                    description: `Uploading ${file.name} to Telegram...`
-                  })
-                }
-              }}>
+              onChange={async ({ fileList }) => setFileList(fileList)}>
               <p className="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>

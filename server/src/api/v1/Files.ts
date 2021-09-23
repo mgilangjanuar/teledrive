@@ -1,8 +1,7 @@
+import bigInt from 'big-integer'
 import { Request, Response } from 'express'
-import { appendFileSync, readFileSync, unlinkSync } from 'fs'
 import { sign, verify } from 'jsonwebtoken'
 import multer from 'multer'
-import os from 'os'
 import { Api, TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
 import { Files as Model } from '../../model/entities/Files'
@@ -77,7 +76,7 @@ export class Files {
   @Endpoint.DELETE('/:id', { middlewares: [Auth] })
   public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const { affected, raw } = await Model.createQueryBuilder('files')
+    const { affected } = await Model.createQueryBuilder('files')
       .delete()
       .where({ id, user_id: req.user.id })
       .returning('*')
@@ -85,15 +84,6 @@ export class Files {
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
     }
-
-    if (raw[0].path) {
-      try {
-        unlinkSync(raw[0].path)
-      } catch (error) {
-        // ignore
-      }
-    }
-
     return res.send({ file: { id } })
   }
 
@@ -156,19 +146,11 @@ export class Files {
     return res.send({ file: { id } })
   }
 
-  @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer({
-    storage: multer.diskStorage({
-      destination: (_, __, cb) => cb(null, os.tmpdir()),
-      // filename: (_, file, cb) => {
-      //   const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      //   cb(null, file.fieldname + '-' + uniqueSuffix)
-      // }
-    })
-  }).single('upload')] })
+  @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer().single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
-    const { name, size, mime_type: mimetype, parent_id: parentId, last } = req.query as Record<string, string>
-    if (!name || !size || !mimetype) {
-      throw { status: 400, body: { error: 'Name, size, and mimetype are required' } }
+    const { name, size, mime_type: mimetype, parent_id: parentId, total_part: totalPart, part } = req.query as Record<string, string>
+    if (!name || !size || !mimetype || !part || !totalPart) {
+      throw { status: 400, body: { error: 'Name, size, mimetype, part, and total part are required' } }
     }
     const file = req.file
     if (!file) {
@@ -179,14 +161,11 @@ export class Files {
     if (req.params?.id) {
       model = await Model.createQueryBuilder('files')
         .where('id = :id', { id: req.params.id })
-        .addSelect('files.path')
+        .addSelect('files.file_id')
         .getOne()
       if (!model) {
         throw { status: 404, body: { error: 'File not found' } }
       }
-
-      appendFileSync(model.path, readFileSync(file.path))
-      unlinkSync(file.path)
     } else {
       let type = null
       if (mimetype.match(/^image/gi)) {
@@ -208,66 +187,55 @@ export class Files {
       model.user_id = req.user.id
       model.type = type
       model.parent_id = parentId as string || null
-      model.path = file.path
       model.upload_progress = 0
+      model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
+      console.log(bigInt.randBetween('-1e100', '1e100'))
       await model.save()
     }
 
-    // response early accepted
-    res.status(202).send({ accepted: true, file: { id: model.id } })
+    // upload per part
+    const uploadPartStatus = await req.tg.invoke(new Api.upload.SaveBigFilePart({
+      fileId: bigInt(model.file_id),
+      filePart: Number(part),
+      fileTotalParts: Number(totalPart),
+      bytes: file.buffer
+    }))
 
-    if (Number(last) !== 1) return
+    const { affected } = await Model.update(model.id, { upload_progress: (Number(part) + 1) / Number(totalPart) }, { reload: true })
+    if (!affected) {
+      await Model.delete(model.id)
+      throw { status: 404, body: { error: 'File not found' } }
+    }
 
-    // begin to uploading to telegram
-    let isUpdateProgress = true
-    let cancel = false
+    if (Number(part) < Number(totalPart) - 1) {
+      return res.status(202).send({ accepted: true, file: { id: model.id }, uploadPartStatus })
+    }
 
-    let data: any
+    // begin to send
     try {
-      data = await req.tg.sendFile('me', {
-        file: readFileSync(model.path),
+      const data = await req.tg.sendFile('me', {
+        file: new Api.InputFileBig({
+          id: bigInt(model.file_id),
+          parts: Number(totalPart),
+          name: model.name
+        }),
+        forceDocument: true,
         fileSize: model.size,
         attributes: [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ],
-        progressCallback: (() => {
-          const updateProgess: any = async (progress: number) => {
-            console.log('progress', progress)
-            if (isUpdateProgress) {
-              const { affected } = await Model.update(model.id, { upload_progress: progress }, { reload: true })
-              if (affected) {
-                isUpdateProgress = false
-                setTimeout(() => isUpdateProgress = true, 2000)
-              } else {
-                cancel = true
-              }
-            }
-            updateProgess.isCanceled = cancel
-          }
-          return updateProgess
-        })(),
-        workers: 1
+        workers: 10
       })
 
-      try {
-        unlinkSync(model.path)
-      } catch (error) {
-        // ignore
-      }
       await Model.update(model.id, {
         message_id: data.id,
         uploaded_at: data.date ? new Date(data.date * 1000) : null,
-        upload_progress: null,
-        path: null
+        upload_progress: null
       })
+      return res.status(202).send({ accepted: true, file: { id: model.id } })
     } catch (error) {
       console.error(error)
-      try {
-        unlinkSync(model.path)
-      } catch (error) {
-        // ignore
-      }
-      await Model.delete(model.id)
+      throw error
     }
   }
 
@@ -332,11 +300,5 @@ export class Files {
       throw { status: 401, body: { error: 'Invalid key' } }
     }
     return file
-  }
-
-  @Endpoint.POST({ middlewares: [Auth] })
-  public async test(req: Request, res: Response): Promise<any> {
-    console.log((req as any).filePart)
-    return res.send('ok')
   }
 }

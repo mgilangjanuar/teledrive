@@ -54,5 +54,5 @@ export class Files extends BaseModelWithID {
   signed_key?: string
 
   @Column({ default: null, select: false })
-  path?: string
+  file_id?: string
 }
