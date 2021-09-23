@@ -46,7 +46,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
   const { data, error } = useSWR(`/files/${match.params.id}`, fetcher)
-  const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
+  const { data: _me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
@@ -81,13 +81,15 @@ const View: React.FC<PageProps> = ({ match }) => {
 
   const back = () => {
     if (errorMe) {
-      return history.push('/')
+      return history.push('/login')
     }
-    if (me?.user.id === data?.file.user_id) {
-      return history.push('/dashboard')
-    } else {
-      return history.push('/dashboard/shared')
-    }
+
+    return history.goBack()
+    // if (me?.user.id === data?.file.user_id) {
+    //   return history.push('/dashboard')
+    // } else {
+    //   return history.push('/dashboard/shared')
+    // }
   }
 
   const Icon = ({ type }: { type: string }) => {

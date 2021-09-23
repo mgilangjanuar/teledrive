@@ -90,8 +90,8 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (!localStorage.getItem('invitationCode')) {
       notification.info({
-        message: 'Info',
-        description: 'Please wait and always check your inbox 🍻'
+        message: 'Limited to early users',
+        description: 'Join the waiting list and always check your inbox 🍻'
       })
       return history.replace('/')
     }
