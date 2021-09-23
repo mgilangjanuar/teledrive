@@ -1,5 +1,5 @@
 import { SendOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
+import { Button, Card, Col, Form, Input, Layout, notification, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useState } from 'react'
 import useSWR from 'swr'
@@ -17,7 +17,10 @@ const Contact: React.FC = () => {
   const send = async () => {
     setLoading(true)
     await req.post('/contact/send', form.getFieldsValue())
-    message.success('Message sent!')
+    notification.success({
+      message: 'Sent!',
+      description: 'Your message sent successfully!'
+    })
     setLoading(false)
   }
 
