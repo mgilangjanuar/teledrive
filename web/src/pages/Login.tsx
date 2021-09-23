@@ -1,4 +1,4 @@
-import { Button, Card, Col, Form, Input, Layout, message, Row, Typography } from 'antd'
+import { Button, Card, Col, Form, Input, Layout, notification, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import JSCookie from 'js-cookie'
 import React, { useEffect, useState } from 'react'
@@ -20,7 +20,10 @@ const Login: React.FC = () => {
 
   const sendCode = async (phoneNumber: string) => {
     if (!phoneNumber) {
-      return message.error('Please input your valid phone number with country code')
+      return notification.error({
+        message: 'Error',
+        description: 'Please input your valid phone number with country code'
+      })
     }
     const token = localStorage.getItem('invitationCode')
 
@@ -28,7 +31,10 @@ const Login: React.FC = () => {
       const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { token, phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { token, phoneNumber })
       setPhoneCodeHash(data.phoneCodeHash)
       setCountdown(60)
-      message.info('Please check your Telegram app and input the code')
+      notification.info({
+        message: 'Sent!',
+        description: 'Please check your Telegram app and input the code'
+      })
     }
 
     try {
@@ -36,7 +42,10 @@ const Login: React.FC = () => {
       await fetch(phoneCodeHash)
     } catch (error: any) {
       setLoadingSendCode(false)
-      message.error(error?.response?.data?.error || 'Something error')
+      notification.error({
+        message: 'Error',
+        description: error?.response?.data?.error || 'Something error'
+      })
       if (error?.response?.status === 400) {
         await fetch()
       }
@@ -45,7 +54,10 @@ const Login: React.FC = () => {
 
   const login = async () => {
     if (!phoneCodeHash) {
-      return message.error('Please send code first')
+      return notification.error({
+        message: 'Error',
+        description: 'Please send code first'
+      })
     }
     setLoadingLogin(true)
     const token = localStorage.getItem('invitationCode')
@@ -53,22 +65,34 @@ const Login: React.FC = () => {
     try {
       const { data } = await req.post('/auth/login', { token, ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
       setLoadingLogin(false)
-      message.success(`Welcome back, ${data.user.username}!`)
+      notification.success({
+        message: 'Success',
+        description: `Welcome back, ${data.user.username}!`
+      })
       return history.replace('/dashboard')
     } catch (error: any) {
       setLoadingLogin(false)
       const { data } = error?.response
       if (data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
-        message.info('Please input your 2FA password')
+        notification.info({
+          message: 'Info',
+          description: 'Please input your 2FA password'
+        })
         return setNeedPassword(true)
       }
-      return message.error(data?.error || 'Something error')
+      return notification.error({
+        message: 'Error',
+        description: data?.error || 'Something error'
+      })
     }
   }
 
   useEffect(() => {
     if (!localStorage.getItem('invitationCode')) {
-      message.info('Please wait and always check your inbox 🍻')
+      notification.info({
+        message: 'Info',
+        description: 'Please wait and always check your inbox 🍻'
+      })
       return history.replace('/')
     }
   }, [])

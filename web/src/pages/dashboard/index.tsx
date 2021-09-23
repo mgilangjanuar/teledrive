@@ -378,10 +378,14 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }
 
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
+    notification.warn({
+      message: 'Warning',
+      description: 'Please don\'t close/reload this browser'
+    })
     notification.info({
       key: `upload-${file.uid}`,
-      message: 'On it!',
-      description: <>Uploading {file.name} (0%) to Telegram...</>,
+      message: 'Preparing to upload',
+      description: <>Uploading (0%) {file.name}</>,
       duration: null
     })
     const chunkSize = 512 * 1024
@@ -418,12 +422,16 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         notification.info({
           key: `upload-${file.uid}`,
           message: 'On it!',
-          description: <>Uploading {file.name} ({percent}%) to Telegram...</>,
+          description: <>Uploading ({percent}%) {file.name}</>,
           duration: null
         })
         onProgress({ percent }, file)
       }
       notification.close(`upload-${file.uid}`)
+      notification.success({
+        message: 'Success',
+        description: `File ${file.name} uploaded successfully`
+      })
       return onSuccess(firstResponse, file)
     } catch (error: any) {
       console.error(error)
