@@ -1,4 +1,4 @@
-import { CloudOutlined, DollarCircleOutlined, RightCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
+import { CloudOutlined, DollarCircleOutlined, ArrowRightOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
@@ -52,7 +52,7 @@ const Home: React.FC = () => {
               </Space>
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
-              {me ? <Button size="large" type="primary" href="/dashboard">Go to Dashboard <RightCircleOutlined /></Button> : <Form form={form} layout="inline" onFinish={submit}>
+              {me ? <Button shape="round" size="large" type="primary" href="/dashboard">Go to Dashboard <ArrowRightOutlined /></Button> : <Form form={form} layout="inline" onFinish={submit}>
                 <Form.Item name="email" rules={[{ required: true, message: 'Email is required' }]}>
                   <Input size="large" style={{ width: '143px' }} type="email" placeholder="Email" />
                 </Form.Item>
@@ -164,7 +164,7 @@ const Home: React.FC = () => {
           <Typography.Paragraph>
             Join the waiting list now! 🚀
           </Typography.Paragraph>
-          <Button block href="#top" size="large" type="primary">
+          <Button shape="round" block href="#top" size="large" type="primary">
             Getting Started
           </Button>
         </Col>

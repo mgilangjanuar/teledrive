@@ -9,6 +9,7 @@ import {
   FilePdfOutlined,
   FolderAddOutlined,
   FolderOpenOutlined,
+  GlobalOutlined,
   HomeOutlined,
   InboxOutlined,
   InfoCircleOutlined,
@@ -18,6 +19,7 @@ import {
   ScissorOutlined,
   ShareAltOutlined,
   SnippetsOutlined,
+  TeamOutlined,
   VideoCameraOutlined,
   WarningOutlined
 } from '@ant-design/icons'
@@ -43,6 +45,7 @@ import {
   Switch,
   Table,
   TablePaginationConfig,
+  Tag,
   Typography,
   Upload
 } from 'antd'
@@ -374,6 +377,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setSharingOptions(sharing)
 
     await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
+    setData(data.map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
     setLoadingShare(false)
   }
 
@@ -494,6 +498,13 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           component = <FileOutlined />
         }
 
+        let type
+        if (row.sharing_options?.includes('*')) {
+          type = <GlobalOutlined />
+        } else if (row.sharing_options?.length) {
+          type = <TeamOutlined />
+        }
+
         return (
           <Button type="link" onClick={() => {
             if (row.type === 'folder') {
@@ -503,7 +514,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
               history.push(`/view/${row.id}`)
             }
           }}>
-            {component} {row.name}
+            {component}{type} {row.name}
           </Button>
         )
       }
@@ -555,8 +566,8 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
             <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => setTab(key === 'mine' ? undefined : key)}>
-              <Menu.Item key="mine">My Files</Menu.Item>
-              <Menu.Item key="shared">Shared</Menu.Item>
+              <Menu.Item disabled={!files} key="mine">My Files</Menu.Item>
+              <Menu.Item disabled={!files} key="shared">Shared</Menu.Item>
             </Menu>
           </Typography.Paragraph>
           <Typography.Paragraph>

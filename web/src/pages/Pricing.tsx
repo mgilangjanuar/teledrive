@@ -89,7 +89,7 @@ const Pricing: React.FC = () => {
     </Typography.Paragraph>
     <br />
     <Typography.Paragraph type="secondary">
-      Feel free to <Link to="/contact">contact us</Link> if you have any questions or become a sponsor &mdash; or if you would like to help us in other ways.
+      Feel free to <Link to="/contact?intent=sponsor">contact us</Link> if you have any questions or become a sponsor &mdash; or if you would like to help us in other ways.
     </Typography.Paragraph>
   </div>
 

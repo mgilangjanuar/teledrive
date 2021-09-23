@@ -1,7 +1,7 @@
 import { SendOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Form, Input, Layout, notification, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
@@ -13,6 +13,28 @@ const Contact: React.FC = () => {
   const { data: me } = useSWR('/users/me', fetcher, {
     onSuccess: ({ user }) => form.setFieldsValue({ from: user.username })
   })
+
+  useEffect(() => {
+    const intent = new URLSearchParams(location.search).get('intent')
+    console.log(intent)
+    if (intent === 'sponsor') {
+      form.setFieldsValue({
+        message: 'Hey 👋\nI want to be your sponsor!\n\nWhat should I do? 😁'
+      })
+    } else if (intent === 'help') {
+      form.setFieldsValue({
+        message: 'Hello, I need your help!\n\n<your message here>'
+      })
+    } else if (intent === 'report') {
+      form.setFieldsValue({
+        message: 'Hi, I want to report for fraud/scam/sensitive content! 🤮\n\n<your link/message here>'
+      })
+    } else if (intent === 'bug') {
+      form.setFieldsValue({
+        message: 'Hello 👋\nI found bug/security hole in your platform 😨\n\n<your message here>'
+      })
+    }
+  }, [])
 
   const send = async () => {
     setLoading(true)
