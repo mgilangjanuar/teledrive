@@ -185,9 +185,6 @@ export class Files {
         throw { status: 404, body: { error: 'File not found' } }
       }
 
-      // const base = createWriteStream(model.path, { flags: 'a' })
-      // base.write(readFileSync(file.path))
-      // base.end()
       appendFileSync(model.path, readFileSync(file.path))
       unlinkSync(file.path)
     } else {
@@ -253,7 +250,7 @@ export class Files {
       })
 
       try {
-        // unlinkSync(model.path)
+        unlinkSync(model.path)
       } catch (error) {
         // ignore
       }
@@ -261,7 +258,7 @@ export class Files {
         message_id: data.id,
         uploaded_at: data.date ? new Date(data.date * 1000) : null,
         upload_progress: null,
-        // path: null
+        path: null
       })
     } catch (error) {
       console.error(error)
