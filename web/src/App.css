@@ -42,3 +42,7 @@ html, body {
 .tableFiles td {
   cursor: pointer;
 }
+
+.ant-table-placeholder {
+  overflow: -moz-hidden-unscrollable;
+}
