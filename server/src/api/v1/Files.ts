@@ -100,28 +100,28 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    // checking plans
-    if (file.sharing_options?.length) {
-      const sharingUsers = file.sharing_options.filter((user: string) => user !== '*').length
-      if (sharingUsers > PLANS[req.user.plan].sharingUsers) {
-        throw { status: 402, body: { error: 'Payment required' } }
-      }
-      const publicFiles = await Model.createQueryBuilder('files')
-        .where('\'*\' = any(sharing_options) and user_id = :user_id', {
-          user_id: req.user?.id })
-        .getCount()
-      if (publicFiles > PLANS[req.user.plan].publicFiles) {
-        throw { status: 402, body: { error: 'Payment required' } }
-      }
+    // TODO: checking plans
+    // if (file.sharing_options?.length) {
+    //   const sharingUsers = file.sharing_options.filter((user: string) => user !== '*').length
+    //   if (sharingUsers > PLANS[req.user.plan].sharingUsers) {
+    //     throw { status: 402, body: { error: 'Payment required' } }
+    //   }
+    //   const publicFiles = await Model.createQueryBuilder('files')
+    //     .where('\'*\' = any(sharing_options) and user_id = :user_id', {
+    //       user_id: req.user?.id })
+    //     .getCount()
+    //   if (publicFiles > PLANS[req.user.plan].publicFiles) {
+    //     throw { status: 402, body: { error: 'Payment required' } }
+    //   }
 
-      const sharedFiles = await Model.createQueryBuilder('files')
-        .where('sharing_options is not null and sharing_options::text != \'{}\' and user_id = :user_id', {
-          user_id: req.user?.id })
-        .getCount()
-      if (sharedFiles > PLANS[req.user.plan].sharedFiles) {
-        throw { status: 402, body: { error: 'Payment required' } }
-      }
-    }
+    //   const sharedFiles = await Model.createQueryBuilder('files')
+    //     .where('sharing_options is not null and sharing_options::text != \'{}\' and user_id = :user_id', {
+    //       user_id: req.user?.id })
+    //     .getCount()
+    //   if (sharedFiles > PLANS[req.user.plan].sharedFiles) {
+    //     throw { status: 402, body: { error: 'Payment required' } }
+    //   }
+    // }
 
     let key: string = currentFile.signed_key
     if (file.sharing_options?.length && !key) {
@@ -237,6 +237,23 @@ export class Files {
       console.error(error)
       throw error
     }
+  }
+
+  @Endpoint.GET('/breadcrumbs/:id', { middlewares: [Auth] })
+  public async breadcrumbs(req: Request, res: Response): Promise<any> {
+    const { id } = req.params
+    let folder = await Model.findOne(id)
+    if (!folder) {
+      throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    const breadcrumbs = [folder]
+    while (folder.parent_id) {
+      folder = await Model.findOne(folder.parent_id)
+      breadcrumbs.push(folder)
+    }
+
+    return res.send({ breadcrumbs: breadcrumbs.reverse() })
   }
 
   public static async download(req: Request, res: Response, file: Model): Promise<any> {

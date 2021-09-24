@@ -90,6 +90,15 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [errorMe])
 
   useEffect(() => {
+    if (parent) {
+      req.get(`/files/breadcrumbs/${parent}`)
+        .then(({ data }) => {
+          setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs.map((crumb: any) => ({ id: crumb.id, name: crumb.name }))])
+        })
+    }
+  }, [])
+
+  useEffect(() => {
     const nextPage = () => {
       setScrollTop(document.body.scrollTop)
     }
