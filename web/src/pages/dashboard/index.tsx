@@ -177,7 +177,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         if (!filters) return res
-        if (key === 'type') {
+        if (key === 'type' && filters[key]?.length) {
           return { ...res, [`${key}.in`]: `(${filters[key]?.map(val => `'${val}'`).join(',')})` }
         }
         return { ...res, [key]: filters[key]?.[0] }
@@ -196,9 +196,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     if (parent) {
       setParent(null)
     } else {
-      fetch({
+      setScrollTop(0)
+      const pagination = {
         ...dataChanges?.pagination, current: 1
-      }, {
+      }
+      const filters = {
         ...dataChanges?.filters,
         ...parent ? { parent_id: [parent] } : { 'parent_id.is': ['null'] },
         ...key === 'shared' ? {
@@ -207,8 +209,14 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         } : {
           shared: [undefined as any]
         }
-      }, dataChanges?.sorter)
-      setScrollTop(0)
+      }
+      const sorter = dataChanges?.sorter
+
+      if (dataChanges?.pagination?.current === 1) {
+        fetch(pagination, filters, sorter)
+      } else {
+        change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      }
     }
   }
 
@@ -261,7 +269,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
               parent={parent}
               dataFileList={[fileList, setFileList]} /> : <Alert
               message={<>
-                These are all files that other users share with you. If you find any suspicious, spam, sensitive, or etc, please <Link to="/contact?intent=report">report it to us</Link>.
+                These are all files that other users share with you. If you find any suspicious, spam, or etc, please <Link to="/contact?intent=report">report it to us</Link>.
               </>}
               type="warning"
               showIcon
