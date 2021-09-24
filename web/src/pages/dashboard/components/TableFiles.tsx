@@ -7,7 +7,7 @@ import React from 'react'
 
 interface Props {
   files?: any,
-  tab?: string,
+  tab: string,
   onChange: (...args: any[]) => void,
   onDelete: (row: any) => void,
   onRename: (row: any) => void,
@@ -116,7 +116,7 @@ const TableFiles: React.FC<Props> = ({
       align: 'center',
       render: (value: any, row: any) => row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).format('llll')
     },
-    ...!tab ? [{
+    ...tab === 'mine' ? [{
       title: 'Actions',
       dataIndex: 'actions',
       key: 'actions',

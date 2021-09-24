@@ -46,7 +46,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const PAGE_SIZE = 10
 
   const history = useHistory()
-  const [parent, setParent] = useState<string | null>(null)
+  const [parent, setParent] = useState<string | null>(new URLSearchParams(location.search).get('parent') || null)
   const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string | React.ReactElement }>>([{ id: null, name: <><HomeOutlined /> Home</> }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[] }>()
@@ -55,7 +55,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [selectShare, setSelectShare] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
   const [keyword, setKeyword] = useState<string>()
-  const [tab, setTab] = useState<string | undefined>(match.params.type)
+  const [tab, setTab] = useState<string>(match.params.type || 'mine')
   const [params, setParams] = useState<any>()
   const [loadingPaste, setLoadingPaste] = useState<boolean>()
   const [addFolder, setAddFolder] = useState<boolean>()
@@ -90,10 +90,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [errorMe])
 
   useEffect(() => {
-    fetch({}, {}, { column: { key: 'uploaded_at' }, order: 'descend' })
-  }, [])
-
-  useEffect(() => {
     const nextPage = () => {
       setScrollTop(document.body.scrollTop)
     }
@@ -116,17 +112,13 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setScrollTop(0)
   }, [keyword, parent])
 
-
   useEffect(() => {
-    history.replace(`/dashboard${tab === 'shared' ? '/shared' : ''}`)
-    setBreadcrumbs(breadcrumbs.slice(0, 1))
-    if (parent !== null) {
-      setParent(null)
-    } else {
-      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
-      setScrollTop(0)
+    if (parent) {
+      const searchParams = new URLSearchParams(window.location.search)
+      searchParams.set('parent', parent)
+      history.replace(`/dashboard${tab === 'shared' ? `/${tab}` : ''}?${searchParams.toString()}`)
     }
-  }, [tab])
+  }, [parent])
 
   useEffect(() => {
     if (action === 'copy') {
@@ -175,12 +167,40 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       take: PAGE_SIZE,
       skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
-        return { ...res, ...filters?.[key]?.[0] !== undefined ? { [`${key}.in`]: `(${filters[key]?.map(val => `'${val}'`).join(',')})` } : {} }
+        if (!filters) return res
+        if (key === 'type') {
+          return { ...res, [`${key}.in`]: `(${filters[key]?.map(val => `'${val}'`).join(',')})` }
+        }
+        return { ...res, [key]: filters[key]?.[0] }
       }, {}),
       ...(sorter as SorterResult<any>)?.order ? {
         sort: `${(sorter as SorterResult<any>).column?.dataIndex}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
       } : { sort: 'created_at:desc' },
     })
+  }
+
+  const changeTab = (key: string) => {
+    setTab(key)
+    setBreadcrumbs(breadcrumbs.slice(0, 1))
+    history.replace(`/dashboard${key === 'shared' ? '/shared' : ''}`)
+
+    if (parent) {
+      setParent(null)
+    } else {
+      fetch({
+        ...dataChanges?.pagination, current: 1
+      }, {
+        ...dataChanges?.filters,
+        ...parent ? { parent_id: [parent] } : { 'parent_id.is': ['null'] },
+        ...key === 'shared' ? {
+          shared: [1],
+          'parent_id.is': [undefined as any]
+        } : {
+          shared: [undefined as any]
+        }
+      }, dataChanges?.sorter)
+      setScrollTop(0)
+    }
   }
 
   const change = async (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], _?: TableCurrentDataSource<any>) => {
@@ -215,26 +235,24 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setAction(undefined)
   }
 
-
-
   return <>
     <Navbar user={me?.user} />
     <Layout.Content className="container" style={{ paddingTop: 0 }}>
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
-            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => setTab(key === 'mine' ? undefined : key)}>
+            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => changeTab(key)}>
               <Menu.Item disabled={!files} key="mine">My Files</Menu.Item>
               <Menu.Item disabled={!files} key="shared">Shared</Menu.Item>
             </Menu>
           </Typography.Paragraph>
           <Typography.Paragraph>
-            {!tab ? <Upload
+            {tab === 'mine' ? <Upload
               onCancel={file => setSelectDeleted([file])}
               parent={parent}
               dataFileList={[fileList, setFileList]} /> : <Alert
               message={<>
-                These are all files that other users share with you. If you find any suspicious/spam/sensitive/etc content, please <Link to="/contact?intent=report">report it to us</Link>.
+                These are all files that other users share with you. If you find any suspicious, spam, sensitive, or etc, please <Link to="/contact?intent=report">report it to us</Link>.
               </>}
               type="warning"
               showIcon
@@ -245,7 +263,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           </Typography.Paragraph>
           <Typography.Paragraph style={{ textAlign: 'right' }}>
             <Space wrap>
-              {!tab ? <>
+              {tab === 'mine' ? <>
                 <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
                 <Button shape="circle" icon={<CopyOutlined />} disabled={!selected?.length} onClick={() => setAction('copy')} />
                 <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
