@@ -62,6 +62,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [fileRename, setFileRename] = useState<any>()
   const [scrollTop, setScrollTop] = useState<number>(0)
   const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
+  const [loading, setLoading] = useState<boolean>()
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
@@ -69,6 +70,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     refreshInterval: 5000
   })
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
+    setLoading(false)
     if (files?.files) {
       if (!params?.skip || !dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
         return setData(files.files.map((file: any) => ({ ...file, key: file.id })))
@@ -168,13 +170,15 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     }
   }, [filesUpload])
 
-  const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[]) => {
+  const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
+    setLoading(true)
     setParams({
       ...parent ? { parent_id: parent } : { 'parent_id.is': 'null' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       take: PAGE_SIZE,
-      skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
+      // skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
+      skip: pagination?.current === 1 || actions?.action || keyword ? 0 : data?.length,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         if (!filters) return res
         if (key === 'type' && filters[key]?.length) {
@@ -215,19 +219,27 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       if (dataChanges?.pagination?.current === 1) {
         fetch(pagination, filters, sorter)
       } else {
-        change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+        // change(pagination, dataChanges?.filters, dataChanges?.sorter)
       }
     }
   }
 
-  const change = async (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], _?: TableCurrentDataSource<any>) => {
+  useEffect(() => {
+    if (!parent && dataChanges?.pagination?.current !== 1) {
+      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      setScrollTop(0)
+    }
+  }, [tab])
+
+  const change = async (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
     setDataChanges({ pagination, filters, sorter })
-    fetch(pagination, filters, sorter)
+    fetch(pagination, filters, sorter, actions)
   }
 
   const paste = async (rows: any[]) => {
     rows = rows?.filter(row => row.id !== parent)
     setLoadingPaste(true)
+    setLoading(true)
     try {
       if (action === 'copy') {
         await Promise.all(rows?.map(async row => await req.post('/files', { file: { ...row, parent_id: parent, id: undefined } })))
@@ -244,6 +256,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       refetch()
     }
     setSelected([])
+    setLoading(false)
     setLoadingPaste(false)
     notification.success({
       message: 'Success',
@@ -294,7 +307,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             files={files}
             tab={tab}
             onChange={change}
-            onDelete={row => selectDeleted([row])}
+            onDelete={row => setSelectDeleted(selected?.length ? selected : [row])}
             onRename={row => setFileRename(row)}
             onShare={row => setSelectShare(row)}
             onRowClick={row => {
@@ -305,9 +318,24 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 history.push(`/view/${row.id}`)
               }
             }}
+            onCopy={row => {
+              if (!selected?.length) {
+                setSelected([row])
+              }
+              setAction('copy')
+            }}
+            onCut={row => {
+              if (!selected?.length) {
+                setSelected([row])
+              }
+              setAction('cut')
+            }}
+            onPaste={rows => paste(rows)}
             dataSource={data}
             sorterData={dataChanges?.sorter as SorterResult<any>}
-            dataSelect={[selected, setSelected]} />
+            dataSelect={[selected, setSelected]}
+            action={action}
+            loading={loading} />
         </Col>
       </Row>
 
@@ -318,6 +346,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           if (!newData?.length) {
             if ((dataChanges?.pagination?.current || 0) > 1) {
               change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+              setScrollTop(0)
             } else {
               refetch()
             }

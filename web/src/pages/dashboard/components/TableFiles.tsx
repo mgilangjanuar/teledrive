@@ -1,9 +1,19 @@
-import { AudioOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, FileImageOutlined, FileOutlined, FilePdfOutlined, FolderOpenOutlined, GlobalOutlined, ShareAltOutlined, TeamOutlined, VideoCameraOutlined } from '@ant-design/icons'
-import { Button, Dropdown, Menu, Table } from 'antd'
+import {
+  AudioOutlined, CopyOutlined, DeleteOutlined,
+  DownloadOutlined,
+  EditOutlined,
+  FileImageOutlined,
+  FileOutlined,
+  FilePdfOutlined,
+  FolderOpenOutlined,
+  GlobalOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, TeamOutlined, VideoCameraOutlined
+} from '@ant-design/icons'
+import { Menu, Table } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { apiUrl } from '../../../utils/Fetcher'
 
 interface Props {
   files?: any,
@@ -13,8 +23,13 @@ interface Props {
   onRename: (row: any) => void,
   onShare: (row: any) => void,
   onRowClick: (row: any) => void,
+  onCut?: (row: any) => void,
+  onCopy?: (row: any) => void,
+  onPaste?: (rows: any[]) => void,
+  loading?: boolean,
   sorterData?: SorterResult<any>,
   dataSource: any[],
+  action?: string,
   dataSelect: [any[], (data: any[]) => void]
 }
 
@@ -26,9 +41,82 @@ const TableFiles: React.FC<Props> = ({
   onRename,
   onShare,
   onRowClick,
+  onCut,
+  onCopy,
+  onPaste,
+  loading,
   sorterData,
   dataSource,
+  action,
   dataSelect: [selected, setSelected] }) => {
+
+  const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
+  const pasteEnabled = useRef<boolean | null>(null)
+
+  useEffect(() => {
+    pasteEnabled.current = Boolean(selected?.length && action)
+    const context = document.querySelector('body')
+    context?.addEventListener('contextmenu', function rightClick(e) {
+      if (pasteEnabled.current && !(e.target as any)?.outerHTML.match(/^\<td\ /gi)) {
+        e.preventDefault()
+        document.addEventListener('click', function onClickOutside() {
+          setPopup({ visible: false })
+          document.removeEventListener('click', onClickOutside)
+        })
+
+        setPopup({
+          row: null,
+          visible: true,
+          x: e.clientX,
+          y: e.clientY
+        })
+      } else if (!pasteEnabled.current) {
+        context?.removeEventListener('contextmenu', rightClick)
+      }
+    })
+  }, [selected, action])
+
+  const ContextMenu = () => {
+    const baseProps = {
+      style: { margin: 0 }
+    }
+    if (!popup?.visible) return <></>
+    if (popup?.row) {
+      return <Menu style={{ zIndex: 1, position: 'absolute', left: `${popup?.x}px`, top: `${popup?.y}px` }}>
+        <Menu.Item {...baseProps}
+          icon={<EditOutlined />}
+          key="rename"
+          onClick={() => onRename(popup?.row)}>Rename</Menu.Item>
+        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+          icon={<CopyOutlined />}
+          key="copy"
+          onClick={() => onCopy?.(popup?.row)}>Copy</Menu.Item> : '' }
+        <Menu.Item {...baseProps}
+          icon={<ScissorOutlined />}
+          key="cut"
+          onClick={() => onCut?.(popup?.row)}>Cut</Menu.Item>
+        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+          icon={<ShareAltOutlined />}
+          key="share"
+          onClick={() => onShare(popup?.row)}>Share</Menu.Item> : ''}
+        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+          icon={<DownloadOutlined />}
+          key="download"
+          onClick={() => location.replace(`${apiUrl}/files/${popup?.row.id}?raw=1&dl=1`)}>Download</Menu.Item> : ''}
+        <Menu.Item {...baseProps}
+          icon={<DeleteOutlined />}
+          key="delete"
+          danger
+          onClick={() => onDelete(popup?.row)}>Delete</Menu.Item>
+      </Menu>
+    }
+    if (selected?.length && action) {
+      return <Menu defaultSelectedKeys={['download']} style={{ position: 'fixed', left: `${popup?.x}px`, top: `${popup?.y}px` }}>
+        <Menu.Item style={{ margin: 0 }} icon={<SnippetsOutlined />} key="paste" onClick={() => onPaste?.(selected)}>Paste</Menu.Item>
+      </Menu>
+    }
+    return <></>
+  }
 
   const columns = [
     {
@@ -87,11 +175,7 @@ const TableFiles: React.FC<Props> = ({
           type = <TeamOutlined />
         }
 
-        return (
-          <Button type="link" onClick={() => onRowClick(row)}>
-            {component}{type} {row.name}
-          </Button>
-        )
+        return <>{type} {component} {row.name}</>
       }
     },
     {
@@ -115,30 +199,45 @@ const TableFiles: React.FC<Props> = ({
       width: 250,
       align: 'center',
       render: (value: any, row: any) => row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).format('llll')
-    },
-    ...tab === 'mine' ? [{
-      title: 'Actions',
-      dataIndex: 'actions',
-      key: 'actions',
-      width: 95,
-      align: 'center',
-      render: (_: any, row: any) => row.upload_progress !== null ? <Button type="link" onClick={() => onDelete(row)}>Cancel</Button> : <Dropdown trigger={['click']} placement="bottomRight" overlay={<Menu>
-        <Menu.Item icon={<EditOutlined />} key="rename" onClick={() => onRename(row)}>Rename</Menu.Item>
-        {row.type !== 'folder' ? <Menu.Item icon={<ShareAltOutlined />} key="share" onClick={() => onShare(row)}>Share</Menu.Item> : ''}
-        <Menu.Item icon={<DeleteOutlined />} key="delete" danger onClick={() => onDelete(row)}>Delete</Menu.Item>
-      </Menu>}>
-        <Button type="link" icon={<EllipsisOutlined />}/>
-      </Dropdown>
-    }] : []
+    }
   ]
 
-  return <Table loading={!files} showSorterTooltip={false}
-    rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
-    dataSource={dataSource}
-    columns={columns as any}
-    onChange={onChange}
-    pagination={false}
-    scroll={{ x: 420 }} />
+  return <>
+    <Table
+      className="tableFiles"
+      loading={!files || loading}
+      showSorterTooltip={false}
+      rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
+      dataSource={dataSource}
+      columns={columns as any}
+      onChange={onChange}
+      pagination={false}
+      scroll={{ x: 420 }}
+      onRow={row => ({
+        onClick: () => onRowClick(row),
+        onContextMenu: e => {
+          if (tab !== 'mine') return
+
+          e.preventDefault()
+          if (!popup?.visible) {
+            document.addEventListener('click', function onClickOutside() {
+              setPopup({ visible: false })
+              document.removeEventListener('click', onClickOutside)
+            })
+          }
+          const parent = document.querySelector('.ant-col-24.ant-col-md-20.ant-col-md-offset-2')
+          setPopup({
+            row,
+            visible: true,
+            // x: e.clientX,
+            // y: e.clientY
+            x: e.clientX - (parent?.getBoundingClientRect().left || 0),
+            y: e.clientY - (parent?.getBoundingClientRect().top || 0)
+          })
+        }
+      })} />
+    <ContextMenu />
+  </>
 }
 
 export default TableFiles

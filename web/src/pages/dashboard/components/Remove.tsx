@@ -4,13 +4,13 @@ import React, { useState } from 'react'
 import { req } from '../../../utils/Fetcher'
 
 interface Props {
-  dataSource: [any[], (data: any[]) => void],
+  dataSource?: [any[], (data: any[]) => void],
   dataSelect: [any, (data: any) => void],
   onFinish?: (newData: any[]) => void
 }
 
 const Remove: React.FC<Props> = ({
-  dataSource: [data, setData],
+  dataSource,
   dataSelect: [selectDeleted, setSelectDeleted],
   onFinish }) => {
 
@@ -23,8 +23,8 @@ const Remove: React.FC<Props> = ({
     } catch (error) {
       // ignore
     }
-    const newData = data.filter(datum => !ids.includes(datum.id))
-    setData(newData)
+    const newData = dataSource?.[0].filter(datum => !ids.includes(datum.id)) || []
+    dataSource?.[1](newData)
     setSelectDeleted([])
     setLoadingRemove(false)
     onFinish?.(newData)

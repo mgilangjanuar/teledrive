@@ -4,12 +4,14 @@ import React, { useState, useEffect } from 'react'
 import { req } from '../../../utils/Fetcher'
 
 interface Props {
-  dataSource: [any[], (data: any[]) => void],
+  dataSource?: [any[], (data: any[]) => void],
+  onFinish?: () => void,
   dataSelect: [any, (data: any) => void]
 }
 
 const Rename: React.FC<Props> = ({
-  dataSource: [data, setData],
+  dataSource,
+  onFinish,
   dataSelect: [fileRename, setFileRename] }) => {
 
   const [loadingRename, setLoadingRename] = useState<boolean>()
@@ -32,10 +34,11 @@ const Rename: React.FC<Props> = ({
         message: 'Success',
         description: `${name} renamed successfully!`
       })
-      setData(data.map((datum: any) => datum.id === result.file.id ? { ...datum, name } : datum))
+      dataSource?.[1](dataSource?.[0].map((datum: any) => datum.id === result.file.id ? { ...datum, name } : datum))
       setFileRename(undefined)
       setLoadingRename(false)
       formRename.resetFields()
+      onFinish?.()
     } catch (error) {
       setLoadingRename(false)
       return notification.error({

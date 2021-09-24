@@ -38,3 +38,7 @@ html, body {
   border-radius: 0 32px 32px 0 !important;
   padding: 4px 16px;
 }
+
+.tableFiles td {
+  cursor: pointer;
+}

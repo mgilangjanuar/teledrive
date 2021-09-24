@@ -2,25 +2,27 @@ import {
   ArrowLeftOutlined,
   AudioOutlined,
   CopyOutlined,
+  DeleteOutlined,
   DownloadOutlined,
+  EditOutlined,
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
   FolderOpenOutlined,
   LinkOutlined,
   MenuFoldOutlined,
+  MenuOutlined,
   MenuUnfoldOutlined,
-  VideoCameraOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  VideoCameraOutlined
 } from '@ant-design/icons'
 import {
-  Button,
-  Col,
+  Button, Col,
   Descriptions,
   Divider,
+  Dropdown,
   Input,
-  Layout,
-  message,
+  Layout, Menu, message,
   Result,
   Row,
   Space,
@@ -37,6 +39,9 @@ import { useDebounce } from 'use-debounce/lib'
 import { apiUrl, fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
+import Remove from './dashboard/components/Remove'
+import Rename from './dashboard/components/Rename'
+import Share from './dashboard/components/Share'
 
 interface PageProps extends RouteComponentProps<{
   id: string
@@ -45,12 +50,15 @@ interface PageProps extends RouteComponentProps<{
 const View: React.FC<PageProps> = ({ match }) => {
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
-  const { data, error } = useSWR(`/files/${match.params.id}`, fetcher)
-  const { data: _me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
+  const { data, error, mutate } = useSWR(`/files/${match.params.id}`, fetcher)
+  const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
   const [contentStyle, setContentStyle] = useState<{ display: string } | undefined>()
+  const [selectShare, setSelectShare] = useState<any>()
+  const [fileRename, setFileRename] = useState<any>()
+  const [selectDeleted, setSelectDeleted] = useState<any>()
 
   useEffect(() => {
     if (data?.file) {
@@ -84,12 +92,12 @@ const View: React.FC<PageProps> = ({ match }) => {
       return history.push('/login')
     }
 
-    return history.goBack()
-    // if (me?.user.id === data?.file.user_id) {
-    //   return history.push('/dashboard')
-    // } else {
-    //   return history.push('/dashboard/shared')
-    // }
+    // return history.goBack()
+    if (me?.user.id === data?.file.user_id) {
+      return history.replace(`/dashboard${data?.file.parent_id ? `?parent=${data?.file.parent_id}` : ''}`)
+    } else {
+      return history.replace('/dashboard/shared')
+    }
   }
 
   const Icon = ({ type }: { type: string }) => {
@@ -168,11 +176,37 @@ const View: React.FC<PageProps> = ({ match }) => {
       <div style={{ position: 'absolute', right: 20, top: 30 }}>
         <Space direction="horizontal">
           {!showContent && <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />}
+          {!showContent && <Dropdown placement="bottomRight" trigger={['click']} overlay={<Menu defaultSelectedKeys={['download']}>
+            <Menu.Item key="rename" onClick={() => setFileRename(data?.file)} icon={<EditOutlined />}>Rename</Menu.Item>
+            <Menu.Item key="share" onClick={() => setSelectShare(data?.file)} icon={<ShareAltOutlined />}>Share</Menu.Item>
+            <Menu.Item key="download" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />}>Download</Menu.Item>
+            <Menu.Item key="remove" danger onClick={() => setSelectDeleted([data?.file])} icon={<DeleteOutlined />}>Delete</Menu.Item>
+          </Menu>}>
+            <Button type="primary" shape="circle" icon={<MenuOutlined />} />
+          </Dropdown>}
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
-          {!showContent && <Button type="primary" shape="circle" icon={<DownloadOutlined />} onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} />}
         </Space>
       </div>
     </Layout>
+
+    <Rename
+      dataSelect={[fileRename, setFileRename]}
+      onFinish={mutate} />
+
+    <Remove
+      dataSelect={[selectDeleted, setSelectDeleted]}
+      onFinish={() => {
+        if (me?.user.id === data?.file.user_id) {
+          return history.replace(`/dashboard${data?.file.parent_id ? `?parent=${data?.file.parent_id}` : ''}`)
+        } else {
+          return history.replace('/dashboard/shared')
+        }
+      }} />
+
+    <Share
+      me={me}
+      dataSelect={[selectShare, setSelectShare]}
+      onFinish={mutate} />
   </>
 }
 

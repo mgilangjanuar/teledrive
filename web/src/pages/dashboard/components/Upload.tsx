@@ -15,6 +15,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
     notification.warn({
+      key: 'preparingUpload',
       message: 'Warning',
       description: 'Please don\'t close/reload this browser'
     })

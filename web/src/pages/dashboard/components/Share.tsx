@@ -8,13 +8,15 @@ import { req } from '../../../utils/Fetcher'
 
 interface Props {
   me: any,
-  dataSource: [any[], (data: any[]) => void],
+  dataSource?: [any[], (data: any[]) => void],
+  onFinish?: () => void,
   dataSelect: [any, (data: any) => void]
 }
 
 const Share: React.FC<Props> = ({
   me,
-  dataSource: [data, setData],
+  dataSource,
+  onFinish,
   dataSelect: [selectShare, setSelectShare] }) => {
 
   const [loadingShare, setLoadingShare] = useState<boolean>(false)
@@ -65,8 +67,9 @@ const Share: React.FC<Props> = ({
     setSharingOptions(sharing)
 
     await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
-    setData(data.map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
+    dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
     setLoadingShare(false)
+    onFinish?.()
   }
 
   const copy = (val: string) => {
