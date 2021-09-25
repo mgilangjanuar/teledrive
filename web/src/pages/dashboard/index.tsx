@@ -122,7 +122,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   useEffect(() => {
     if (parent !== undefined || keyword !== undefined) {
-      console.log(parent)
       change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
       setScrollTop(0)
     }
@@ -185,7 +184,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
     setLoading(true)
     setParams({
-      ...parent?.id ? { parent_id: parent.id } : { 'parent_id.is': 'null' },
+      ...parent?.id ? { parent_id: parent.link_id || parent.id } : { 'parent_id.is': 'null' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       take: PAGE_SIZE,
@@ -249,14 +248,14 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         await Promise.all(rows?.map(async row => {
           if (row.type === 'folder') {
             const name = `Link of ${row.name}`
-            await req.post('/files', { file: { ...row, name, link_id: row.id, parent_id: parent?.id, id: undefined } })
+            await req.post('/files', { file: { ...row, name, link_id: row.id, parent_id: parent?.link_id || parent?.id, id: undefined } })
           } else {
             const name = data?.find(datum => datum.name === row.name) ? `Copy of ${row.name}` : row.name
-            await req.post('/files', { file: { ...row, name, parent_id: parent?.id, id: undefined } })
+            await req.post('/files', { file: { ...row, name, parent_id: parent?.link_id || parent?.id, id: undefined } })
           }
         }))
       } else if (action === 'cut') {
-        await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent?.id } })))
+        await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent?.link_id || parent?.id } })))
       }
     } catch (error) {
       // ignore

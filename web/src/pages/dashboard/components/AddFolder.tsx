@@ -22,7 +22,7 @@ const AddFolder: React.FC<Props> = ({
     const { name } = formAddFolder.getFieldsValue()
     try {
       const { data: result } = await req.post('/files/addFolder', {
-        file: { name, parent_id: parent?.id || undefined }
+        file: { name, parent_id: parent?.link_id || parent?.id || undefined }
       })
       notification.success({
         message: 'Success',

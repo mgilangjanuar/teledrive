@@ -1,4 +1,4 @@
-import { EllipsisOutlined } from '@ant-design/icons'
+import { EllipsisOutlined, FolderOpenOutlined, ForkOutlined } from '@ant-design/icons'
 import { Breadcrumb as BaseBreadcrumb, Button, Dropdown, Menu } from 'antd'
 import React from 'react'
 import { useHistory } from 'react-router'
@@ -25,12 +25,14 @@ const Breadcrumb: React.FC<Props> = ({
     }
   }
 
+  const Name = ({ crumb }: any) => <>{crumb.link_id ? <ForkOutlined /> : ''} {crumb?.id ? <FolderOpenOutlined /> : ''} {crumb.name}</>
+
   return <BaseBreadcrumb>
     {breadcrumbs.slice(0, 1).map(crumb =>
       <BaseBreadcrumb.Item key={crumb.id}>
-        {crumb.id === parent?.id ? <Button type="text">{crumb.name}</Button> :
+        {crumb.id === (parent?.id || null) ? <Button type="text"><Name crumb={crumb} /></Button> :
           <Button type="link" onClick={() => select(crumb)}>
-            {crumb.name}
+            <Name crumb={crumb} />
           </Button>
         }
       </BaseBreadcrumb.Item>
@@ -38,7 +40,7 @@ const Breadcrumb: React.FC<Props> = ({
     {breadcrumbs.length > 2 ? <BaseBreadcrumb.Item key="ellipsis">
       <Dropdown trigger={['click']} placement="bottomCenter" overlay={<Menu>
         {breadcrumbs.slice(1, breadcrumbs.length - 1).map(crumb => <Menu.Item key={crumb.id} onClick={() => select(crumb)}>
-          {crumb.name}
+          <Name crumb={crumb} />
         </Menu.Item>)}
       </Menu>}>
         <Button type="text"><EllipsisOutlined /></Button>
@@ -46,9 +48,9 @@ const Breadcrumb: React.FC<Props> = ({
     </BaseBreadcrumb.Item> : ''}
     {breadcrumbs.length > 1 ? breadcrumbs.slice(breadcrumbs.length - 1).map(crumb =>
       <BaseBreadcrumb.Item key={crumb.id}>
-        {crumb.id === parent?.id ? <Button type="text">{crumb.name}</Button> :
+        {crumb.id === (parent?.id || null) ? <Button type="text"><Name crumb={crumb} /></Button> :
           <Button type="link" onClick={() => select(crumb)}>
-            {crumb.name}
+            <Name crumb={crumb} />
           </Button>
         }
       </BaseBreadcrumb.Item>
