@@ -7,6 +7,7 @@ import {
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
+  ForkOutlined,
   FolderOpenOutlined,
   GlobalOutlined,
   ScissorOutlined,
@@ -185,7 +186,9 @@ const TableFiles: React.FC<Props> = ({
           type = <TeamOutlined />
         }
 
-        return <Button type="link" style={{ color: '#000' }}>{type} {component} {row.name}</Button>
+        return <Button type="link" style={{ color: '#000' }}>
+          {row.link_id ? <ForkOutlined /> : '' } {type} {component} {row.name}
+        </Button>
       }
     },
     {
