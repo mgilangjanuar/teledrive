@@ -5,7 +5,7 @@ import { useHistory } from 'react-router'
 
 interface Props {
   dataSource: [any[], (data: any[]) => void],
-  dataParent: [string | null, (data: any) => void]
+  dataParent: [string | null | undefined, (data: any) => void]
 }
 
 const Breadcrumb: React.FC<Props> = ({

@@ -1,11 +1,4 @@
-import {
-  CopyOutlined,
-  DeleteOutlined,
-  FolderAddOutlined,
-  HomeOutlined,
-  ScissorOutlined,
-  SnippetsOutlined
-} from '@ant-design/icons'
+import { FolderAddOutlined, HomeOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
@@ -46,7 +39,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const PAGE_SIZE = 10
 
   const history = useHistory()
-  const [parent, setParent] = useState<string | null>(new URLSearchParams(location.search).get('parent') || null)
+  const [parent, setParent] = useState<string | null>()
   const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string | React.ReactElement }>>([{ id: null, name: <><HomeOutlined /> Home</> }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[] }>()
@@ -57,7 +50,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [keyword, setKeyword] = useState<string>()
   const [tab, setTab] = useState<string>(match.params.type || 'mine')
   const [params, setParams] = useState<any>()
-  const [loadingPaste, setLoadingPaste] = useState<boolean>()
   const [addFolder, setAddFolder] = useState<boolean>()
   const [fileRename, setFileRename] = useState<any>()
   const [scrollTop, setScrollTop] = useState<number>(0)
@@ -92,20 +84,26 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [errorMe])
 
   useEffect(() => {
-    if (parent) {
-      req.get(`/files/breadcrumbs/${parent}`)
-        .then(({ data }) => {
-          setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs.map((crumb: any) => ({ id: crumb.id, name: crumb.name }))])
-        })
-    }
-  }, [])
-
-  useEffect(() => {
     const nextPage = () => {
       setScrollTop(document.body.scrollTop)
     }
     nextPage()
     document.body.addEventListener('scroll', nextPage)
+  }, [])
+
+  useEffect(() => {
+    const parentId = new URLSearchParams(location.search).get('parent') || null
+    if (parentId) {
+      req.get(`/files/${parentId}`).then(({ data }) => {
+        setParent(data.file.link_id || data.file.id)
+        req.get(`/files/breadcrumbs/${data.file.id}`)
+          .then(({ data }) => {
+            setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs.map((crumb: any) => ({ id: crumb.id, name: crumb.name }))])
+          })
+      })
+    } else {
+      setParent(null)
+    }
   }, [])
 
   useEffect(() => {
@@ -119,8 +117,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [fileList])
 
   useEffect(() => {
-    change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
-    setScrollTop(0)
+    if (parent !== undefined || keyword !== undefined) {
+      console.log(parent)
+      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      setScrollTop(0)
+    }
   }, [keyword, parent])
 
   useEffect(() => {
@@ -144,6 +145,13 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       })
     }
   }, [action])
+
+  useEffect(() => {
+    if (parent === null && dataChanges?.pagination?.current !== 1) {
+      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      setScrollTop(0)
+    }
+  }, [tab])
 
   useEffect(() => {
     if (filesUpload?.files) {
@@ -224,13 +232,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     }
   }
 
-  useEffect(() => {
-    if (!parent && dataChanges?.pagination?.current !== 1) {
-      change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
-      setScrollTop(0)
-    }
-  }, [tab])
-
   const change = async (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
     setDataChanges({ pagination, filters, sorter })
     fetch(pagination, filters, sorter, actions)
@@ -238,11 +239,18 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   const paste = async (rows: any[]) => {
     rows = rows?.filter(row => row.id !== parent)
-    setLoadingPaste(true)
     setLoading(true)
     try {
       if (action === 'copy') {
-        await Promise.all(rows?.map(async row => await req.post('/files', { file: { ...row, parent_id: parent, id: undefined } })))
+        await Promise.all(rows?.map(async row => {
+          if (row.type === 'folder') {
+            const name = `Link of ${row.name}`
+            await req.post('/files', { file: { ...row, name, link_id: row.id, parent_id: parent, id: undefined } })
+          } else {
+            const name = data?.find(datum => datum.name === row.name) ? `Copy of ${row.name}` : row.name
+            await req.post('/files', { file: { ...row, name, parent_id: parent, id: undefined } })
+          }
+        }))
       } else if (action === 'cut') {
         await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent } })))
       }
@@ -257,7 +265,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     }
     setSelected([])
     setLoading(false)
-    setLoadingPaste(false)
     notification.success({
       message: 'Success',
       description: `Files are ${action === 'cut' ? 'moved' : 'copied'} successfully!`
@@ -295,10 +302,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             <Space wrap>
               {tab === 'mine' ? <>
                 <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
-                <Button shape="circle" icon={<CopyOutlined />} disabled={!selected?.length} onClick={() => setAction('copy')} />
-                <Button shape="circle" icon={<ScissorOutlined />} disabled={!selected?.length} onClick={() => setAction('cut')} />
-                <Button shape="circle" icon={<SnippetsOutlined />} disabled={!action} loading={loadingPaste} onClick={() => paste(selected)} />
-                <Button shape="circle" icon={<DeleteOutlined />} danger type="primary" disabled={!selected?.length} onClick={() => setSelectDeleted(selected)} />
               </> : ''}
               <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
@@ -307,25 +310,40 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             files={files}
             tab={tab}
             onChange={change}
-            onDelete={row => setSelectDeleted(selected?.length ? selected : [row])}
-            onRename={row => setFileRename(row)}
-            onShare={row => setSelectShare(row)}
+            onDelete={row => {
+              if (!selected?.find(select => select.id === row.id)) {
+                setSelected([row])
+                return setSelectDeleted([row])
+              }
+              setSelectDeleted(selected)
+            }}
+            onRename={row => {
+              setSelected([row])
+              setFileRename(row)
+            }}
+            onShare={row => {
+              setSelected([row])
+              setSelectShare(row)
+            }}
             onRowClick={row => {
               if (row.type === 'folder') {
-                setParent(row.id)
+                setParent(row.link_id || row.id)
                 setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
+                if (selected?.find(select => select.id === row.id)) {
+                  setSelected([])
+                }
               } else {
                 history.push(`/view/${row.id}`)
               }
             }}
             onCopy={row => {
-              if (!selected?.length) {
+              if (!selected?.find(select => select.id === row.id)) {
                 setSelected([row])
               }
               setAction('copy')
             }}
             onCut={row => {
-              if (!selected?.length) {
+              if (!selected?.find(select => select.id === row.id)) {
                 setSelected([row])
               }
               setAction('cut')

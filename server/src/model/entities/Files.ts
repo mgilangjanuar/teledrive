@@ -15,9 +15,6 @@ export class Files extends BaseModelWithID {
   message_id?: number
 
   @Column({ default: null })
-  prev_message_id?: number
-
-  @Column({ default: null })
   mime_type?: string
 
   @Column({ default: null })
@@ -55,4 +52,13 @@ export class Files extends BaseModelWithID {
 
   @Column({ default: null, select: false })
   file_id?: string
+
+  @Column({ default: null })
+  link_id?: string
+
+  @ManyToOne(() => Files, file => file.links, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  link?: Files
+
+  @OneToMany(() => Files, file => file.link)
+  links?: Files[]
 }

@@ -1,14 +1,21 @@
 import {
-  AudioOutlined, CopyOutlined, DeleteOutlined,
+  AudioOutlined,
+  CopyOutlined,
+  DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
   FolderOpenOutlined,
-  GlobalOutlined, ScissorOutlined, ShareAltOutlined, SnippetsOutlined, TeamOutlined, VideoCameraOutlined
+  GlobalOutlined,
+  ScissorOutlined,
+  ShareAltOutlined,
+  SnippetsOutlined,
+  TeamOutlined,
+  VideoCameraOutlined
 } from '@ant-design/icons'
-import { Menu, Table } from 'antd'
+import { Button, Menu, Table } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -55,7 +62,7 @@ const TableFiles: React.FC<Props> = ({
 
   useEffect(() => {
     pasteEnabled.current = Boolean(selected?.length && action)
-    const context = document.querySelector('body')
+    const context = document.querySelector('.App')
     context?.addEventListener('contextmenu', function rightClick(e) {
       if (pasteEnabled.current && !(e.target as any)?.outerHTML.match(/^\<td\ /gi)) {
         e.preventDefault()
@@ -67,8 +74,8 @@ const TableFiles: React.FC<Props> = ({
         setPopup({
           row: null,
           visible: true,
-          x: e.clientX,
-          y: e.clientY
+          x: (e as any).clientX,
+          y: (e as any).clientY
         })
       } else if (!pasteEnabled.current) {
         context?.removeEventListener('contextmenu', rightClick)
@@ -87,10 +94,10 @@ const TableFiles: React.FC<Props> = ({
           icon={<EditOutlined />}
           key="rename"
           onClick={() => onRename(popup?.row)}>Rename</Menu.Item>
-        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+        <Menu.Item {...baseProps}
           icon={<CopyOutlined />}
           key="copy"
-          onClick={() => onCopy?.(popup?.row)}>Copy</Menu.Item> : '' }
+          onClick={() => onCopy?.(popup?.row)}>Copy</Menu.Item>
         <Menu.Item {...baseProps}
           icon={<ScissorOutlined />}
           key="cut"
@@ -152,6 +159,9 @@ const TableFiles: React.FC<Props> = ({
         }
       ],
       ellipsis: true,
+      onCell: (row: any) => ({
+        onClick: () => onRowClick(row)
+      }),
       render: (_: any, row: any) => {
         let component
         if (row.type === 'image') {
@@ -175,7 +185,7 @@ const TableFiles: React.FC<Props> = ({
           type = <TeamOutlined />
         }
 
-        return <>{type} {component} {row.name}</>
+        return <Button type="link" style={{ color: '#000' }}>{type} {component} {row.name}</Button>
       }
     },
     {
@@ -214,7 +224,6 @@ const TableFiles: React.FC<Props> = ({
       pagination={false}
       scroll={{ x: 420 }}
       onRow={row => ({
-        onClick: () => onRowClick(row),
         onContextMenu: e => {
           if (tab !== 'mine') return
 
@@ -229,8 +238,6 @@ const TableFiles: React.FC<Props> = ({
           setPopup({
             row,
             visible: true,
-            // x: e.clientX,
-            // y: e.clientY
             x: e.clientX - (parent?.getBoundingClientRect().left || 0),
             y: e.clientY - (parent?.getBoundingClientRect().top || 0)
           })
