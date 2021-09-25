@@ -6,7 +6,7 @@ import { req } from '../../../utils/Fetcher'
 
 interface Props {
   dataFileList: [any[], (data: any[]) => void],
-  parent?: string | null,
+  parent?: Record<string, any> | null,
   onCancel: (file: any) => void
 }
 
@@ -42,7 +42,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
         const { data: response } = await req.post(`/files/upload${firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
           params: {
-            ...parent ? { parent_id: parent || undefined } : {},
+            ...parent?.id ? { parent_id: parent.id || undefined } : {},
             name: file.name,
             size: file.size,
             mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',

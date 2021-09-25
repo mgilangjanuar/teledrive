@@ -6,7 +6,7 @@ import { req } from '../../../utils/Fetcher'
 interface Props {
   dataSource: [any[], (data: any[]) => void],
   dataActivate: [any, (data: any) => void],
-  parent?: string | null
+  parent?: Record<string, any> | null
 }
 
 const AddFolder: React.FC<Props> = ({
@@ -22,7 +22,7 @@ const AddFolder: React.FC<Props> = ({
     const { name } = formAddFolder.getFieldsValue()
     try {
       const { data: result } = await req.post('/files/addFolder', {
-        file: { name, parent_id: parent || undefined }
+        file: { name, parent_id: parent?.id || undefined }
       })
       notification.success({
         message: 'Success',

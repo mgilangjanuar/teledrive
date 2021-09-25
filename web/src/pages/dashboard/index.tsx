@@ -39,10 +39,14 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const PAGE_SIZE = 10
 
   const history = useHistory()
-  const [parent, setParent] = useState<string | null>()
+  const [parent, setParent] = useState<Record<string, any> | null>()
   const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /> Home</> }])
   const [data, setData] = useState<any[]>([])
-  const [dataChanges, setDataChanges] = useState<{ pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[] }>()
+  const [dataChanges, setDataChanges] = useState<{
+    pagination?: TablePaginationConfig,
+    filters?: Record<string, FilterValue | null>,
+    sorter?: SorterResult<any> | SorterResult<any>[]
+  }>()
   const [selected, setSelected] = useState<any[]>([])
   const [action, setAction] = useState<string>()
   const [selectShare, setSelectShare] = useState<any>()
@@ -95,7 +99,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     const parentId = new URLSearchParams(location.search).get('parent') || null
     if (parentId) {
       req.get(`/files/${parentId}`).then(({ data }) => {
-        setParent(data.file.link_id || data.file.id)
+        setParent(data.file)
         req.get(`/files/breadcrumbs/${data.file.id}`)
           .then(({ data }) => {
             setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs])
@@ -125,9 +129,9 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }, [keyword, parent])
 
   useEffect(() => {
-    if (parent) {
+    if (parent?.id) {
       const searchParams = new URLSearchParams(window.location.search)
-      searchParams.set('parent', parent)
+      searchParams.set('parent', parent?.id)
       history.replace(`/dashboard${tab === 'shared' ? `/${tab}` : ''}?${searchParams.toString()}`)
     }
   }, [parent])
@@ -181,7 +185,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
     setLoading(true)
     setParams({
-      ...parent ? { parent_id: parent } : { 'parent_id.is': 'null' },
+      ...parent?.id ? { parent_id: parent.id } : { 'parent_id.is': 'null' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       take: PAGE_SIZE,
@@ -214,7 +218,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       }
       const filters = {
         ...dataChanges?.filters,
-        ...parent ? { parent_id: [parent] } : { 'parent_id.is': ['null'] },
+        ...(parent as any)?.id ? { parent_id: [(parent as any).id] } : { 'parent_id.is': ['null'] },
         ...key === 'shared' ? {
           shared: [1],
           'parent_id.is': [undefined as any]
@@ -238,21 +242,21 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }
 
   const paste = async (rows: any[]) => {
-    rows = rows?.filter(row => row.id !== parent)
+    rows = rows?.filter(row => row.id !== parent?.id)
     setLoading(true)
     try {
       if (action === 'copy') {
         await Promise.all(rows?.map(async row => {
           if (row.type === 'folder') {
             const name = `Link of ${row.name}`
-            await req.post('/files', { file: { ...row, name, link_id: row.id, parent_id: parent, id: undefined } })
+            await req.post('/files', { file: { ...row, name, link_id: row.id, parent_id: parent?.id, id: undefined } })
           } else {
             const name = data?.find(datum => datum.name === row.name) ? `Copy of ${row.name}` : row.name
-            await req.post('/files', { file: { ...row, name, parent_id: parent, id: undefined } })
+            await req.post('/files', { file: { ...row, name, parent_id: parent?.id, id: undefined } })
           }
         }))
       } else if (action === 'cut') {
-        await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent } })))
+        await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent?.id } })))
       }
     } catch (error) {
       // ignore
@@ -327,7 +331,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             }}
             onRowClick={row => {
               if (row.type === 'folder') {
-                setParent(row.link_id || row.id)
+                setParent(row)
                 setBreadcrumbs([...breadcrumbs, row])
                 if (selected?.find(select => select.id === row.id)) {
                   setSelected([])

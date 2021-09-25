@@ -5,7 +5,7 @@ import { useHistory } from 'react-router'
 
 interface Props {
   dataSource: [any[], (data: any[]) => void],
-  dataParent: [string | null | undefined, (data: any) => void]
+  dataParent: [Record<string, any> | null | undefined, (data: any) => void]
 }
 
 const Breadcrumb: React.FC<Props> = ({
@@ -16,7 +16,7 @@ const Breadcrumb: React.FC<Props> = ({
   const history = useHistory()
 
   const select = (crumb: any) => {
-    setParent(crumb?.id)
+    setParent(crumb)
     const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb?.id)
     setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
 
@@ -28,7 +28,7 @@ const Breadcrumb: React.FC<Props> = ({
   return <BaseBreadcrumb>
     {breadcrumbs.slice(0, 1).map(crumb =>
       <BaseBreadcrumb.Item key={crumb.id}>
-        {crumb.id === parent ? <Button type="text">{crumb.name}</Button> :
+        {crumb.id === parent?.id ? <Button type="text">{crumb.name}</Button> :
           <Button type="link" onClick={() => select(crumb)}>
             {crumb.name}
           </Button>
@@ -46,7 +46,7 @@ const Breadcrumb: React.FC<Props> = ({
     </BaseBreadcrumb.Item> : ''}
     {breadcrumbs.length > 1 ? breadcrumbs.slice(breadcrumbs.length - 1).map(crumb =>
       <BaseBreadcrumb.Item key={crumb.id}>
-        {crumb.id === parent ? <Button type="text">{crumb.name}</Button> :
+        {crumb.id === parent?.id ? <Button type="text">{crumb.name}</Button> :
           <Button type="link" onClick={() => select(crumb)}>
             {crumb.name}
           </Button>
