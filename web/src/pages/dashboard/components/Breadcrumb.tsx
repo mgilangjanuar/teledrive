@@ -15,12 +15,12 @@ const Breadcrumb: React.FC<Props> = ({
 
   const history = useHistory()
 
-  const select = (id: string) => {
-    setParent(id)
-    const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === id)
+  const select = (crumb: any) => {
+    setParent(crumb?.id)
+    const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb?.id)
     setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
 
-    if (!id) {
+    if (!crumb?.id) {
       history.replace(location.pathname)
     }
   }
@@ -29,7 +29,7 @@ const Breadcrumb: React.FC<Props> = ({
     {breadcrumbs.slice(0, 1).map(crumb =>
       <BaseBreadcrumb.Item key={crumb.id}>
         {crumb.id === parent ? <Button type="text">{crumb.name}</Button> :
-          <Button type="link" onClick={() => select(crumb.id)}>
+          <Button type="link" onClick={() => select(crumb)}>
             {crumb.name}
           </Button>
         }
@@ -37,7 +37,7 @@ const Breadcrumb: React.FC<Props> = ({
     )}
     {breadcrumbs.length > 2 ? <BaseBreadcrumb.Item key="ellipsis">
       <Dropdown trigger={['click']} placement="bottomCenter" overlay={<Menu>
-        {breadcrumbs.slice(1, breadcrumbs.length - 1).map(crumb => <Menu.Item key={crumb.id} onClick={() => select(crumb.id)}>
+        {breadcrumbs.slice(1, breadcrumbs.length - 1).map(crumb => <Menu.Item key={crumb.id} onClick={() => select(crumb)}>
           {crumb.name}
         </Menu.Item>)}
       </Menu>}>
@@ -47,7 +47,7 @@ const Breadcrumb: React.FC<Props> = ({
     {breadcrumbs.length > 1 ? breadcrumbs.slice(breadcrumbs.length - 1).map(crumb =>
       <BaseBreadcrumb.Item key={crumb.id}>
         {crumb.id === parent ? <Button type="text">{crumb.name}</Button> :
-          <Button type="link" onClick={() => select(crumb.id)}>
+          <Button type="link" onClick={() => select(crumb)}>
             {crumb.name}
           </Button>
         }

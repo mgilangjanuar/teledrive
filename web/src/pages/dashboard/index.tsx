@@ -40,7 +40,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   const history = useHistory()
   const [parent, setParent] = useState<string | null>()
-  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string | null, name: string | React.ReactElement }>>([{ id: null, name: <><HomeOutlined /> Home</> }])
+  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /> Home</> }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{ pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[] }>()
   const [selected, setSelected] = useState<any[]>([])
@@ -98,7 +98,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         setParent(data.file.link_id || data.file.id)
         req.get(`/files/breadcrumbs/${data.file.id}`)
           .then(({ data }) => {
-            setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs.map((crumb: any) => ({ id: crumb.id, name: crumb.name }))])
+            setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs])
           })
       })
     } else {
@@ -328,7 +328,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             onRowClick={row => {
               if (row.type === 'folder') {
                 setParent(row.link_id || row.id)
-                setBreadcrumbs([...breadcrumbs, { id: row.id, name: row.name }])
+                setBreadcrumbs([...breadcrumbs, row])
                 if (selected?.find(select => select.id === row.id)) {
                   setSelected([])
                 }
