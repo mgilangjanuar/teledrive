@@ -1,6 +1,6 @@
 import { Layout } from 'antd'
-import React from 'react'
-import { Route, Switch } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Route, Switch, useLocation } from 'react-router-dom'
 import NotFound from './pages/errors/NotFound'
 import Dashboard from './pages/dashboard'
 import Contact from './pages/Contact'
@@ -18,6 +18,9 @@ function App(): React.ReactElement {
   if (location.host !== 'teledriveapp.com' && localStorage.getItem('environment') !== 'staging') {
     location.replace(location.href.replace(location.host, 'teledriveapp.com'))
   }
+  const { pathname } = useLocation()
+  useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
+
   return (
     <Layout className="App">
       <Switch>

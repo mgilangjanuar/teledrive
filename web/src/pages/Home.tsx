@@ -1,7 +1,7 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
-import React, { useEffect } from 'react'
+import React from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
@@ -13,8 +13,6 @@ const Home: React.FC = () => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
   const [form] = useForm()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
-
-  useEffect(() => window.scrollTo(0, 0), [])
 
   const submit = async () => {
     const { email } = form.getFieldsValue()

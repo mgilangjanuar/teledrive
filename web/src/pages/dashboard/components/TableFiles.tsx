@@ -72,11 +72,12 @@ const TableFiles: React.FC<Props> = ({
           document.removeEventListener('click', onClickOutside)
         })
 
+        const parent = document.querySelector('.ant-col-24.ant-col-md-20.ant-col-md-offset-2')
         setPopup({
           row: null,
           visible: true,
-          x: (e as any).clientX,
-          y: (e as any).clientY
+          x: (e as any).clientX - (parent?.getBoundingClientRect().left || 0),
+          y: (e as any).clientY - (parent?.getBoundingClientRect().top || 0)
         })
       } else if (!pasteEnabled.current) {
         context?.removeEventListener('contextmenu', rightClick)
@@ -90,7 +91,7 @@ const TableFiles: React.FC<Props> = ({
     }
     if (!popup?.visible) return <></>
     if (popup?.row) {
-      return <Menu style={{ zIndex: 1, position: 'absolute', left: `${popup?.x}px`, top: `${popup?.y}px` }}>
+      return <Menu style={{ zIndex: 1, position: 'absolute', left: `${popup?.x}px`, top: `${popup?.y}px`, boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)' }}>
         <Menu.Item {...baseProps}
           icon={<EditOutlined />}
           key="rename"
@@ -119,7 +120,7 @@ const TableFiles: React.FC<Props> = ({
       </Menu>
     }
     if (selected?.length && action) {
-      return <Menu defaultSelectedKeys={['download']} style={{ position: 'fixed', left: `${popup?.x}px`, top: `${popup?.y}px` }}>
+      return <Menu defaultSelectedKeys={['download']} style={{ position: 'absolute', left: `${popup?.x}px`, top: `${popup?.y}px`, boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)' }}>
         <Menu.Item style={{ margin: 0 }} icon={<SnippetsOutlined />} key="paste" onClick={() => onPaste?.(selected)}>Paste</Menu.Item>
       </Menu>
     }

@@ -17,7 +17,7 @@ html, body {
 }
 
 .App {
-  min-height: 135vh;
+  min-height: 100vh;
 }
 
 .ant-layout-header {
@@ -29,6 +29,7 @@ html, body {
 }
 
 .container {
+  min-height: 80vh;
   padding: 24px 12px;
 }
 
