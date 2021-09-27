@@ -95,7 +95,10 @@ export class Files {
       throw { status: 400, body: { error: 'File is required in body' } }
     }
 
-    const currentFile = await Model.findOne({ where: { id, user_id: req.user.id } })
+    const currentFile = await Model.createQueryBuilder('files')
+      .where({ id, user_id: req.user.id })
+      .addSelect('files.signed_key')
+      .getOne()
     if (!currentFile) {
       throw { status: 404, body: { error: 'File not found' } }
     }
