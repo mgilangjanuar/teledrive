@@ -140,6 +140,7 @@ const View: React.FC<PageProps> = ({ match }) => {
             e.target.contentWindow.document.body.style.display = 'flex'
             e.target.contentWindow.document.body.style.justifyContent = 'center'
             e.target.contentWindow.document.body.style.alignItems = 'center'
+            e.target.contentWindow.document.body.style.margin = 0
           } catch (error) {
             // ignore
           }
