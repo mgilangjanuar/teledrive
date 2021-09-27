@@ -15,7 +15,7 @@ export class Files {
 
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, skip, take, shared, ...filters } = req.query
+    const { sort, skip, take, shared, t: _t, ...filters } = req.query
     const [files, length] = await Model.createQueryBuilder('files')
       .where(!shared ? 'files.user_id = :user' : ':user = any(sharing_options)', {
         user: !shared ? req.user.id : req.user.username })

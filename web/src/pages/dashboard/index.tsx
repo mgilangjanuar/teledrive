@@ -200,6 +200,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       ...(sorter as SorterResult<any>)?.order ? {
         sort: `${(sorter as SorterResult<any>).column?.dataIndex}:${(sorter as SorterResult<any>).order?.replace(/end$/gi, '')}`
       } : { sort: 'created_at:desc' },
+      t: new Date().getTime()
     })
   }
 

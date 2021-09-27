@@ -27,6 +27,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.3",
     "nanoid": "^3.1.25",
+    "node-mailjet": "^3.3.4",
     "pg": "^8.7.1",
     "serialize-error": "^8.1.0",
     "source-map-support": "^0.5.19",

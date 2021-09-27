@@ -1,4 +1,4 @@
-import { InboxOutlined } from '@ant-design/icons'
+import { CloudUploadOutlined } from '@ant-design/icons'
 import { notification, Upload as BaseUpload } from 'antd'
 import React, { useRef } from 'react'
 import mime from 'mime-types'
@@ -105,7 +105,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return false
     }}
     onChange={async ({ fileList }) => setFileList(fileList)}>
-    <p className="ant-upload-drag-icon"> <InboxOutlined /></p>
+    <p className="ant-upload-drag-icon"><CloudUploadOutlined /></p>
     <p className="ant-upload-text">Click or drag file to this area to upload</p>
     <p className="ant-upload-hint">
       Maximum file size is 2 GB
