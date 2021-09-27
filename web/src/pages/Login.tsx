@@ -18,6 +18,8 @@ const Login: React.FC = () => {
   const [needPassword, setNeedPassword] = useState<boolean>()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
 
+  useEffect(() => window.scrollTo(0, 0), [])
+
   const sendCode = async (phoneNumber: string) => {
     if (!phoneNumber) {
       return notification.error({

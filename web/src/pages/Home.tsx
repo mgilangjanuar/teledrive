@@ -1,7 +1,7 @@
-import { CloudOutlined, DollarCircleOutlined, ArrowRightOutlined, SecurityScanOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
-import React from 'react'
+import React, { useEffect } from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
@@ -13,6 +13,8 @@ const Home: React.FC = () => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
   const [form] = useForm()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
+
+  useEffect(() => window.scrollTo(0, 0), [])
 
   const submit = async () => {
     const { email } = form.getFieldsValue()
@@ -67,10 +69,7 @@ const Home: React.FC = () => {
         </Col>
         <Col lg={{ span: 10 }} span={24} style={{ textAlign: 'center', marginTop: '50px' }}>
           <Layout.Content>
-            <img style={{ width: '100%', maxWidth: '640px' }} src="./uploading-animate.svg" alt="Illustration.svg" />
-            <p style={{ fontSize: '11px' }}>
-              <a href="https://storyset.com/online">Online illustrations by Storyset</a>
-            </p>
+            <img style={{ width: '100%', maxWidth: '640px' }} src="./uploading-animate.svg" alt="Online illustrations by Storyset" />
           </Layout.Content>
         </Col>
       </Row>
@@ -144,7 +143,7 @@ const Home: React.FC = () => {
               </Typography.Paragraph>
             </Col>
             <Col lg={12} span={24} style={{ textAlign: 'left', marginBottom: '30px' }}>
-              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Beloved Sponsor</Typography.Title>
+              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Sponsor</Typography.Title>
               <Typography.Paragraph style={{ marginBottom: '20px' }}>
                 <Space wrap>
                   <Tooltip placement="bottom" title="Bahasa.ai - Chatbot Which Serves Customers Fully" key="bahasa-ai">
@@ -172,6 +171,7 @@ const Home: React.FC = () => {
 
     </Layout.Content>
     <Footer />
+    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="mgilangjanuar" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FFDD00" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
   </div>
 }
 

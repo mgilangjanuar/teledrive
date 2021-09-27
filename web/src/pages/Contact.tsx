@@ -14,6 +14,8 @@ const Contact: React.FC = () => {
     onSuccess: ({ user }) => form.setFieldsValue({ from: user.username })
   })
 
+  useEffect(() => window.scrollTo(0, 0), [])
+
   useEffect(() => {
     const intent = new URLSearchParams(location.search).get('intent')
     console.log(intent)

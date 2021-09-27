@@ -143,7 +143,7 @@ const View: React.FC<PageProps> = ({ match }) => {
           } catch (error) {
             // ignore
           }
-        }} className="viewContent" style={{ height: '100%', width: '100%' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe>
+        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe>
       </Layout.Content>
       <Layout.Sider width={340} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
         <Layout.Content className="container" style={{ ...contentStyle || {}, color: '#fff', margin: '70px 10px' }}>
@@ -176,7 +176,7 @@ const View: React.FC<PageProps> = ({ match }) => {
       <div style={{ position: 'absolute', right: 20, top: 30 }}>
         <Space direction="horizontal">
           {!showContent && <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />}
-          {!showContent && <Dropdown placement="bottomRight" trigger={['click']} overlay={<Menu>
+          {!showContent && me?.user && <Dropdown placement="bottomRight" trigger={['click']} overlay={<Menu>
             <Menu.Item key="rename" onClick={() => setFileRename(data?.file)} icon={<EditOutlined />}>Rename</Menu.Item>
             <Menu.Item key="share" onClick={() => setSelectShare(data?.file)} icon={<ShareAltOutlined />}>Share</Menu.Item>
             <Menu.Item key="download" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />}>Download</Menu.Item>

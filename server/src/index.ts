@@ -25,9 +25,7 @@ const app = express()
 app.use(cors({
   credentials: true,
   origin: [
-    /localhost:[0-9]{1,7}$/,
-    'teledrive.vercel.app',
-    'teledriveapp.com'
+    /.*/
   ]
 }))
 app.use(compression())

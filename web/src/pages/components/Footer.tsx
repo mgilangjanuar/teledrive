@@ -1,26 +1,59 @@
 import { GithubOutlined, TwitterOutlined } from '@ant-design/icons'
-import { Button, Divider, Layout, Typography } from 'antd'
+import { Button, Col, Divider, Layout, Row, Space, Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
 const Footer: React.FC = () => {
-  return <Layout.Footer style={{ textAlign: 'center' }}>
-    <Divider />
-    <Typography.Paragraph>
-      <Typography.Text>TeleDrive &copy; 2021</Typography.Text>
-    </Typography.Paragraph>
-    <Typography.Paragraph style={{ padding: '0 20px' }}>
-      <Button type="link" size="small"><Link to="/">Home</Link></Button>
-      <Button type="link" size="small"><Link to="/pricing">Pricing</Link></Button>
-      <Button type="link" size="small"><Link to="/contact">Contact Us</Link></Button>
-      <Button type="link" size="small"><Link to="/privacy">Privacy Policy</Link></Button>
-      <Button type="link" size="small"><Link to="/terms">Terms</Link></Button>
-    </Typography.Paragraph>
-    <Typography.Paragraph style={{ padding: '0 20px' }}>
-      <Button type="link" size="small" href="https://github.com/mgilangjanuar/teledrive" target="_blank" icon={<GithubOutlined />}>GitHub</Button>
-      <Button type="link" size="small" href="https://twitter.com/teledriveapp" target="_blank" icon={<TwitterOutlined />}>Twitter</Button>
-    </Typography.Paragraph>
-  </Layout.Footer>
+  return <>
+    <Layout.Footer style={{ background: '#f0f2f5', marginTop: '100px', paddingTop: '50px' }}>
+      <Row>
+        <Col lg={{ span: 16, offset: 4 }} md={{ span: 22, offset: 1 }} span={24}>
+          <Row gutter={72}>
+            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
+              <Typography.Paragraph>
+                <Button type="link" style={{ fontSize: '20px', fontWeight: 'bolder' }}
+                  icon={<img src="/logo192.png" style={{ width: '24px' }} />}>
+                  <Link to="/">&nbsp; TeleDrive</Link>
+                </Button>
+              </Typography.Paragraph>
+              <Typography.Paragraph type="secondary">
+                made with &hearts; from Indonesia 🇮🇩
+              </Typography.Paragraph>
+            </Col>
+            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
+              <Typography.Title level={5}>Support Us</Typography.Title>
+              <Typography.Paragraph>
+                <a href="https://www.buymeacoffee.com/mgilangjanuar" target="_blank">
+                  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ width: '100%', maxWidth: '160px' }} />
+                </a>
+              </Typography.Paragraph>
+            </Col>
+            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
+              <Typography.Title level={5}>Links</Typography.Title>
+              <Space direction="vertical">
+                <Link to="/">Home</Link>
+                <Link to="/pricing">Pricing</Link>
+                <Link to="/contact">Contact Us</Link>
+                <Link to="/privacy">Privacy Policy</Link>
+                <Link to="/terms">Terms &amp; Conditions</Link>
+              </Space>
+            </Col>
+            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
+              <Typography.Title level={5}>Social Media</Typography.Title>
+              <Space direction="horizontal">
+                <Button type="link" size="small" href="https://github.com/mgilangjanuar/teledrive" target="_blank" icon={<GithubOutlined />}>GitHub</Button>
+                <Button type="link" size="small" href="https://twitter.com/teledriveapp" target="_blank" icon={<TwitterOutlined />}>Twitter</Button>
+              </Space>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+      <Divider />
+      <Typography.Paragraph style={{ textAlign: 'center' }}>
+        Copyright &copy; {new Date().getFullYear()}
+      </Typography.Paragraph>
+    </Layout.Footer>
+  </>
 }
 
 export default Footer

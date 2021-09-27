@@ -1,5 +1,6 @@
 import {
   AudioOutlined,
+  BranchesOutlined,
   CopyOutlined,
   DeleteOutlined,
   DownloadOutlined,
@@ -7,7 +8,6 @@ import {
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
-  ForkOutlined,
   FolderOpenOutlined,
   GlobalOutlined,
   ScissorOutlined,
@@ -187,7 +187,7 @@ const TableFiles: React.FC<Props> = ({
         }
 
         return <Button type="link" style={{ color: '#000' }}>
-          {row.link_id ? <ForkOutlined /> : '' } {type} {component} {row.name}
+          {row.link_id ? <BranchesOutlined /> : '' } {type} {component} {row.name}
         </Button>
       }
     },
@@ -225,7 +225,7 @@ const TableFiles: React.FC<Props> = ({
       columns={columns as any}
       onChange={onChange}
       pagination={false}
-      scroll={{ x: 420 }}
+      scroll={{ x: 340 }}
       onRow={row => ({
         onContextMenu: e => {
           if (tab !== 'mine') return

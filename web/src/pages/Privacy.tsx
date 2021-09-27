@@ -1,5 +1,5 @@
 import { Col, Layout, Row } from 'antd'
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import useSWRImmutable from 'swr/immutable'
@@ -9,6 +9,9 @@ import Navbar from './components/Navbar'
 
 const Privacy: React.FC = () => {
   const { data } = useSWRImmutable('/documents/privacy', fetcher)
+
+  useEffect(() => window.scrollTo(0, 0), [])
+
   return <>
     <Navbar />
     <Layout.Content className="container">

@@ -12,7 +12,7 @@ import Terms from './pages/Terms'
 import View from './pages/View'
 
 import 'antd/dist/antd.min.css'
-import './App.css'
+import './App.less'
 
 function App(): React.ReactElement {
   if (location.host !== 'teledriveapp.com' && localStorage.getItem('environment') !== 'staging') {

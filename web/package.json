@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^6.3.0",
     "antd": "^4.16.13",
     "axios": "^0.21.4",
     "clipboardy": "^2.3.0",
+    "craco-antd": "^1.19.0",
     "js-cookie": "^3.0.1",
     "mime-types": "^2.1.32",
     "pretty-bytes": "^5.6.0",
@@ -26,10 +28,10 @@
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "craco eject"
   },
   "eslintConfig": {
     "extends": [

@@ -11,3 +11,52 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+html, body {
+  overflow-x: hidden !important;
+}
+
+.App {
+  min-height: 135vh;
+}
+
+.ant-layout-header {
+  padding: 0 30px;
+}
+
+.ant-layout, footer, .ant-layout-footer {
+  background: #fff;
+}
+
+.container {
+  padding: 24px 12px;
+}
+
+.logo {
+  float: left;
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.2em;
+}
+
+.upload .ant-drawer-content-wrapper {
+  height: 40% !important;
+}
+
+.input-search-round input, .input-search-round .ant-input-affix-wrapper {
+  border-radius: 32px 0 0 32px !important;
+  padding: 4px 16px;
+}
+
+.input-search-round button.ant-btn.ant-btn-primary.ant-input-search-button {
+  border-radius: 0 32px 32px 0 !important;
+  padding: 4px 16px;
+}
+
+.tableFiles td {
+  cursor: pointer;
+}
+
+.ant-table-placeholder {
+  overflow: -moz-hidden-unscrollable;
+}

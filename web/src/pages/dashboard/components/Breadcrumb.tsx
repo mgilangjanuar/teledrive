@@ -1,4 +1,4 @@
-import { EllipsisOutlined, FolderOpenOutlined, ForkOutlined } from '@ant-design/icons'
+import { BranchesOutlined, EllipsisOutlined, FolderOpenOutlined } from '@ant-design/icons'
 import { Breadcrumb as BaseBreadcrumb, Button, Dropdown, Menu } from 'antd'
 import React from 'react'
 import { useHistory } from 'react-router'
@@ -25,7 +25,7 @@ const Breadcrumb: React.FC<Props> = ({
     }
   }
 
-  const Name = ({ crumb }: any) => <>{crumb.link_id ? <ForkOutlined /> : ''} {crumb?.id ? <FolderOpenOutlined /> : ''} {crumb.name}</>
+  const Name = ({ crumb }: any) => <>{crumb.link_id ? <BranchesOutlined /> : ''} {crumb?.id ? <FolderOpenOutlined /> : ''} {crumb.name}</>
 
   return <BaseBreadcrumb>
     {breadcrumbs.slice(0, 1).map(crumb =>

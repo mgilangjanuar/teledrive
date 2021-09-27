@@ -1,6 +1,6 @@
 import { ArrowRightOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Layout, Row, Typography } from 'antd'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
@@ -12,6 +12,8 @@ const Pricing: React.FC = () => {
   const history = useHistory()
   const [annually, _setAnnually] = useState<boolean>(false)
   const { data: me } = useSWRImmutable('/users/me', fetcher)
+
+  useEffect(() => window.scrollTo(0, 0), [])
 
   const select = (plan: 'free' | 'premium' | 'professional' | 'donation') => {
     if (plan === 'free' || me?.user.plan === plan) {
