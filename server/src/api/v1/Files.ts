@@ -1,11 +1,11 @@
 import bigInt from 'big-integer'
+import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import { sign, verify } from 'jsonwebtoken'
 import multer from 'multer'
 import { Api, TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
 import { Files as Model } from '../../model/entities/Files'
-import { PLANS, TG_CREDS } from '../../utils/Constant'
+import { TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -125,8 +125,7 @@ export class Files {
 
     let key: string = currentFile.signed_key
     if (file.sharing_options?.length && !key) {
-      const signedKey = sign({ file: { id: file.id }, session: req.tg.session.save() }, process.env.FILES_JWT_SECRET)
-      key = Buffer.from(signedKey).toString('base64')
+      key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
     }
 
     const { affected } = await Model.createQueryBuilder('files')
@@ -301,10 +300,10 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    const key = Buffer.from(file.signed_key, 'base64').toString()
     let data: { file: { id: string }, session: string }
     try {
-      data = verify(key, process.env.FILES_JWT_SECRET) as { file: { id: string }, session: string }
+      console.log(file.signed_key, process.env.FILES_JWT_SECRET)
+      data = JSON.parse(AES.decrypt(file.signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
     } catch (error) {
       console.error(error)
       throw { status: 401, body: { error: 'Invalid token' } }

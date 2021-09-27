@@ -1,3 +1,4 @@
+import { AES } from 'crypto-js'
 import { Request, Response } from 'express'
 import { sign, verify } from 'jsonwebtoken'
 import { Api, TelegramClient } from 'telegram'
@@ -128,8 +129,8 @@ export class Auth {
       .where('user_id = :user_id and signed_key is not null', { user_id: user.id })
       .getMany()
       .then(files => files?.map(file => {
-        const signedKey = sign({ file: { id: file.id }, session }, process.env.FILES_JWT_SECRET)
-        Files.update(file.id, { signed_key: Buffer.from(signedKey).toString('base64') })
+        const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+        Files.update(file.id, { signed_key: signedKey })
       }))
   }
 
