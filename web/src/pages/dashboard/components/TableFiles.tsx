@@ -187,7 +187,7 @@ const TableFiles: React.FC<Props> = ({
           type = <TeamOutlined />
         }
 
-        return <Button type="link" style={{ color: '#000' }}>
+        return <Button type="link" style={{ color: '#000', paddingLeft: 0, paddingRight: 0 }}>
           {row.link_id ? <BranchesOutlined /> : '' } {type} {component} {row.name}
         </Button>
       }

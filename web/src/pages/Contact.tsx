@@ -49,7 +49,7 @@ const Contact: React.FC = () => {
   return <>
     <Navbar user={me} />
     <Layout.Content className="container">
-      <Row style={{ marginTop: '50px' }}>
+      <Row style={{ marginTop: '80px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
           <Typography.Title>
             Contact Us

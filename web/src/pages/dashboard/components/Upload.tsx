@@ -82,6 +82,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   }
 
   return <BaseUpload.Dragger name="upload"
+    multiple
     customRequest={upload}
     beforeUpload={file => {
       if (file.size / 1_000_000_000 > 2) {

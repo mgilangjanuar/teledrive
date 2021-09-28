@@ -103,29 +103,6 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    // TODO: checking plans
-    // if (file.sharing_options?.length) {
-    //   const sharingUsers = file.sharing_options.filter((user: string) => user !== '*').length
-    //   if (sharingUsers > PLANS[req.user.plan].sharingUsers) {
-    //     throw { status: 402, body: { error: 'Payment required' } }
-    //   }
-    //   const publicFiles = await Model.createQueryBuilder('files')
-    //     .where('\'*\' = any(sharing_options) and user_id = :user_id', {
-    //       user_id: req.user?.id })
-    //     .getCount()
-    //   if (publicFiles > PLANS[req.user.plan].publicFiles) {
-    //     throw { status: 402, body: { error: 'Payment required' } }
-    //   }
-
-    //   const sharedFiles = await Model.createQueryBuilder('files')
-    //     .where('sharing_options is not null and sharing_options::text != \'{}\' and user_id = :user_id', {
-    //       user_id: req.user?.id })
-    //     .getCount()
-    //   if (sharedFiles > PLANS[req.user.plan].sharedFiles) {
-    //     throw { status: 402, body: { error: 'Payment required' } }
-    //   }
-    // }
-
     let key: string = currentFile.signed_key
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()

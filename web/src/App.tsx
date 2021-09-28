@@ -4,6 +4,7 @@ import { Route, Switch, useLocation } from 'react-router-dom'
 import NotFound from './pages/errors/NotFound'
 import Dashboard from './pages/dashboard'
 import Contact from './pages/Contact'
+import Faq from './pages/Faq'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Pricing from './pages/Pricing'
@@ -31,6 +32,7 @@ function App(): React.ReactElement {
         <Route path="/privacy" exact component={Privacy} />
         <Route path="/pricing" exact component={Pricing} />
         <Route path="/contact" exact component={Contact} />
+        <Route path="/faq" exact component={Faq} />
         <Route path="/" exact component={Home} />
         <Route component={NotFound} />
       </Switch>
