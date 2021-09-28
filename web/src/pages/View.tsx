@@ -132,15 +132,23 @@ const View: React.FC<PageProps> = ({ match }) => {
   }
 
   return <>
-    <Layout style={{ minHeight: '100vh', overflow: 'hidden' }}>
+    <Layout style={{ minHeight: '100vh', overflow: 'hidden', background: '#2a2a2a', color: 'rgb(251,251,254)' }}>
       <Layout.Content>
         <iframe onLoad={(e: any) => {
           try {
-            e.target.contentWindow.document.body.style.height = '100%'
-            e.target.contentWindow.document.body.style.display = 'flex'
-            e.target.contentWindow.document.body.style.justifyContent = 'center'
-            e.target.contentWindow.document.body.style.alignItems = 'center'
-            e.target.contentWindow.document.body.style.margin = 0
+            e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
+            e.target.contentWindow.document.img.style.textAlign = 'center'
+            e.target.contentWindow.document.img.style.position = 'absolute'
+            e.target.contentWindow.document.img.style.margin = 'auto'
+            e.target.contentWindow.document.img.style.top = 0
+            e.target.contentWindow.document.img.style.right = 0
+            e.target.contentWindow.document.img.style.bottom = 0
+            e.target.contentWindow.document.img.style.left = 0
+            // e.target.contentWindow.document.body.style.height = '100%'
+            // e.target.contentWindow.document.body.style.display = 'flex'
+            // e.target.contentWindow.document.body.style.justifyContent = 'center'
+            // e.target.contentWindow.document.body.style.alignItems = 'center'
+            // e.target.contentWindow.document.body.style.margin = 0
           } catch (error) {
             // ignore
           }
