@@ -14,7 +14,6 @@ import express, {
   urlencoded
 } from 'express'
 import listEndpoints from 'express-list-endpoints'
-import rateLimit from 'express-rate-limit'
 import morgan from 'morgan'
 import path from 'path'
 import { API } from './api'
@@ -22,11 +21,11 @@ import { runDB } from './model'
 
 runDB()
 
-const limiter = rateLimit({
-  windowMs: 60_000,
-  max: 600,
-  message: { status: 429, message: 'You hit the limit 600rpm', error: 'Too many requests' }
-})
+// const limiter = rateLimit({
+//   windowMs: 60_000,
+//   max: 600,
+//   message: { status: 429, message: 'You hit the limit 600rpm', error: 'Too many requests' }
+// })
 const app = express()
 app.use(cors({
   credentials: true,
@@ -41,7 +40,7 @@ app.use(raw())
 app.use(cookieParser())
 app.use(morgan('tiny'))
 
-app.use(limiter)
+// app.use(limiter)
 app.get('/ping', (_, res) => res.send({ pong: true }))
 app.use('/api', API)
 

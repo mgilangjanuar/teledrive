@@ -68,16 +68,27 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
     setLoading(false)
     if (files?.files) {
+      let newData: any[] = []
       if (!params?.skip || !dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
-        return setData(files.files.map((file: any) => ({ ...file, key: file.id })))
+        newData = files.files.map((file: any) => ({ ...file, key: file.id }))
+      } else {
+        newData = [
+          ...data.map(row => files.files.find((file: any) => file.id === row.id) || row).map(file => ({ ...file, key: file.id })),
+          ...files.files.map((file: any) => ({ ...file, key: file.id }))
+        ].reduce((res, row) => [
+          ...res, !res.filter(Boolean).find((r: any) => r.id === row.id) ? row : null
+        ], []).filter(Boolean)
       }
-      const filters = [
-        ...data.map(row => files.files.find((file: any) => file.id === row.id) || row).map(file => ({ ...file, key: file.id })),
-        ...files.files.map((file: any) => ({ ...file, key: file.id }))
-      ].reduce((res, row) => [
-        ...res, !res.filter(Boolean).find((r: any) => r.id === row.id) ? row : null
-      ], []).filter(Boolean)
-      setData(filters)
+
+      if (!fileList?.length) {
+        const deletedFiles = newData.filter(file => file.upload_progress !== null)
+        if (deletedFiles?.length) {
+          deletedFiles.map(file => req.delete(`/files/${file.id}`))
+          newData = newData.filter(file => !deletedFiles.find(deleted => deleted.id === file.id))
+        }
+      }
+
+      setData(newData)
     }
   } })
 
