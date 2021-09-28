@@ -17,7 +17,10 @@ const Footer: React.FC = () => {
                 </Button>
               </Typography.Paragraph>
               <Typography.Paragraph type="secondary">
-                made with &hearts; from Indonesia 🇮🇩
+                Your free unlimited cloud storage service using the Telegram API.
+              </Typography.Paragraph>
+              <Typography.Paragraph type="secondary">
+                Made with &hearts; from Indonesia 🇮🇩
               </Typography.Paragraph>
             </Col>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
@@ -26,6 +29,9 @@ const Footer: React.FC = () => {
                 <a href="https://www.buymeacoffee.com/mgilangjanuar" target="_blank">
                   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ width: '100%', maxWidth: '160px' }} />
                 </a>
+              </Typography.Paragraph>
+              <Typography.Paragraph type="secondary">
+                Or, become <a href="https://teledriveapp.com/contact?intent=sponsor">a sponsor</a>.
               </Typography.Paragraph>
             </Col>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>

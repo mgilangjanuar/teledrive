@@ -57,7 +57,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [addFolder, setAddFolder] = useState<boolean>()
   const [fileRename, setFileRename] = useState<any>()
   const [scrollTop, setScrollTop] = useState<number>(0)
-  const [fileList, setFileList] = useState<any[]>(JSON.parse(localStorage.getItem('fileList') || '[]'))
+  const [fileList, setFileList] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>()
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
@@ -115,10 +115,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       change({ ...dataChanges?.pagination, current: (dataChanges?.pagination?.current || 1) + 1 }, dataChanges?.filters, dataChanges?.sorter)
     }
   }, [scrollTop])
-
-  useEffect(() => {
-    localStorage.setItem('fileList', JSON.stringify(fileList || []))
-  }, [fileList])
 
   useEffect(() => {
     if (parent !== undefined || keyword !== undefined) {
