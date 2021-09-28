@@ -20,17 +20,17 @@ const Faq: React.FC = () => {
             Q: What is TeleDrive?
           </Typography.Title>
           <Typography.Paragraph>
-            A: If you ever heard about cloud storage services like Google Drive, OneDrive, iCloud, Dropbox, or etc. TeleDrive is like them, you can upload photos, videos, documents, or etc for free. But, what makes TeleDrive different? We're using the <a href="https://core.telegram.org/api#telegram-api" target="_blank">Telegram API</a>, so you can upload anything without limit and free.
+            A: If you ever heard about cloud storage services like Google Drive, OneDrive, iCloud, Dropbox. TeleDrive is like them, you can upload photos, videos, documents, or anything for free. But, what makes TeleDrive different? We're using the <a href="https://core.telegram.org/api#telegram-api" target="_blank">Telegram API</a>, so you can upload anything without limit and free.
           </Typography.Paragraph>
           <Typography.Paragraph>
-            Telegram allows us to <a href="https://core.telegram.org/api/obtaining_api_id" target="_blank">create our own Telegram application</a> for free as long as it does not violate the <a href="https://core.telegram.org/api/terms" target="_blank">terms</a>. So, TeleDrive is a third-party application of Telegram that utilize their APIs for cloud storage service.
+            Telegram allows us to <a href="https://core.telegram.org/api/obtaining_api_id" target="_blank">create our Telegram application</a> for free as long as it does not violate the <a href="https://core.telegram.org/api/terms" target="_blank">terms</a>. So, TeleDrive is a third-party application of Telegram that utilize their APIs for cloud storage service.
           </Typography.Paragraph>
           <Typography.Title level={5}>
             Q: Who is TeleDrive for?
           </Typography.Title>
           <Typography.Paragraph>
             A: Everyone who deserves free unlimited cloud storage services. Developers, students, etc. We just compare the irrational pricing for others cloud storage services: <a href="https://one.google.com/about/plans" target="_blank">Google Drive</a>, <a href="https://one.google.com/about/plans" target="_blank">OneDrive</a>, <a href="https://www.dropbox.com/individual/plans-comparison" target="_blank">Dropbox</a>, <a href="https://support.apple.com/en-us/HT201238" target="_blank">iCloud</a>.
-            And we offer you a totally free service for saving your media privately without limit for making the world balance.
+            And we offer you a free service for saving your media privately without limit for making the world balance.
           </Typography.Paragraph>
           <Typography.Title level={5}>
             Q: How it works?
@@ -47,10 +47,10 @@ const Faq: React.FC = () => {
             Q: How secure is TeleDrive?
           </Typography.Title>
           <Typography.Paragraph>
-            A: As we explain in the previous question, we fully using the Telegram API for the authentication process. For the authorization flow, we using multiple verifications to hit the private endpoints in the TeleDrive APIs. First, we need to verify the auth token with the secret token that is saved in the secret environment variable in the server. Then, we check the session to the Telegram API to revalidate if it's really you or not.
+            A: As we explain in the previous question, we fully using the Telegram API for the authentication process. For the authorization flow, we using multiple verifications to hit the private endpoints in the TeleDrive APIs. First, we need to verify the auth token with the secret token that is saved in the secret environment variable in the server. Then, we check the session to the Telegram API to revalidate if it's you or not.
           </Typography.Paragraph>
           <Typography.Paragraph>
-            Tl;dr it's really safe.
+            Tl;dr it's safe.
           </Typography.Paragraph>
           <Typography.Title level={5}>
             Q: How does Telegram generate money if they have unlimited cloud storage?
@@ -89,7 +89,7 @@ const Faq: React.FC = () => {
             Q: How do I contact the creator directly?
           </Typography.Title>
           <Typography.Paragraph>
-            A: You can leave a comprehensive message at this link: <a href="https://teledriveapp.com/contact" target="_blank">https://teledriveapp.com/contact</a>. We have a bot that forwarded all messages from this platform to the creator’s private message directly. We’ll get back to you via Telegram and we’re very happy to hear your feedback, idea, suggestion, question, or etc.
+            A: You can leave a comprehensive message at this link: <a href="https://teledriveapp.com/contact" target="_blank">https://teledriveapp.com/contact</a>. We have a bot that forwarded all messages from this platform to the creator’s private message directly. We’ll get back to you via Telegram and we’re very happy to hear your feedback, idea, suggestion, question, or anything else.
           </Typography.Paragraph>
           <Typography.Title level={5}>
             Q: Will TeleDrive be gone at any time?
