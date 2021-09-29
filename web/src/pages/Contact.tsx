@@ -16,7 +16,6 @@ const Contact: React.FC = () => {
 
   useEffect(() => {
     const intent = new URLSearchParams(location.search).get('intent')
-    console.log(intent)
     if (intent === 'sponsor') {
       form.setFieldsValue({
         message: 'Hey 👋\nI want to be your sponsor!\n\nWhat should I do? 😁'

@@ -1,4 +1,4 @@
-import { DashboardOutlined, LoginOutlined } from '@ant-design/icons'
+import { DashboardOutlined, LoginOutlined, MenuOutlined } from '@ant-design/icons'
 import { Button, Form, Input, Layout, Menu, Modal, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
@@ -21,7 +21,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
     localStorage.setItem('invitationCode', code)
     form.resetFields()
     setWantToLogin(false)
-    history.push('/login')
+    history.push(`/login?code=${code}`)
   }
 
   useEffect(() => {
@@ -38,9 +38,9 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         </Link>
       </div>
       {user ?
-        <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '14.6px' }} icon={<DashboardOutlined />}>Dashboard</Button> :
-        <Button onClick={() => setWantToLogin(true)} type="link" style={{ color: '#ffff', float: 'right', top: '14.6px' }} icon={<LoginOutlined />}>Login</Button>}
-      <Menu mode="horizontal" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
+        <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />}>Dashboard</Button> :
+        <Button onClick={() => setWantToLogin(true)} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
+      <Menu overflowedIndicator={<MenuOutlined />} className="navmenu" mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/')} key="home">Home</Menu.Item>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>

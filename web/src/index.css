@@ -61,3 +61,7 @@ html, body {
 .ant-table-placeholder {
   overflow: -moz-hidden-unscrollable;
 }
+
+.ant-menu.ant-menu-sub.ant-menu-vertical {
+  background: #0088CC;
+}
