@@ -26,7 +26,7 @@ const Home: React.FC = () => {
   }
 
   return <div id="top">
-    <Navbar user={me} />
+    <Navbar user={me} page="home" />
     <Layout.Content style={{ fontSize: '1.125rem' }}>
       <Row align="middle" style={{ marginTop: '50px' }}>
         <Col lg={{ span: 10, offset: 2 }} md={{ span: 20, offset: 2 }} span={22} offset={1}>

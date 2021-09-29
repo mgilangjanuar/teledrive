@@ -94,7 +94,7 @@ const Pricing: React.FC = () => {
   </div>
 
   return <>
-    <Navbar user={me} />
+    <Navbar user={me} page="pricing" />
     <Layout.Content className="container" style={{ marginTop: '80px' }}>
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>

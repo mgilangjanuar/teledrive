@@ -37,8 +37,8 @@ const Footer: React.FC = () => {
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Links</Typography.Title>
               <Space direction="vertical">
-                <Link to="/pricing">Pricing</Link>
                 <Link to="/faq">FAQ</Link>
+                <Link to="/pricing">Pricing</Link>
                 <Link to="/contact">Contact Us</Link>
                 <Link to="/privacy">Privacy Policy</Link>
                 <Link to="/terms">Terms &amp; Conditions</Link>

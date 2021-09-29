@@ -11,7 +11,7 @@ const Terms: React.FC = () => {
   const { data } = useSWRImmutable('/documents/tos', fetcher)
 
   return <>
-    <Navbar />
+    <Navbar page="terms" />
     <Layout.Content className="container">
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>

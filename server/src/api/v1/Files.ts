@@ -270,7 +270,7 @@ export class Files {
           return updateProgess
         })()
       } as any)
-      await new Promise(res => setTimeout(res, 250))
+      await new Promise(res => setTimeout(res, 100))
       res.write(data)
     }
     res.end()

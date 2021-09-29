@@ -5,13 +5,13 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
+  EllipsisOutlined,
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
   FolderOpenOutlined,
   LinkOutlined,
   MenuFoldOutlined,
-  MenuOutlined,
   MenuUnfoldOutlined,
   ShareAltOutlined,
   VideoCameraOutlined
@@ -20,8 +20,7 @@ import {
   Button, Col,
   Descriptions,
   Divider,
-  Dropdown,
-  Input,
+  Dropdown, Input,
   Layout, Menu, message,
   Result,
   Row,
@@ -134,25 +133,28 @@ const View: React.FC<PageProps> = ({ match }) => {
   return <>
     <Layout style={{ minHeight: '100vh', overflow: 'hidden', background: '#2a2a2a', color: 'rgb(251,251,254)' }}>
       <Layout.Content>
-        <iframe onLoad={(e: any) => {
+        {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : <iframe onLoad={(e: any) => {
           try {
+            e.target.contentWindow.document.body.style.margin = 0
             e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
-            e.target.contentWindow.document.img.style.textAlign = 'center'
-            e.target.contentWindow.document.img.style.position = 'absolute'
-            e.target.contentWindow.document.img.style.margin = 'auto'
-            e.target.contentWindow.document.img.style.top = 0
-            e.target.contentWindow.document.img.style.right = 0
-            e.target.contentWindow.document.img.style.bottom = 0
-            e.target.contentWindow.document.img.style.left = 0
+
+            // e.target.contentWindow.document.img.style.textAlign = 'center'
+            // e.target.contentWindow.document.img.style.position = 'absolute'
+            // e.target.contentWindow.document.img.style.margin = 'auto'
+            // e.target.contentWindow.document.img.style.top = 0
+            // e.target.contentWindow.document.img.style.right = 0
+            // e.target.contentWindow.document.img.style.bottom = 0
+            // e.target.contentWindow.document.img.style.left = 0
+
             // e.target.contentWindow.document.body.style.height = '100%'
             // e.target.contentWindow.document.body.style.display = 'flex'
             // e.target.contentWindow.document.body.style.justifyContent = 'center'
             // e.target.contentWindow.document.body.style.alignItems = 'center'
-            // e.target.contentWindow.document.body.style.margin = 0
           } catch (error) {
             // ignore
           }
-        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe>
+        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> }
+
       </Layout.Content>
       <Layout.Sider width={340} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
         <Layout.Content className="container" style={{ ...contentStyle || {}, color: '#fff', margin: '70px 10px' }}>
@@ -185,13 +187,13 @@ const View: React.FC<PageProps> = ({ match }) => {
       <div style={{ position: 'absolute', right: 20, top: 30 }}>
         <Space direction="horizontal">
           {!showContent && <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />}
-          {!showContent && me?.user.id === data?.file.user_id && <Dropdown placement="bottomRight" trigger={['click']} overlay={<Menu>
+          {!showContent && me?.user.id === data?.file.user_id && <Dropdown placement="bottomCenter" trigger={['click']} overlay={<Menu>
             <Menu.Item key="rename" onClick={() => setFileRename(data?.file)} icon={<EditOutlined />}>Rename</Menu.Item>
             <Menu.Item key="share" onClick={() => setSelectShare(data?.file)} icon={<ShareAltOutlined />}>Share</Menu.Item>
             <Menu.Item key="download" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />}>Download</Menu.Item>
             <Menu.Item key="remove" danger onClick={() => setSelectDeleted([data?.file])} icon={<DeleteOutlined />}>Delete</Menu.Item>
           </Menu>}>
-            <Button type="primary" shape="circle" icon={<MenuOutlined />} />
+            <Button shape="circle" icon={<EllipsisOutlined />} />
           </Dropdown>}
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
         </Space>

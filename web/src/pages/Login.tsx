@@ -1,3 +1,4 @@
+import { LoginOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Form, Input, Layout, notification, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import JSCookie from 'js-cookie'
@@ -135,7 +136,7 @@ const Login: React.FC = () => {
                 <Input.Password />
               </Form.Item>
               <Form.Item style={{ marginTop: '50px' }} wrapperCol={{ span: 24 }}>
-                <Button block size="large" type="primary" htmlType="submit" loading={loadingLogin}>Login</Button>
+                <Button shape="round" block size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
               </Form.Item>
             </Form>
           </Card>

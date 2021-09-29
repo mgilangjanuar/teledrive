@@ -11,7 +11,7 @@ const Privacy: React.FC = () => {
   const { data } = useSWRImmutable('/documents/privacy', fetcher)
 
   return <>
-    <Navbar />
+    <Navbar page="privacy" />
     <Layout.Content className="container">
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>

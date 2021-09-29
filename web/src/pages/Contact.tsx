@@ -47,7 +47,7 @@ const Contact: React.FC = () => {
   }
 
   return <>
-    <Navbar user={me} />
+    <Navbar user={me} page="contact" />
     <Layout.Content className="container">
       <Row style={{ marginTop: '80px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
@@ -66,7 +66,7 @@ const Contact: React.FC = () => {
                 <Input.TextArea rows={5} />
               </Form.Item>
               <Form.Item style={{ textAlign: 'right' }} wrapperCol={{ span: 24 }}>
-                <Button loading={loading} htmlType="submit" type="primary" icon={<SendOutlined />}>Send</Button>
+                <Button shape="round" loading={loading} htmlType="submit" type="primary" icon={<SendOutlined />}>Send</Button>
               </Form.Item>
             </Form>
           </Card>
