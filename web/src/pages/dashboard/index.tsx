@@ -13,7 +13,6 @@ import {
   Typography
 } from 'antd'
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
-import prettyBytes from 'pretty-bytes'
 import qs from 'qs'
 import React, { useEffect, useState } from 'react'
 import { RouteComponentProps, useHistory } from 'react-router'
@@ -168,19 +167,12 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       const list = fileList?.map(file => {
         if (!file.response?.file.id) return file
         const found = filesUpload.files.find((f: any) => f.id === file.response?.file.id)
-        if (!found) {
-          return null
-        }
-        const getPercent = (fixed?: number) => found.upload_progress !== null ? Number(found.upload_progress * 100).toFixed(fixed) : 100
+        if (!found) return null
         return {
           ...file,
-          name: `${getPercent(2)}% ${found.name} (${prettyBytes(found.size)})`,
-          percent: getPercent(),
-          status: found.upload_progress !== null ? 'uploading' : 'success',
-          url: found.upload_progress === null ? `/view/${found.id}` : undefined,
-          response: { file: found }
+          status: found.upload_progress !== null ? 'uploading' : 'success'
         }
-      }).filter(file => file && file?.status !== 'success')
+      }).filter(file => file && file.status !== 'success')
       setFileList(list)
       setData([...filesUpload.files?.map((file: any) => ({ ...file, key: file.id })), ...data].reduce((res, row) => [
         ...res, !res.filter(Boolean).find((r: any) => r.id === row.id) ? row : null
