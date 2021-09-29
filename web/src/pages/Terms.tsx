@@ -9,9 +9,10 @@ import Navbar from './components/Navbar'
 
 const Terms: React.FC = () => {
   const { data } = useSWRImmutable('/documents/tos', fetcher)
+  const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   return <>
-    <Navbar page="terms" />
+    <Navbar page="terms" user={me} />
     <Layout.Content className="container">
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
