@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from './Auth'
 import { Contact } from './Contact'
+import { Dialogs } from './Dialogs'
 import { Documents } from './Documents'
 import { Files } from './Files'
 import { Github } from './Github'
@@ -17,6 +18,7 @@ export const V1 = Router()
       Waitings,
       Github,
       Files,
+      Dialogs,
       Messages,
       Documents,
       Contact

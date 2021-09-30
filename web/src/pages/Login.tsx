@@ -126,7 +126,7 @@ const Login: React.FC = () => {
           <Card>
             <Form layout="horizontal" form={formLogin} onFinish={login} labelCol={{ span: 9 }} wrapperCol={{ span: 15 }}>
               <Form.Item label="Phone Number" name="phoneNumber" rules={[{ required: true, message: 'Please input your phone number' }]}>
-                <Input.Search placeholder="6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} />
+                <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} />
               </Form.Item>
               <Form.Item label="Code" name="phoneCode" rules={[{ required: true, message: 'Please input your code' }]}>
                 <Input disabled={!phoneCodeHash || needPassword} />

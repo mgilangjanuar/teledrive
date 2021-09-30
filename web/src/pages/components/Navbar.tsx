@@ -40,8 +40,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
       {user ?
         <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />}>Dashboard</Button> :
         <Button onClick={() => setWantToLogin(true)} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
-      <Menu overflowedIndicator={<MenuOutlined />} className="navmenu" mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
-        <Menu.Item onClick={() => history.push('/')} key="home">Home</Menu.Item>
+      <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>
