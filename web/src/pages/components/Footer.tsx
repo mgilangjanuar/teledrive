@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 
 const Footer: React.FC = () => {
   return <>
-    <Layout.Footer style={{ background: '#f0f2f5', marginTop: '100px', paddingTop: '50px' }}>
+    <Layout.Footer style={{ background: '#f0f2f5', paddingTop: '50px' }}>
       <Row>
         <Col lg={{ span: 16, offset: 4 }} md={{ span: 22, offset: 1 }} span={24}>
           <Row gutter={72}>

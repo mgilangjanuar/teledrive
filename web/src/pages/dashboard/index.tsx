@@ -278,122 +278,124 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }
 
   return <Layout>
-    <Layout.Content>
-      <Navbar user={me?.user} />
-      <Row style={{ minHeight: '80vh' }}>
-        <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
-          <Typography.Paragraph>
-            <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => changeTab(key)}>
-              <Menu.Item disabled={!files} key="mine">My Files</Menu.Item>
-              <Menu.Item disabled={!files} key="shared">Shared</Menu.Item>
-            </Menu>
-          </Typography.Paragraph>
-          <Typography.Paragraph>
-            {tab === 'mine' ? <Upload
-              onCancel={file => setSelectDeleted([file])}
-              parent={parent}
-              dataFileList={[fileList, setFileList]} /> : <Alert
-              message={<>
-                These are all files that other users share with you. If you find any suspicious, spam, or etc, please <Link to="/contact?intent=report">report it to us</Link>.
-              </>}
-              type="warning"
-              showIcon
-              closable/>}
-          </Typography.Paragraph>
-          <Typography.Paragraph style={{ float: 'left' }}>
-            <Breadcrumb dataSource={[breadcrumbs, setBreadcrumbs]} dataParent={[parent, setParent]} />
-          </Typography.Paragraph>
-          <Typography.Paragraph style={{ textAlign: 'right' }}>
-            <Space wrap>
-              {tab === 'mine' ? <>
-                <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
-              </> : ''}
-              <Button shape="circle" icon={<CommentOutlined />} onClick={() => setCollapsedMessaging(!collapsedMessaging)} />
-              <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
-            </Space>
-          </Typography.Paragraph>
-          <TableFiles
-            files={files}
-            tab={tab}
-            onChange={change}
-            onDelete={row => {
-              if (!selected?.find(select => select.id === row.id)) {
-                setSelected([row])
-                return setSelectDeleted([row])
-              }
-              setSelectDeleted(selected)
-            }}
-            onRename={row => {
-              setSelected([row])
-              setFileRename(row)
-            }}
-            onShare={row => {
-              setSelected([row])
-              setSelectShare(row)
-            }}
-            onRowClick={row => {
-              if (row.type === 'folder') {
-                setParent(row)
-                setBreadcrumbs([...breadcrumbs, row])
-                if (selected?.find(select => select.id === row.id)) {
-                  setSelected([])
+    <Layout>
+      <Layout.Content>
+        <Navbar user={me?.user} />
+        <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '0 12px' }}>
+          <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
+            <Typography.Paragraph>
+              <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => changeTab(key)}>
+                <Menu.Item disabled={!files} key="mine">My Files</Menu.Item>
+                <Menu.Item disabled={!files} key="shared">Shared</Menu.Item>
+              </Menu>
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+              {tab === 'mine' ? <Upload
+                onCancel={file => setSelectDeleted([file])}
+                parent={parent}
+                dataFileList={[fileList, setFileList]} /> : <Alert
+                message={<>
+                  These are all files that other users share with you. If you find any suspicious, spam, or etc, please <Link to="/contact?intent=report">report it to us</Link>.
+                </>}
+                type="warning"
+                showIcon
+                closable/>}
+            </Typography.Paragraph>
+            <Typography.Paragraph style={{ float: 'left' }}>
+              <Breadcrumb dataSource={[breadcrumbs, setBreadcrumbs]} dataParent={[parent, setParent]} />
+            </Typography.Paragraph>
+            <Typography.Paragraph style={{ textAlign: 'right' }}>
+              <Space wrap>
+                {tab === 'mine' ? <>
+                  <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
+                </> : ''}
+                <Button shape="circle" icon={<CommentOutlined />} onClick={() => setCollapsedMessaging(!collapsedMessaging)} />
+                <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
+              </Space>
+            </Typography.Paragraph>
+            <TableFiles
+              files={files}
+              tab={tab}
+              onChange={change}
+              onDelete={row => {
+                if (!selected?.find(select => select.id === row.id)) {
+                  setSelected([row])
+                  return setSelectDeleted([row])
                 }
+                setSelectDeleted(selected)
+              }}
+              onRename={row => {
+                setSelected([row])
+                setFileRename(row)
+              }}
+              onShare={row => {
+                setSelected([row])
+                setSelectShare(row)
+              }}
+              onRowClick={row => {
+                if (row.type === 'folder') {
+                  setParent(row)
+                  setBreadcrumbs([...breadcrumbs, row])
+                  if (selected?.find(select => select.id === row.id)) {
+                    setSelected([])
+                  }
+                } else {
+                  history.push(`/view/${row.id}`)
+                }
+              }}
+              onCopy={row => {
+                if (!selected?.find(select => select.id === row.id)) {
+                  setSelected([row])
+                }
+                setAction('copy')
+              }}
+              onCut={row => {
+                if (!selected?.find(select => select.id === row.id)) {
+                  setSelected([row])
+                }
+                setAction('cut')
+              }}
+              onPaste={rows => paste(rows)}
+              dataSource={data}
+              sorterData={dataChanges?.sorter as SorterResult<any>}
+              dataSelect={[selected, setSelected]}
+              action={action}
+              loading={loading} />
+          </Col>
+        </Row>
+
+        <Remove
+          dataSource={[data, setData]}
+          dataSelect={[selectDeleted, setSelectDeleted]}
+          onFinish={newData => {
+            if (!newData?.length) {
+              if ((dataChanges?.pagination?.current || 0) > 1) {
+                change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+                setScrollTop(0)
               } else {
-                history.push(`/view/${row.id}`)
+                refetch()
               }
-            }}
-            onCopy={row => {
-              if (!selected?.find(select => select.id === row.id)) {
-                setSelected([row])
-              }
-              setAction('copy')
-            }}
-            onCut={row => {
-              if (!selected?.find(select => select.id === row.id)) {
-                setSelected([row])
-              }
-              setAction('cut')
-            }}
-            onPaste={rows => paste(rows)}
-            dataSource={data}
-            sorterData={dataChanges?.sorter as SorterResult<any>}
-            dataSelect={[selected, setSelected]}
-            action={action}
-            loading={loading} />
-        </Col>
-      </Row>
-
-      <Remove
-        dataSource={[data, setData]}
-        dataSelect={[selectDeleted, setSelectDeleted]}
-        onFinish={newData => {
-          if (!newData?.length) {
-            if ((dataChanges?.pagination?.current || 0) > 1) {
-              change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
-              setScrollTop(0)
-            } else {
-              refetch()
             }
-          }
-          setSelected([])
-        }} />
+            setSelected([])
+          }} />
 
-      <AddFolder
-        dataSource={[data, setData]}
-        dataActivate={[addFolder, setAddFolder]}
-        parent={parent} />
+        <AddFolder
+          dataSource={[data, setData]}
+          dataActivate={[addFolder, setAddFolder]}
+          parent={parent} />
 
-      <Rename
-        dataSource={[data, setData]}
-        dataSelect={[fileRename, setFileRename]} />
+        <Rename
+          dataSource={[data, setData]}
+          dataSelect={[fileRename, setFileRename]} />
 
-      <Share
-        me={me}
-        dataSource={[data, setData]}
-        dataSelect={[selectShare, setSelectShare]} />
-      <Footer />
-    </Layout.Content>
-    <Messaging collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />
+        <Share
+          me={me}
+          dataSource={[data, setData]}
+          dataSelect={[selectShare, setSelectShare]} />
+      </Layout.Content>
+      <Messaging collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />
+    </Layout>
+    <Footer />
   </Layout>
 }
 
