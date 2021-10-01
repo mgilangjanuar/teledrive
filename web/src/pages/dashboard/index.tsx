@@ -1,4 +1,4 @@
-import { FolderAddOutlined, HomeOutlined } from '@ant-design/icons'
+import { CommentOutlined, FolderAddOutlined, HomeOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
@@ -24,6 +24,7 @@ import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 import AddFolder from './components/AddFolder'
 import Breadcrumb from './components/Breadcrumb'
+import Messaging from './components/Messaging'
 import Remove from './components/Remove'
 import Rename from './components/Rename'
 import Share from './components/Share'
@@ -58,6 +59,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [scrollTop, setScrollTop] = useState<number>(0)
   const [fileList, setFileList] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>()
+  const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
@@ -275,10 +277,10 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setAction(undefined)
   }
 
-  return <>
-    <Navbar user={me?.user} />
-    <Layout.Content className="container" style={{ paddingTop: 0 }}>
-      <Row>
+  return <Layout>
+    <Layout.Content>
+      <Navbar user={me?.user} />
+      <Row style={{ minHeight: '80vh' }}>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph>
             <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => changeTab(key)}>
@@ -306,6 +308,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
               {tab === 'mine' ? <>
                 <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
               </> : ''}
+              <Button shape="circle" icon={<CommentOutlined />} onClick={() => setCollapsedMessaging(!collapsedMessaging)} />
               <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
             </Space>
           </Typography.Paragraph>
@@ -388,9 +391,10 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
         me={me}
         dataSource={[data, setData]}
         dataSelect={[selectShare, setSelectShare]} />
+      <Footer />
     </Layout.Content>
-    <Footer />
-  </>
+    <Messaging collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />
+  </Layout>
 }
 
 export default Dashboard

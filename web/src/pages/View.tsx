@@ -133,7 +133,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   return <>
     <Layout style={{ minHeight: '100vh', overflow: 'hidden', background: '#2a2a2a', color: 'rgb(251,251,254)' }}>
       <Layout.Content>
-        {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : <iframe onLoad={(e: any) => {
+        {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : <iframe onLoad={(e: any) => {
           try {
             e.target.contentWindow.document.body.style.margin = 0
             e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
@@ -164,7 +164,7 @@ const View: React.FC<PageProps> = ({ match }) => {
             labelStyle={{ color: '#fff' }} column={1}>
 
             <Descriptions.Item label="Size">{data?.file?.size && prettyBytes(data?.file?.size)}</Descriptions.Item>
-            <Descriptions.Item label="Uploaded At">{moment(data?.file.uploaded_at).format('llll')}</Descriptions.Item>
+            <Descriptions.Item label="Uploaded At">{moment(data?.file.uploaded_at).local().format('llll')}</Descriptions.Item>
             {user?.user && <Descriptions.Item label="Uploaded By">
               <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>
             </Descriptions.Item>}
