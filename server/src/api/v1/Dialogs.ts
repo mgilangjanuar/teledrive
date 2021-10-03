@@ -1,7 +1,8 @@
+import bigInt from 'big-integer'
 import { Request, Response } from 'express'
 import { Api } from 'telegram'
+import { objectParser } from '../../utils/ObjectParser'
 import { Endpoint } from '../base/Endpoint'
-import bigInt from 'big-integer'
 import { Auth } from '../middlewares/Auth'
 
 @Endpoint.API()
@@ -9,14 +10,14 @@ export class Dialogs {
 
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { skip, take } = req.query
-    const dialogs = await req.tg.invoke(new Api.messages.GetDialogs({
-      offsetDate: Number(skip) || 0,
-      offsetPeer: new Api.InputPeerEmpty(),
-      limit: Number(take) || 0,
-      excludePinned: false
-    }))
-    return res.send({ dialogs })
+    const { offset, limit } = req.query
+    const dialogs = await req.tg.getDialogs({
+      limit: Number(limit) || 0,
+      offsetDate: Number(offset) || undefined,
+      ignorePinned: false
+    })
+    console.log(dialogs)
+    return res.send({ dialogs: objectParser(dialogs) })
   }
 
   @Endpoint.GET('/:type/:id/avatar.jpg', { middlewares: [Auth] })

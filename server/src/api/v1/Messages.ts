@@ -31,6 +31,43 @@ export class Messages {
     return res.send({ messages })
   }
 
+  @Endpoint.GET('/search', { middlewares: [Auth] })
+  public async search(req: Request, res: Response): Promise<any> {
+    const { q, offset, limit } = req.query
+    if (!q) {
+      throw { status: 400, body: { error: 'q is required' } }
+    }
+    const messages = await req.tg.invoke(new Api.messages.Search({
+      q: q as string,
+      filter: new Api.InputMessagesFilterEmpty(),
+      peer: new Api.InputPeerEmpty(),
+      limit: Number(limit) || 0,
+      minDate: 0,
+      maxDate: 0,
+      offsetId: 0,
+      addOffset: Number(offset) || 0,
+      maxId: 0,
+      minId: 0,
+      hash: 0,
+    }))
+    return res.send({ messages })
+  }
+
+  @Endpoint.GET('/globalSearch', { middlewares: [Auth] })
+  public async globalSearch(req: Request, res: Response): Promise<any> {
+    const { q, limit } = req.query
+    if (!q) {
+      throw { status: 400, body: { error: 'q is required' } }
+    }
+    const messages = await req.tg.invoke(new Api.messages.SearchGlobal({
+      q: q as string,
+      filter: new Api.InputMessagesFilterEmpty(),
+      offsetPeer: new Api.InputPeerEmpty(),
+      limit: Number(limit) || 0
+    }))
+    return res.send({ messages })
+  }
+
   @Endpoint.GET('/:type/:id/avatar.jpg', { middlewares: [Auth] })
   public async avatar(req: Request, res: Response): Promise<any> {
     const { type, id } = req.params

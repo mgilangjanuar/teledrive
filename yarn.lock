@@ -6184,7 +6184,7 @@ flat-cache@^3.0.4:
     flatted "^3.1.0"
     rimraf "^3.0.2"
 
-flatted@^3.1.0:
+flatted@^3.1.0, flatted@^3.2.2:
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.2.tgz#64bfed5cb68fe3ca78b3eb214ad97b63bedce561"
   integrity sha512-JaTY/wtrcSyvXJl4IMFHPKyFur1sE9AUqc0QnhOaJ0CxHtAoIV8pYDzeEfAaNEtGkOfq4gr3LBFmdXW5mOQFnA==
@@ -13508,10 +13508,10 @@ tar@^6.0.2:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-telegram@1.9.3:
-  version "1.9.3"
-  resolved "https://registry.yarnpkg.com/telegram/-/telegram-1.9.3.tgz#aaaaa9dde3ee123318e7b3a8440e3bcc1fc902a9"
-  integrity sha512-J3MlSpWcWK1CK0JxuFh9mwbpiuG2UAK4zLjvrAkfzVaiuAEj77ydpxtufgh87eUWS0v7wx2MtJ8qEsdRVRShww==
+telegram@^1.9.6:
+  version "1.9.6"
+  resolved "https://registry.yarnpkg.com/telegram/-/telegram-1.9.6.tgz#63107e3642d25c01249841f58e88e5c03afd7c25"
+  integrity sha512-2xEYT8ZxnpS5pXaSFCxSHqx3ub2nQhO5BU15CQ/PAmpn2cD6qJ58b2HcrbYoAozU5sxdRH4/2WWfwYv2gevUNw==
   dependencies:
     "@cryptography/aes" "^0.1.1"
     async-mutex "^0.3.0"
