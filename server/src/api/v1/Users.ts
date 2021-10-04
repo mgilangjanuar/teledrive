@@ -10,9 +10,13 @@ export class Users {
 
   @Endpoint.GET({ middlewares: [Auth] })
   public async search(req: Request, res: Response): Promise<any> {
+    const { username, limit } = req.query
+    if (!username) {
+      throw { status: 400, body: { error: 'Username is required' } }
+    }
     const data = await req.tg.invoke(new Api.contacts.Search({
-      q: req.query.username as string,
-      limit: 10
+      q: username as string,
+      limit: Number(limit) || 10
     }))
     return res.send({ users: data.users })
   }

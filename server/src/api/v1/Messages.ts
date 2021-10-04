@@ -71,21 +71,33 @@ export class Messages {
   @Endpoint.GET('/:type/:id/avatar.jpg', { middlewares: [Auth] })
   public async avatar(req: Request, res: Response): Promise<any> {
     const { type, id } = req.params
-    let peer: Api.InputPeerChannel | Api.InputPeerUser
+    let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
         channelId: Number(id),
         accessHash: bigInt(req.query.accessHash as string) })
+    } else if (type === 'chat') {
+      peer = new Api.InputPeerChat({
+        chatId: Number(id)
+      })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
         userId: Number(id),
         accessHash: bigInt(req.query.accessHash as string) })
     }
-    const file = await req.tg.downloadProfilePhoto(peer)
-    res.setHeader('Content-Disposition', `inline; filename=avatar-${id}.jpg`)
-    res.setHeader('Content-Type', 'image/jpeg')
-    res.setHeader('Content-Length', file.length)
-    res.write(file)
-    return res.end()
+    try {
+      const file = await req.tg.downloadProfilePhoto(peer)
+      if (!file?.length) {
+        return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
+      }
+      res.setHeader('Content-Disposition', `inline; filename=avatar-${id}.jpg`)
+      res.setHeader('Content-Type', 'image/jpeg')
+      res.setHeader('Content-Length', file.length)
+      res.write(file)
+      return res.end()
+    } catch (error) {
+      console.error(error)
+      return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
+    }
   }
 }

@@ -16,7 +16,6 @@ export class Dialogs {
       offsetDate: Number(offset) || undefined,
       ignorePinned: false
     })
-    console.log(dialogs)
     return res.send({ dialogs: objectParser(dialogs) })
   }
 
@@ -33,11 +32,18 @@ export class Dialogs {
         userId: Number(id),
         accessHash: bigInt(req.query.accessHash as string) })
     }
-    const file = await req.tg.downloadProfilePhoto(peer)
-    res.setHeader('Content-Disposition', `inline; filename=avatar-${id}.jpg`)
-    res.setHeader('Content-Type', 'image/jpeg')
-    res.setHeader('Content-Length', file.length)
-    res.write(file)
-    return res.end()
+    try {
+      const file = await req.tg.downloadProfilePhoto(peer)
+      if (!file?.length) {
+        return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
+      }
+      res.setHeader('Content-Disposition', `inline; filename=avatar-${id}.jpg`)
+      res.setHeader('Content-Type', 'image/jpeg')
+      res.setHeader('Content-Length', file.length)
+      res.write(file)
+      return res.end()
+    } catch (error) {
+      return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
+    }
   }
 }

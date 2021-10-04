@@ -65,6 +65,20 @@ html, body {
 
 .rce-citem-body--bottom-status span {
   width: 100%;
-  border-radius: 45%;
-  padding: 0 3px;
+  border-radius: 15px;
+  padding: 10px 7px;
+}
+
+.ant-layout-sider.messaging {
+  flex: none !important;
+  min-width: 0 !important;
+  max-width: 430px !important;
+  width: 100% !important;
+}
+
+.ant-layout-sider.messaging.ant-layout-sider-collapsed.ant-layout-sider-zero-width {
+  flex: none !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  width: 0 !important;
 }

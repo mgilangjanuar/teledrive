@@ -1,4 +1,4 @@
-import { CommentOutlined, FolderAddOutlined, HomeOutlined } from '@ant-design/icons'
+import { CommentOutlined, FolderAddOutlined, HomeOutlined, CloseOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
@@ -279,7 +279,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   return <Layout>
     <Layout>
-      <Layout.Content>
+      <Layout.Content onClick={() => setCollapsedMessaging(true)}>
         <Navbar user={me?.user} />
         <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '0 12px' }}>
           <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
@@ -309,7 +309,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 {tab === 'mine' ? <>
                   <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
                 </> : ''}
-                <Button shape="circle" icon={<CommentOutlined />} onClick={() => setCollapsedMessaging(!collapsedMessaging)} />
                 <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
               </Space>
             </Typography.Paragraph>
@@ -393,6 +392,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           dataSource={[data, setData]}
           dataSelect={[selectShare, setSelectShare]} />
       </Layout.Content>
+      <Button shape="circle" size="large" style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 9 }} type="primary" icon={collapsedMessaging ? <CommentOutlined /> : <CloseOutlined />} onClick={() => setCollapsedMessaging(!collapsedMessaging)} />
       <Messaging collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />
     </Layout>
     <Footer />
