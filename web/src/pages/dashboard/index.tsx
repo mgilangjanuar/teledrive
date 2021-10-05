@@ -392,8 +392,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           dataSource={[data, setData]}
           dataSelect={[selectShare, setSelectShare]} />
       </Layout.Content>
-      <Button shape="circle" size="large" style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 9 }} type="primary" icon={collapsedMessaging ? <CommentOutlined /> : <CloseOutlined />} onClick={() => setCollapsedMessaging(!collapsedMessaging)} />
-      <Messaging collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />
+      <Messaging me={me} collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />
     </Layout>
     <Footer />
   </Layout>

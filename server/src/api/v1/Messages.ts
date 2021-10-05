@@ -7,26 +7,30 @@ import { Auth } from '../middlewares/Auth'
 @Endpoint.API()
 export class Messages {
 
-  @Endpoint.GET('/:type/:id', { middlewares: [Auth] })
-  public async find(req: Request, res: Response): Promise<any> {
+  @Endpoint.GET('/history/:type/:id', { middlewares: [Auth] })
+  public async history(req: Request, res: Response): Promise<any> {
     const { type, id } = req.params
-    const { skip, take } = req.query
+    const { offset, limit, accessHash } = req.query
 
-    let peer: Api.InputPeerChannel | Api.InputPeerUser
+    let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
         channelId: Number(id),
-        accessHash: bigInt(req.query.accessHash as string) })
+        accessHash: bigInt(accessHash as string) })
+    } else if (type === 'chat') {
+      peer = new Api.InputPeerChat({
+        chatId: Number(id)
+      })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
         userId: Number(id),
-        accessHash: bigInt(req.query.accessHash as string) })
+        accessHash: bigInt(accessHash as string) })
     }
 
     const messages = await req.tg.invoke(new Api.messages.GetHistory({
       peer: peer,
-      limit: Number(take) || 0,
-      offsetDate: Number(skip) || 0
+      limit: Number(limit) || 0,
+      offsetDate: Number(offset) || 0,
     }))
     return res.send({ messages })
   }

@@ -48,7 +48,7 @@ html, body {
 
 .input-search-round button.ant-btn.ant-btn-primary.ant-input-search-button {
   border-radius: 0 32px 32px 0 !important;
-  padding: 4px 16px;
+  padding: 4px 12px;
 }
 
 .tableFiles td {
@@ -81,4 +81,8 @@ html, body {
   min-width: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
+}
+
+.messageItem p:last-child {
+  margin-bottom: 0 !important;
 }

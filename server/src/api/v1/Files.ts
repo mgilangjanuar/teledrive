@@ -192,19 +192,27 @@ export class Files {
 
     // begin to send
     try {
-      const data = await req.tg.sendFile('me', {
+      const sendData = async (forceDocument: boolean) => await req.tg.sendFile('me', {
         file: new Api.InputFileBig({
           id: bigInt(model.file_id),
           parts: Number(totalPart),
           name: model.name
         }),
-        forceDocument: true,
+        forceDocument,
         fileSize: model.size,
         attributes: [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ],
         workers: 10
       })
+
+      let data: any
+      try {
+        data = await sendData(false)
+      } catch (error) {
+        console.error(error)
+        data = await sendData(true)
+      }
 
       await Model.update(model.id, {
         message_id: data.id,
