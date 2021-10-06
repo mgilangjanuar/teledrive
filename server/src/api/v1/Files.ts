@@ -29,11 +29,51 @@ export class Files {
 
   @Endpoint.POST('/', { middlewares: [Auth] })
   public async save(req: Request, res: Response): Promise<any> {
+    const { messageId } = req.query
     const { file } = req.body
     if (!file) {
       throw { status: 400, body: { error: 'File is required in body.' } }
     }
-    const { raw } = await Model.createQueryBuilder('files').insert().values(file).returning('*').execute()
+
+    let message: any = {}
+    if (messageId) {
+      const chat = await req.tg.invoke(new Api.messages.GetMessages({
+        id: [new Api.InputMessageID({ id: Number(messageId) })]
+      })) as any
+      if (!chat?.['messages']?.[0]) {
+        throw { status: 404, body: { error: 'Message not found' } }
+      }
+      // console.log(chat)
+
+      const mimeType = chat['messages'][0].media.photo ? 'image/jpeg' : chat['messages'][0].media.document.mimeType || 'unknown'
+      const name = chat['messages'][0].media.photo ? `${chat['messages'][0].media.photo.id}.jpg` : chat['messages'][0].media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
+
+      const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
+      const size = chat['messages'][0].media.photo ? getSizes(chat['messages'][0].media.photo.sizes.pop()) : chat['messages'][0].media.document?.size
+      let type = chat['messages'][0].media.photo ? 'image' : null
+      if (!type) {
+        if (chat['messages'][0].media.document.mimeType.match(/^video/gi)) {
+          type = 'video'
+        } else if (chat['messages'][0].media.document.mimeType.match(/pdf$/gi)) {
+          type = 'document'
+        }
+      }
+
+      message = {
+        name,
+        message_id: chat['messages'][0].id,
+        mime_type: mimeType,
+        size,
+        user_id: req.user.id,
+        uploaded_at: new Date(chat['messages'][0].date * 1000),
+        type
+      }
+    }
+
+    const { raw } = await Model.createQueryBuilder('files').insert().values({
+      ...file,
+      ...message
+    }).returning('*').execute()
     return res.send({ file: raw[0] })
   }
 
@@ -168,7 +208,6 @@ export class Files {
       model.parent_id = parentId as string || null
       model.upload_progress = 0
       model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
-      console.log(bigInt.randBetween('-1e100', '1e100'))
       await model.save()
     }
 

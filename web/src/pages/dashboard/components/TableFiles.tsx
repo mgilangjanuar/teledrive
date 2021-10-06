@@ -96,10 +96,10 @@ const TableFiles: React.FC<Props> = ({
           icon={<EditOutlined />}
           key="rename"
           onClick={() => onRename(popup?.row)}>Rename</Menu.Item>
-        <Menu.Item {...baseProps}
+        {!popup?.row.link_id ? <Menu.Item {...baseProps}
           icon={<CopyOutlined />}
           key="copy"
-          onClick={() => onCopy?.(popup?.row)}>Copy</Menu.Item>
+          onClick={() => onCopy?.(popup?.row)}>Copy</Menu.Item> : ''}
         <Menu.Item {...baseProps}
           icon={<ScissorOutlined />}
           key="cut"

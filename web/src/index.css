@@ -66,7 +66,8 @@ html, body {
 .rce-citem-body--bottom-status span {
   width: 100%;
   border-radius: 15px;
-  padding: 10px 7px;
+  padding: 11px 5px;
+  font-size: 11px;
 }
 
 .ant-layout-sider.messaging {
@@ -85,4 +86,9 @@ html, body {
 
 .messageItem p:last-child {
   margin-bottom: 0 !important;
+}
+
+.messageItem pre {
+  white-space: pre-wrap;
+  font-size: 12px;
 }

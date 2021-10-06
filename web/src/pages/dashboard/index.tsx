@@ -243,7 +243,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }
 
   const paste = async (rows: any[]) => {
-    rows = rows?.filter(row => row.id !== parent?.id)
+    rows = rows?.filter(row => row.id !== parent?.id && !row.link_id)
     setLoading(true)
     try {
       if (action === 'copy') {
@@ -392,7 +392,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           dataSource={[data, setData]}
           dataSelect={[selectShare, setSelectShare]} />
       </Layout.Content>
-      <Messaging me={me} collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />
+      <Messaging me={me} collapsed={collapsedMessaging} parent={parent} setCollapsed={setCollapsedMessaging} />
     </Layout>
     <Footer />
   </Layout>

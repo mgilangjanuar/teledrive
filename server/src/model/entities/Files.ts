@@ -61,4 +61,7 @@ export class Files extends BaseModelWithID {
 
   @OneToMany(() => Files, file => file.link)
   links?: Files[]
+
+  @Column({ default: null })
+  forward_info?: string
 }

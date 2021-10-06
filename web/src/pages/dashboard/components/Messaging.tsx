@@ -3,19 +3,21 @@ import { Avatar, Button, Empty, Input, Layout, Spin, Tabs, Typography } from 'an
 import React, { useEffect, useState } from 'react'
 import { ChatList, MessageList } from 'react-chat-elements'
 import ReactMarkdown from 'react-markdown'
+import { useHistory } from 'react-router'
 import remarkGfm from 'remark-gfm'
 import useSWR from 'swr'
-import { apiUrl, fetcher } from '../../../utils/Fetcher'
+import { apiUrl, fetcher, req } from '../../../utils/Fetcher'
 
 import 'react-chat-elements/dist/main.css'
 
 interface Props {
   me?: any,
   collapsed?: boolean,
+  parent?: any,
   setCollapsed: (data: boolean) => void
 }
 
-const Messaging: React.FC<Props> = ({ me, collapsed, setCollapsed }) => {
+const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => {
   const [qVal, setQVal] = useState<string>()
   const [q, setQ] = useState<string>()
   const [messageText, setMessageText] = useState<string>()
@@ -26,12 +28,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, setCollapsed }) => {
   const [searchAccountList, setSearchAccountList] = useState<any>()
   const [messages, setMessages] = useState<any>()
   const [messagesOffset, setMessagesOffset] = useState<number>()
+  const history = useHistory()
 
   const { data: dialogs } = useSWR(!collapsed && !q && !message ? '/dialogs?limit=10' : null, fetcher, { onSuccess: data => setChatLists(data.dialogs || []) })
   const { data: searchMessages } = useSWR(q ? `/messages/search?q=${q}&limit=10` : null, fetcher, { onSuccess: data => setSearchMessageList(data.messages || []) })
   const { data: searchGlobal } = useSWR(q ? `/messages/globalSearch?q=${q}&limit=5` : null, fetcher, { onSuccess: data => setSearcGlobalList(data.messages || []) })
   const { data: searchAccounts } = useSWR(q ? `/users/search?username=${q}&limit=10` : null, fetcher, { onSuccess: data => setSearchAccountList(data.users || []) })
   const { data: messageHistory } = useSWR(message && messagesOffset !== undefined  ? `/messages/history/${message.id}&limit=10&offset=${messagesOffset}` : null, fetcher, { onSuccess: data => {
+    setMessagesOffset(0)
     return setMessages({
       ...messages,
       ...data.messages,
@@ -55,13 +59,13 @@ const Messaging: React.FC<Props> = ({ me, collapsed, setCollapsed }) => {
   }, [message])
 
   useEffect(() => {
-    if (messages) {
+    if (messageHistory?.messages) {
       const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
       if (sidebar) {
-        sidebar.scroll({ top: sidebar.clientHeight, behavior: 'auto' })
+        sidebar.scroll({ top: sidebar.clientHeight, behavior: 'smooth' })
       }
     }
-  }, [messages])
+  }, [messageHistory?.messages])
 
   const back = () => {
     if (message) {
@@ -74,6 +78,39 @@ const Messaging: React.FC<Props> = ({ me, collapsed, setCollapsed }) => {
     }
   }
 
+  const download = async (msg: any) => {
+    console.log(msg.id)
+    const [type, others] = message.id.split('/')
+    const [id, accessHash] = others.split('?accessHash=')
+    const forwardKey = `${type}/${id}/${msg.id}/${accessHash}`
+    const { data: files } = await req.get('/files', { params: { forward_info: forwardKey } })
+    if (files?.files?.[0]) {
+      const file = files?.files?.[0]
+      return history.push(`/view/${file.id}`)
+    }
+
+    const { data } = await req.post(`/messages/forwardToMe/${msg.id}`, {}, {
+      params: {
+        type,
+        peerId: id,
+        accessHash
+      }
+    })
+    const { data: file } = await req.post('/files', { file:
+      {
+        parent_id: parent?.link_id || parent?.id,
+        forward_info: forwardKey,
+        id: undefined
+      }
+    }, {
+      params: {
+        messageId: data.message.id
+      }
+    })
+
+    return history.push(`/view/${file.file.id}`)
+  }
+
   return <Layout.Sider
     theme="light"
     className="messaging"
@@ -81,35 +118,69 @@ const Messaging: React.FC<Props> = ({ me, collapsed, setCollapsed }) => {
     collapsedWidth={0}
     collapsed={collapsed}
     onCollapse={setCollapsed}
-    style={{ boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', background: 'rgb(240, 242, 245) none repeat scroll 0% 0%', position: 'absolute', right: 0, width: '100%', height: '100%', overflowY: 'scroll', zIndex: 1, marginBottom: 0 }}>
+    style={{ boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', background: 'rgb(240, 242, 245) none repeat scroll 0% 0%', position: 'absolute', right: 0, width: '100%', height: '100%', overflowY: 'auto', zIndex: 1, marginBottom: 0 }}>
     <Layout.Header style={{ background: '#0088CC', position: 'fixed', zIndex: 2, width: '100%', paddingLeft: '15px' }}>
       <div key="logo" className="logo" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
         <Button icon={<ArrowLeftOutlined />} size="large" type="link" style={{ color: '#fff' }} onClick={back} />
-        {message ? <span><Avatar src={message?.avatar} /> {message?.title}</span> : 'Quick Message'}
+        {message ? <span><Avatar src={message?.avatar} /> &nbsp;{message?.title}</span> : 'Quick Message'}
       </div>
     </Layout.Header>
     <Layout.Content className="container" style={{ marginTop: '60px', marginBottom: '60px' }}>
       {message ? <>
         <Typography.Paragraph style={{ textAlign: 'center' }}>
-          <Button shape="round" loading={!messageHistory} onClick={() => setMessagesOffset(messages?.messages.sort((a: any, b: any) => a.date - b.date)[0].date)}>Load more</Button>
+          <Button shape="round" loading={!messageHistory} onClick={() => setMessagesOffset(messages?.messages.sort((a: any, b: any) => a.date - b.date)[0].date || 0)}>Load more</Button>
         </Typography.Paragraph>
         <MessageList
           className="message-list"
           lockable={true}
-          dataSource={messages?.messages.sort((a: any, b: any) => a.date - b.date).map((message: any) => {
-            let user = messages?.users.find((user: any) => user.id === (message.fromId || message.peerId)?.userId)
+          onDownload={(file: any) => download(file.data.message)}
+          dataSource={messages?.messages.sort((a: any, b: any) => a.date - b.date).map((msg: any) => {
+            let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
             if (!user) {
-              user = messages?.chats.find((user: any) => user.id === (message.fromId || message.peerId)?.channelId)
+              user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
             }
-            return message.action?.className === 'MessageActionChatAddUser' ? {
+
+            const replyMsg = messages?.messages.find((msg: any) => msg.id === msg.replyTo?.replyToMsgId)
+            let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
+            if (!replyUser && replyMsg) {
+              replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
+            }
+
+            let fileTitle: string | null = null
+            if ((msg?.media?.photo || msg?.media?.document) && !msg.message) {
+              const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
+              fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
+            }
+            return msg.action?.className === 'MessageActionChatAddUser' ? {
               type: 'system',
               text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
+            } : fileTitle ? {
+              type: 'file',
+              title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+              titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+              text: fileTitle,
+              forwarded: Boolean(msg.fwdFrom),
+              data: {
+                status: {
+                  error: false,
+                  download: false,
+                  click: false
+                },
+                message: msg
+              }
             } : {
               position: me?.user.tg_id == user?.id ? 'right' : 'left',
               type: 'text',
               title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-              text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{message.message || 'Send Media'}</ReactMarkdown>,
-              date: message.date * 1000,
+              text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message || 'Send Media'}</ReactMarkdown>,
+              date: msg.date * 1000,
+              titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+              forwarded: Boolean(msg.fwdFrom),
+              reply: replyMsg ? {
+                title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
+                titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
+                message: replyMsg.message || 'Send Media'
+              } : undefined
             }
           }) || []}
         />
