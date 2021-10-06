@@ -65,7 +65,7 @@ export class Messages {
     const messages = await req.tg.invoke(new Api.messages.GetHistory({
       peer: peer,
       limit: Number(limit) || 0,
-      offsetDate: Number(offset) || 0,
+      offsetId: Number(offset) || 0,
     }))
     return res.send({ messages })
   }

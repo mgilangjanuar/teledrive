@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, CloseOutlined, CommentOutlined, SendOutlined } from '@ant-design/icons'
-import { Avatar, Button, Empty, Input, Layout, List, Spin, Tabs, Typography } from 'antd'
+import { Avatar, Button, Empty, Form, Input, Layout, List, Space, Spin, Tabs, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { ChatList, MessageBox } from 'react-chat-elements'
 import ReactMarkdown from 'react-markdown'
@@ -130,7 +130,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     <Layout.Content className="container" style={{ marginTop: '60px', marginBottom: '60px' }}>
       {message ? <>
         <Typography.Paragraph style={{ textAlign: 'center' }}>
-          <Button shape="round" loading={!messageHistory} onClick={() => setMessagesOffset(messages?.messages.sort((a: any, b: any) => a.date - b.date)[0].date || 0)}>Load more</Button>
+          <Button shape="round" loading={!messageHistory} onClick={() => setMessagesOffset(messages?.messages.sort((a: any, b: any) => a.date - b.date)[0].id || 0)}>Load more</Button>
         </Typography.Paragraph>
         <List itemLayout="vertical" loading={!messageHistory} dataSource={messages?.messages.sort((a: any, b: any) => a.date - b.date).map((msg: any) => {
           let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
@@ -152,13 +152,16 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           return msg.action?.className === 'MessageActionChatAddUser' ? {
             key: msg.id,
             type: 'system',
+            date: msg.date * 1000,
             text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
           } : fileTitle ? {
             key: msg.id,
+            position: me?.user.tg_id == user?.id ? 'right' : 'left',
             type: 'file',
             title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
             titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             text: fileTitle,
+            date: msg.date * 1000,
             forwarded: Boolean(msg.fwdFrom),
             onDownload: () => download(msg),
             data: {
@@ -278,10 +281,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       </>}
     </Layout.Content>
     {message ? <Layout.Footer style={{ padding: '20px 20px 5px', position: 'fixed', bottom: 0, width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth }}>
-      <Typography.Paragraph>
+      {/* <Typography.Paragraph>
         <Input.Search value={messageText} onChange={(e) => setMessageText(e.target.value)} className="input-search-round" placeholder="Type your message..." enterButton={<SendOutlined />} onSearch={console.log} allowClear />
-      </Typography.Paragraph>
-    </Layout.Footer> : <Button shape="circle" size="large" style={{ position: 'fixed', right: 30, bottom: 30 }} type="primary" icon={collapsed ? <CommentOutlined /> : <CloseOutlined />} onClick={() => setCollapsed(!collapsed)} />}
+      </Typography.Paragraph> */}
+      <Form.Item style={{ display: 'inherit' }}>
+        <Input.TextArea style={{ width: '89%', marginRight: '1%' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." />
+        <Button icon={<SendOutlined />} shape="circle" type="primary" />
+      </Form.Item>
+    </Layout.Footer> : <Button shape="circle" size="large" style={{ position: 'fixed', right: 25, bottom: 20 }} type="primary" danger={!collapsed} icon={collapsed ? <CommentOutlined /> : <CloseOutlined />} onClick={() => setCollapsed(!collapsed)} />}
   </Layout.Sider>
 }
 
