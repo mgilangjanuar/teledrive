@@ -55,6 +55,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     setMessages(undefined)
     if (message) {
       setMessagesOffset(0)
+      req.post(`/messages/read/${message.id}`).catch(() => {})
     }
   }, [message])
 
@@ -146,7 +147,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           let fileTitle: string | null = null
           if ((msg?.media?.photo || msg?.media?.document) && !msg.message) {
             const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
-            fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
+            fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${msg?.media?.document.id}.${mimeType.split('/').pop()}`
           }
           return msg.action?.className === 'MessageActionChatAddUser' ? {
             key: msg.id,
