@@ -1,7 +1,7 @@
 import { ArrowLeftOutlined, CloseOutlined, CommentOutlined, SendOutlined } from '@ant-design/icons'
-import { Avatar, Button, Empty, Input, Layout, Spin, Tabs, Typography } from 'antd'
+import { Avatar, Button, Empty, Input, Layout, List, Spin, Tabs, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { ChatList, MessageList } from 'react-chat-elements'
+import { ChatList, MessageBox } from 'react-chat-elements'
 import ReactMarkdown from 'react-markdown'
 import { useHistory } from 'react-router'
 import remarkGfm from 'remark-gfm'
@@ -70,6 +70,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const back = () => {
     if (message) {
       setMessage(undefined)
+      setMessagesOffset(undefined)
     } else if (q) {
       setQ(undefined)
       setQVal(undefined)
@@ -130,61 +131,59 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         <Typography.Paragraph style={{ textAlign: 'center' }}>
           <Button shape="round" loading={!messageHistory} onClick={() => setMessagesOffset(messages?.messages.sort((a: any, b: any) => a.date - b.date)[0].date || 0)}>Load more</Button>
         </Typography.Paragraph>
-        <MessageList
-          className="message-list"
-          lockable={true}
-          onDownload={(file: any) => download(file.data.message)}
-          dataSource={messages?.messages.sort((a: any, b: any) => a.date - b.date).map((msg: any) => {
-            let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
-            if (!user) {
-              user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
-            }
+        <List itemLayout="vertical" loading={!messageHistory} dataSource={messages?.messages.sort((a: any, b: any) => a.date - b.date).map((msg: any) => {
+          let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
+          if (!user) {
+            user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
+          }
 
-            const replyMsg = messages?.messages.find((msg: any) => msg.id === msg.replyTo?.replyToMsgId)
-            let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
-            if (!replyUser && replyMsg) {
-              replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
-            }
+          const replyMsg = messages?.messages.find((msg: any) => msg.id === msg.replyTo?.replyToMsgId)
+          let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
+          if (!replyUser && replyMsg) {
+            replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
+          }
 
-            let fileTitle: string | null = null
-            if ((msg?.media?.photo || msg?.media?.document) && !msg.message) {
-              const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
-              fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
+          let fileTitle: string | null = null
+          if ((msg?.media?.photo || msg?.media?.document) && !msg.message) {
+            const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
+            fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
+          }
+          return msg.action?.className === 'MessageActionChatAddUser' ? {
+            key: msg.id,
+            type: 'system',
+            text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
+          } : fileTitle ? {
+            key: msg.id,
+            type: 'file',
+            title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            text: fileTitle,
+            forwarded: Boolean(msg.fwdFrom),
+            onDownload: () => download(msg),
+            data: {
+              status: {
+                error: false,
+                download: false,
+                click: false
+              },
+              message: msg
             }
-            return msg.action?.className === 'MessageActionChatAddUser' ? {
-              type: 'system',
-              text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
-            } : fileTitle ? {
-              type: 'file',
-              title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-              titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
-              text: fileTitle,
-              forwarded: Boolean(msg.fwdFrom),
-              data: {
-                status: {
-                  error: false,
-                  download: false,
-                  click: false
-                },
-                message: msg
-              }
-            } : {
-              position: me?.user.tg_id == user?.id ? 'right' : 'left',
-              type: 'text',
-              title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-              text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message || 'Send Media'}</ReactMarkdown>,
-              date: msg.date * 1000,
-              titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
-              forwarded: Boolean(msg.fwdFrom),
-              reply: replyMsg ? {
-                title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
-                titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
-                message: replyMsg.message || 'Send Media'
-              } : undefined
-            }
-          }) || []}
-        />
-        {!messageHistory && <Typography.Paragraph style={{ textAlign: 'center' }}><Spin spinning={true} /></Typography.Paragraph>}
+          } : {
+            key: msg.id,
+            position: me?.user.tg_id == user?.id ? 'right' : 'left',
+            type: 'text',
+            title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+            text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message || 'Send Media'}</ReactMarkdown>,
+            date: msg.date * 1000,
+            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            forwarded: Boolean(msg.fwdFrom),
+            reply: replyMsg ? {
+              title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
+              titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
+              message: replyMsg.message || 'Unknown message'
+            } : undefined
+          }
+        }) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><MessageBox {...item} /></List.Item>} />
       </> : <>
         <Typography.Paragraph>
           <Input.Search value={qVal} onChange={(e) => setQVal(e.target.value)} className="input-search-round" placeholder="Search..." enterButton onSearch={setQ} allowClear />
@@ -194,13 +193,13 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           <Tabs.TabPane tab="Messages" key="messages">
             {searchMessages && !searchMessageList?.messages?.length && <Empty style={{ marginTop: '100px' }} />}
             <ChatList
-              onClick={console.log}
+              onClick={setMessage}
               dataSource={searchMessageList?.messages.map((message: any) => {
                 const user = message.peerId?.userId ? searchMessageList?.users.find((user: any) => user.id === message.peerId?.userId) : null
                 const chat = message.peerId?.chatId ? searchMessageList?.chats.find((chat: any) => chat.id === message.peerId?.chatId) : null
                 const title = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : chat?.title || ''
                 return {
-                  id: `${user ? 'user' : 'chat'}/${message.peerId?.userId || message.peerId?.chatId}`,
+                  id: `${user ? 'user' : 'chat'}/${message.peerId?.userId || message.peerId?.chatId}?accessHash=${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash}`,
                   key: message.id,
                   avatar: `${apiUrl}/messages/${user ? 'user' : 'chat'}/${message.peerId?.userId || message.peerId?.chatId}/avatar.jpg?accessHash=${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash}`,
                   alt: title?.split(' ')?.map((word: string) => word[0]).slice(0, 2).join('').toUpperCase(),
@@ -236,13 +235,13 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           <Tabs.TabPane tab="Global Search" key="globalSearch">
             {searchGlobal && !searcGlobalList?.messages?.length && <Empty style={{ marginTop: '100px' }} />}
             <ChatList
-              onClick={console.log}
+              onClick={setMessage}
               dataSource={searcGlobalList?.messages.map((message: any) => {
                 const user = message.peerId?.userId ? searcGlobalList?.users.find((user: any) => user.id === message.peerId?.userId) : null
                 const channel = message.peerId?.channelId ? searcGlobalList?.chats.find((channel: any) => channel.id === message.peerId?.channelId) : null
                 const title = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : channel?.title || ''
                 return {
-                  id: `${user ? 'user' : 'channel'}/${message.peerId?.userId || message.peerId?.channelId}`,
+                  id: `${user ? 'user' : 'channel'}/${message.peerId?.userId || message.peerId?.channelId}?accessHash=${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash}`,
                   key: message.id,
                   avatar: `${apiUrl}/messages/${user ? 'user' : 'channel'}/${message.peerId?.userId || message.peerId?.channelId}/avatar.jpg?accessHash=${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash}`,
                   alt: title?.split(' ')?.map((word: string) => word[0]).slice(0, 2).join('').toUpperCase(),
