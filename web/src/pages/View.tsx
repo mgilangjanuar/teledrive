@@ -91,12 +91,12 @@ const View: React.FC<PageProps> = ({ match }) => {
       return history.push('/login')
     }
 
-    // return history.goBack()
-    if (me?.user.id === data?.file.user_id) {
-      return history.replace(`/dashboard${data?.file.parent_id ? `?parent=${data?.file.parent_id}` : ''}`)
-    } else {
-      return history.replace('/dashboard/shared')
-    }
+    return history.goBack()
+    // if (me?.user.id === data?.file.user_id) {
+    //   return history.replace(`/dashboard${data?.file.parent_id ? `?parent=${data?.file.parent_id}` : ''}`)
+    // } else {
+    //   return history.replace('/dashboard/shared')
+    // }
   }
 
   const Icon = ({ type }: { type: string }) => {

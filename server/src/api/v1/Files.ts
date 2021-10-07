@@ -43,20 +43,20 @@ export class Files {
       if (!chat?.['messages']?.[0]) {
         throw { status: 404, body: { error: 'Message not found' } }
       }
-      // console.log(chat)
+      console.log(chat['messages'][0].media.photo)
 
       const mimeType = chat['messages'][0].media.photo ? 'image/jpeg' : chat['messages'][0].media.document.mimeType || 'unknown'
-      const name = chat['messages'][0].media.photo ? `${chat['messages'][0].media.photo.id}.jpg` : chat['messages'][0].media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `untitled.${mimeType.split('/').pop()}`
+      const name = chat['messages'][0].media.photo ? `${chat['messages'][0].media.photo.id}.jpg` : chat['messages'][0].media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${chat['messages'][0].media?.document.id}.${mimeType.split('/').pop()}`
 
       const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
       const size = chat['messages'][0].media.photo ? getSizes(chat['messages'][0].media.photo.sizes.pop()) : chat['messages'][0].media.document?.size
       let type = chat['messages'][0].media.photo ? 'image' : null
-      if (!type) {
-        if (chat['messages'][0].media.document.mimeType.match(/^video/gi)) {
-          type = 'video'
-        } else if (chat['messages'][0].media.document.mimeType.match(/pdf$/gi)) {
-          type = 'document'
-        }
+      if (chat['messages'][0].media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
+        type = 'video'
+      } else if (chat['messages'][0].media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
+        type = 'document'
+      } else if (chat['messages'][0].media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+        type = 'audio'
       }
 
       message = {

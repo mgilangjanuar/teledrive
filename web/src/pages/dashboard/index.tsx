@@ -1,4 +1,4 @@
-import { CommentOutlined, FolderAddOutlined, HomeOutlined, CloseOutlined } from '@ant-design/icons'
+import { FolderAddOutlined, HomeOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
@@ -59,7 +59,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [scrollTop, setScrollTop] = useState<number>(0)
   const [fileList, setFileList] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>()
-  const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
+  const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(new URLSearchParams(location.search).get('chat') !== 'open')
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
@@ -164,6 +164,16 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       setScrollTop(0)
     }
   }, [tab])
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+    if (collapsedMessaging) {
+      searchParams.delete('chat')
+    } else {
+      searchParams.set('chat', 'open')
+    }
+    history.replace(`/dashboard${tab === 'shared' ? `/${tab}` : ''}?${searchParams.toString()}`)
+  }, [collapsedMessaging])
 
   useEffect(() => {
     if (filesUpload?.files) {
