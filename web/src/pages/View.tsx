@@ -66,7 +66,7 @@ const View: React.FC<PageProps> = ({ match }) => {
       setLinks({
         raw: `${apiUrl}/files/${match.params.id}?raw=1`,
         download: `${apiUrl}/files/${match.params.id}?raw=1&dl=1`,
-        share: `${window.location.origin}/view/shared/${match.params.id}`
+        share: `${window.location.origin}/view/${match.params.id}`
       })
     }
   }, [data])
