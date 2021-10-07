@@ -1,7 +1,8 @@
 import { ArrowLeftOutlined, CommentOutlined, LoadingOutlined, ReloadOutlined, SendOutlined } from '@ant-design/icons'
 import { Avatar, Button, Empty, Form, Input, Layout, List, notification, Spin, Tabs, Typography } from 'antd'
+import { TextAreaRef } from 'antd/lib/input/TextArea'
 import prettyBytes from 'pretty-bytes'
-import React, { useEffect, useState } from 'react'
+import React, { Ref, useEffect, useRef, useState } from 'react'
 import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
 import ReactMarkdown from 'react-markdown'
 import { useHistory } from 'react-router'
@@ -31,6 +32,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [searchAccountList, setSearchAccountList] = useState<any>()
   const [messages, setMessages] = useState<any>()
   const [messagesOffset, setMessagesOffset] = useState<number>()
+  const inputSend = useRef<any | null>()
   const history = useHistory()
 
   const { data: dialogs, mutate: refetchDialogs } = useSWR(!collapsed && !q && !message ? `/dialogs?limit=10${chatListOffset ? `&offset=${chatListOffset}` : ''}` : null, fetcher, { onSuccess: data => {
@@ -62,8 +64,38 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     if (message) {
       setMessagesOffset(0)
       req.post(`/messages/read/${message.id}`).catch(() => {})
+      inputSend.current.focus()
     }
   }, [message])
+
+  useEffect(() => {
+    if (message && !collapsed) {
+      const searchParams = new URLSearchParams(window.location.search)
+      searchParams.set('msg', encodeURIComponent(Buffer.from(JSON.stringify(message)).toString('base64')))
+      history.replace(`${window.location.pathname}?${searchParams.toString()}`)
+    }
+  }, [message, collapsed])
+
+  useEffect(() => {
+    const msg = new URLSearchParams(location.search).get('msg') || null
+    const chat = new URLSearchParams(location.search).get('chat') || null
+    console.log(msg, chat)
+    if (msg) {
+      setMessage(JSON.parse(Buffer.from(decodeURIComponent(msg), 'base64').toString()))
+    }
+    setCollapsed(chat !== 'open')
+  }, [])
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+    if (collapsed) {
+      searchParams.delete('chat')
+      searchParams.delete('msg')
+    } else {
+      searchParams.set('chat', 'open')
+    }
+    history.replace(`${window.location.pathname}?${searchParams.toString()}`)
+  }, [collapsed])
 
   useEffect(() => {
     if (messageHistory?.messages) {
@@ -78,6 +110,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     if (message) {
       setMessage(undefined)
       setMessagesOffset(undefined)
+
+      const searchParams = new URLSearchParams(window.location.search)
+      searchParams.delete('msg')
+      history.replace(`${window.location.pathname}?${searchParams.toString()}`)
     } else if (q) {
       setQ(undefined)
       setQVal(undefined)
@@ -326,7 +362,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     </Layout.Content>
     {message && <Layout.Footer style={{ padding: '10px 20px', position: 'fixed', bottom: 0, width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth || '100%' }}>
       <Form.Item style={{ display: 'inherit', margin: 0 }}>
-        <Input.TextArea style={{ width: '88%' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
+        <Input.TextArea ref={inputSend} style={{ width: '88%', borderRadius: '16px' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
           if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {
             sendMessage()
           }
