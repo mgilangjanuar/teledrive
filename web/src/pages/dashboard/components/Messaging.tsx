@@ -165,7 +165,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </div>}
       </div>
     </Layout.Header>
-    <Layout.Content className="container" style={{ marginTop: '60px', marginBottom: '60px' }}>
+    <Layout.Content className="container" style={{ marginTop: '60px', paddingBottom: '60px', marginBottom: 0 }}>
       {message ? <>
         <Typography.Paragraph style={{ textAlign: 'center' }}>
           <Button shape="round" loading={!messageHistory} onClick={() => setMessagesOffset(messages?.messages.sort((a: any, b: any) => a.date - b.date)[0].id || 0)}>Load more</Button>
@@ -216,10 +216,9 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
                 error: false,
                 download: false,
                 click: false
-              },
-              // message: msg
+              }
             }
-          } : {
+          } : msg.message ? {
             key: msg.id,
             position: me?.user.tg_id == user?.id ? 'right' : 'left',
             type: 'text',
@@ -233,8 +232,8 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
               titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
               message: replyMsg.message || 'Unknown message'
             } : undefined
-          }
-        }) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><MessageBox {...item} /></List.Item>} />
+          } : null
+        }).filter(Boolean) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><MessageBox {...item} /></List.Item>} />
       </> : <>
         <Typography.Paragraph>
           <Input.Search value={qVal} onChange={(e) => setQVal(e.target.value)} className="input-search-round" placeholder="Search by username or message..." enterButton onSearch={setQ} allowClear />
@@ -310,13 +309,13 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         {!q && !message && <>
           <List itemLayout="vertical" loading={!dialogs} loadMore={<Typography.Paragraph style={{ textAlign: 'center', marginTop: '15px' }}>
             <Button loading={!dialogs} onClick={() => setChatListOffset(chatList?.sort((a: any, b: any) => a.date - b.date)[0].date)} shape="round">Load more</Button>
-          </Typography.Paragraph>} dataSource={chatList?.sort((a: any, b: any) => b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned).map((dialog: any) => {
+          </Typography.Paragraph>} dataSource={chatList?.sort((a: any, b: any) => a.entity?.id == me?.user.tg_id ? -99 : b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned).map((dialog: any) => {
             return {
               id: `${dialog.isUser ? 'user' : 'channel'}/${dialog.entity?.id}?accessHash=${dialog.entity?.accessHash}`,
               key: dialog.id,
               avatar: `${apiUrl}/dialogs/${dialog.isUser ? 'user' : 'channel'}/${dialog.entity?.id}/avatar.jpg?accessHash=${dialog.entity.accessHash}`,
               alt: dialog.title?.split(' ')?.map((word: string) => word[0]).slice(0, 2).join('').toUpperCase(),
-              title: dialog.title,
+              title: me?.user.tg_id == dialog.entity?.id ? 'Saved Messages' : dialog.title,
               subtitle: dialog.message.message || 'Unknown message',
               date: dialog.date * 1000,
               unread: dialog.dialog.unreadCount
@@ -325,7 +324,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </>}
       </>}
     </Layout.Content>
-    {message ? <Layout.Footer style={{ padding: '10px 20px', position: 'fixed', bottom: 0, width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth || '100%' }}>
+    {message && <Layout.Footer style={{ padding: '10px 20px', position: 'fixed', bottom: 0, width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth || '100%' }}>
       <Form.Item style={{ display: 'inherit', margin: 0 }}>
         <Input.TextArea style={{ width: '88%' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
           if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {
@@ -336,7 +335,8 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           <Button loading={loadingSend} icon={<SendOutlined />} shape="circle" type="primary" onClick={sendMessage} />
         </div>
       </Form.Item>
-    </Layout.Footer> : <Button shape="circle" size="large" style={{ position: 'fixed', right: 25, bottom: 20, ...collapsed ? {} : { display: 'none' } }} type="primary" icon={<CommentOutlined />} onClick={() => setCollapsed(!collapsed)} />}
+    </Layout.Footer>}
+    {collapsed && <Button shape="circle" size="large" style={{ position: 'fixed', right: 25, bottom: 20, ...collapsed ? {} : { display: 'none' } }} type="primary" icon={<CommentOutlined />} onClick={() => setCollapsed(!collapsed)} />}
   </Layout.Sider>
 }
 

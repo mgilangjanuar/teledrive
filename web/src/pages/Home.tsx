@@ -46,6 +46,9 @@ const Home: React.FC = () => {
               So, you can upload as many as you want without any limit 👌
             </Typography.Paragraph>
             <Typography.Paragraph>
+              <a href="https://www.producthunt.com/posts/teledrive?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=315149&theme=light" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a>
+            </Typography.Paragraph>
+            <Typography.Paragraph>
               <Space>
                 <Follow username="teledriveapp" options={{ dnt: true }} />
                 <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
@@ -156,7 +159,7 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '50px 0', textAlign: 'center' }}>
+      <Row style={{ marginTop: '50px', padding: '50px 0 100px', textAlign: 'center' }}>
         <Col lg={{ span: 6, offset: 9 }} md={{ span: 10, offset: 7 }} span={20} offset={2}>
           <Typography.Paragraph>
             Join the waiting list now! 🚀
