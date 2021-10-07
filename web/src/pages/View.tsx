@@ -38,6 +38,7 @@ import { useDebounce } from 'use-debounce/lib'
 import { apiUrl, fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
+import Messaging from './dashboard/components/Messaging'
 import Remove from './dashboard/components/Remove'
 import Rename from './dashboard/components/Rename'
 import Share from './dashboard/components/Share'
@@ -58,6 +59,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const [selectShare, setSelectShare] = useState<any>()
   const [fileRename, setFileRename] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
+  const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
 
   useEffect(() => {
     if (data?.file) {
@@ -218,6 +220,8 @@ const View: React.FC<PageProps> = ({ match }) => {
       me={me}
       dataSelect={[selectShare, setSelectShare]}
       onFinish={mutate} />
+
+    {me && <Messaging me={me} collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />}
   </>
 }
 
