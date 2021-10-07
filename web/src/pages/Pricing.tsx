@@ -42,6 +42,9 @@ const Pricing: React.FC = () => {
         <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ width: '100%', maxWidth: '170px' }} />
       </a>
     </Typography.Paragraph>
+    <Typography.Paragraph>
+      or, via <a href="https://paypal.me/mgilangjanuar" target="_blank">PayPal</a>.
+    </Typography.Paragraph>
     <br />
     <Typography.Paragraph type="secondary">
       Feel free to <Link to="/contact?intent=sponsor">contact us</Link> if you have any questions or become a sponsor &mdash; or if you would like to help us in other ways.

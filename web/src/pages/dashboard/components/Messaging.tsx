@@ -1,7 +1,8 @@
-import { ArrowLeftOutlined, CloseOutlined, CommentOutlined, SendOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, CommentOutlined, LoadingOutlined, ReloadOutlined, SendOutlined } from '@ant-design/icons'
 import { Avatar, Button, Empty, Form, Input, Layout, List, notification, Spin, Tabs, Typography } from 'antd'
+import prettyBytes from 'pretty-bytes'
 import React, { useEffect, useState } from 'react'
-import { ChatList, MessageBox, ChatItem } from 'react-chat-elements'
+import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
 import ReactMarkdown from 'react-markdown'
 import { useHistory } from 'react-router'
 import remarkGfm from 'remark-gfm'
@@ -9,7 +10,6 @@ import useSWR from 'swr'
 import { apiUrl, fetcher, req } from '../../../utils/Fetcher'
 
 import 'react-chat-elements/dist/main.css'
-import prettyBytes from 'pretty-bytes'
 
 interface Props {
   me?: any,
@@ -33,14 +33,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [messagesOffset, setMessagesOffset] = useState<number>()
   const history = useHistory()
 
-  const { data: dialogs } = useSWR(!collapsed && !q && !message ? `/dialogs?limit=10${chatListOffset ? `&offset=${chatListOffset}` : ''}` : null, fetcher, { onSuccess: data => {
+  const { data: dialogs, mutate: refetchDialogs } = useSWR(!collapsed && !q && !message ? `/dialogs?limit=10${chatListOffset ? `&offset=${chatListOffset}` : ''}` : null, fetcher, { onSuccess: data => {
     setChatListOffset(undefined)
     setChatLists([...chatList?.filter((dialog: any) => !data.dialogs.find((d: any) => d.id === dialog.id)) || [], ...data.dialogs || []])
   } })
   const { data: searchMessages } = useSWR(q ? `/messages/search?q=${q}&limit=10` : null, fetcher, { onSuccess: data => setSearchMessageList(data.messages || []) })
   const { data: searchGlobal } = useSWR(q ? `/messages/globalSearch?q=${q}&limit=5` : null, fetcher, { onSuccess: data => setSearcGlobalList(data.messages || []) })
   const { data: searchAccounts } = useSWR(q ? `/users/search?username=${q}&limit=10` : null, fetcher, { onSuccess: data => setSearchAccountList(data.users || []) })
-  const { data: messageHistory, mutate: refetch } = useSWR(message && messagesOffset !== undefined  ? `/messages/history/${message.id}&limit=15&offset=${messagesOffset}` : null, fetcher, { onSuccess: data => {
+  const { data: messageHistory, mutate: refetchHistory } = useSWR(message && messagesOffset !== undefined  ? `/messages/history/${message.id}&limit=15&offset=${messagesOffset}` : null, fetcher, { onSuccess: data => {
     setMessagesOffset(0)
     return setMessages({
       ...messages,
@@ -138,7 +138,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         description: error?.response.data?.error || 'Something error, please try again.'
       })
     }
-    refetch()
+    refetchHistory()
     return setLoadingSend(false)
   }
 
@@ -150,10 +150,19 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     collapsed={collapsed}
     onCollapse={setCollapsed}
     style={{ boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', background: 'rgb(240, 242, 245) none repeat scroll 0% 0%', position: 'absolute', right: 0, width: '100%', height: '100%', overflowY: 'auto', zIndex: 1, marginBottom: 0 }}>
-    <Layout.Header style={{ background: '#0088CC', position: 'fixed', zIndex: 2, width: '100%', paddingLeft: '15px' }}>
-      <div key="logo" className="logo" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
-        <Button icon={<ArrowLeftOutlined />} size="large" type="link" style={{ color: '#fff' }} onClick={back} />
-        {message ? <span><Avatar src={message?.avatar} /> &nbsp;{message?.title}</span> : 'Quick Message'}
+    <Layout.Header style={{ background: '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth || '100%' }}>
+      <div key="logo" className="logo" style={{ display: 'inline', width: '100%' }}>
+        <div style={{ float: 'left' }}>
+          <Button icon={<ArrowLeftOutlined />} size="large" type="link" style={{ color: '#fff' }} onClick={back} />
+        </div>
+        {message ? <div style={{ float: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '78%' }}>
+          <Avatar src={message?.avatar} /> &nbsp;{message?.title}
+        </div> : <div style={{ float: 'left' }}>
+          Quick Message
+        </div>}
+        {!q && <div style={{ float: 'right' }}>
+          <Button icon={!dialogs && !messageHistory ? <LoadingOutlined /> : <ReloadOutlined />} onClick={() => message ? refetchHistory() : refetchDialogs()} type="text" style={{ color: '#fff' }} />
+        </div>}
       </div>
     </Layout.Header>
     <Layout.Content className="container" style={{ marginTop: '60px', marginBottom: '60px' }}>
@@ -226,9 +235,6 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             } : undefined
           }
         }) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><MessageBox {...item} /></List.Item>} />
-        <Typography.Paragraph style={{ textAlign: 'center', marginTop: '15px' }}>
-          <Button shape="round" type="link" loading={!messageHistory} onClick={() => refetch()}>Load recent messages...</Button>
-        </Typography.Paragraph>
       </> : <>
         <Typography.Paragraph>
           <Input.Search value={qVal} onChange={(e) => setQVal(e.target.value)} className="input-search-round" placeholder="Search by username or message..." enterButton onSearch={setQ} allowClear />
@@ -319,14 +325,16 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </>}
       </>}
     </Layout.Content>
-    {message ? <Layout.Footer style={{ padding: '20px 20px 5px', position: 'fixed', bottom: 0, width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth }}>
-      <Form.Item style={{ display: 'inherit' }}>
-        <Input.TextArea style={{ width: '89%', marginRight: '1%' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
+    {message ? <Layout.Footer style={{ padding: '10px 20px', position: 'fixed', bottom: 0, width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth || '100%' }}>
+      <Form.Item style={{ display: 'inherit', margin: 0 }}>
+        <Input.TextArea style={{ width: '88%' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
           if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {
             sendMessage()
           }
         }} />
-        <Button loading={loadingSend} icon={<SendOutlined />} shape="circle" type="primary" onClick={sendMessage} />
+        <div style={{ float: 'right' }}>
+          <Button loading={loadingSend} icon={<SendOutlined />} shape="circle" type="primary" onClick={sendMessage} />
+        </div>
       </Form.Item>
     </Layout.Footer> : <Button shape="circle" size="large" style={{ position: 'fixed', right: 25, bottom: 20, ...collapsed ? {} : { display: 'none' } }} type="primary" icon={<CommentOutlined />} onClick={() => setCollapsed(!collapsed)} />}
   </Layout.Sider>
