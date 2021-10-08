@@ -38,13 +38,36 @@ export class Files {
 
     let message: any = {}
     if (messageId) {
-      const chat = await req.tg.invoke(new Api.messages.GetMessages({
-        id: [new Api.InputMessageID({ id: Number(messageId) })]
-      })) as any
+      if (!file.forward_info) {
+        throw { status: 400, body: { error: 'Forward info is required in body.' } }
+      }
+
+      let chat: any
+      if (file.forward_info && !file.forward_info.match(/^user\//gi)) {
+        const [type, peerId, _id, accessHash] = file.forward_info.split('/')
+        let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: Number(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peer = new Api.InputPeerChat({
+            chatId: Number(peerId)
+          })
+        }
+        chat = await req.tg.invoke(new Api.channels.GetMessages({
+          channel: peer,
+          id: [new Api.InputMessageID({ id: Number(messageId) })]
+        }))
+      } else {
+        chat = await req.tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(messageId) })]
+        })) as any
+      }
+
       if (!chat?.['messages']?.[0]) {
         throw { status: 404, body: { error: 'Message not found' } }
       }
-      console.log(chat['messages'][0].media.photo)
 
       const mimeType = chat['messages'][0].media.photo ? 'image/jpeg' : chat['messages'][0].media.document.mimeType || 'unknown'
       const name = chat['messages'][0].media.photo ? `${chat['messages'][0].media.photo.id}.jpg` : chat['messages'][0].media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${chat['messages'][0].media?.document.id}.${mimeType.split('/').pop()}`
@@ -250,7 +273,6 @@ export class Files {
       try {
         data = await sendData(false)
       } catch (error) {
-        console.error(error)
         data = await sendData(true)
       }
 
@@ -290,9 +312,28 @@ export class Files {
       return res.send({ file: result })
     }
 
-    const chat = await req.tg.invoke(new Api.messages.GetMessages({
-      id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-    }))
+    let chat: any
+    if (file.forward_info && !file.forward_info.match(/^user\//gi)) {
+      const [type, peerId, id, accessHash] = file.forward_info.split('/')
+      let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+      if (type === 'channel') {
+        peer = new Api.InputPeerChannel({
+          channelId: Number(peerId),
+          accessHash: bigInt(accessHash as string) })
+      } else if (type === 'chat') {
+        peer = new Api.InputPeerChat({
+          chatId: Number(peerId)
+        })
+      }
+      chat = await req.tg.invoke(new Api.channels.GetMessages({
+        channel: peer,
+        id: [new Api.InputMessageID({ id: Number(id) })]
+      }))
+    } else {
+      chat = await req.tg.invoke(new Api.messages.GetMessages({
+        id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+      }))
+    }
 
     let cancel = false
     req.on('close', () => cancel = true)
@@ -311,8 +352,7 @@ export class Files {
         end: Math.min(file.size, idx * chunk - 1),
         workers: 1,   // using 1 for stable
         progressCallback: (() => {
-          const updateProgess: any = (progress: number) => {
-            console.log('progress', progress)
+          const updateProgess: any = () => {
             updateProgess.isCanceled = cancel
           }
           return updateProgess
@@ -331,10 +371,8 @@ export class Files {
 
     let data: { file: { id: string }, session: string }
     try {
-      console.log(file.signed_key, process.env.FILES_JWT_SECRET)
       data = JSON.parse(AES.decrypt(file.signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
     } catch (error) {
-      console.error(error)
       throw { status: 401, body: { error: 'Invalid token' } }
     }
 

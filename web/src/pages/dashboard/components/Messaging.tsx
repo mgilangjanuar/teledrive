@@ -132,13 +132,6 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       return history.push(`/view/${file.id}`)
     }
 
-    const { data } = await req.post(`/messages/forwardToMe/${msg.id}`, {}, {
-      params: {
-        type,
-        peerId: id,
-        accessHash
-      }
-    })
     const { data: file } = await req.post('/files', { file:
       {
         parent_id: parent?.link_id || parent?.id,
@@ -147,7 +140,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       }
     }, {
       params: {
-        messageId: data.message.id
+        messageId: msg.id
       }
     })
 

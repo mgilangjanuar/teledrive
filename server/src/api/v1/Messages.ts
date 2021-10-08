@@ -7,41 +7,6 @@ import { Auth } from '../middlewares/Auth'
 @Endpoint.API()
 export class Messages {
 
-  @Endpoint.POST('/forwardToMe/:id', { middlewares: [Auth] })
-  public async forwardToMe(req: Request, res: Response): Promise<any> {
-    const { id } = req.params
-    const { type, peerId, accessHash } = req.query
-    if (!type || !peerId) {
-      throw { status: 400, body: { error: 'Type and peer ID are required' } }
-    }
-
-    let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-    if (type === 'channel') {
-      peer = new Api.InputPeerChannel({
-        channelId: Number(peerId),
-        accessHash: bigInt(accessHash as string) })
-    } else if (type === 'chat') {
-      peer = new Api.InputPeerChat({
-        chatId: Number(peerId)
-      })
-    } else if (type === 'user') {
-      peer = new Api.InputPeerUser({
-        userId: Number(peerId),
-        accessHash: bigInt(accessHash as string) })
-    }
-
-    const result = await req.tg.invoke(
-      new Api.messages.ForwardMessages({
-        fromPeer: peer,
-        id: [Number(id)],
-        randomId: [bigInt.randBetween('-1e100', '1e100')],
-        toPeer: 'me',
-        withMyScore: true
-      })
-    )
-    return res.send({ message: result['updates'][1].message })
-  }
-
   @Endpoint.GET('/history/:type/:id', { middlewares: [Auth] })
   public async history(req: Request, res: Response): Promise<any> {
     const { type, id } = req.params
@@ -89,7 +54,7 @@ export class Messages {
         userId: Number(id),
         accessHash: bigInt(accessHash as string) })
     }
-    // console.log(peer)
+
     if (type === 'user') {
       await req.tg.invoke(new Api.messages.ReadHistory({ peer }))
     } else {
