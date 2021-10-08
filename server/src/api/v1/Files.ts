@@ -1,4 +1,5 @@
 import bigInt from 'big-integer'
+import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
 import multer from 'multer'
@@ -296,7 +297,7 @@ export class Files {
     let cancel = false
     req.on('close', () => cancel = true)
 
-    res.setHeader('Content-Disposition', Number(dl) === 1 ? `attachment; filename=${file.name}` : `inline; filename=${file.name}`)
+    res.setHeader('Content-Disposition', contentDisposition(file.name, { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', file.mime_type)
     res.setHeader('Content-Length', file.size)
     let data = null
