@@ -8,6 +8,7 @@ import useSWRImmutable from 'swr/immutable'
 import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
+import { ReactComponent as UploadingAnimate } from '../Uploading-amico.svg'
 
 const Home: React.FC = () => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
@@ -46,7 +47,8 @@ const Home: React.FC = () => {
               So, you can upload as many as you want without any limit 👌
             </Typography.Paragraph>
             <Typography.Paragraph>
-              <a href="https://www.producthunt.com/posts/teledrive?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=315149&theme=light" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a>
+              {/* <a href="https://www.producthunt.com/posts/teledrive?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=315149&theme=light" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a> */}
+              <a href="https://www.producthunt.com/posts/teledrive?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=315149&theme=light&period=daily" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a>
             </Typography.Paragraph>
             <Typography.Paragraph>
               <Space>
@@ -70,7 +72,8 @@ const Home: React.FC = () => {
         </Col>
         <Col lg={{ span: 10 }} span={24} style={{ textAlign: 'center', marginTop: '50px' }}>
           <Layout.Content>
-            <img style={{ width: '100%', maxWidth: '640px' }} src="./uploading-animate.svg" alt="Online illustrations by Storyset" />
+            <UploadingAnimate style={{ width: '100%', maxWidth: '640px' }} />
+            {/* <img style={{ width: '100%', maxWidth: '640px' }} src="./uploading-animate.svg" alt="Online illustrations by Storyset" /> */}
           </Layout.Content>
         </Col>
       </Row>

@@ -107,21 +107,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     document.body.addEventListener('scroll', nextPage)
   }, [])
 
-  // useEffect(() => {
-  //   const parentId = new URLSearchParams(location.search).get('parent') || null
-  //   if (parentId) {
-  //     req.get(`/files/${parentId}`).then(({ data }) => {
-  //       setParent(data.file)
-  //       req.get(`/files/breadcrumbs/${data.file.id}`)
-  //         .then(({ data }) => {
-  //           setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs])
-  //         })
-  //     })
-  //   } else {
-  //     setParent(null)
-  //   }
-  // }, [])
-
   useEffect(() => {
     const footer = document.querySelector('.ant-layout-footer')
     if (scrollTop >= document.body.scrollHeight - document.body.clientHeight - (footer?.clientHeight || 0) && files?.files.length >= PAGE_SIZE) {
@@ -135,14 +120,6 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       setScrollTop(0)
     }
   }, [keyword, parent])
-
-  // useEffect(() => {
-  //   if (parent?.id) {
-  //     const searchParams = new URLSearchParams(window.location.search)
-  //     searchParams.set('parent', parent.id)
-  //     history.push(`${location.pathname}?${searchParams.toString()}`)
-  //   }
-  // }, [parent])
 
   useEffect(() => {
     if (action === 'copy') {

@@ -125,9 +125,13 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     history.push(`${window.location.pathname}?${searchParams.toString()}`)
   }
 
-  const search = (val: string) => {
+  const search = (val?: string) => {
     const searchParams = new URLSearchParams(window.location.search)
-    searchParams.set('q', val)
+    if (val) {
+      searchParams.set('q', val)
+    } else {
+      searchParams.delete('q')
+    }
     history.push(`${window.location.pathname}?${searchParams.toString()}`)
   }
 
@@ -217,7 +221,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
           }
 
-          const replyMsg = messages?.messages.find((msg: any) => msg.id === msg.replyTo?.replyToMsgId)
+          const replyMsg = messages?.messages.find((m: any) => m.id === msg.replyTo?.replyToMsgId)
           let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
           if (!replyUser && replyMsg) {
             replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
