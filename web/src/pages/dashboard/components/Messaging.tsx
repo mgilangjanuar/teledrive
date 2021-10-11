@@ -33,7 +33,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [messagesOffset, setMessagesOffset] = useState<number>()
   const inputSend = useRef<any | null>()
   const history = useHistory()
-  const { search: _searchParams } = useLocation()
+  const { search: searchParams } = useLocation()
 
   const { data: dialogs, mutate: refetchDialogs } = useSWR(!collapsed && !q && !message ? `/dialogs?limit=10${chatListOffset ? `&offset=${chatListOffset}` : ''}` : null, fetcher, { onSuccess: data => {
     setChatListOffset(undefined)
@@ -69,14 +69,6 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }, [message])
 
   useEffect(() => {
-    if (message && !collapsed) {
-      const searchParams = new URLSearchParams(window.location.search)
-      searchParams.set('msg', encodeURIComponent(Buffer.from(JSON.stringify(message)).toString('base64')))
-      history.push(`${window.location.pathname}?${searchParams.toString()}`)
-    }
-  }, [message, collapsed])
-
-  useEffect(() => {
     const msg = new URLSearchParams(location.search).get('msg') || null
     const chat = new URLSearchParams(location.search).get('chat') || null
     if (msg) {
@@ -84,16 +76,6 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     }
     setCollapsed(chat !== 'open')
   }, [])
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search)
-    if (!collapsed) {
-      searchParams.set('chat', 'open')
-    } else {
-      searchParams.delete('chat')
-    }
-    history.push(`${window.location.pathname}?${searchParams.toString()}`)
-  }, [collapsed])
 
   useEffect(() => {
     if (messageHistory?.messages) {
@@ -104,36 +86,53 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     }
   }, [messageHistory?.messages])
 
-  // useEffect(() => {
-  //   const params = new URLSearchParams(searchParams)
-  //   const chat = params.get('chat')
-  //   const msg = params.get('msg')
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams)
+    const chat = params.get('chat')
+    const msg = params.get('msg')
+    const q = params.get('q')
 
-  //   setCollapsed(chat !== 'open')
+    setCollapsed(chat !== 'open')
 
-  //   if (msg) {
-  //     setMessage(JSON.parse(Buffer.from(decodeURIComponent(msg), 'base64').toString()))
-  //   } else {
-  //     setMessage(undefined)
-  //     setMessagesOffset(undefined)
-  //   }
-  // }, [searchParams])
-
-  const back = () => {
-    // history.goBack()
-    if (message) {
+    if (msg) {
+      setMessage(JSON.parse(Buffer.from(decodeURIComponent(msg), 'base64').toString()))
+    } else {
       setMessage(undefined)
       setMessagesOffset(undefined)
+    }
 
-      const searchParams = new URLSearchParams(window.location.search)
-      searchParams.delete('msg')
-      history.replace(`${window.location.pathname}?${searchParams.toString()}`)
-    } else if (q) {
+    if (q) {
+      setQ(q)
+    } else {
       setQ(undefined)
       setQVal(undefined)
-    } else {
-      setCollapsed(true)
     }
+  }, [searchParams])
+
+  const open = () => {
+    const searchParams = new URLSearchParams(window.location.search)
+    if (collapsed) {
+      searchParams.set('chat', 'open')
+    } else {
+      searchParams.delete('chat')
+    }
+    history.push(`${window.location.pathname}?${searchParams.toString()}`)
+  }
+
+  const openMessage = (message: any) => {
+    const searchParams = new URLSearchParams(window.location.search)
+    searchParams.set('msg', encodeURIComponent(Buffer.from(JSON.stringify(message)).toString('base64')))
+    history.push(`${window.location.pathname}?${searchParams.toString()}`)
+  }
+
+  const search = (val: string) => {
+    const searchParams = new URLSearchParams(window.location.search)
+    searchParams.set('q', val)
+    history.push(`${window.location.pathname}?${searchParams.toString()}`)
+  }
+
+  const back = () => {
+    history.goBack()
   }
 
   const download = async (msg: any) => {
@@ -278,14 +277,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         }).filter(Boolean) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><MessageBox {...item} /></List.Item>} />
       </> : <>
         <Typography.Paragraph>
-          <Input.Search value={qVal} onChange={(e) => setQVal(e.target.value)} className="input-search-round" placeholder="Search by username or message..." enterButton onSearch={setQ} allowClear />
+          <Input.Search value={qVal} onChange={(e) => setQVal(e.target.value)} className="input-search-round" placeholder="Search by username or message..." enterButton onSearch={search} allowClear />
         </Typography.Paragraph>
 
         {q && !message && <Tabs defaultActiveKey="accounts">
           <Tabs.TabPane tab="Accounts" key="accounts">
             {searchAccounts && !searchAccountList?.length && <Empty style={{ marginTop: '100px' }} />}
             <ChatList
-              onClick={setMessage}
+              onClick={openMessage}
               dataSource={searchAccountList?.map((user: any) => {
                 const title = `${user.firstName || ''} ${user.lastName || ''}`.trim()
                 return {
@@ -305,7 +304,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           <Tabs.TabPane tab="Messages" key="messages">
             {searchMessages && !searchMessageList?.messages?.length && <Empty style={{ marginTop: '100px' }} />}
             <ChatList
-              onClick={setMessage}
+              onClick={openMessage}
               dataSource={searchMessageList?.messages.map((message: any) => {
                 const user = message.peerId?.userId ? searchMessageList?.users.find((user: any) => user.id === message.peerId?.userId) : null
                 const chat = message.peerId?.chatId ? searchMessageList?.chats.find((chat: any) => chat.id === message.peerId?.chatId) : null
@@ -327,7 +326,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           <Tabs.TabPane tab="Global Search" key="globalSearch">
             {searchGlobal && !searcGlobalList?.messages?.length && <Empty style={{ marginTop: '100px' }} />}
             <ChatList
-              onClick={setMessage}
+              onClick={openMessage}
               dataSource={searcGlobalList?.messages.map((message: any) => {
                 const user = message.peerId?.userId ? searcGlobalList?.users.find((user: any) => user.id === message.peerId?.userId) : null
                 const channel = message.peerId?.channelId || message.peerId?.chatId ? searcGlobalList?.chats.find((channel: any) => channel.id === (message.peerId?.channelId || message.peerId?.chatId)) : null
@@ -362,7 +361,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
               date: dialog.date * 1000,
               unread: dialog.dialog.unreadCount
             }
-          }) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><ChatItem {...item} onClick={() => setMessage(item)} /></List.Item>} />
+          }) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><ChatItem {...item} onClick={() => openMessage(item)} /></List.Item>} />
         </>}
       </>}
     </Layout.Content>
@@ -378,7 +377,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </div>
       </Form.Item>
     </Layout.Footer>}
-    {collapsed && <Button shape="circle" size="large" style={{ position: 'fixed', right: 25, bottom: 20, ...collapsed ? {} : { display: 'none' } }} type="primary" icon={<CommentOutlined />} onClick={() => setCollapsed(!collapsed)} />}
+    {collapsed && <Button shape="circle" size="large" style={{ position: 'fixed', right: 25, bottom: 20, ...collapsed ? {} : { display: 'none' } }} type="primary" icon={<CommentOutlined />} onClick={open} />}
   </Layout.Sider>
 }
 
