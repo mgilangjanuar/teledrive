@@ -129,7 +129,7 @@ const Login: React.FC = () => {
                 <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} />
               </Form.Item>
               <Form.Item label="Code" name="phoneCode" rules={[{ required: true, message: 'Please input your code' }]}>
-                <Input disabled={!phoneCodeHash || needPassword} />
+                <Input disabled={!phoneCodeHash} />
               </Form.Item>
               <Form.Item label="Password 2FA" name="password" hidden={!needPassword}>
                 <Input.Password />
