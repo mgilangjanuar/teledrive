@@ -4,7 +4,7 @@ import prettyBytes from 'pretty-bytes'
 import React, { useEffect, useRef, useState } from 'react'
 import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
 import ReactMarkdown from 'react-markdown'
-import { useHistory } from 'react-router'
+import { useHistory, useLocation } from 'react-router'
 import remarkGfm from 'remark-gfm'
 import useSWR from 'swr'
 import { apiUrl, fetcher, req } from '../../../utils/Fetcher'
@@ -33,6 +33,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [messagesOffset, setMessagesOffset] = useState<number>()
   const inputSend = useRef<any | null>()
   const history = useHistory()
+  const { search: _searchParams } = useLocation()
 
   const { data: dialogs, mutate: refetchDialogs } = useSWR(!collapsed && !q && !message ? `/dialogs?limit=10${chatListOffset ? `&offset=${chatListOffset}` : ''}` : null, fetcher, { onSuccess: data => {
     setChatListOffset(undefined)
@@ -41,7 +42,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const { data: searchMessages } = useSWR(q ? `/messages/search?q=${q}&limit=10` : null, fetcher, { onSuccess: data => setSearchMessageList(data.messages || []) })
   const { data: searchGlobal } = useSWR(q ? `/messages/globalSearch?q=${q}&limit=5` : null, fetcher, { onSuccess: data => setSearcGlobalList(data.messages || []) })
   const { data: searchAccounts } = useSWR(q ? `/users/search?username=${q}&limit=10` : null, fetcher, { onSuccess: data => setSearchAccountList(data.users || []) })
-  const { data: messageHistory, mutate: refetchHistory } = useSWR(message && messagesOffset !== undefined  ? `/messages/history/${message.id}&limit=15&offset=${messagesOffset}` : null, fetcher, { onSuccess: data => {
+  const { data: messageHistory, mutate: refetchHistory } = useSWR(message && messagesOffset !== undefined  ? `/messages/history/${message.id}&limit=10&offset=${messagesOffset}` : null, fetcher, { onSuccess: data => {
     setMessagesOffset(0)
     return setMessages({
       ...messages,
@@ -71,14 +72,13 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     if (message && !collapsed) {
       const searchParams = new URLSearchParams(window.location.search)
       searchParams.set('msg', encodeURIComponent(Buffer.from(JSON.stringify(message)).toString('base64')))
-      history.replace(`${window.location.pathname}?${searchParams.toString()}`)
+      history.push(`${window.location.pathname}?${searchParams.toString()}`)
     }
   }, [message, collapsed])
 
   useEffect(() => {
     const msg = new URLSearchParams(location.search).get('msg') || null
     const chat = new URLSearchParams(location.search).get('chat') || null
-    console.log(msg, chat)
     if (msg) {
       setMessage(JSON.parse(Buffer.from(decodeURIComponent(msg), 'base64').toString()))
     }
@@ -87,13 +87,12 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
-    if (collapsed) {
-      searchParams.delete('chat')
-      searchParams.delete('msg')
-    } else {
+    if (!collapsed) {
       searchParams.set('chat', 'open')
+    } else {
+      searchParams.delete('chat')
     }
-    history.replace(`${window.location.pathname}?${searchParams.toString()}`)
+    history.push(`${window.location.pathname}?${searchParams.toString()}`)
   }, [collapsed])
 
   useEffect(() => {
@@ -105,7 +104,23 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     }
   }, [messageHistory?.messages])
 
+  // useEffect(() => {
+  //   const params = new URLSearchParams(searchParams)
+  //   const chat = params.get('chat')
+  //   const msg = params.get('msg')
+
+  //   setCollapsed(chat !== 'open')
+
+  //   if (msg) {
+  //     setMessage(JSON.parse(Buffer.from(decodeURIComponent(msg), 'base64').toString()))
+  //   } else {
+  //     setMessage(undefined)
+  //     setMessagesOffset(undefined)
+  //   }
+  // }, [searchParams])
+
   const back = () => {
+    // history.goBack()
     if (message) {
       setMessage(undefined)
       setMessagesOffset(undefined)
@@ -122,7 +137,6 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }
 
   const download = async (msg: any) => {
-    console.log(msg.id)
     const [type, others] = message.id.split('/')
     const [id, accessHash] = others.split('?accessHash=')
     const forwardKey = `${type}/${id}/${msg.id}/${accessHash}`

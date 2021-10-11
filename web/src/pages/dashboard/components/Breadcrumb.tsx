@@ -1,7 +1,8 @@
 import { BranchesOutlined, EllipsisOutlined, FolderOpenOutlined } from '@ant-design/icons'
 import { Breadcrumb as BaseBreadcrumb, Button, Dropdown, Menu } from 'antd'
-import React from 'react'
-import { useHistory } from 'react-router'
+import React, { useEffect } from 'react'
+import { useHistory, useLocation } from 'react-router'
+import { req } from '../../../utils/Fetcher'
 
 interface Props {
   dataSource: [any[], (data: any[]) => void],
@@ -14,16 +15,49 @@ const Breadcrumb: React.FC<Props> = ({
 }) => {
 
   const history = useHistory()
+  const { search: searchParams } = useLocation()
 
   const select = (crumb: any) => {
     setParent(crumb)
     const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === crumb?.id)
     setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
 
+    const searchParams = new URLSearchParams(window.location.search)
+    searchParams.set('parent', crumb.id)
+
     if (!crumb?.id) {
-      history.replace(location.pathname)
+      // history.replace(location.pathname)
+      searchParams.delete('parent')
+    } else {
+      searchParams.set('parent', crumb.id)
     }
+
+    history.push(`${location.pathname}?${searchParams.toString()}`)
+
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams)
+    const parentId = params.get('parent')
+    if (parentId) {
+      if (breadcrumbs.find(br => br.id === parentId)) {
+        setParent(breadcrumbs.find(br => br.id === parentId))
+        const selectedCrumbIdx = breadcrumbs.findIndex(item => item.id === parentId)
+        setBreadcrumbs(breadcrumbs.slice(0, selectedCrumbIdx + 1))
+      } else {
+        req.get(`/files/${parentId}`).then(({ data }) => {
+          setParent(data.file)
+          req.get(`/files/breadcrumbs/${data.file.id}`)
+            .then(({ data }) => {
+              setBreadcrumbs([breadcrumbs[0], ...data.breadcrumbs])
+            })
+        })
+      }
+    } else {
+      setParent(breadcrumbs[0])
+      setBreadcrumbs([breadcrumbs[0]])
+    }
+  }, [searchParams])
 
   const Name = ({ crumb }: any) => <>{crumb.link_id ? <BranchesOutlined /> : ''} {crumb?.id ? <FolderOpenOutlined /> : ''} {crumb.name}</>
 

@@ -107,20 +107,20 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     document.body.addEventListener('scroll', nextPage)
   }, [])
 
-  useEffect(() => {
-    const parentId = new URLSearchParams(location.search).get('parent') || null
-    if (parentId) {
-      req.get(`/files/${parentId}`).then(({ data }) => {
-        setParent(data.file)
-        req.get(`/files/breadcrumbs/${data.file.id}`)
-          .then(({ data }) => {
-            setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs])
-          })
-      })
-    } else {
-      setParent(null)
-    }
-  }, [])
+  // useEffect(() => {
+  //   const parentId = new URLSearchParams(location.search).get('parent') || null
+  //   if (parentId) {
+  //     req.get(`/files/${parentId}`).then(({ data }) => {
+  //       setParent(data.file)
+  //       req.get(`/files/breadcrumbs/${data.file.id}`)
+  //         .then(({ data }) => {
+  //           setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs])
+  //         })
+  //     })
+  //   } else {
+  //     setParent(null)
+  //   }
+  // }, [])
 
   useEffect(() => {
     const footer = document.querySelector('.ant-layout-footer')
@@ -136,13 +136,13 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     }
   }, [keyword, parent])
 
-  useEffect(() => {
-    if (parent?.id) {
-      const searchParams = new URLSearchParams(window.location.search)
-      searchParams.set('parent', parent?.id)
-      history.replace(`/dashboard${tab === 'shared' ? `/${tab}` : ''}?${searchParams.toString()}`)
-    }
-  }, [parent])
+  // useEffect(() => {
+  //   if (parent?.id) {
+  //     const searchParams = new URLSearchParams(window.location.search)
+  //     searchParams.set('parent', parent.id)
+  //     history.push(`${location.pathname}?${searchParams.toString()}`)
+  //   }
+  // }, [parent])
 
   useEffect(() => {
     if (action === 'copy') {
@@ -336,6 +336,11 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 if (row.type === 'folder') {
                   setParent(row)
                   setBreadcrumbs([...breadcrumbs, row])
+
+                  const searchParams = new URLSearchParams(window.location.search)
+                  searchParams.set('parent', row.id)
+                  history.push(`${location.pathname}?${searchParams.toString()}`)
+
                   if (selected?.find(select => select.id === row.id)) {
                     setSelected([])
                   }

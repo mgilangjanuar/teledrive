@@ -36,8 +36,8 @@ const Home: React.FC = () => {
                 The Free Unlimited
               </Typography.Text>
               <br style={{ 'lineHeight': 1.5 }} />
-              <Typography.Text style={{ background: '#0088CC', color: '#fff', padding: '4px 13px' }}>
-                Cloud Storage
+              <Typography.Text style={{ background: '#0088CC', color: '#fff' }}>
+                &nbsp; Cloud Storage &nbsp;
               </Typography.Text>
             </Typography.Title>
             <Typography.Paragraph style={{ marginTop: '30px' }}>
