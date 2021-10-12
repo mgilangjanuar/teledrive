@@ -200,6 +200,10 @@ export class Files {
       throw { status: 400, body: { error: 'File upload is required' } }
     }
 
+    if (file.size > 512 * 1024) {
+      throw { status: 400, body: { error: 'Maximum file part size is 500kB' } }
+    }
+
     let model: Model
     if (req.params?.id) {
       model = await Model.createQueryBuilder('files')
