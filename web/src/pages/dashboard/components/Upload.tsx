@@ -57,7 +57,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           firstResponse = response
         }
 
-        const percent = ((i + 1) / parts * 100).toFixed(2)
+        const percent = ((i + 1) / parts * 100).toFixed(1)
         // notification.info({
         //   key: `upload-${file.uid}`,
         //   message: 'On it!',
