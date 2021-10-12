@@ -52,14 +52,13 @@ const rateLimiter = new RateLimiterPostgres({
   tableName: 'rate_limits',
   tableCreated: true
 })
-app.use((req, res, next) => {
+
+app.get('/ping', (_, res) => res.send({ pong: true }))
+app.use('/api', (req, res, next) => {
   rateLimiter.consume(req.ip).then(() => next()).catch(error => {
     return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests' })
   })
-})
-
-app.get('/ping', (_, res) => res.send({ pong: true }))
-app.use('/api', API)
+}, API)
 
 // error handler
 app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
