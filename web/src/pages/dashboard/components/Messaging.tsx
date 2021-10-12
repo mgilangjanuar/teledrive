@@ -31,6 +31,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [searchAccountList, setSearchAccountList] = useState<any>()
   const [messages, setMessages] = useState<any>()
   const [messagesOffset, setMessagesOffset] = useState<number>()
+  const [width, setWidth] = useState<number>()
   const inputSend = useRef<any | null>()
   const history = useHistory()
   const { search: searchParams } = useLocation()
@@ -108,6 +109,16 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       setQVal(undefined)
     }
   }, [searchParams])
+
+  useEffect(() => {
+    const base = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+    const interval = setInterval(() => {
+      if (base) {
+        setWidth(base.clientWidth)
+        clearInterval(interval)
+      }
+    }, 500)
+  }, [])
 
   const open = () => {
     const searchParams = new URLSearchParams(window.location.search)
@@ -195,7 +206,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     collapsed={collapsed}
     onCollapse={setCollapsed}
     style={{ boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', background: 'rgb(240, 242, 245) none repeat scroll 0% 0%', position: 'absolute', right: 0, width: '100%', height: '100%', overflowY: 'auto', zIndex: 1, marginBottom: 0 }}>
-    <Layout.Header style={{ background: '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth || '100%' }}>
+    <Layout.Header style={{ background: '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: width || '100%' }}>
       <div key="logo" className="logo" style={{ display: 'inline', width: '100%' }}>
         <div style={{ float: 'left' }}>
           <Button icon={<ArrowLeftOutlined />} size="large" type="link" style={{ color: '#fff' }} onClick={back} />
@@ -369,7 +380,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </>}
       </>}
     </Layout.Content>
-    {message && <Layout.Footer style={{ padding: '10px 20px', position: 'fixed', bottom: 0, width: document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')?.clientWidth || '100%' }}>
+    {message && <Layout.Footer style={{ padding: '10px 20px', position: 'fixed', bottom: 0, width: width || '100%' }}>
       <Form.Item style={{ display: 'inherit', margin: 0 }}>
         <Input.TextArea ref={inputSend} style={{ width: '88%', borderRadius: '16px' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
           if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {
