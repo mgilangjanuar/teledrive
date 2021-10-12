@@ -305,9 +305,9 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
               dataSource={searchAccountList?.map((user: any) => {
                 const title = `${user.firstName || ''} ${user.lastName || ''}`.trim()
                 return {
-                  id: `user/${user.id}?accessHash=${user?.accessHash}`,
+                  id: `user/${user.id}${user?.accessHash ? `?accessHash=${user?.accessHash}` : ''}`,
                   key: user.id,
-                  avatar: `${apiUrl}/messages/user/${user.id}/avatar.jpg?accessHash=${user?.accessHash}`,
+                  avatar: `${apiUrl}/messages/user/${user.id}/avatar.jpg${user?.accessHash ? `?accessHash=${user?.accessHash}` : ''}`,
                   alt: title?.split(' ')?.map((word: string) => word[0]).slice(0, 2).join('').toUpperCase(),
                   title: title,
                   subtitle: user.username ? `@${user.username}` : user.phone,
@@ -327,9 +327,9 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
                 const chat = message.peerId?.chatId ? searchMessageList?.chats.find((chat: any) => chat.id === message.peerId?.chatId) : null
                 const title = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : chat?.title || ''
                 return {
-                  id: `${user ? 'user' : 'chat'}/${message.peerId?.userId || message.peerId?.chatId}?accessHash=${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash}`,
+                  id: `${user ? 'user' : 'chat'}/${message.peerId?.userId || message.peerId?.chatId}${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash ? `?accessHash=${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash}` : ''}`,
                   key: message.id,
-                  avatar: `${apiUrl}/messages/${user ? 'user' : 'chat'}/${message.peerId?.userId || message.peerId?.chatId}/avatar.jpg?accessHash=${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash}`,
+                  avatar: `${apiUrl}/messages/${user ? 'user' : 'chat'}/${message.peerId?.userId || message.peerId?.chatId}/avatar.jpg${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash ? `?accessHash=${user?.accessHash || chat?.accessHash || chat?.migratedTo?.accessHash}` : ''}`,
                   alt: title?.split(' ')?.map((word: string) => word[0]).slice(0, 2).join('').toUpperCase(),
                   title: title,
                   subtitle: message.message || 'Send Media',
@@ -349,9 +349,9 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
                 const channel = message.peerId?.channelId || message.peerId?.chatId ? searcGlobalList?.chats.find((channel: any) => channel.id === (message.peerId?.channelId || message.peerId?.chatId)) : null
                 const title = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : channel?.title || ''
                 return {
-                  id: `${user ? 'user' : 'channel'}/${message.peerId?.userId || message.peerId?.channelId}?accessHash=${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash}`,
+                  id: `${user ? 'user' : 'channel'}/${message.peerId?.userId || message.peerId?.channelId}${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash ? `?accessHash=${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash}` : ''}`,
                   key: message.id,
-                  avatar: `${apiUrl}/messages/${user ? 'user' : message.peerId?.chatId ? 'chat' : 'channel'}/${message.peerId?.userId || message.peerId?.channelId || message.peerId?.chatId}/avatar.jpg?accessHash=${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash}`,
+                  avatar: `${apiUrl}/messages/${user ? 'user' : message.peerId?.chatId ? 'chat' : 'channel'}/${message.peerId?.userId || message.peerId?.channelId || message.peerId?.chatId}/avatar.jpg${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash ? `?accessHash=${user?.accessHash || channel?.accessHash || channel?.migratedTo?.accessHash}` : ''}`,
                   alt: title?.split(' ')?.map((word: string) => word[0]).slice(0, 2).join('').toUpperCase(),
                   title: title,
                   subtitle: message.message || 'Send Media',
@@ -369,9 +369,9 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             <Button loading={!dialogs} onClick={() => setChatListOffset(chatList?.sort((a: any, b: any) => a.date - b.date)[0].date)} shape="round">Load more</Button>
           </Typography.Paragraph>} dataSource={chatList?.sort((a: any, b: any) => a.entity?.id == me?.user.tg_id ? -99 : b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned).map((dialog: any) => {
             return {
-              id: `${dialog.isUser ? 'user' : 'channel'}/${dialog.entity?.id}?accessHash=${dialog.entity?.accessHash}`,
+              id: `${dialog.isUser ? 'user' : 'channel'}/${dialog.entity?.id}${dialog.entity?.accessHash ? `?accessHash=${dialog.entity?.accessHash}` : ''}`,
               key: dialog.id,
-              avatar: `${apiUrl}/dialogs/${dialog.isUser ? 'user' : 'channel'}/${dialog.entity?.id}/avatar.jpg?accessHash=${dialog.entity.accessHash}`,
+              avatar: `${apiUrl}/dialogs/${dialog.isUser ? 'user' : 'channel'}/${dialog.entity?.id}/avatar.jpg${dialog.entity?.accessHash ? `?accessHash=${dialog.entity?.accessHash}` : ''}`,
               alt: dialog.title?.split(' ')?.map((word: string) => word[0]).slice(0, 2).join('').toUpperCase(),
               title: me?.user.tg_id == dialog.entity?.id ? 'Saved Messages' : dialog.title,
               subtitle: dialog.message.message || 'Unknown message',

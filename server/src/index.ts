@@ -47,7 +47,7 @@ const rateLimiter = new RateLimiterPostgres({
     user: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD
   }),
-  points: Number(process.env.RPS) || 7,
+  points: Number(process.env.RPS) || 20,
   duration: 1,
   tableName: 'rate_limits',
   tableCreated: true
