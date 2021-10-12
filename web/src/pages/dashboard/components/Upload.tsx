@@ -19,21 +19,23 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       message: 'Warning',
       description: 'Please don\'t close/reload this browser'
     })
-    notification.info({
-      key: `upload-${file.uid}`,
-      message: 'Preparing to upload',
-      description: <>Uploading (0%) {file.name}</>,
-      duration: null
-    })
+    // notification.info({
+    //   key: `upload-${file.uid}`,
+    //   message: 'Preparing to upload',
+    //   description: <>Uploading (0%) {file.name}</>,
+    //   duration: null
+    // })
     const chunkSize = 512 * 1024
     const parts = Math.ceil(file.size / chunkSize)
     let firstResponse: any
+    let deleted = false
 
     try {
       for (let i = 0; i < parts; i++) {
         if (firstResponse?.file && cancelUploading.current && file.uid === cancelUploading.current) {
           await req.delete(`/files/${firstResponse?.file.id}`)
           cancelUploading.current = null
+          deleted = true
           break
         }
         const blobPart = file.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
@@ -56,19 +58,21 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         }
 
         const percent = ((i + 1) / parts * 100).toFixed(2)
-        notification.info({
-          key: `upload-${file.uid}`,
-          message: 'On it!',
-          description: <>Uploading ({percent}%) {file.name}</>,
-          duration: null
-        })
+        // notification.info({
+        //   key: `upload-${file.uid}`,
+        //   message: 'On it!',
+        //   description: <>Uploading ({percent}%) {file.name}</>,
+        //   duration: null
+        // })
         onProgress({ percent }, file)
       }
-      notification.close(`upload-${file.uid}`)
-      notification.success({
-        message: 'Success',
-        description: `File ${file.name} uploaded successfully`
-      })
+      // notification.close(`upload-${file.uid}`)
+      if (!deleted) {
+        notification.success({
+          message: 'Success',
+          description: `File ${file.name} uploaded successfully`
+        })
+      }
       return onSuccess(firstResponse, file)
     } catch (error: any) {
       console.error(error)
@@ -105,7 +109,15 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       }
       return false
     }}
-    onChange={async ({ fileList }) => setFileList(fileList)}>
+    onChange={async ({ fileList }) => setFileList(fileList)}
+    progress={{
+      strokeColor: {
+        '0%': '#108ee9',
+        '100%': '#87d068',
+      },
+      strokeWidth: 3,
+      format: percent => `${percent}%`
+    }}>
     <p className="ant-upload-drag-icon"><CloudUploadOutlined /></p>
     <p className="ant-upload-text">Click or drag file to this area to upload</p>
     <p className="ant-upload-hint">

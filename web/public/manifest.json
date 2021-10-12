@@ -1,6 +1,6 @@
 {
   "short_name": "TeleDrive",
-  "name": "The Google Drive/OneDrive/etc alternative using Telegram API",
+  "name": "TeleDrive",
   "icons": [
     {
       "src": "favicon.ico",
