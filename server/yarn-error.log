@@ -1,8 +1,8 @@
 Arguments: 
-  /Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node /Users/mgilangjanuar/.yarn/lib/cli.js add @types/flatted -D
+  /Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node /Users/mgilangjanuar/.yarn/lib/cli.js add @types/rate-limiter-flexible -D
 
 PATH: 
-  /var/folders/fd/_46vmhcd68qcp7mh4h7r44lh0000gn/T/yarn--1633245991999-0.13525191417950722:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.config/yarn/link/node_modules/.bin:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/libexec/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5/bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5@global/bin:/Users/mgilangjanuar/.rvm/rubies/ruby-2.6.5/bin:/Users/mgilangjanuar/.deta/bin:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/Downloads/google-cloud-sdk/bin:/Users/mgilangjanuar/.yarn/bin:/Users/mgilangjanuar/.config/yarn/global/node_modules/.bin:/Users/mgilangjanuar/.pyenv/shims:/Users/mgilangjanuar/.pyenv/bin:/Users/mgilangjanuar/Documents/apps/elasticsearch-7.6.1/bin:/usr/local/sbin:/usr/local/opt/gettext/bin:/Users/mgilangjanuar/go/bin:usr/local/sbin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/.rvm/bin
+  /var/folders/fd/_46vmhcd68qcp7mh4h7r44lh0000gn/T/yarn--1634011687923-0.8121251583040865:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.config/yarn/link/node_modules/.bin:/Users/mgilangjanuar/Documents/workspace/teledrive/node_modules/.bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/libexec/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/lib/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin/node_modules/npm/bin/node-gyp-bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5/bin:/Users/mgilangjanuar/.rvm/gems/ruby-2.6.5@global/bin:/Users/mgilangjanuar/.rvm/rubies/ruby-2.6.5/bin:/Users/mgilangjanuar/.deta/bin:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/Downloads/google-cloud-sdk/bin:/Users/mgilangjanuar/.yarn/bin:/Users/mgilangjanuar/.config/yarn/global/node_modules/.bin:/Users/mgilangjanuar/.pyenv/shims:/Users/mgilangjanuar/.pyenv/bin:/Users/mgilangjanuar/Documents/apps/elasticsearch-7.6.1/bin:/usr/local/sbin:/usr/local/opt/gettext/bin:/Users/mgilangjanuar/go/bin:usr/local/sbin:/Users/mgilangjanuar/.nvm/versions/node/v14.17.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Users/mgilangjanuar/.cargo/bin:/Users/mgilangjanuar/.rvm/bin
 
 Yarn version: 
   1.22.5
@@ -14,7 +14,7 @@ Platform:
   darwin x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/@types%2fflatted: Not found
+  Error: https://registry.yarnpkg.com/@types%2frate-limiter-flexible: Not found
       at Request.params.callback [as _callback] (/Users/mgilangjanuar/.yarn/lib/cli.js:66988:18)
       at Request.self.callback (/Users/mgilangjanuar/.yarn/lib/cli.js:140749:22)
       at Request.emit (events.js:375:28)
@@ -41,6 +41,7 @@ npm manifest:
       "axios": "^0.21.4",
       "big-integer": "^1.6.48",
       "compression": "^1.7.4",
+      "content-disposition": "^0.5.3",
       "cookie-parser": "^1.4.5",
       "cors": "^2.8.5",
       "crypto": "^1.0.1",
@@ -60,9 +61,10 @@ npm manifest:
       "nanoid": "^3.1.25",
       "node-mailjet": "^3.3.4",
       "pg": "^8.7.1",
+      "rate-limiter-flexible": "^2.3.1",
       "serialize-error": "^8.1.0",
       "source-map-support": "^0.5.19",
-      "telegram": "1.9.3",
+      "telegram": "^1.9.6",
       "typeorm": "^0.2.37",
       "typeorm-naming-strategies": "^2.0.0",
       "uuid-random": "^1.3.2"
@@ -71,6 +73,7 @@ npm manifest:
       "@types/axios": "^0.14.0",
       "@types/big-integer": "^0.0.31",
       "@types/compression": "^1.7.2",
+      "@types/content-disposition": "^0.5.4",
       "@types/cookie-parser": "^1.4.2",
       "@types/cors": "^2.8.12",
       "@types/crypto-js": "^4.0.2",
@@ -2004,6 +2007,11 @@ Lockfile:
     integrity sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==
     dependencies:
       "@types/node" "*"
+  
+  "@types/content-disposition@^0.5.4":
+    version "0.5.4"
+    resolved "https://registry.yarnpkg.com/@types/content-disposition/-/content-disposition-0.5.4.tgz#de48cf01c79c9f1560bcfd8ae43217ab028657f8"
+    integrity sha512-0mPF08jn9zYI0n0Q/Pnz7C4kThdSt+6LD4amsrYDDpgBfrVWa3TcCOxKX1zkGgYniGagRv8heN2cbh+CAn+uuQ==
   
   "@types/cookie-parser@^1.4.2":
     version "1.4.2"
@@ -4463,7 +4471,7 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/constants-browserify/-/constants-browserify-1.0.0.tgz#c20b96d8c617748aaf1c16021760cd27fcb8cb75"
     integrity sha1-wguW2MYXdIqvHBYCF2DNJ/y4y3U=
   
-  content-disposition@0.5.3:
+  content-disposition@0.5.3, content-disposition@^0.5.3:
     version "0.5.3"
     resolved "https://registry.yarnpkg.com/content-disposition/-/content-disposition-0.5.3.tgz#e130caf7e7279087c5616c2007d0485698984fbd"
     integrity sha512-ExO0774ikEObIAEV9kDo50o+79VCUdEB6n6lzKgGwupcVeRlhrj3qGAfwq8G6uBJjkqLrhT0qEYFcWng8z1z0g==
@@ -11445,6 +11453,11 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.1.tgz#3cf37023d199e1c24d1a55b84800c2f3e6468031"
     integrity sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==
   
+  rate-limiter-flexible@^2.3.1:
+    version "2.3.1"
+    resolved "https://registry.yarnpkg.com/rate-limiter-flexible/-/rate-limiter-flexible-2.3.1.tgz#e37cd5d8cae26235a425b0dae0a6d336fbf61757"
+    integrity sha512-u4Ual0ssf/RHHxK3rqKo9W2S7ulVoNdCAOrsk1gR9JLtzqg7fGw+yaCeyBAEncsL2n6XqHh/0qJk3BPDn49BjA==
+  
   raw-body@2.4.0:
     version "2.4.0"
     resolved "https://registry.yarnpkg.com/raw-body/-/raw-body-2.4.0.tgz#a1ce6fb9c9bc356ca52e89256ab59059e13d0332"
@@ -13613,10 +13626,10 @@ Lockfile:
       mkdirp "^1.0.3"
       yallist "^4.0.0"
   
-  telegram@1.9.3:
-    version "1.9.3"
-    resolved "https://registry.yarnpkg.com/telegram/-/telegram-1.9.3.tgz#aaaaa9dde3ee123318e7b3a8440e3bcc1fc902a9"
-    integrity sha512-J3MlSpWcWK1CK0JxuFh9mwbpiuG2UAK4zLjvrAkfzVaiuAEj77ydpxtufgh87eUWS0v7wx2MtJ8qEsdRVRShww==
+  telegram@^1.9.6:
+    version "1.9.6"
+    resolved "https://registry.yarnpkg.com/telegram/-/telegram-1.9.6.tgz#63107e3642d25c01249841f58e88e5c03afd7c25"
+    integrity sha512-2xEYT8ZxnpS5pXaSFCxSHqx3ub2nQhO5BU15CQ/PAmpn2cD6qJ58b2HcrbYoAozU5sxdRH4/2WWfwYv2gevUNw==
     dependencies:
       "@cryptography/aes" "^0.1.1"
       async-mutex "^0.3.0"

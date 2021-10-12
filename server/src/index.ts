@@ -16,16 +16,13 @@ import express, {
 import listEndpoints from 'express-list-endpoints'
 import morgan from 'morgan'
 import path from 'path'
+import { Pool } from 'pg'
+import { RateLimiterPostgres } from 'rate-limiter-flexible'
 import { API } from './api'
 import { runDB } from './model'
 
 runDB()
 
-// const limiter = rateLimit({
-//   windowMs: 60_000,
-//   max: 600,
-//   message: { status: 429, message: 'You hit the limit 600rpm', error: 'Too many requests' }
-// })
 const app = express()
 app.use(cors({
   credentials: true,
@@ -40,7 +37,25 @@ app.use(raw())
 app.use(cookieParser())
 app.use(morgan('tiny'))
 
-// app.use(limiter)
+const rateLimiter = new RateLimiterPostgres({
+  storeClient: new Pool({
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT) || 5432,
+    database: process.env.DB_NAME,
+    user: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD
+  }),
+  points: Number(process.env.RPS) || 7,
+  duration: 1,
+  tableName: 'rate_limits',
+  tableCreated: true
+})
+app.use((req, res, next) => {
+  rateLimiter.consume(req.ip).then(() => next()).catch(error => {
+    return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests' })
+  })
+})
+
 app.get('/ping', (_, res) => res.send({ pong: true }))
 app.use('/api', API)
 
