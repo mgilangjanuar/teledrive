@@ -394,7 +394,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </div>
       </Form.Item>
     </Layout.Footer>}
-    {collapsed && <Button shape="circle" size="large" style={{ position: 'fixed', right: 25, bottom: 20, ...collapsed ? {} : { display: 'none' } }} type="primary" icon={<CommentOutlined />} onClick={open} />}
+    {collapsed && <Button shape="circle" size="large" style={{ position: 'fixed', right: 20, bottom: 30, ...collapsed ? {} : { display: 'none' } }} type="primary" icon={<CommentOutlined />} onClick={open} />}
   </Layout.Sider>
 }
 
