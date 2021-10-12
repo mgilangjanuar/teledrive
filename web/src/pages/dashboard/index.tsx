@@ -257,7 +257,13 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   return <Layout>
     <Layout>
-      <Layout.Content onClick={() => setCollapsedMessaging(true)}>
+      <Layout.Content onClick={() => {
+        const searchParams = new URLSearchParams(window.location.search)
+        searchParams.delete('chat')
+        searchParams.delete('qmsg')
+        searchParams.delete('msg')
+        history.push(`${window.location.pathname}?${searchParams.toString()}`)
+      }}>
         <Navbar user={me?.user} />
         <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '0 12px' }}>
           <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>

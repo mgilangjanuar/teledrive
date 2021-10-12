@@ -91,7 +91,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     const params = new URLSearchParams(searchParams)
     const chat = params.get('chat')
     const msg = params.get('msg')
-    const q = params.get('q')
+    const q = params.get('qmsg')
 
     setCollapsed(chat !== 'open')
 
@@ -139,9 +139,9 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const search = (val?: string) => {
     const searchParams = new URLSearchParams(window.location.search)
     if (val) {
-      searchParams.set('q', val)
+      searchParams.set('qmsg', val)
     } else {
-      searchParams.delete('q')
+      searchParams.delete('qmsg')
     }
     history.push(`${window.location.pathname}?${searchParams.toString()}`)
   }
