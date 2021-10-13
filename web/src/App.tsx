@@ -16,9 +16,9 @@ import 'antd/dist/antd.min.css'
 import './App.less'
 
 function App(): React.ReactElement {
-  if (location.host !== 'teledriveapp.com' && localStorage.getItem('environment') !== 'staging') {
-    location.replace(location.href.replace(location.host, 'teledriveapp.com'))
-  }
+  // if (location.host !== 'teledriveapp.com' && localStorage.getItem('environment') !== 'staging') {
+  //   location.replace(location.href.replace(location.host, 'teledriveapp.com'))
+  // }
   const { pathname } = useLocation()
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
 
