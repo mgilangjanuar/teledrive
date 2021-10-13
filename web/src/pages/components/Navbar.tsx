@@ -39,7 +39,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <span>
           &nbsp;
           {location.host.match(/localhost/gi)
-            ? <Tag color="green">Preview</Tag> : location.host === 'teledrive.vercel.app'
+            ? <Tag color="green">Preview</Tag> : location.host.match(/^teledrive\-.*\-restfire\-studio\.vercel\.app$/gi)
               ? <Tag color="blue">Staging</Tag> : location.host !== 'teledriveapp.com' && <Tag color="red">Unofficial</Tag>}
         </span>
       </div>
