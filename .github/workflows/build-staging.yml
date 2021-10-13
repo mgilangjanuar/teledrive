@@ -25,4 +25,4 @@ jobs:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-    - run: curl https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage?chat_id=${{ secrets.TG_BOT_OWNER_ID }}&text=🎉%20*Deployed%20to%20staging*%0A%0APlease%20take%20a%20look%3A%20https%3A%2F%2Fteledrive.vercel.app&parse_mode=markdown
+    - run: curl https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage?chat_id=${{ secrets.TG_BOT_OWNER_ID }}&text=%F0%9F%8E%89%20*Deployed%20to%20staging*%0A%0APlease%20take%20a%20look%3A%20https%3A%2F%2Fteledrive.vercel.app&parse_mode=markdown
