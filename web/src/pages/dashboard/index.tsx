@@ -70,7 +70,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setLoading(false)
     if (files?.files) {
       let newData: any[] = []
-      if (!params?.skip || !dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
+      if (!params?.offset || !dataChanges?.pagination?.current || dataChanges?.pagination?.current === 1) {
         newData = files.files.map((file: any) => ({ ...file, key: file.id }))
       } else {
         newData = [
@@ -166,9 +166,9 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
       ...parent?.id ? { parent_id: parent.link_id || parent.id } : { 'parent_id.is': 'null' },
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
-      take: PAGE_SIZE,
+      limit: PAGE_SIZE,
       // skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
-      skip: pagination?.current === 1 || actions?.action || keyword ? 0 : data?.length,
+      offset: pagination?.current === 1 || actions?.action || keyword ? 0 : data?.length,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         if (!filters) return res
         if (key === 'type' && filters[key]?.length) {

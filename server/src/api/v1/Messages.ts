@@ -60,7 +60,7 @@ export class Messages {
     } else {
       await req.tg.invoke(new Api.channels.ReadHistory({ channel: peer }))
     }
-    return res.send({})
+    return res.status(202).send({ accepted: true })
   }
 
   @Endpoint.POST('/send/:type/:id', { middlewares: [Auth] })

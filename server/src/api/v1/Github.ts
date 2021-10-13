@@ -10,7 +10,7 @@ export class Github {
     if (!process.env.GITHUB_TOKEN) {
       throw { status: 400, body: { error: 'Token is unavailable' } }
     }
-    const { data: contributors } = await axios.get('https://api.github.com/repos/mgilangjanuar/teledrive/contributors', {
+    const { data: contributors } = await axios.get('https://api.github.com/repos/mgilangjanuar/teledrive/collaborators', {
       headers: { authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
     })
     return res.send({ contributors })

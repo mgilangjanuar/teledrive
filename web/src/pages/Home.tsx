@@ -129,7 +129,7 @@ const Home: React.FC = () => {
         <Col span={20} offset={2}>
           <Row gutter={72}>
             <Col lg={12} span={24} style={{ textAlign: 'right', marginBottom: '30px' }}>
-              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Contributors</Typography.Title>
+              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Collaborators</Typography.Title>
               <Typography.Paragraph style={{ marginBottom: '20px' }}>
                 <Space wrap>
                   {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>

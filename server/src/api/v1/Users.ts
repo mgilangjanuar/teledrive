@@ -56,12 +56,12 @@ export class Users {
 
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, skip, take, ...filters } = req.query
+    const { sort, offset, limit, ...filters } = req.query
     const [users, length] = await Model.createQueryBuilder('users')
       .select('users.username')
       .where(buildWhereQuery(filters) || 'true')
-      .skip(Number(skip) || undefined)
-      .take(Number(take) || undefined)
+      .skip(Number(offset) || undefined)
+      .take(Number(limit) || undefined)
       .orderBy(buildSort(sort as string))
       .getManyAndCount()
     return res.send({ users, length })
