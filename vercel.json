@@ -1,6 +1,18 @@
 {
   "version": 2,
   "env": {},
+  "builds": [
+    {
+      "src": "server/dist/index.js",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["server/dist/**"] }
+    },
+    {
+      "src": "web/build/**",
+      "use": "@vercel/static",
+      "config": { "includeFiles": ["web/build/**"] }
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
