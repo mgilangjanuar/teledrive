@@ -1,3 +1,18 @@
 {
-  "rewrites": [{ "source": "/server/dist/(.*)", "destination": "/server/dist" }]
+  "version": 2,
+  "env": {},
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server/dist/index.js"
+    },
+    {
+      "src": "/",
+      "dest": "web/build/index.html"
+    },
+    {
+      "src": "/(.+)",
+      "dest": "web/build/$1"
+    }
+  ]
 }
