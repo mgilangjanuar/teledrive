@@ -8,7 +8,7 @@
   "scripts": {
     "web": "yarn workspace web",
     "server": "yarn workspace server",
-    "deploy": "yarn workspaces run build && vercel --prod"
+    "deploy": "GENERATE_SOURCEMAP=false yarn workspaces run build && vercel --prod"
   },
   "workspaces": [
     "web",
