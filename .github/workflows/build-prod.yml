@@ -86,7 +86,10 @@ jobs:
       with:
         to: -700697945
         token: ${{ secrets.TG_BOT_TOKEN }}
-        message: 🎉 *Deployed to Production*\n\nPlease take a look -> https://teledriveapp.com
+        message: |
+          🎉 *Deployed to Production*
+
+          Please take a look -> https://teledriveapp.com
         format: markdown
     - name: Failed Notification
       if: ${{ failure() }}
@@ -94,5 +97,8 @@ jobs:
       with:
         to: -700697945
         token: ${{ secrets.TG_BOT_TOKEN }}
-        message: 🔥 *Deploy to Production Failed!*\n\nPlease take a look -> https://github.com/mgilangjanuar/teledrive/actions
+        message: |
+          🔥 *Deploy to Production Failed!*
+
+          Please take a look -> https://github.com/mgilangjanuar/teledrive/actions
         format: markdown

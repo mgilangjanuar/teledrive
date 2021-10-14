@@ -30,7 +30,10 @@ jobs:
       with:
         to: -700697945
         token: ${{ secrets.TG_BOT_TOKEN }}
-        message: 🎉 *Deployed to Staging*\n\nPlease take a look -> https://teledrive.vercel.app
+        message: |
+          🎉 *Deployed to Staging*
+
+          Please take a look -> https://teledrive.vercel.app
         format: markdown
     - name: Failed Notification
       if: ${{ failure() }}
@@ -38,5 +41,8 @@ jobs:
       with:
         to: -700697945
         token: ${{ secrets.TG_BOT_TOKEN }}
-        message: 🔥 *Deploy to Staging Failed!*\n\nPlease take a look -> https://github.com/mgilangjanuar/teledrive/actions
+        message: |
+          🔥 *Deploy to Staging Failed!*
+
+          Please take a look -> https://github.com/mgilangjanuar/teledrive/actions
         format: markdown
