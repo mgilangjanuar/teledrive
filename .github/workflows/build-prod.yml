@@ -77,7 +77,7 @@ jobs:
       if: ${{ github.event_name == 'push' }}
       uses: appleboy/ssh-action@master
       with:
-        script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main && export PATH=/home/${{ env.DEV_USER }}/.local/bin:/home/${{ env.DEV_USER }}/.nvm/versions/node/${{ env.SERVER_NODE_VERSION }}/bin && cd ${{ env.APP_DIR }} && pm2 restart td
+        script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main && cd ${{ env.APP_DIR }} && /usr/bin/pm2 restart td
         host: ${{ env.DEV_HOST }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
