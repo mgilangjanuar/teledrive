@@ -81,7 +81,18 @@ jobs:
         host: ${{ env.DEV_HOST }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
-    - run: curl ${{ secrets.PROD_NOTIFICATION_SUCCESS }}
+    - name: Success Notification
+      uses: appleboy/telegram-action@master
+      with:
+        to: -700697945
+        token: ${{ secrets.TG_BOT_TOKEN }}
+        message: 🎉 *Deployed to Production*\n\nPlease take a look -> https://teledriveapp.com
+        format: markdown
     - name: Failed Notification
       if: ${{ failure() }}
-      run: curl ${{ secrets.PROD_NOTIFICATION_FAILED }}
+      uses: appleboy/telegram-action@master
+      with:
+        to: -700697945
+        token: ${{ secrets.TG_BOT_TOKEN }}
+        message: 🔥 *Deploy to Production Failed!*\n\nPlease take a look -> https://github.com/mgilangjanuar/teledrive/actions
+        format: markdown
