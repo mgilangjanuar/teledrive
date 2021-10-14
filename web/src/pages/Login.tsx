@@ -135,7 +135,7 @@ const Login: React.FC = () => {
                 <Input.Password />
               </Form.Item>
               <Form.Item style={{ marginTop: '50px' }} wrapperCol={{ span: 24 }}>
-                <Button shape="round" block size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
+                <Button shape="round" block size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login with Telegram</Button>
               </Form.Item>
             </Form>
           </Card>

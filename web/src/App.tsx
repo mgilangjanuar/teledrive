@@ -1,19 +1,38 @@
 import { Layout } from 'antd'
-import React, { useEffect } from 'react'
+import React, { lazy, Suspense, useEffect } from 'react'
 import { Route, Switch, useLocation } from 'react-router-dom'
-import NotFound from './pages/errors/NotFound'
-import Dashboard from './pages/dashboard'
-import Contact from './pages/Contact'
-import Faq from './pages/Faq'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Pricing from './pages/Pricing'
-import Privacy from './pages/Privacy'
-import Terms from './pages/Terms'
-import View from './pages/View'
 
 import 'antd/dist/antd.min.css'
 import './App.less'
+
+const Dashboard = lazy(
+  () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
+)
+const Home = lazy(
+  () => import(/* webpackChunkName: 'HomePage' */ './pages/Home')
+)
+const View = lazy(
+  () => import(/* webpackChunkName: 'ViewPage' */ './pages/View')
+)
+const Login = lazy(
+  () => import(/* webpackChunkName: 'LoginPage' */ './pages/Login')
+)
+const Terms = lazy(
+  () => import(/* webpackChunkName: 'TermsPage' */ './pages/Terms')
+)
+const Privacy = lazy(
+  () => import(/* webpackChunkName: 'PrivacyPage'  */ './pages/Privacy')
+)
+const Pricing = lazy(
+  () => import(/* webpackChunkName: 'PricingPage'  */ './pages/Pricing')
+)
+const Contact = lazy(
+  () => import(/* webpackChunkName: 'ContactPage'  */ './pages/Contact')
+)
+const Faq = lazy(() => import(/* webpackChunkName: 'FaqPage' */ './pages/Faq'))
+const NotFound = lazy(
+  () => import(/* webpackChunkName: 'NotFoundPage' */ './pages/errors/NotFound')
+)
 
 function App(): React.ReactElement {
   // if (location.host !== 'teledriveapp.com' && localStorage.getItem('environment') !== 'staging') {
@@ -24,18 +43,20 @@ function App(): React.ReactElement {
 
   return (
     <Layout className="App">
-      <Switch>
-        <Route path="/dashboard/:type?" exact component={Dashboard} />
-        <Route path="/view/:id" exact component={View} />
-        <Route path="/login" exact component={Login} />
-        <Route path="/terms" exact component={Terms} />
-        <Route path="/privacy" exact component={Privacy} />
-        <Route path="/pricing" exact component={Pricing} />
-        <Route path="/contact" exact component={Contact} />
-        <Route path="/faq" exact component={Faq} />
-        <Route path="/" exact component={Home} />
-        <Route component={NotFound} />
-      </Switch>
+      <Suspense fallback={<></>}>
+        <Switch>
+          <Route path="/dashboard/:type?" exact component={Dashboard} />
+          <Route path="/view/:id" exact component={View} />
+          <Route path="/login" exact component={Login} />
+          <Route path="/terms" exact component={Terms} />
+          <Route path="/privacy" exact component={Privacy} />
+          <Route path="/pricing" exact component={Pricing} />
+          <Route path="/contact" exact component={Contact} />
+          <Route path="/faq" exact component={Faq} />
+          <Route path="/" exact component={Home} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
     </Layout>
   )
 }
