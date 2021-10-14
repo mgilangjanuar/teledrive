@@ -81,3 +81,7 @@ jobs:
         host: ${{ env.DEV_HOST }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
+    - run: curl ${{ secrets.PROD_NOTIFICATION_SUCCESS }}
+    - name: Failed Notification
+      if: ${{ failure() }}
+      run: curl ${{ secrets.PROD_NOTIFICATION_FAILED }}
