@@ -1,5 +1,5 @@
 import { DashboardOutlined, LoginOutlined, MenuOutlined } from '@ant-design/icons'
-import { Button, Form, Input, Layout, Menu, Modal, Typography } from 'antd'
+import { Button, Form, Input, Layout, Menu, Modal, Tag, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
@@ -36,6 +36,12 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Link to="/" style={{ color: '#fff' }}>
           <img style={{ width: '24px' }} src="/logo192.png" alt="icon.png" />&nbsp; TeleDrive
         </Link>
+        <span>
+          &nbsp;
+          {location.host.match(/localhost/gi)
+            ? <Tag color="green">Preview</Tag> : location.host.match(/^teledrive.*\.vercel\.app$/gi)
+              ? <Tag color="blue">Staging</Tag> : location.host !== 'teledriveapp.com' && <Tag color="red">Unofficial</Tag>}
+        </span>
       </div>
       {user ?
         <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />}>Dashboard</Button> :

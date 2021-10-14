@@ -1,0 +1,48 @@
+on:
+  push:
+    branches:
+      - staging
+
+name: Build Staging
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+    - run: yarn install
+    - run: REACT_APP_API_URL=https://teledrive.vercel.app yarn workspaces run build
+    - run: npm i vercel -g
+    - name: "Deploy to Vercel"
+      run: npx vercel --token ${VERCEL_TOKEN} --prod
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    - name: Success Notification
+      uses: appleboy/telegram-action@master
+      with:
+        to: -700697945
+        token: ${{ secrets.TG_BOT_TOKEN }}
+        message: |
+          🎉 *Deployed to Staging*
+
+          Please take a look -> https://teledrive.vercel.app
+        format: markdown
+    - name: Failed Notification
+      if: ${{ failure() }}
+      uses: appleboy/telegram-action@master
+      with:
+        to: -700697945
+        token: ${{ secrets.TG_BOT_TOKEN }}
+        message: |
+          🔥 *Deploy to Staging Failed!*
+
+          Please take a look -> https://github.com/mgilangjanuar/teledrive/actions
+        format: markdown

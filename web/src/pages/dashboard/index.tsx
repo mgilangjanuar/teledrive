@@ -259,10 +259,12 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     <Layout>
       <Layout.Content onClick={() => {
         const searchParams = new URLSearchParams(window.location.search)
-        searchParams.delete('chat')
-        searchParams.delete('qmsg')
-        searchParams.delete('msg')
-        history.push(`${window.location.pathname}?${searchParams.toString()}`)
+        if (searchParams.get('chat') || searchParams.get('qmsg') || searchParams.get('msg')) {
+          searchParams.delete('chat')
+          searchParams.delete('qmsg')
+          searchParams.delete('msg')
+          history.push(`${window.location.pathname}?${searchParams.toString()}`)
+        }
       }}>
         <Navbar user={me?.user} />
         <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '0 12px' }}>

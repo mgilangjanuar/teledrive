@@ -112,9 +112,13 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
   useEffect(() => {
     const base = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+    let i = 0
     const interval = setInterval(() => {
+      i++
       if (base) {
         setWidth(base.clientWidth)
+      }
+      if (i > 5) {
         clearInterval(interval)
       }
     }, 500)
