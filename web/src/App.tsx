@@ -43,7 +43,7 @@ function App(): React.ReactElement {
 
   return (
     <Layout className="App">
-      <Suspense fallback={<>/</>}>
+      <Suspense fallback={<></>}>
         <Switch>
           <Route path="/dashboard/:type?" exact component={Dashboard} />
           <Route path="/view/:id" exact component={View} />
