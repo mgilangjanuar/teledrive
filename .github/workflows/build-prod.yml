@@ -23,7 +23,7 @@ jobs:
       with:
         node-version: '14.x'
     - run: yarn install
-    - run: REACT_APP_API_URL=https://teledriveapp.com yarn workspaces run build
+    - run: REACT_APP_API_URL=https://teledriveapp.com GENERATE_SOURCEMAP=false yarn workspaces run build
     - name: Compress node_modules root
       if: ${{ github.event_name == 'push' }}
       run: tar -czf build-root.tar.gz node_modules
