@@ -258,7 +258,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
               type: 'file',
               title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
               titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
-              text: fileTitle,
+              text: `${fileTitle.slice(0, 30)}${fileTitle.length > 30 ? '...' : ''}`,
               date: msg.date * 1000,
               onDownload: () => download(msg),
               data: {

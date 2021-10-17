@@ -152,6 +152,58 @@ export class Messages {
     return res.status(202).send({ accepted: true })
   }
 
+  @Endpoint.POST('/forward/:msgId', { middlewares: [Auth] })
+  public async forward(req: Request, res: Response): Promise<any> {
+    const { msgId } = req.params
+    const { from, to } = req.body as { from: {
+      type: string,
+      id: number,
+      accessHash?: string
+    }, to: {
+      type: string,
+      id: number,
+      accessHash?: string
+    } }
+
+    let fromPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    let toPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    if (from.type === 'channel') {
+      fromPeer = new Api.InputPeerChannel({
+        channelId: from.id,
+        accessHash: bigInt(from.accessHash as string) })
+    } else if (from.type === 'chat') {
+      fromPeer = new Api.InputPeerChat({
+        chatId: from.id
+      })
+    } else if (from.type === 'user') {
+      fromPeer = new Api.InputPeerUser({
+        userId: from.id,
+        accessHash: bigInt(from.accessHash as string) })
+    }
+
+    if (to.type === 'channel') {
+      toPeer = new Api.InputPeerChannel({
+        channelId: to.id,
+        accessHash: bigInt(to.accessHash as string) })
+    } else if (to.type === 'chat') {
+      toPeer = new Api.InputPeerChat({
+        chatId: to.id
+      })
+    } else if (to.type === 'user') {
+      toPeer = new Api.InputPeerUser({
+        userId: to.id,
+        accessHash: bigInt(to.accessHash as string) })
+    }
+
+    const result = await req.tg.invoke(new Api.messages.ForwardMessages({
+      id: [Number(msgId)],
+      fromPeer,
+      toPeer,
+      randomId: [bigInt.randBetween('-1e100', '1e100')]
+    }))
+    return res.send({ message: result })
+  }
+
   @Endpoint.GET('/search', { middlewares: [Auth] })
   public async search(req: Request, res: Response): Promise<any> {
     const { q, offset, limit } = req.query
