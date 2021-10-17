@@ -118,10 +118,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       if (base) {
         setWidth(base.clientWidth)
       }
-      if (i > 5) {
+      if (i > 10) {
         clearInterval(interval)
       }
-    }, 500)
+    }, 1000)
   }, [])
 
   const open = () => {
@@ -220,7 +220,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </div> : <div style={{ float: 'left' }}>
           Quick Message
         </div>}
-        {!q && <div style={{ float: 'right' }}>
+        {(!q || message) && <div style={{ float: 'right' }}>
           <Button icon={!dialogs && !messageHistory ? <LoadingOutlined /> : <ReloadOutlined />} onClick={() => message ? refetchHistory() : refetchDialogs()} type="text" style={{ color: '#fff' }} />
         </div>}
       </div>
@@ -284,6 +284,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
               key: msg.id,
               position: me?.user.tg_id == user?.id ? 'right' : 'left',
               type: 'text',
+              // status: me?.user.tg_id == user?.id ? 'read' : undefined,
               title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
               text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>,
               date: msg.date * 1000,
@@ -371,7 +372,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         {!q && !message && <>
           <List itemLayout="vertical" loading={!dialogs} loadMore={<Typography.Paragraph style={{ textAlign: 'center', marginTop: '15px' }}>
             <Button loading={!dialogs} onClick={() => setChatListOffset(chatList?.sort((a: any, b: any) => a.date - b.date)[0].date)} shape="round">Load more</Button>
-          </Typography.Paragraph>} dataSource={chatList?.sort((a: any, b: any) => a.entity?.id == me?.user.tg_id ? -99 : b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned).map((dialog: any) => {
+          </Typography.Paragraph>} dataSource={chatList?.sort((a: any, b: any) => b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned).map((dialog: any) => {
             return {
               id: `${dialog.isUser ? 'user' : 'channel'}/${dialog.entity?.id}${dialog.entity?.accessHash ? `?accessHash=${dialog.entity?.accessHash}` : ''}`,
               key: dialog.id,
