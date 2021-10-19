@@ -1,6 +1,6 @@
+import { Api } from '@mgilangjanuar/telegram'
 import bigInt from 'big-integer'
 import { Request, Response } from 'express'
-import { Api } from 'telegram'
 import { objectParser } from '../../utils/ObjectParser'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
@@ -17,6 +17,42 @@ export class Dialogs {
       ignorePinned: false
     })
     return res.send({ dialogs: objectParser(dialogs) })
+  }
+
+  @Endpoint.GET('/:type/:id', { middlewares: [Auth] })
+  public async retrieve(req: Request, res: Response): Promise<any> {
+    const { type, id } = req.params
+    let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    if (type === 'channel') {
+      peer = new Api.InputPeerChannel({
+        channelId: Number(id),
+        accessHash: bigInt(req.query.accessHash as string) })
+    } else if (type === 'chat') {
+      peer = new Api.InputPeerChat({
+        chatId: Number(id)
+      })
+    } else if (type === 'user') {
+      peer = new Api.InputPeerUser({
+        userId: Number(id),
+        accessHash: bigInt(req.query.accessHash as string) })
+    }
+
+    const dialogs = await req.tg.invoke(new Api.messages.GetPeerDialogs({
+      peers: [new Api.InputDialogPeer({ peer })]
+    }))
+
+    const result = objectParser(dialogs) as any
+    return res.send({ dialog: {
+      ...result,
+      dialog: result.dialogs[0],
+      message: result.messages[0],
+      chat: result.chats[0],
+      user: result.users[0],
+      dialogs: undefined,
+      messages: undefined,
+      chats: undefined,
+      users: undefined
+    } })
   }
 
   @Endpoint.GET('/:type/:id/avatar.jpg', { middlewares: [Auth] })

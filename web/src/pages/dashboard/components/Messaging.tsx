@@ -1,5 +1,5 @@
-import { ArrowLeftOutlined, CommentOutlined, LoadingOutlined, ReloadOutlined, SendOutlined } from '@ant-design/icons'
-import { Avatar, Button, Empty, Form, Input, Layout, List, notification, Spin, Tabs, Typography } from 'antd'
+import { ArrowLeftOutlined, CommentOutlined, EditOutlined, EnterOutlined, ArrowRightOutlined, DeleteOutlined, LoadingOutlined, ReloadOutlined, SendOutlined } from '@ant-design/icons'
+import { Avatar, Button, Empty, Form, Input, Layout, List, Menu, notification, Spin, Tabs, Typography } from 'antd'
 import prettyBytes from 'pretty-bytes'
 import React, { useEffect, useRef, useState } from 'react'
 import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
@@ -30,8 +30,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [searcGlobalList, setSearcGlobalList] = useState<any>()
   const [searchAccountList, setSearchAccountList] = useState<any>()
   const [messages, setMessages] = useState<any>()
+  const [messagesParsed, setMessagesParsed] = useState<any>()
   const [messagesOffset, setMessagesOffset] = useState<number>()
   const [width, setWidth] = useState<number>()
+  const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
   const inputSend = useRef<any | null>()
   const history = useHistory()
   const { search: searchParams } = useLocation()
@@ -44,14 +46,15 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const { data: searchGlobal } = useSWR(q ? `/messages/globalSearch?q=${q}&limit=5` : null, fetcher, { onSuccess: data => setSearcGlobalList(data.messages || []) })
   const { data: searchAccounts } = useSWR(q ? `/users/search?username=${q}&limit=10` : null, fetcher, { onSuccess: data => setSearchAccountList(data.users || []) })
   const { data: messageHistory, mutate: refetchHistory } = useSWR(message && messagesOffset !== undefined  ? `/messages/history/${message.id}&limit=10&offset=${messagesOffset}` : null, fetcher, { onSuccess: data => {
-    setMessagesOffset(0)
-    return setMessages({
+    // setMessagesOffset(0)
+    const res = {
       ...messages,
       ...data.messages,
       messages: [...messages?.messages.filter((msg: any) => !data.messages.messages.find((newMsg: any) => newMsg.id === msg.id)) || [], ...data.messages.messages],
       users: [...messages?.users.filter((user: any) => !data.messages.users.find((newUser: any) => newUser.id === user.id)) || [], ...data.messages.users],
       chats: [...messages?.chats.filter((chat: any) => !data.messages.chats.find((newChat: any) => newChat.id === chat.id)) || [], ...data.messages.chats]
-    })
+    }
+    setMessages(res)
   } })
 
   useEffect(() => {
@@ -83,9 +86,85 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
       if (sidebar) {
         sidebar.scroll({ top: sidebar.clientHeight, behavior: 'smooth' })
+        // lastMessage.current.focus = true
+        // lastMessage.current.refs.message.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
       }
     }
-  }, [messageHistory?.messages])
+  }, [messageHistory])
+
+  useEffect(() => {
+    setMessagesParsed(messages?.messages.reduce((res: any[], msg: any) => {
+      let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
+      if (!user) {
+        user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
+      }
+
+      const replyMsg = messages?.messages.find((m: any) => m.id === msg.replyTo?.replyToMsgId)
+      let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
+      if (!replyUser && replyMsg) {
+        replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
+      }
+
+      let fileTitle: string | null = null
+      let size: number = 0
+      if (msg?.media?.photo || msg?.media?.document) {
+        const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
+        fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${msg?.media?.document.id}.${mimeType.split('/').pop()}`
+        const getSizes = (data: any) => data?.sizes ? data?.sizes.pop() : data?.size
+        size = msg?.media?.photo ? getSizes(msg?.media?.photo.sizes.pop()) : msg?.media?.document?.size
+      }
+      return [
+        ...res,
+        fileTitle ? {
+          key: msg.id,
+          position: me?.user.tg_id == user?.id ? 'right' : 'left',
+          type: 'file',
+          title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+          titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+          text: `${fileTitle.slice(0, 30)}${fileTitle.length > 30 ? '...' : ''}`,
+          status: me?.user.tg_id == user?.id ? msg.id <= message.dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
+          date: msg.date * 1000,
+          user,
+          onDownload: () => download(msg),
+          data: {
+            size: size ? prettyBytes(size) : undefined,
+            status: {
+              error: false,
+              download: false,
+              click: false
+            }
+          }
+        } : null,
+        msg.action?.className === 'MessageActionContactSignUp' ? {
+          key: msg.id,
+          type: 'system',
+          date: msg.date * 1000,
+          text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined Telegram!</>
+        } : msg.action?.className === 'MessageActionChatAddUser' ? {
+          key: msg.id,
+          type: 'system',
+          date: msg.date * 1000,
+          text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
+        } : msg.message ? {
+          key: msg.id,
+          position: me?.user.tg_id == user?.id ? 'right' : 'left',
+          type: 'text',
+          status: me?.user.tg_id == user?.id ? msg.id <= message.dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
+          title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+          text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>,
+          date: msg.date * 1000,
+          titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+          user,
+          reply: replyMsg ? {
+            title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
+            titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
+            message: replyMsg.message || 'Unknown message'
+          } : undefined
+        } : null
+      ]
+    }, []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])
+    // messageList.current?.scrollToRow = 50
+  }, [messages])
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams)
@@ -111,14 +190,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }, [searchParams])
 
   useEffect(() => {
-    const base = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
     let i = 0
     const interval = setInterval(() => {
       i++
+      const base = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
       if (base) {
         setWidth(base.clientWidth)
       }
-      if (i > 10) {
+      if (i > 20) {
         clearInterval(interval)
       }
     }, 1000)
@@ -202,6 +281,37 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     return setLoadingSend(false)
   }
 
+  const ContextMenu = () => {
+    const baseProps = {
+      style: { margin: 0 }
+    }
+    if (!popup?.visible) return <></>
+    if (popup?.row) {
+      return <Menu style={{ zIndex: 1, position: 'absolute', left: `${popup?.x}px`, top: `${popup?.y}px`, boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)' }}>
+        <Menu.Item {...baseProps}
+          icon={<ArrowRightOutlined />}
+          key="rename"
+          onClick={() => {}}>Forward</Menu.Item>
+        <Menu.Item {...baseProps}
+          icon={<EnterOutlined />}
+          key="rename"
+          onClick={() => {}}>Reply</Menu.Item>
+        {me?.user.tg_id == popup.row.user?.id && <>
+          <Menu.Item {...baseProps}
+            icon={<EditOutlined />}
+            key="rename"
+            onClick={() => {}}>Edit</Menu.Item>
+          <Menu.Item {...baseProps}
+            icon={<DeleteOutlined />}
+            key="delete"
+            danger
+            onClick={() => {}}>Delete</Menu.Item>
+        </>}
+      </Menu>
+    }
+    return <></>
+  }
+
   return <Layout.Sider
     theme="light"
     className="messaging"
@@ -209,14 +319,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     collapsedWidth={0}
     collapsed={collapsed}
     onCollapse={setCollapsed}
-    style={{ boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', background: 'rgb(240, 242, 245) none repeat scroll 0% 0%', position: 'absolute', right: 0, width: '100%', height: '100%', overflowY: 'auto', zIndex: 1, marginBottom: 0 }}>
+    style={{ overflowX: 'hidden', boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', background: 'rgb(240, 242, 245) none repeat scroll 0% 0%', position: 'absolute', right: 0, width: '100%', height: '100%', overflowY: 'auto', zIndex: 1, marginBottom: 0 }}>
     <Layout.Header style={{ background: '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: width || '100%' }}>
       <div key="logo" className="logo" style={{ display: 'inline', width: '100%' }}>
         <div style={{ float: 'left' }}>
           <Button icon={<ArrowLeftOutlined />} size="large" type="link" style={{ color: '#fff' }} onClick={back} />
         </div>
         {message ? <div style={{ float: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '78%' }}>
-          <Avatar src={message?.avatar} /> &nbsp;{message?.title}
+          <Avatar src={message?.avatar} /> &nbsp; {message?.title}
         </div> : <div style={{ float: 'left' }}>
           Quick Message
         </div>}
@@ -225,78 +335,47 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         </div>}
       </div>
     </Layout.Header>
-    <Layout.Content className="container" style={{ marginTop: '60px', paddingBottom: '60px', marginBottom: 0 }}>
+    <Layout.Content className="container" style={{ marginTop: '60px', paddingBottom: '10px', marginBottom: 0, minHeight: '87.5vh' }}>
       {message ? <>
         <Typography.Paragraph style={{ textAlign: 'center' }}>
           <Button shape="round" loading={!messageHistory} onClick={() => setMessagesOffset(messages?.messages.sort((a: any, b: any) => a.date - b.date)[0].id || 0)}>Load more</Button>
         </Typography.Paragraph>
-        <List itemLayout="vertical" loading={!messageHistory} dataSource={messages?.messages.sort((a: any, b: any) => a.date - b.date).reduce((res: any[], msg: any) => {
-          let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
-          if (!user) {
-            user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
+        <List itemLayout="vertical" loading={!messageHistory} dataSource={messagesParsed} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }} onClick={() => setPopup({ visible: false })} onContextMenu={e => {
+          if (item.type !== 'system') {
+            e.preventDefault()
+            if (!popup?.visible) {
+              document.addEventListener('click', function onClickOutside() {
+                setPopup({ visible: false })
+                document.removeEventListener('click', onClickOutside)
+              })
+            }
+            const parent = document.querySelector('.ant-layout-content.container')
+            setPopup({
+              visible: true,
+              x: e.clientX - (parent?.getBoundingClientRect().left || 0),
+              y: e.clientY - (parent?.getBoundingClientRect().top || 0),
+              row: item
+            })
           }
-
-          const replyMsg = messages?.messages.find((m: any) => m.id === msg.replyTo?.replyToMsgId)
-          let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
-          if (!replyUser && replyMsg) {
-            replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
-          }
-
-          let fileTitle: string | null = null
-          let size: number = 0
-          if (msg?.media?.photo || msg?.media?.document) {
-            const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
-            fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${msg?.media?.document.id}.${mimeType.split('/').pop()}`
-            const getSizes = (data: any) => data?.sizes ? data?.sizes.pop() : data?.size
-            size = msg?.media?.photo ? getSizes(msg?.media?.photo.sizes.pop()) : msg?.media?.document?.size
-          }
-          return [
-            ...res,
-            fileTitle ? {
-              key: msg.id,
-              position: me?.user.tg_id == user?.id ? 'right' : 'left',
-              type: 'file',
-              title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-              titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
-              text: `${fileTitle.slice(0, 30)}${fileTitle.length > 30 ? '...' : ''}`,
-              date: msg.date * 1000,
-              onDownload: () => download(msg),
-              data: {
-                size: size ? prettyBytes(size) : undefined,
-                status: {
-                  error: false,
-                  download: false,
-                  click: false
-                }
-              }
-            } : null,
-            msg.action?.className === 'MessageActionContactSignUp' ? {
-              key: msg.id,
-              type: 'system',
-              date: msg.date * 1000,
-              text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined Telegram!</>
-            } : msg.action?.className === 'MessageActionChatAddUser' ? {
-              key: msg.id,
-              type: 'system',
-              date: msg.date * 1000,
-              text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
-            } : msg.message ? {
-              key: msg.id,
-              position: me?.user.tg_id == user?.id ? 'right' : 'left',
-              type: 'text',
-              // status: me?.user.tg_id == user?.id ? 'read' : undefined,
-              title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-              text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>,
-              date: msg.date * 1000,
-              titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
-              reply: replyMsg ? {
-                title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
-                titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
-                message: replyMsg.message || 'Unknown message'
-              } : undefined
-            } : null
-          ]
-        }, []).filter(Boolean) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><MessageBox {...item} /></List.Item>} />
+        }}>
+          <MessageBox {...item} />
+        </List.Item>} />
+        {/* <AutoSizer>{({ width, height }) => <VList
+          ref={messageList}
+          scrollToIndex={10}
+          isScrolling
+          width={width}
+          height={height}
+          deferredMeasurementCache={cacheVList}
+          rowCount={messagesParsed.length}
+          rowHeight={cacheVList.rowHeight}
+          rowRenderer={({ index, key, style, parent }) => <CellMeasurer cache={cacheVList} columnIndex={0} key={key} parent={parent} rowIndex={index}>
+            {({ measure }) => <div style={style} key={key} onLoad={measure}>
+              <MessageBox {...messagesParsed[index]} style={style} key={key} />
+            </div>}
+          </CellMeasurer>}
+        />}</AutoSizer> */}
+        <ContextMenu />
       </> : <>
         <Typography.Paragraph>
           <Input.Search value={qVal} onChange={(e) => setQVal(e.target.value)} className="input-search-round" placeholder="Search by username or message..." enterButton onSearch={search} allowClear />
@@ -381,13 +460,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
               title: me?.user.tg_id == dialog.entity?.id ? 'Saved Messages' : dialog.title,
               subtitle: dialog.message.message || 'Unknown message',
               date: dialog.date * 1000,
-              unread: dialog.dialog.unreadCount
+              unread: dialog.dialog.unreadCount,
+              dialog
             }
           }) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><ChatItem {...item} onClick={() => openMessage(item)} /></List.Item>} />
         </>}
       </>}
     </Layout.Content>
-    {message && <Layout.Footer style={{ padding: '10px 20px', position: 'fixed', bottom: 0, width: width || '100%' }}>
+    {message && <Layout.Footer style={{ padding: '10px 20px', position: 'sticky', bottom: 0, width: width || '100%' }}>
       <Form.Item style={{ display: 'inherit', margin: 0 }}>
         <Input.TextArea ref={inputSend} style={{ width: '88%', borderRadius: '16px' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
           if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {

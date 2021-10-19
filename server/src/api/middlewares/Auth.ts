@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
-import { TelegramClient } from 'telegram'
-import { StringSession } from 'telegram/sessions'
+import { TelegramClient } from '@mgilangjanuar/telegram'
+import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { Users } from '../../model/entities/Users'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 

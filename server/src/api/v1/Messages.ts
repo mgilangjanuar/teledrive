@@ -1,6 +1,6 @@
 import bigInt from 'big-integer'
 import { Request, Response } from 'express'
-import { Api } from 'telegram'
+import { Api } from '@mgilangjanuar/telegram'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
 
