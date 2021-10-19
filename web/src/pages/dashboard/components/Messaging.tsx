@@ -93,77 +93,86 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }, [messageHistory])
 
   useEffect(() => {
-    setMessagesParsed(messages?.messages.reduce((res: any[], msg: any) => {
-      let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
-      if (!user) {
-        user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
-      }
+    const setDataMessages = (dialog?: any) => {
+      setMessagesParsed(messages?.messages.reduce((res: any[], msg: any) => {
+        let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
+        if (!user) {
+          user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
+        }
 
-      const replyMsg = messages?.messages.find((m: any) => m.id === msg.replyTo?.replyToMsgId)
-      let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
-      if (!replyUser && replyMsg) {
-        replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
-      }
+        const replyMsg = messages?.messages.find((m: any) => m.id === msg.replyTo?.replyToMsgId)
+        let replyUser = replyMsg ? messages?.users.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.userId) : null
+        if (!replyUser && replyMsg) {
+          replyUser = messages?.chats.find((user: any) => user.id === (replyMsg.fromId || replyMsg.peerId)?.channelId)
+        }
 
-      let fileTitle: string | null = null
-      let size: number = 0
-      if (msg?.media?.photo || msg?.media?.document) {
-        const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
-        fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${msg?.media?.document.id}.${mimeType.split('/').pop()}`
-        const getSizes = (data: any) => data?.sizes ? data?.sizes.pop() : data?.size
-        size = msg?.media?.photo ? getSizes(msg?.media?.photo.sizes.pop()) : msg?.media?.document?.size
-      }
-      return [
-        ...res,
-        fileTitle ? {
-          key: msg.id,
-          position: me?.user.tg_id == user?.id ? 'right' : 'left',
-          type: 'file',
-          title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-          titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
-          text: `${fileTitle.slice(0, 30)}${fileTitle.length > 30 ? '...' : ''}`,
-          status: me?.user.tg_id == user?.id ? msg.id <= message.dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
-          date: msg.date * 1000,
-          user,
-          onDownload: () => download(msg),
-          data: {
-            size: size ? prettyBytes(size) : undefined,
-            status: {
-              error: false,
-              download: false,
-              click: false
+        let fileTitle: string | null = null
+        let size: number = 0
+        if (msg?.media?.photo || msg?.media?.document) {
+          const mimeType = msg?.media?.photo ? 'image/jpeg' : msg?.media?.document.mimeType || 'unknown'
+          fileTitle = msg?.media?.photo ? `${msg?.media?.photo.id}.jpg` : msg?.media?.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${msg?.media?.document.id}.${mimeType.split('/').pop()}`
+          const getSizes = (data: any) => data?.sizes ? data?.sizes.pop() : data?.size
+          size = msg?.media?.photo ? getSizes(msg?.media?.photo.sizes.pop()) : msg?.media?.document?.size
+        }
+        return [
+          ...res,
+          fileTitle ? {
+            key: msg.id,
+            position: me?.user.tg_id == user?.id ? 'right' : 'left',
+            type: 'file',
+            title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            text: `${fileTitle.slice(0, 30)}${fileTitle.length > 30 ? '...' : ''}`,
+            status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
+            date: msg.date * 1000,
+            user,
+            onDownload: () => download(msg),
+            data: {
+              size: size ? prettyBytes(size) : undefined,
+              status: {
+                error: false,
+                download: false,
+                click: false
+              }
             }
-          }
-        } : null,
-        msg.action?.className === 'MessageActionContactSignUp' ? {
-          key: msg.id,
-          type: 'system',
-          date: msg.date * 1000,
-          text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined Telegram!</>
-        } : msg.action?.className === 'MessageActionChatAddUser' ? {
-          key: msg.id,
-          type: 'system',
-          date: msg.date * 1000,
-          text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
-        } : msg.message ? {
-          key: msg.id,
-          position: me?.user.tg_id == user?.id ? 'right' : 'left',
-          type: 'text',
-          status: me?.user.tg_id == user?.id ? msg.id <= message.dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
-          title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-          text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>,
-          date: msg.date * 1000,
-          titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
-          user,
-          reply: replyMsg ? {
-            title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
-            titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
-            message: replyMsg.message || 'Unknown message'
-          } : undefined
-        } : null
-      ]
-    }, []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])
-    // messageList.current?.scrollToRow = 50
+          } : null,
+          msg.action?.className === 'MessageActionContactSignUp' ? {
+            key: msg.id,
+            type: 'system',
+            date: msg.date * 1000,
+            text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined Telegram!</>
+          } : msg.action?.className === 'MessageActionChatAddUser' ? {
+            key: msg.id,
+            type: 'system',
+            date: msg.date * 1000,
+            text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
+          } : msg.message ? {
+            key: msg.id,
+            position: me?.user.tg_id == user?.id ? 'right' : 'left',
+            type: 'text',
+            status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
+            title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+            text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>,
+            date: msg.date * 1000,
+            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            user,
+            reply: replyMsg ? {
+              title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
+              titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
+              message: replyMsg.message || 'Unknown message'
+            } : undefined
+          } : null
+        ]
+      }, []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])
+      // messageList.current?.scrollToRow = 50
+    }
+    if (message) {
+      req.get(`/dialogs/${message.id}`).then(({ data }) => {
+        setDataMessages(data.dialog)
+      })
+    } else {
+      setDataMessages()
+    }
   }, [messages])
 
   useEffect(() => {
@@ -460,8 +469,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
               title: me?.user.tg_id == dialog.entity?.id ? 'Saved Messages' : dialog.title,
               subtitle: dialog.message.message || 'Unknown message',
               date: dialog.date * 1000,
-              unread: dialog.dialog.unreadCount,
-              dialog
+              unread: dialog.dialog.unreadCount
             }
           }) || []} renderItem={(item: any) => <List.Item key={item.key} style={{ padding: 0 }}><ChatItem {...item} onClick={() => openMessage(item)} /></List.Item>} />
         </>}
