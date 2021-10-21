@@ -67,7 +67,7 @@ export class Messages {
   public async send(req: Request, res: Response): Promise<any> {
     const { type, id } = req.params
     const { accessHash } = req.query
-    const { message } = req.body
+    const { message, replyToMsgId } = req.body
 
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
@@ -86,7 +86,8 @@ export class Messages {
 
     const result = await req.tg.invoke(new Api.messages.SendMessage({
       peer,
-      message
+      message,
+      ...replyToMsgId ? { replyToMsgId: new Api.InputMessageReplyTo({ id: Number(replyToMsgId) }) } : {}
     }))
     return res.send({ message: result })
   }

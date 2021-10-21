@@ -43,22 +43,18 @@ export class Files {
       }
 
       let chat: any
-      if (file.forward_info && !file.forward_info.match(/^user\//gi)) {
+      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, _id, accessHash] = file.forward_info.split('/')
         let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: Number(peerId),
             accessHash: bigInt(accessHash as string) })
-        } else if (type === 'chat') {
-          peer = new Api.InputPeerChat({
-            chatId: Number(peerId)
-          })
+          chat = await req.tg.invoke(new Api.channels.GetMessages({
+            channel: peer,
+            id: [new Api.InputMessageID({ id: Number(messageId) })]
+          }))
         }
-        chat = await req.tg.invoke(new Api.channels.GetMessages({
-          channel: peer,
-          id: [new Api.InputMessageID({ id: Number(messageId) })]
-        }))
       } else {
         chat = await req.tg.invoke(new Api.messages.GetMessages({
           id: [new Api.InputMessageID({ id: Number(messageId) })]
@@ -317,22 +313,18 @@ export class Files {
     }
 
     let chat: any
-    if (file.forward_info && !file.forward_info.match(/^user\//gi)) {
+    if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
       const [type, peerId, id, accessHash] = file.forward_info.split('/')
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
       if (type === 'channel') {
         peer = new Api.InputPeerChannel({
           channelId: Number(peerId),
           accessHash: bigInt(accessHash as string) })
-      } else if (type === 'chat') {
-        peer = new Api.InputPeerChat({
-          chatId: Number(peerId)
-        })
+        chat = await req.tg.invoke(new Api.channels.GetMessages({
+          channel: peer,
+          id: [new Api.InputMessageID({ id: Number(id) })]
+        }))
       }
-      chat = await req.tg.invoke(new Api.channels.GetMessages({
-        channel: peer,
-        id: [new Api.InputMessageID({ id: Number(id) })]
-      }))
     } else {
       chat = await req.tg.invoke(new Api.messages.GetMessages({
         id: [new Api.InputMessageID({ id: Number(file.message_id) })]
