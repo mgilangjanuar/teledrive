@@ -1,5 +1,28 @@
-import { ArrowLeftOutlined, CommentOutlined, EditOutlined, EnterOutlined, ArrowRightOutlined, DeleteOutlined, LoadingOutlined, ReloadOutlined, SendOutlined } from '@ant-design/icons'
-import { Avatar, Button, Empty, Form, Input, Layout, List, Menu, notification, Spin, Tabs, Typography } from 'antd'
+import {
+  ArrowLeftOutlined,
+  CommentOutlined,
+  EditOutlined,
+  EnterOutlined,
+  ArrowRightOutlined,
+  DeleteOutlined,
+  LoadingOutlined,
+  ReloadOutlined,
+  SendOutlined
+} from '@ant-design/icons'
+import {
+  Avatar,
+  Button,
+  Empty,
+  Form,
+  Input,
+  Layout,
+  List,
+  Menu,
+  notification,
+  Spin,
+  Tabs,
+  Typography
+} from 'antd'
 import prettyBytes from 'pretty-bytes'
 import React, { useEffect, useRef, useState } from 'react'
 import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
@@ -117,6 +140,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         return [
           ...res,
           fileTitle ? {
+            id: `${message?.id.replace(/\?.*$/gi, '')}/${msg.id}`,
             key: msg.id,
             position: me?.user.tg_id == user?.id ? 'right' : 'left',
             type: 'file',
@@ -147,6 +171,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             date: msg.date * 1000,
             text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
           } : msg.message ? {
+            id: `${message?.id.replace(/\?.*$/gi, '')}/${msg.id}`,
             key: msg.id,
             position: me?.user.tg_id == user?.id ? 'right' : 'left',
             type: 'text',
@@ -198,21 +223,16 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       setQ(undefined)
       setQVal(undefined)
     }
-  }, [searchParams])
 
-  useEffect(() => {
-    let i = 0
-    const interval = setInterval(() => {
-      i++
-      const base = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
-      if (base) {
-        setWidth(base.clientWidth)
-      }
-      if (i > 20) {
-        clearInterval(interval)
-      }
-    }, 1000)
-  }, [])
+    if (chat === 'open') {
+      setTimeout(() => {
+        const base = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+        if (base) {
+          setWidth(base.clientWidth)
+        }
+      }, 1000)
+    }
+  }, [searchParams])
 
   const open = () => {
     const searchParams = new URLSearchParams(window.location.search)
@@ -269,6 +289,12 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     return history.push(`/view/${file.file.id}`)
   }
 
+  const remove = async (msg: any) => {
+    await req.delete(`/messages/${msg.id}`)
+    setMessagesParsed(messagesParsed?.filter((message: any) => message.id !== msg.id))
+    notification.success({ message: 'Message deleted successfully' })
+  }
+
   const sendMessage = async () => {
     if (!messageText) {
       return notification.error({
@@ -301,22 +327,22 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       return <Menu style={{ zIndex: 1, position: 'absolute', left: `${popup?.x}px`, top: `${popup?.y}px`, boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)' }}>
         <Menu.Item {...baseProps}
           icon={<ArrowRightOutlined />}
-          key="rename"
+          key="forward"
           onClick={() => {}}>Forward</Menu.Item>
         <Menu.Item {...baseProps}
           icon={<EnterOutlined />}
-          key="rename"
+          key="reply"
           onClick={() => {}}>Reply</Menu.Item>
         {me?.user.tg_id == popup.row.user?.id && <>
-          <Menu.Item {...baseProps}
+          {popup.row.type === 'text' && <Menu.Item {...baseProps}
             icon={<EditOutlined />}
-            key="rename"
-            onClick={() => {}}>Edit</Menu.Item>
+            key="edit"
+            onClick={() => {}}>Edit</Menu.Item>}
           <Menu.Item {...baseProps}
             icon={<DeleteOutlined />}
             key="delete"
             danger
-            onClick={() => {}}>Delete</Menu.Item>
+            onClick={() => remove(popup.row)}>Delete</Menu.Item>
         </>}
       </Menu>
     }
@@ -461,7 +487,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
         {!q && !message && <>
           <List itemLayout="vertical" loading={!dialogs} loadMore={<Typography.Paragraph style={{ textAlign: 'center', marginTop: '15px' }}>
-            <Button loading={!dialogs} onClick={() => setChatListOffset(chatList?.sort((a: any, b: any) => a.date - b.date)[0].date)} shape="round">Load more</Button>
+            <Button loading={!dialogs} onClick={() => setChatListOffset(chatList?.sort((a: any, b: any) => b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned)[0].date)} shape="round">Load more</Button>
           </Typography.Paragraph>} dataSource={chatList?.sort((a: any, b: any) => b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned).map((dialog: any) => {
             const peerType = dialog.isUser ? 'user' : dialog.isChannel ? 'channel' : 'chat'
             return {
