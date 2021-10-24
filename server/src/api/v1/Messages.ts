@@ -87,13 +87,14 @@ export class Messages {
     const result = await req.tg.invoke(new Api.messages.SendMessage({
       peer,
       message,
-      ...replyToMsgId ? { replyToMsgId: new Api.InputMessageReplyTo({ id: Number(replyToMsgId) }) } : {}
+      // ...replyToMsgId ? { replyToMsgId: new Api.InputMessageReplyTo({ id: Number(replyToMsgId) }) } : {}
+      ...replyToMsgId ? { replyToMsgId: replyToMsgId } : {}
     }))
     return res.send({ message: result })
   }
 
-  @Endpoint.POST('/edit/:type/:id/:msgId', { middlewares: [Auth] })
-  public async edit(req: Request, res: Response): Promise<any> {
+  @Endpoint.PATCH('/:type/:id/:msgId', { middlewares: [Auth] })
+  public async update(req: Request, res: Response): Promise<any> {
     const { type, id, msgId } = req.params
     const { accessHash } = req.query
     const { message } = req.body

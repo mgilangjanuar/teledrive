@@ -1,6 +1,7 @@
 import {
   ArrowLeftOutlined,
   CommentOutlined,
+  CloseCircleOutlined,
   EditOutlined,
   EnterOutlined,
   ArrowRightOutlined,
@@ -45,6 +46,8 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [qVal, setQVal] = useState<string>()
   const [q, setQ] = useState<string>()
   const [messageText, setMessageText] = useState<string>()
+  const [messageReply, setMessageReply] = useState<any>()
+  const [messageId, setMessageId] = useState<number>()
   const [loadingSend, setLoadingSend] = useState<boolean>()
   const [message, setMessage] = useState<any>()
   const [chatList, setChatLists] = useState<any>()
@@ -147,6 +150,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
             titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             text: `${fileTitle.slice(0, 30)}${fileTitle.length > 30 ? '...' : ''}`,
+            message: `${fileTitle.slice(0, 30)}${fileTitle.length > 30 ? '...' : ''}`,
             status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
             date: msg.date * 1000,
             user,
@@ -178,6 +182,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
             title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
             text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>,
+            message: msg.message,
             date: msg.date * 1000,
             titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             user,
@@ -194,6 +199,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     if (message) {
       req.get(`/dialogs/${message.id}`).then(({ data }) => {
         setDataMessages(data.dialog)
+        const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+        if (sidebar) {
+          sidebar.scroll({ top: sidebar.scrollHeight, behavior: 'smooth' })
+        }
       })
     } else {
       setDataMessages()
@@ -305,8 +314,23 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
     setLoadingSend(true)
     try {
-      await req.post(`/messages/send/${message?.id}`, { message: messageText })
+      if (messageId) {
+        const [type, others] = message.id.replace('?t=1', '').split('/')
+        const [id, accessHash] = others.split('?accessHash=')
+        await req.patch(`/messages/${type}/${id}/${messageId}`, { message: messageText }, { params: accessHash ? { accessHash } : {} })
+        setMessagesParsed(messagesParsed?.map((message: any) => message.key == messageId ? {
+          ...message,
+          message: messageText,
+          text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{messageText?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>
+        } : message))
+        setMessageId(undefined)
+      } else {
+        await req.post(`/messages/send/${message?.id}`, {
+          message: messageText, ...messageReply?.key ? { replyToMsgId: messageReply.key } : {} })
+        refetchHistory()
+      }
       setMessageText(undefined)
+      setMessageReply(undefined)
     } catch (error: any) {
       setLoadingSend(false)
       return notification.error({
@@ -314,7 +338,6 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         description: error?.response.data?.error || 'Something error, please try again.'
       })
     }
-    refetchHistory()
     return setLoadingSend(false)
   }
 
@@ -332,12 +355,16 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         <Menu.Item {...baseProps}
           icon={<EnterOutlined />}
           key="reply"
-          onClick={() => {}}>Reply</Menu.Item>
+          onClick={() => setMessageReply(popup.row)}>Reply</Menu.Item>
         {me?.user.tg_id == popup.row.user?.id && <>
           {popup.row.type === 'text' && <Menu.Item {...baseProps}
             icon={<EditOutlined />}
             key="edit"
-            onClick={() => {}}>Edit</Menu.Item>}
+            onClick={() => {
+              console.log(popup.row.key)
+              setMessageId(popup.row.key)
+              setMessageText(popup.row.message)
+            }}>Edit</Menu.Item>}
           <Menu.Item {...baseProps}
             icon={<DeleteOutlined />}
             key="delete"
@@ -505,6 +532,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       </>}
     </Layout.Content>
     {message && <Layout.Footer style={{ padding: '10px 20px', position: 'sticky', bottom: 0, width: width || '100%' }}>
+      {messageReply?.message && <Typography.Paragraph>
+        <Button danger size="small" type="text" onClick={() => setMessageReply(undefined)} icon={<CloseCircleOutlined />} />
+        Reply: {messageReply?.message}
+      </Typography.Paragraph>}
       <Form.Item style={{ display: 'inherit', margin: 0 }}>
         <Input.TextArea ref={inputSend} style={{ width: '88%', borderRadius: '16px' }} autoSize value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Type your message..." onKeyDown={e => {
           if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {
