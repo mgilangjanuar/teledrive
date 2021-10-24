@@ -9,6 +9,7 @@
     "build": "rimraf dist && eslint --fix -c .eslintrc.js --ext .ts . && tsc"
   },
   "dependencies": {
+    "@mgilangjanuar/telegram": "^1.10.2",
     "axios": "^0.21.4",
     "big-integer": "^1.6.48",
     "compression": "^1.7.4",
@@ -35,7 +36,6 @@
     "rate-limiter-flexible": "^2.3.1",
     "serialize-error": "^8.1.0",
     "source-map-support": "^0.5.19",
-    "telegram": "^1.9.6",
     "typeorm": "^0.2.37",
     "typeorm-naming-strategies": "^2.0.0",
     "uuid-random": "^1.3.2"
