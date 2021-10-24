@@ -328,7 +328,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       ...messages,
       messages: messages?.messages.filter((message: any) => message.id != msg.id.split('/')[msg.id.split('/').length - 1])
     })
-    notification.success({ message: 'Message deleted successfully' })
+    notification.success({ message: 'Message deleted!' })
   }
 
   const sendMessage = async () => {
