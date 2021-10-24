@@ -142,13 +142,9 @@ export class Messages {
         accessHash: bigInt(accessHash as string) })
     }
 
-    if (type === 'user') {
-      try {
-        await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(msgId)], revoke: true }))
-      } catch (error) {
-        await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(msgId)], channel: peer }))
-      }
-    } else {
+    try {
+      await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(msgId)], revoke: true }))
+    } catch (error) {
       await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(msgId)], channel: peer }))
     }
     return res.status(202).send({ accepted: true })

@@ -47,6 +47,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   const [q, setQ] = useState<string>()
   const [messageText, setMessageText] = useState<string>()
   const [messageReply, setMessageReply] = useState<any>()
+  const [messageForward, setMessageForward] = useState<any>()
   const [messageId, setMessageId] = useState<number>()
   const [loadingSend, setLoadingSend] = useState<boolean>()
   const [message, setMessage] = useState<any>()
@@ -144,6 +145,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           ...res,
           fileTitle ? {
             id: `${message?.id.replace(/\?.*$/gi, '')}/${msg.id}`,
+            messageId: message?.id,
             key: msg.id,
             position: me?.user.tg_id == user?.id ? 'right' : 'left',
             type: 'file',
@@ -176,13 +178,15 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             text: <><strong>{user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown'}</strong> joined the group</>
           } : msg.message ? {
             id: `${message?.id.replace(/\?.*$/gi, '')}/${msg.id}`,
+            messageId: message?.id,
             key: msg.id,
             position: me?.user.tg_id == user?.id ? 'right' : 'left',
             type: 'text',
             status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
             title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-            text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>,
+            text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message ? `${msg.message.replaceAll('\n', '  \n')}${msg.editDate ? '\n\n_(edited)_' : ''}${msg.fwdFrom ? '\n\n_(forwarded)_' : ''}` : 'Unknown message'}</ReactMarkdown>,
             message: msg.message,
+            fwdFrom: msg.fwdFrom,
             date: msg.date * 1000,
             titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             user,
@@ -218,7 +222,27 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     setCollapsed(chat !== 'open')
 
     if (msg) {
-      setMessage(JSON.parse(Buffer.from(decodeURIComponent(msg), 'base64').toString()))
+      const msgObj = JSON.parse(Buffer.from(decodeURIComponent(msg), 'base64').toString())
+      setMessage(msgObj)
+      if (messageForward) {
+        const [typeFrom, othersFrom] = messageForward.messageId.replace('?t=1', '').split('/')
+        const [idFrom, accessHashFrom] = othersFrom.split('?accessHash=')
+        const [typeTo, othersTo] = msgObj.id.replace('?t=1', '').split('/')
+        const [idTo, accessHashTo] = othersTo.split('?accessHash=')
+        req.post(`/messages/forward/${messageForward.key}`, {
+          from: {
+            type: typeFrom,
+            id: idFrom,
+            accessHash: accessHashFrom
+          },
+          to: {
+            type: typeTo,
+            id: idTo,
+            accessHash: accessHashTo
+          }
+        }).then(refetchHistory)
+        setMessageForward(undefined)
+      }
     } else {
       setMessage(undefined)
       setMessagesOffset(undefined)
@@ -300,7 +324,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
   const remove = async (msg: any) => {
     await req.delete(`/messages/${msg.id}`)
-    setMessagesParsed(messagesParsed?.filter((message: any) => message.id !== msg.id))
+    setMessages({
+      ...messages,
+      messages: messages?.messages.filter((message: any) => message.id != msg.id.split('/')[msg.id.split('/').length - 1])
+    })
     notification.success({ message: 'Message deleted successfully' })
   }
 
@@ -321,7 +348,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         setMessagesParsed(messagesParsed?.map((message: any) => message.key == messageId ? {
           ...message,
           message: messageText,
-          text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{messageText?.replaceAll('\n', '  \n') || 'Unknown message'}</ReactMarkdown>
+          text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{messageText ? `${messageText.replaceAll('\n', '  \n')}\n\n_(edited)_` : 'Unknown message'}</ReactMarkdown>
         } : message))
         setMessageId(undefined)
       } else {
@@ -351,13 +378,18 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         <Menu.Item {...baseProps}
           icon={<ArrowRightOutlined />}
           key="forward"
-          onClick={() => {}}>Forward</Menu.Item>
+          onClick={() => {
+            setMessageForward(popup.row)
+            const searchParams = new URLSearchParams(window.location.search)
+            searchParams.delete('msg')
+            history.push(`${window.location.pathname}?${searchParams.toString()}`)
+          }}>Forward</Menu.Item>
         <Menu.Item {...baseProps}
           icon={<EnterOutlined />}
           key="reply"
           onClick={() => setMessageReply(popup.row)}>Reply</Menu.Item>
         {me?.user.tg_id == popup.row.user?.id && <>
-          {popup.row.type === 'text' && <Menu.Item {...baseProps}
+          {popup.row.type === 'text' && !popup.row.fwdFrom && <Menu.Item {...baseProps}
             icon={<EditOutlined />}
             key="edit"
             onClick={() => {
