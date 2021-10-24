@@ -22,6 +22,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '14.x'
+    - name: Add npmrc
+      run: echo -e "//npm.pkg.github.com/:_authToken=${NPM_AUTH_TOKEN}\n@mgilangjanuar:registry=https://npm.pkg.github.com/" > ~/.npmrc && cat ~/.npmrc
+      env:
+        NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
     - run: yarn install
     - run: REACT_APP_API_URL=https://teledriveapp.com GENERATE_SOURCEMAP=false yarn workspaces run build
     - name: Compress node_modules root
