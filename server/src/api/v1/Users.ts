@@ -1,5 +1,5 @@
+import { Api } from '@mgilangjanuar/telegram'
 import { Request, Response } from 'express'
-import { Api } from 'telegram'
 import { Users as Model } from '../../model/entities/Users'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'

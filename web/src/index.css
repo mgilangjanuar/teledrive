@@ -64,10 +64,10 @@ html, body {
 }
 
 .rce-citem-body--bottom-status span {
-  width: 100%;
-  border-radius: 15px;
-  padding: 0 5px;
-  font-size: 11px;
+  width: 100% !important;
+  border-radius: 15px !important;
+  padding: 0 5px !important;
+  font-size: 11px !important;
 }
 
 .ant-layout-sider.messaging {

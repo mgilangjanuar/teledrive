@@ -1,4 +1,4 @@
-import { TelegramClient } from 'telegram'
+import { TelegramClient } from '@mgilangjanuar/telegram'
 import { Users } from './model/entities/Users'
 
 declare module 'http' {
