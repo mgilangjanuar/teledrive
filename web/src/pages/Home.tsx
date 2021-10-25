@@ -1,5 +1,5 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
-import { Avatar, Button, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
+import { Avatar, Button, Carousel, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
 import GitHubButton from 'react-github-btn'
@@ -118,8 +118,33 @@ const Home: React.FC = () => {
               </div>
               <Typography.Title style={{ fontWeight: 'lighter' }}>Secure</Typography.Title>
               <Typography.Paragraph>
-                You can control the sharing options for every file that you upload on TeleDrive. By default, it's private for you.
+                You can control the sharing options for every file that you upload on TeleDrive. By default, it's private for you in your Saved Messages.
               </Typography.Paragraph>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+
+      <Row style={{ marginTop: '50px', padding: '50px 0' }}>
+        <Col span={20} offset={2}>
+          <Carousel autoplay dotPosition="right">
+            <div>
+              <img src="./71e90abb-f036-4892-a255-0e3d1bf7e472.webp" style={{ width: '100%' }} />
+            </div>
+            <div>
+              <img src="./d38bbf8e-636e-4acb-9300-1de90a6be13b.webp" style={{ width: '100%' }} />
+            </div>
+            <div>
+              <img src="./62fc2f89-0659-4312-ba9e-cbec10a003c5.webp" style={{ width: '100%' }} />
+            </div>
+          </Carousel>
+          <Row gutter={72} align="middle">
+            <Col lg={10} span={24} style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <Typography.Title level={3} style={{ fontWeight: 'lighter' }}>It comes with</Typography.Title>
+              <Typography.Title>Quick Message</Typography.Title>
+            </Col>
+            <Col lg={14} span={24} style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <img src="./quickmessage.png" style={{ width: '100%', maxWidth: '640px' }} />
             </Col>
           </Row>
         </Col>
@@ -162,7 +187,7 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '50px 0 100px', textAlign: 'center' }}>
+      <Row style={{ marginTop: '50px', padding: '200px 0', textAlign: 'center' }}>
         <Col lg={{ span: 6, offset: 9 }} md={{ span: 10, offset: 7 }} span={20} offset={2}>
           <Typography.Paragraph>
             Join the waiting list now! 🚀

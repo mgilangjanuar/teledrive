@@ -70,7 +70,7 @@ export class Files {
 
       const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
       const size = chat['messages'][0].media.photo ? getSizes(chat['messages'][0].media.photo.sizes.pop()) : chat['messages'][0].media.document?.size
-      let type = chat['messages'][0].media.photo ? 'image' : null
+      let type = chat['messages'][0].media.photo || mimeType.match(/^image/gi) ? 'image' : null
       if (chat['messages'][0].media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
         type = 'video'
       } else if (chat['messages'][0].media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {

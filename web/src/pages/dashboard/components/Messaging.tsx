@@ -110,12 +110,12 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
   useEffect(() => {
     if (messageHistory?.messages) {
-      const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
-      if (sidebar) {
-        sidebar.scroll({ top: sidebar.clientHeight, behavior: 'smooth' })
-        // lastMessage.current.focus = true
-        // lastMessage.current.refs.message.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
-      }
+      // const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+      // if (sidebar) {
+      //   sidebar.scroll({ top: sidebar.clientHeight, behavior: 'smooth' })
+      //   // lastMessage.current.focus = true
+      //   // lastMessage.current.refs.message.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+      // }
     }
   }, [messageHistory])
 
@@ -203,10 +203,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     if (message) {
       req.get(`/dialogs/${message.id}`).then(({ data }) => {
         setDataMessages(data.dialog)
-        const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
-        if (sidebar) {
-          sidebar.scroll({ top: sidebar.scrollHeight, behavior: 'smooth' })
-        }
+        // const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+        // if (sidebar) {
+        //   sidebar.scroll({ top: sidebar.scrollHeight, behavior: 'smooth' })
+        // }
       })
     } else {
       setDataMessages()
@@ -246,8 +246,8 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     } else {
       setMessage(undefined)
       setMessagesOffset(undefined)
-      const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
-      sidebar?.scroll({ top: 0, behavior: 'smooth' })
+      // const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+      // sidebar?.scroll({ top: 0, behavior: 'smooth' })
     }
 
     if (q) {
@@ -448,7 +448,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             const parent = document.querySelector('.ant-layout-content.container')
             setPopup({
               visible: true,
-              x: e.clientX - (parent?.getBoundingClientRect().left || 0),
+              x: e.clientX - (parent?.getBoundingClientRect().left || 0) - 100,
               y: e.clientY - (parent?.getBoundingClientRect().top || 0),
               row: item
             })
