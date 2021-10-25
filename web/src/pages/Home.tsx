@@ -1,5 +1,5 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
-import { Avatar, Button, Carousel, Col, Form, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
+import { Avatar, Button, Carousel, Col, Form, Image, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React from 'react'
 import GitHubButton from 'react-github-btn'
@@ -129,19 +129,19 @@ const Home: React.FC = () => {
         <Col span={20} offset={2}>
           <Carousel autoplay dotPosition="right">
             <div>
-              <img src="./71e90abb-f036-4892-a255-0e3d1bf7e472.webp" style={{ width: '100%' }} />
+              <Image src="./71e90abb-f036-4892-a255-0e3d1bf7e472.webp" style={{ width: '100%' }} />
             </div>
             <div>
-              <img src="./d38bbf8e-636e-4acb-9300-1de90a6be13b.webp" style={{ width: '100%' }} />
+              <Image src="./d38bbf8e-636e-4acb-9300-1de90a6be13b.webp" style={{ width: '100%' }} />
             </div>
             <div>
-              <img src="./62fc2f89-0659-4312-ba9e-cbec10a003c5.webp" style={{ width: '100%' }} />
+              <Image src="./62fc2f89-0659-4312-ba9e-cbec10a003c5.webp" style={{ width: '100%' }} />
             </div>
           </Carousel>
-          <Row gutter={72} align="middle">
+          <Row style={{ marginTop: '50px', padding: '50px 0' }} gutter={72} align="middle">
             <Col lg={10} span={24} style={{ textAlign: 'center', marginBottom: '30px' }}>
               <Typography.Title level={3} style={{ fontWeight: 'lighter' }}>It comes with</Typography.Title>
-              <Typography.Title>Quick Message</Typography.Title>
+              <Typography.Title style={{ marginTop: 0 }}>Quick Message</Typography.Title>
             </Col>
             <Col lg={14} span={24} style={{ textAlign: 'center', marginBottom: '30px' }}>
               <img src="./quickmessage.png" style={{ width: '100%', maxWidth: '640px' }} />
