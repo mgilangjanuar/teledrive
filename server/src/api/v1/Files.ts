@@ -343,6 +343,7 @@ export class Files {
     let idx = 0
 
     while (!cancel && data === null || data.length && idx * chunk < file.size) {
+      const startDate = Date.now()
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
         start: idx++ * chunk,
         end: Math.min(file.size, idx * chunk - 1),
@@ -354,8 +355,8 @@ export class Files {
           return updateProgess
         })()
       } as any)
-      await new Promise(res => setTimeout(res, 100))
       res.write(data)
+      await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
     }
     res.end()
   }
