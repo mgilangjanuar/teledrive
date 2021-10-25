@@ -70,7 +70,7 @@ export class Files {
 
       const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
       const size = chat['messages'][0].media.photo ? getSizes(chat['messages'][0].media.photo.sizes.pop()) : chat['messages'][0].media.document?.size
-      let type = chat['messages'][0].media.photo ? 'image' : null
+      let type = chat['messages'][0].media.photo || mimeType.match(/^image/gi) ? 'image' : null
       if (chat['messages'][0].media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
         type = 'video'
       } else if (chat['messages'][0].media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
@@ -343,6 +343,7 @@ export class Files {
     let idx = 0
 
     while (!cancel && data === null || data.length && idx * chunk < file.size) {
+      const startDate = Date.now()
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
         start: idx++ * chunk,
         end: Math.min(file.size, idx * chunk - 1),
@@ -354,8 +355,8 @@ export class Files {
           return updateProgess
         })()
       } as any)
-      await new Promise(res => setTimeout(res, 100))
       res.write(data)
+      await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
     }
     res.end()
   }
