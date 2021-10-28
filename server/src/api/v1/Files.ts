@@ -306,7 +306,7 @@ export class Files {
   }
 
   public static async download(req: Request, res: Response, file: Model): Promise<any> {
-    const { raw, dl } = req.query
+    const { raw, dl, thumb } = req.query
     if (!raw || Number(raw) === 0) {
       const { signed_key: _, ...result } = file
       return res.send({ file: result })
@@ -345,6 +345,7 @@ export class Files {
     while (!cancel && data === null || data.length && idx * chunk < file.size) {
       const startDate = Date.now()
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
+        ...thumb ? { sizeType: 'i' } : {},
         start: idx++ * chunk,
         end: Math.min(file.size, idx * chunk - 1),
         workers: 1,   // using 1 for stable
@@ -354,7 +355,7 @@ export class Files {
           }
           return updateProgess
         })()
-      } as any)
+      })
       res.write(data)
       await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
     }

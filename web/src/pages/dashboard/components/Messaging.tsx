@@ -546,7 +546,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
         {!q && !message && <>
           <List itemLayout="vertical" loading={!dialogs} loadMore={<Typography.Paragraph style={{ textAlign: 'center', marginTop: '15px' }}>
-            <Button loading={!dialogs} onClick={() => setChatListOffset(chatList?.sort((a: any, b: any) => b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned)[0].date)} shape="round">Load more</Button>
+            <Button loading={!dialogs} onClick={() => setChatListOffset(chatList?.sort((a: any, b: any) => b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned)[chatList?.length - 1].date)} shape="round">Load more</Button>
           </Typography.Paragraph>} dataSource={chatList?.sort((a: any, b: any) => b.pinned === a.pinned ? b.date - a.date : b.pinned - a.pinned).map((dialog: any) => {
             const peerType = dialog.isUser ? 'user' : dialog.isChannel ? 'channel' : 'chat'
             return {
