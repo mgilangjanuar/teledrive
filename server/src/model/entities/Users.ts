@@ -20,6 +20,9 @@ export class Users extends BaseModelWithID {
   @Column({ default: 'free' })
   plan?: 'free' | 'premium' | 'professional'
 
+  @Column({ default: null })
+  plan_expired_at?: Date
+
   @OneToMany(() => Files, files => files.user)
   files?: Files[]
 }

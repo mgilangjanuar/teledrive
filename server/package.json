@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@mgilangjanuar/telegram": "^1.10.2",
+    "@types/moment": "^2.13.0",
     "axios": "^0.21.4",
     "big-integer": "^1.6.48",
     "compression": "^1.7.4",
@@ -28,6 +29,7 @@
     "input": "^1.0.1",
     "is-uuid": "^1.0.2",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
     "morgan": "^1.10.0",
     "multer": "^1.4.3",
     "nanoid": "^3.1.25",

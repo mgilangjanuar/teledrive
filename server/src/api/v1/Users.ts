@@ -1,5 +1,6 @@
 import { Api } from '@mgilangjanuar/telegram'
 import { Request, Response } from 'express'
+import moment from 'moment'
 import { Users as Model } from '../../model/entities/Users'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
@@ -65,5 +66,28 @@ export class Users {
       .orderBy(buildSort(sort as string))
       .getManyAndCount()
     return res.send({ users, length })
+  }
+
+  @Endpoint.USE('/upgradePlans', { middlewares: [Auth] })
+  public async upgradePlans(req: Request, res: Response): Promise<any> {
+    if (req.user.username !== 'mgilangjanuar') {
+      throw { status: 403, body: { error: 'Forbidden' } }
+    }
+
+    const { username, plan, expired } = req.query || req.body
+
+    await Model.createQueryBuilder('users')
+      .where('users.username = :username', { username }).update().set({
+        plan,
+        plan_expired_at: moment().add(expired, 'months').toISOString()
+      }).execute()
+
+    await Model.createQueryBuilder('users')
+      .where('users.plan_expired_at > :date', {
+        date: moment().add(3, 'days').toISOString()
+      }).update().set({
+        plan: null
+      }).execute()
+    return res.send({ ok: true })
   }
 }
