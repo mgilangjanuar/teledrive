@@ -75,12 +75,14 @@ export class Users {
     }
 
     const { username, plan, expired } = req.query || req.body
-
-    await Model.createQueryBuilder('users')
-      .where('users.username = :username', { username }).update().set({
-        plan,
-        plan_expired_at: moment().add(expired, 'months').toISOString()
-      }).execute()
+    let user: any
+    if (username && plan && expired) {
+      user = await Model.createQueryBuilder('users')
+        .where('users.username = :username', { username }).update().set({
+          plan,
+          plan_expired_at: moment().add(expired, 'months').toISOString()
+        }).returning('*').execute()
+    }
 
     await Model.createQueryBuilder('users')
       .where('users.plan_expired_at > :date', {
@@ -88,6 +90,6 @@ export class Users {
       }).update().set({
         plan: null
       }).execute()
-    return res.send({ ok: true })
+    return res.send({ ok: true, ...user ? { user: user.raw?.[0] } : {} })
   }
 }

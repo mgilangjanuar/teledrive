@@ -1,5 +1,5 @@
 import { ArrowRightOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Layout, Row, Typography } from 'antd'
+import { Button, Card, Col, Divider, Layout, Row, Typography } from 'antd'
 import React from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
@@ -22,7 +22,7 @@ const Pricing: React.FC = () => {
 
   const Free = () => <Card color="warning" hoverable title="FREE" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select <ArrowRightOutlined /></Button>]} onClick={() => select('free')}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
-      <Typography.Text style={{ fontSize: '0.35em' }}>$ </Typography.Text>
+      <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text>
       0
     </Typography.Title>
     <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
@@ -30,6 +30,20 @@ const Pricing: React.FC = () => {
       <li><strong>Unlimited</strong> total files</li>
       <li>Bandwidth <strong>512 kbps</strong></li>
       <li><strong>All basic features</strong></li>
+    </ul>
+  </Card>
+
+  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select <ArrowRightOutlined /></Button>]} onClick={() => select('premium')}>
+    <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
+      <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text>
+      10
+      <Typography.Text style={{ fontSize: '0.35em' }}>/year</Typography.Text>
+    </Typography.Title>
+    <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
+      <li><strong>Unlimited</strong> files size</li>
+      <li><strong>Unlimited</strong> total files</li>
+      <li><strong>Unlimited</strong> bandwidth</li>
+      <li><strong>All features</strong></li>
     </ul>
   </Card>
 
@@ -59,10 +73,16 @@ const Pricing: React.FC = () => {
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Row gutter={48} align="middle">
             <Col lg={{ span: 8, offset: 4 }} span={24} style={{ marginBottom: '72px' }}>
-              <Donation />
+              <Free />
             </Col>
             <Col lg={{ span: 8 }} span={24} style={{ marginBottom: '72px' }}>
-              <Free />
+              <Premium />
+            </Col>
+            <Divider />
+          </Row>
+          <Row>
+            <Col lg={{ span: 10, offset: 7 }} span={24} style={{ marginBottom: '72px' }}>
+              <Donation />
             </Col>
           </Row>
         </Col>
