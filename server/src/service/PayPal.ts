@@ -1,4 +1,5 @@
 import axios from 'axios'
+import QueryString from 'qs'
 import { Users } from '../model/entities/Users'
 
 interface AccessToken {
@@ -47,21 +48,23 @@ interface SubscriptionDetails {
   }[]
 }
 
-export class Paypal {
+export class PayPal {
 
   public constructor(
     private req = axios.create({
       baseURL: 'https://api-m.paypal.com/v1'
     }),
-    private accessToken: string
+    private accessToken?: string
   ) {}
 
   public async getAccessToken(): Promise<AccessToken> {
-    if (!process.env.PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_SECRET) {
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
       throw new Error('Please define PayPal credentials first')
     }
 
-    const { data } = await this.req.post<AccessToken>('/oauth2/token', {}, {
+    const { data } = await this.req.post<AccessToken>('/oauth2/token', QueryString.stringify({
+      grant_type: 'client_credentials'
+    }), {
       auth: {
         username: process.env.PAYPAL_CLIENT_ID,
         password: process.env.PAYPAL_CLIENT_SECRET
@@ -72,12 +75,12 @@ export class Paypal {
   }
 
   public async createSubscription(user: Users): Promise<CreateSubscription> {
-    if (!process.env.PAYPAL_PLAN_ID) {
+    if (!process.env.PAYPAL_PLAN_PREMIUM_ID) {
       throw new Error('Please define PayPal plan ID first')
     }
 
     const hit = async () => await this.req.post<CreateSubscription>('/billing/subscriptions', {
-      plan_id: process.env.PAYPAL_PLAN_ID,
+      plan_id: process.env.PAYPAL_PLAN_PREMIUM_ID,
       subscriber: {
         name: {
           given_name: user.name,
