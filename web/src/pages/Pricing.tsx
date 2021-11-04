@@ -4,7 +4,7 @@ import React from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
-import { fetcher } from '../utils/Fetcher'
+import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
@@ -15,6 +15,9 @@ const Pricing: React.FC = () => {
   const select = (plan: 'free' | 'premium' | 'professional' | 'donation') => {
     if (plan === 'free' || me?.user.plan === plan) {
       return history.push('/login')
+    }
+    if (plan === 'premium') {
+      return req.post('/subscriptions').then(({ data }) => window.open(data.link, '_blank'))
     }
 
     return window.open('https://www.buymeacoffee.com/mgilangjanuar', '_blank')
