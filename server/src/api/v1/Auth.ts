@@ -76,14 +76,6 @@ export class Auth {
     }
     const userAuth = signIn['user']
     let user = await Users.findOne({ tg_id: userAuth.id })
-    const check = await Users.createQueryBuilder('users')
-      .where('(tg_id = :tg_id and email != :email) or (tg_id != :tg_id and email = :email)', {
-        tg_id: userAuth.id
-      }).getOne()
-    if (check) {
-      await req.tg.invoke(new Api.auth.LogOut())
-      throw { status: 400, body: { error: 'The invitation code is invalid' } }
-    }
 
     if (!user) {
       const username = userAuth.username || userAuth.phone || phoneNumber

@@ -1,30 +1,17 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
-import { Avatar, Button, Carousel, Col, Form, Image, Input, Layout, message, Row, Space, Tooltip, Typography } from 'antd'
-import { useForm } from 'antd/lib/form/Form'
+import { Avatar, Button, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
 import React from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
-import { fetcher, req } from '../utils/Fetcher'
+import { ReactComponent as UploadingAnimate } from '../Uploading-amico.svg'
+import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
-import { ReactComponent as UploadingAnimate } from '../Uploading-amico.svg'
 
 const Home: React.FC = () => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
-  const [form] = useForm()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
-
-  const submit = async () => {
-    const { email } = form.getFieldsValue()
-    try {
-      await req.post('/waitings', { email })
-      form.resetFields()
-      return message.success(`${email} successfully joined in the waiting list.`)
-    } catch (error) {
-      return message.error('Something error! Please try again a few moments.')
-    }
-  }
 
   return <div id="top">
     <Navbar user={me} page="home" />
@@ -57,16 +44,11 @@ const Home: React.FC = () => {
               </Space>
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
-              {me ? <Button shape="round" size="large" type="primary" href="/dashboard">Go to Dashboard <ArrowRightOutlined /></Button> : <Form form={form} layout="inline" onFinish={submit}>
-                <Form.Item name="email" rules={[{ required: true, message: 'Email is required' }]}>
-                  <Input size="large" style={{ width: '143px' }} type="email" placeholder="Email" />
-                </Form.Item>
-                <Form.Item>
-                  <Button size="large" htmlType="submit" type="primary">
-                    Get Early Access
-                  </Button>
-                </Form.Item>
-              </Form>}
+              {me ? <Button shape="round" size="large" type="primary" href="/dashboard">
+                Go to Dashboard <ArrowRightOutlined />
+              </Button> : <Button shape="round" size="large" type="primary" href="/login">
+                Register Now <ArrowRightOutlined />
+              </Button>}
             </Layout.Content>
           </Layout.Content>
         </Col>
@@ -187,10 +169,10 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '200px 0', textAlign: 'center' }}>
+      <Row style={{ marginTop: '50px', padding: '100px 0 150px', textAlign: 'center' }}>
         <Col lg={{ span: 6, offset: 9 }} md={{ span: 10, offset: 7 }} span={20} offset={2}>
           <Typography.Paragraph>
-            Join the waiting list now! 🚀
+            Join now! 🚀
           </Typography.Paragraph>
           <Button shape="round" block href="#top" size="large" type="primary">
             Getting Started
