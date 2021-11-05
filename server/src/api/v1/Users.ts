@@ -1,6 +1,5 @@
 import { Api } from '@mgilangjanuar/telegram'
 import { Request, Response } from 'express'
-import moment from 'moment'
 import { Users as Model } from '../../model/entities/Users'
 import { PayPal } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
