@@ -36,7 +36,7 @@ const Pricing: React.FC = () => {
     </ul>
   </Card>
 
-  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select <ArrowRightOutlined /></Button>]} onClick={() => select('premium')}>
+  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Subscribe with<strong> PayPal</strong> <ArrowRightOutlined /></Button>]} onClick={() => select('premium')}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
       <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text>
       10
@@ -75,16 +75,19 @@ const Pricing: React.FC = () => {
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Row gutter={48} align="middle">
-            <Col lg={{ span: 8, offset: 4 }} span={24} style={{ marginBottom: '72px' }}>
+            <Col lg={{ span: 8, offset: 4 }} span={24} style={{ marginBottom: '35px' }}>
               <Free />
             </Col>
-            <Col lg={{ span: 8 }} span={24} style={{ marginBottom: '72px' }}>
+            <Col lg={{ span: 8 }} span={24} style={{ marginBottom: '35px' }}>
               <Premium />
             </Col>
-            <Divider />
           </Row>
+          <Typography.Paragraph type="secondary" style={{ textAlign: 'center', marginBottom: '100px' }}>
+            <Link to="/contact?intent=help">Contact us</Link> if you need help with the payment.
+          </Typography.Paragraph>
+          <Divider />
           <Row>
-            <Col lg={{ span: 10, offset: 7 }} span={24} style={{ marginBottom: '72px' }}>
+            <Col lg={{ span: 10, offset: 7 }} span={24}>
               <Donation />
             </Col>
           </Row>
