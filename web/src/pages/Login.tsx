@@ -17,7 +17,6 @@ const Login: React.FC = () => {
   const [countdown, setCountdown] = useState<number>()
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
-  const [token] = useState<string | undefined>(new URLSearchParams(location.search).get('code') || localStorage.getItem('invitationCode') || undefined)
   const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   const sendCode = async (phoneNumber: string) => {
@@ -29,7 +28,7 @@ const Login: React.FC = () => {
     }
 
     const fetch = async (phoneCodeHash?: string) => {
-      const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { token, phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { token, phoneNumber })
+      const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { phoneNumber })
       setPhoneCodeHash(data.phoneCodeHash)
       setCountdown(60)
       notification.info({
@@ -63,7 +62,7 @@ const Login: React.FC = () => {
     setLoadingLogin(true)
     const { phoneNumber, phoneCode, password } = formLogin.getFieldsValue()
     try {
-      const { data } = await req.post('/auth/login', { token, ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
+      const { data } = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
       setLoadingLogin(false)
       notification.success({
         message: 'Success',
@@ -86,16 +85,6 @@ const Login: React.FC = () => {
       })
     }
   }
-
-  useEffect(() => {
-    if (!token) {
-      notification.info({
-        message: 'Limited to early users',
-        description: 'Join the waiting list and always check your inbox 🍻'
-      })
-      return history.replace('/')
-    }
-  }, [token])
 
   useEffect(() => {
     if (JSCookie.get('authorization') && me?.user) {

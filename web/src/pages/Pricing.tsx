@@ -17,7 +17,10 @@ const Pricing: React.FC = () => {
       return history.push('/login')
     }
     if (plan === 'premium') {
-      return req.post('/subscriptions').then(({ data }) => window.open(data.link, '_blank'))
+      if (me) {
+        return req.post('/subscriptions').then(({ data }) => window.open(data.link, '_blank'))
+      }
+      return history.push('/login')
     }
 
     return window.open('https://www.buymeacoffee.com/mgilangjanuar', '_blank')
