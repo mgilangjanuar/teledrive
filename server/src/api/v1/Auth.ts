@@ -8,7 +8,6 @@ import { sign, verify } from 'jsonwebtoken'
 import { getRepository } from 'typeorm'
 import { Users } from '../../model//entities/Users'
 import { Files } from '../../model/entities/Files'
-import { Waitings } from '../../model/entities/Waitings'
 import { COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
 import { TGClient } from '../middlewares/TGClient'
@@ -19,14 +18,9 @@ export class Auth {
 
   @Endpoint.POST({ middlewares: [TGClient] })
   public async sendCode(req: Request, res: Response): Promise<any> {
-    const { token: id, phoneNumber } = req.body
-    if (!id || !phoneNumber) {
-      throw { status: 400, body: { error: 'Token and phone number are required' } }
-    }
-
-    const waiting = await Waitings.findOne({ id })
-    if (!waiting) {
-      throw { status: 400, body: { error: 'The invitation code is invalid' } }
+    const { phoneNumber } = req.body
+    if (!phoneNumber) {
+      throw { status: 400, body: { error: 'Phone number is required' } }
     }
 
     await req.tg.connect()
@@ -47,14 +41,9 @@ export class Auth {
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
   public async reSendCode(req: Request, res: Response): Promise<any> {
-    const { token: id, phoneNumber, phoneCodeHash } = req.body
-    if (!id || !phoneNumber || !phoneCodeHash) {
-      throw { status: 400, body: { error: 'Token, phone number, and phone code hash are required' } }
-    }
-
-    const waiting = await Waitings.findOne({ id })
-    if (!waiting) {
-      throw { status: 400, body: { error: 'The invitation code is invalid' } }
+    const { phoneNumber, phoneCodeHash } = req.body
+    if (!phoneNumber || !phoneCodeHash) {
+      throw { status: 400, body: { error: 'Phone number and phone code hash are required' } }
     }
 
     await req.tg.connect()
@@ -68,17 +57,12 @@ export class Auth {
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
   public async login(req: Request, res: Response): Promise<any> {
-    const { token: id, phoneNumber, phoneCode, phoneCodeHash, password } = req.body
-    if ((!id || (!phoneNumber || !phoneCode || !phoneCodeHash)) && !password) {
+    const { phoneNumber, phoneCode, phoneCodeHash, password } = req.body
+    if ((!phoneNumber || !phoneCode || !phoneCodeHash) && !password) {
       if (!password) {
-        throw { status: 400, body: { error: 'Token and password are required' } }
+        throw { status: 400, body: { error: 'Password is required' } }
       }
-      throw { status: 400, body: { error: 'Token, phone number, phone code, and phone code hash are required' } }
-    }
-
-    const waiting = await Waitings.findOne({ id })
-    if (!waiting) {
-      throw { status: 400, body: { error: 'The invitation code is invalid' } }
+      throw { status: 400, body: { error: 'Phone number, phone code, and phone code hash are required' } }
     }
 
     await req.tg.connect()
@@ -94,8 +78,7 @@ export class Auth {
     let user = await Users.findOne({ tg_id: userAuth.id })
     const check = await Users.createQueryBuilder('users')
       .where('(tg_id = :tg_id and email != :email) or (tg_id != :tg_id and email = :email)', {
-        tg_id: userAuth.id,
-        email: waiting.email
+        tg_id: userAuth.id
       }).getOne()
     if (check) {
       await req.tg.invoke(new Api.auth.LogOut())
@@ -107,7 +90,6 @@ export class Auth {
       user = await getRepository<Users>(Users).save({
         username,
         name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
-        email: waiting.email,
         tg_id: userAuth.id
       }, { reload: true })
     }
