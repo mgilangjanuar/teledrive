@@ -95,7 +95,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     if (message) {
       setMessagesOffset(0)
       req.post(`/messages/read/${message.id}`).catch(() => {})
-      inputSend.current.focus()
+      // inputSend.current.focus()
     }
   }, [message])
 
