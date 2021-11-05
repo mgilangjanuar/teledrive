@@ -7,6 +7,7 @@ import { Documents } from './Documents'
 import { Files } from './Files'
 import { Github } from './Github'
 import { Messages } from './Messages'
+import { Subscriptions } from './Subscriptions'
 import { Users } from './Users'
 import { Waitings } from './Waitings'
 
@@ -21,6 +22,7 @@ export const V1 = Router()
       Dialogs,
       Messages,
       Documents,
-      Contact
+      Contact,
+      Subscriptions
     )
   )

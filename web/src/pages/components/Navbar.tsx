@@ -1,5 +1,5 @@
-import { DashboardOutlined, LoginOutlined, MenuOutlined } from '@ant-design/icons'
-import { Button, Form, Input, Layout, Menu, Modal, Tag, Typography } from 'antd'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, MenuOutlined } from '@ant-design/icons'
+import { Button, Form, Input, Layout, Menu, Modal, Popover, Tag, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
@@ -34,7 +34,9 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
     <Layout.Header style={{ background: '#0088CC' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/" style={{ color: '#fff' }}>
-          <img style={{ width: '24px' }} src="/logo192.png" alt="icon.png" />&nbsp; TeleDrive
+          <img style={{ width: '24px' }} src="/logo192.png" alt="icon.png" />&nbsp; TeleDrive {user?.plan === 'premium' && <Popover placement="bottom" content={<>Premium</>}>
+            <CrownOutlined />
+          </Popover>}
         </Link>
         <span>
           &nbsp;

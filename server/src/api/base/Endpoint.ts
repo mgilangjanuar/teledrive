@@ -32,6 +32,11 @@ export const Endpoint = {
       }))
     }
   },
+  USE: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
+    return (_: any, method: string, descriptor: PropertyDescriptor): void => {
+      this._handlers.push(this._buildRouteHandler('use', method, descriptor, ...args))
+    }
+  },
   GET: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
       this._handlers.push(this._buildRouteHandler('get', method, descriptor, ...args))
