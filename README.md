@@ -1,4 +1,4 @@
-# TeleDrive
+# 🚀 TeleDrive
 
 This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternative using Telegram API for the free unlimited cloud storage.
 
@@ -11,52 +11,55 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
 
 ## Getting Started
 
- - Build All
+ - Define .env in `./server/.env` from `./server/.env-example` and `./web/.env` from `./web/.env-example`
 
-   ```bash
-   yarn workspaces run build
-   ```
+ - Install dependencies
+
+    ```bash
+    yarn install
+    ```
+
+ - Build all
+
+    ```bash
+    yarn workspaces run build
+    ```
 
  - Run
 
-   ```bash
-   # All services will served in server with Express
-   yarn server node .
-   ```
+    ```bash
+    # All services will served in server with Express
+    yarn server node .
+    ```
 
 Or, if you want to run in the local environment:
 
- - Build Server
+ - Build server
 
-   ```bash
-   yarn server build -w
-   ```
+    ```bash
+    yarn server build -w
+    ```
 
- - Run Server
+ - Run server
 
-   ```bash
-   yarn server start
-   ```
+    ```bash
+    yarn server start
+    ```
 
- - Run Web
+ - Run web
 
-   ```bash
-   # Define the REACT_APP_API_URL in web/.env first, then
-   yarn web start
-   ```
+    ```bash
+    # Define the REACT_APP_API_URL in web/.env first, then
+    yarn web start
+    ```
 
 ## How to Contribute
 
- - Clone and create another branch with prefix `feature/`, `bugfix/`, `experimental/`, and `refactor/`
- - Create a pull request to the `main` branch
- - Always remove your branch after merged
- - We don't use another branch like staging, develop, etc
-
-   ![meme](https://pics.me.me/thumb_weldont-do-that-here-we-dont-do-that-here-49999819.png)
+ - Fork and clone this repository
+ - Commit your changes
+ - Create a pull request to the `staging` branch
 
 Or, just send us an [issue](https://github.com/mgilangjanuar/teledrive/issues) for reporting bugs and/or ask the questions, share your ideas, etc in [discussions](https://github.com/mgilangjanuar/teledrive/discussions).
-
-⚠️ **We'll have no any channel to chat/discuss** like Discord/Slack/etc except the GitHub Discussions and Issues for the well-documented conversations. But, feel free to chat with me on [@mgilangjanuar](https://t.me/mgilangjanuar).
 
 ## Folder Structure
 
