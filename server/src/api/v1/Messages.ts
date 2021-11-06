@@ -55,9 +55,9 @@ export class Messages {
         accessHash: bigInt(accessHash as string) })
     }
 
-    if (type === 'user') {
+    try {
       await req.tg.invoke(new Api.messages.ReadHistory({ peer }))
-    } else {
+    } catch (error) {
       await req.tg.invoke(new Api.channels.ReadHistory({ channel: peer }))
     }
     return res.status(202).send({ accepted: true })
