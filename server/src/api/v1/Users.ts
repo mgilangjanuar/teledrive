@@ -39,7 +39,14 @@ export class Users {
 
     if (username === 'me' || username === req.user.username) {
       const username = req.userAuth.username || req.userAuth.phone
-      const paymentDetails = req.user.subscription_id ? await new PayPal().getSubscription(req.user.subscription_id) : null
+      let paymentDetails = null
+      if (req.user.subscription_id) {
+        try {
+          paymentDetails = await new PayPal().getSubscription(req.user.subscription_id)
+        } catch (error) {
+          // ignore
+        }
+      }
       await Model.update(req.user.id, {
         ...username ? { username } : {},
         ...paymentDetails?.status === 'APPROVED' || paymentDetails?.status === 'ACTIVE' ? {
