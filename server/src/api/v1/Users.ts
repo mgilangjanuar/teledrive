@@ -1,6 +1,7 @@
 import { Api } from '@mgilangjanuar/telegram'
 import { Request, Response } from 'express'
 import { Users as Model } from '../../model/entities/Users'
+import { PayPal } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
@@ -38,9 +39,15 @@ export class Users {
 
     if (username === 'me' || username === req.user.username) {
       const username = req.userAuth.username || req.userAuth.phone
-      Model.update(req.user.id, {
+      const paymentDetails = req.user.subscription_id ? await new PayPal().getSubscription(req.user.subscription_id) : null
+      await Model.update(req.user.id, {
         ...username ? { username } : {},
-        name: `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
+        ...paymentDetails?.status === 'APPROVED' || paymentDetails?.status === 'ACTIVE' ? {
+          plan: 'premium'   // TODO: change based on plan_id
+        } : {
+          plan: 'free'
+        },
+        name: `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username,
       })
     }
 
@@ -66,4 +73,29 @@ export class Users {
       .getManyAndCount()
     return res.send({ users, length })
   }
+
+  // @Endpoint.USE('/upgradePlans', { middlewares: [Auth] })
+  // public async upgradePlans(req: Request, res: Response): Promise<any> {
+  //   if (req.user.username !== 'mgilangjanuar') {
+  //     throw { status: 403, body: { error: 'Forbidden' } }
+  //   }
+
+  //   const { username, plan, expired } = req.query || req.body
+  //   let user: any
+  //   if (username && plan && expired) {
+  //     user = await Model.createQueryBuilder('users')
+  //       .where('users.username = :username', { username }).update().set({
+  //         plan,
+  //         plan_expired_at: moment().add(expired, 'months').toISOString()
+  //       }).returning('*').execute()
+  //   }
+
+  //   await Model.createQueryBuilder('users')
+  //     .where('users.plan_expired_at > :date', {
+  //       date: moment().add(3, 'days').toISOString()
+  //     }).update().set({
+  //       plan: null
+  //     }).execute()
+  //   return res.send({ ok: true, ...user ? { user: user.raw?.[0] } : {} })
+  // }
 }

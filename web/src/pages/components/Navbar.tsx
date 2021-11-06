@@ -1,7 +1,6 @@
-import { DashboardOutlined, LoginOutlined, MenuOutlined } from '@ant-design/icons'
-import { Button, Form, Input, Layout, Menu, Modal, Tag, Typography } from 'antd'
-import { useForm } from 'antd/lib/form/Form'
-import React, { useEffect, useState } from 'react'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, MenuOutlined } from '@ant-design/icons'
+import { Button, Layout, Menu, Popover, Tag } from 'antd'
+import React from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 
@@ -12,29 +11,15 @@ interface Props {
 
 
 const Navbar: React.FC<Props> = ({ user, page }) => {
-  const [wantToLogin, setWantToLogin] = useState<boolean>()
   const history = useHistory()
-  const [form] = useForm()
-
-  const saveInvitationCode = () => {
-    const { code } = form.getFieldsValue()
-    localStorage.setItem('invitationCode', code)
-    form.resetFields()
-    setWantToLogin(false)
-    history.push(`/login?code=${code}`)
-  }
-
-  useEffect(() => {
-    if (wantToLogin) {
-      form.setFieldsValue({ code: localStorage.getItem('invitationCode') })
-    }
-  }, [wantToLogin])
 
   return <>
     <Layout.Header style={{ background: '#0088CC' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/" style={{ color: '#fff' }}>
-          <img style={{ width: '24px' }} src="/logo192.png" alt="icon.png" />&nbsp; TeleDrive
+          <img style={{ width: '24px' }} src="/logo192.png" alt="icon.png" />&nbsp; TeleDrive {user?.plan === 'premium' && <Popover placement="bottom" content={<>Premium</>}>
+            <CrownOutlined />
+          </Popover>}
         </Link>
         <span>
           &nbsp;
@@ -45,7 +30,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
       </div>
       {user ?
         <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />}>Dashboard</Button> :
-        <Button onClick={() => setWantToLogin(true)} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
+        <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
       <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
@@ -54,16 +39,6 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item>
       </Menu>
     </Layout.Header>
-    <Modal visible={wantToLogin} title="Invitation Code" onCancel={() => setWantToLogin(false)} onOk={form.submit} okText="Continue">
-      <Typography.Paragraph type="secondary">
-        The access is limited for early users.
-      </Typography.Paragraph>
-      <Form form={form} onFinish={saveInvitationCode}>
-        <Form.Item label="Code" name="code" rules={[{ required: true, message: 'Please input your invitation code' }]}>
-          <Input />
-        </Form.Item>
-      </Form>
-    </Modal>
   </>
 }
 
