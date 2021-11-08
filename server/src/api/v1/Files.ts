@@ -357,7 +357,7 @@ export class Files {
         })()
       })
       res.write(data)
-      if (!req.user.plan || req.user.plan === 'free') {
+      if (!req.user?.plan || req.user?.plan === 'free') {
         await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
       }
     }
