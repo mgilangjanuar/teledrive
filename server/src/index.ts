@@ -77,16 +77,16 @@ const rateLimiter = new RateLimiterPostgres({
 })
 
 app.get('/ping', (_, res) => res.send({ pong: true }))
-app.get('/debug-sentry', function mainHandler() {
-  throw new Error('My first Sentry error!')
-})
 app.get('/security.txt', (_, res) => {
   res.setHeader('Content-Type', 'text/plain')
   res.send('Contact: mgilangjanuar+tdsecurity@gmail.com\nPreferred-Languages: en, id')
 })
 app.use('/api', (req, res, next) => {
   rateLimiter.consume(req.ip).then(() => next()).catch(error => {
-    return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests' })
+    if (error.msBeforeNext) {
+      return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests' })
+    }
+    throw error
   })
 }, API)
 
