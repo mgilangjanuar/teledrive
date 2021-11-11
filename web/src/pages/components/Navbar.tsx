@@ -36,7 +36,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         </span>
       </div>
       {user ?
-        <Dropdown overlay={<Menu>
+        <Dropdown trigger={['click']} overlay={<Menu>
           <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
           <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
         </Menu>}>
