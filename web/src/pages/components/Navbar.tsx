@@ -1,8 +1,9 @@
-import { CrownOutlined, DashboardOutlined, LoginOutlined, MenuOutlined } from '@ant-design/icons'
-import { Button, Layout, Menu, Popover, Tag } from 'antd'
-import React from 'react'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
+import { Button, Dropdown, Layout, Menu, Modal, Popover, Tag, Typography } from 'antd'
+import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
+import { req } from '../../utils/Fetcher'
 
 interface Props {
   user?: any,
@@ -12,6 +13,12 @@ interface Props {
 
 const Navbar: React.FC<Props> = ({ user, page }) => {
   const history = useHistory()
+  const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
+
+  const logout = async () => {
+    await req.post('/auth/logout')
+    return window.location.replace('/')
+  }
 
   return <>
     <Layout.Header style={{ background: '#0088CC' }}>
@@ -29,7 +36,12 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         </span>
       </div>
       {user ?
-        <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />}>Dashboard</Button> :
+        <Dropdown overlay={<Menu>
+          <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
+          <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
+        </Menu>}>
+          <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
+        </Dropdown> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
       <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
@@ -39,6 +51,18 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item>
       </Menu>
     </Layout.Header>
+
+    <Modal title={<Typography.Text>
+      <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Confirmation
+    </Typography.Text>}
+    visible={logoutConfirmation}
+    onCancel={() => setLogoutConfirmation(false)}
+    onOk={logout}
+    okButtonProps={{ danger: true, type: 'primary' }}>
+      <Typography.Paragraph>
+        All the files you share will not be able to download once you sign out. Continue?
+      </Typography.Paragraph>
+    </Modal>
   </>
 }
 
