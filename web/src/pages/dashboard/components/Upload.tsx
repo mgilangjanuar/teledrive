@@ -86,6 +86,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   }
 
   return <BaseUpload.Dragger name="upload"
+    directory
     multiple
     customRequest={upload}
     beforeUpload={file => {
