@@ -40,7 +40,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
           <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
           <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
         </Menu>}>
-          <Button onClick={() => history.push('/dashboard')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
+          <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
         </Dropdown> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
       <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
