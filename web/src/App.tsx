@@ -2,7 +2,6 @@ import { Layout } from 'antd'
 import React, { lazy, Suspense, useEffect } from 'react'
 import { Route, Switch, useLocation } from 'react-router-dom'
 
-import 'antd/dist/antd.min.css'
 import './App.less'
 
 const Dashboard = lazy(
