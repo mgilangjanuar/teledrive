@@ -75,6 +75,9 @@ export class Auth {
       signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
     }
     const userAuth = signIn['user']
+    if (!userAuth) {
+      throw { status: 400, body: { error: 'User not found/authorized' } }
+    }
     let user = await Users.findOne({ tg_id: userAuth.id })
 
     if (!user) {
