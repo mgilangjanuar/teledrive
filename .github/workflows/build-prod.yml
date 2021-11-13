@@ -9,7 +9,7 @@ env:
   APP_DIR: /home/mgilangjanuar/teledrive
   SERVER_NODE_VERSION: v14.17.6
   DEV_USER: mgilangjanuar
-  DEV_HOST: teledriveapp.com
+  DEV_HOST: 34.87.70.100
 
 jobs:
   build:
