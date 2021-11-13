@@ -1,4 +1,4 @@
-# 🚀 TeleDrive
+![img](./logoteledrive-white.png)
 
 This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternative using Telegram API for the free unlimited cloud storage.
 

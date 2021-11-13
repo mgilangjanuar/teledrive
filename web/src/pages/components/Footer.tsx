@@ -11,9 +11,8 @@ const Footer: React.FC = () => {
           <Row gutter={72}>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Paragraph>
-                <Button type="link" style={{ fontSize: '20px', fontWeight: 'bolder' }}
-                  icon={<img src="/logo192.png" style={{ width: '24px' }} />}>
-                  <Link to="/">&nbsp; TeleDrive</Link>
+                <Button type="link" href="/" style={{ fontSize: '20px', fontWeight: 'bolder' }}
+                  icon={<img src="/teledrive-logo/logoteledrive.png" style={{ height: '24px' }} />}>
                 </Button>
               </Typography.Paragraph>
               <Typography.Paragraph type="secondary">
