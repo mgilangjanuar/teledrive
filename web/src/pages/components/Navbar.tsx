@@ -24,7 +24,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
     <Layout.Header style={{ background: '#0088CC' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/" style={{ color: '#fff' }}>
-          <img style={{ width: '24px' }} src="/logo192.png" alt="icon.png" />&nbsp; TeleDrive {user?.plan === 'premium' && <Popover placement="bottom" content={<>Premium</>}>
+          <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> {user?.plan === 'premium' && <Popover placement="bottom" content={<>Premium</>}>
             <CrownOutlined />
           </Popover>}
         </Link>
