@@ -16,7 +16,6 @@ export class Github {
     const { data: contributors } = await axios.get('https://api.github.com/repos/mgilangjanuar/teledrive/contributors', {
       headers: { authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
     })
-    console.log('OIHAS', contributors)
     return res.send({ contributors: [
       ...contributors, ...collaborators.filter((col: any) => !contributors.find((con: any) => con.login === col.login))
     ] })
