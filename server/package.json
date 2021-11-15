@@ -9,7 +9,7 @@
     "build": "rimraf dist && eslint --fix -c .eslintrc.js --ext .ts . && tsc"
   },
   "dependencies": {
-    "@mgilangjanuar/telegram": "^1.10.2",
+    "@mgilangjanuar/telegram": "^1.10.9",
     "@sentry/node": "^6.14.1",
     "@sentry/tracing": "^6.14.1",
     "@types/moment": "^2.13.0",

@@ -1,16 +1,17 @@
 import { CloudUploadOutlined } from '@ant-design/icons'
 import { notification, Upload as BaseUpload } from 'antd'
-import React, { useRef } from 'react'
 import mime from 'mime-types'
+import React, { useRef } from 'react'
 import { req } from '../../../utils/Fetcher'
 
 interface Props {
   dataFileList: [any[], (data: any[]) => void],
   parent?: Record<string, any> | null,
+  isDirectory?: boolean,
   onCancel: (file: any) => void
 }
 
-const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent, onCancel }) => {
+const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent, isDirectory, onCancel }) => {
   const cancelUploading = useRef<string | null>(null)
 
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
@@ -19,12 +20,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       message: 'Warning',
       description: 'Please don\'t close/reload this browser'
     })
-    // notification.info({
-    //   key: `upload-${file.uid}`,
-    //   message: 'Preparing to upload',
-    //   description: <>Uploading (0%) {file.name}</>,
-    //   duration: null
-    // })
     const chunkSize = 512 * 1024
     const parts = Math.ceil(file.size / chunkSize)
     let firstResponse: any
@@ -58,12 +53,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         }
 
         const percent = ((i + 1) / parts * 100).toFixed(1)
-        // notification.info({
-        //   key: `upload-${file.uid}`,
-        //   message: 'On it!',
-        //   description: <>Uploading ({percent}%) {file.name}</>,
-        //   duration: null
-        // })
         onProgress({ percent }, file)
       }
       // notification.close(`upload-${file.uid}`)
@@ -85,11 +74,10 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     }
   }
 
-  return <BaseUpload.Dragger name="upload"
-    directory
-    multiple
-    customRequest={upload}
-    beforeUpload={file => {
+  const params = {
+    multiple: true,
+    customRequest: upload,
+    beforeUpload: (file) => {
       if (file.size / 1_000_000_000 > 2) {
         notification.error({
           message: 'Error',
@@ -98,9 +86,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         return false
       }
       return true
-    }}
-    fileList={fileList}
-    onRemove={file => {
+    },
+    fileList: fileList,
+    onRemove: (file: any) => {
       if (!file.response?.file) {
         cancelUploading.current = file.uid
         return true
@@ -109,16 +97,21 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         onCancel(file.response?.file)
       }
       return false
-    }}
-    onChange={async ({ fileList }) => setFileList(fileList)}
-    progress={{
+    },
+    onChange: ({ fileList }) => setFileList(fileList),
+    progress: {
       strokeColor: {
         '0%': '#108ee9',
         '100%': '#87d068',
       },
       strokeWidth: 3,
-      format: percent => `${percent}%`
-    }}>
+      format: (percent: any) => `${percent}%`
+    }
+  }
+
+  return isDirectory ? <BaseUpload name="upload" directory {...params}>
+    Upload
+  </BaseUpload> : <BaseUpload.Dragger name="upload" {...params}>
     <p className="ant-upload-drag-icon"><CloudUploadOutlined /></p>
     <p className="ant-upload-text">Click or drag file to this area to upload</p>
     <p className="ant-upload-hint">
