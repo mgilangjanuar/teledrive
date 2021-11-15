@@ -1,8 +1,9 @@
-import { FolderAddOutlined, HomeOutlined } from '@ant-design/icons'
+import { FolderAddOutlined, HomeOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
   Col,
+  Dropdown,
   Input,
   Layout,
   Menu,
@@ -279,7 +280,8 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
               {tab === 'mine' ? <Upload
                 onCancel={file => setSelectDeleted([file])}
                 parent={parent}
-                dataFileList={[fileList, setFileList]} /> : <Alert
+                dataFileList={[fileList, setFileList]}
+              /> : <Alert
                 message={<>
                   These are all files that other users share with you. If you find any suspicious, spam, or etc, please <Link to="/contact?intent=report">report it to us</Link>.
                 </>}
@@ -293,7 +295,21 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             <Typography.Paragraph style={{ textAlign: 'right' }}>
               <Space wrap>
                 {tab === 'mine' ? <>
-                  <Button shape="circle" icon={<FolderAddOutlined />} onClick={() => setAddFolder(true)} />
+                  <Dropdown trigger={['click']} placement="bottomCenter" overlay={<Menu>
+                    <Menu.Item key="upload" icon={<UploadOutlined />}>
+                      <Upload
+                        isDirectory
+                        onCancel={file => setSelectDeleted([file])}
+                        parent={parent}
+                        dataFileList={[fileList, setFileList]}
+                      />
+                    </Menu.Item>
+                    <Menu.Item key="create" icon={<PlusOutlined />} onClick={() => setAddFolder(true)}>
+                      Create
+                    </Menu.Item>
+                  </Menu>}>
+                    <Button shape="circle" icon={<FolderAddOutlined />} />
+                  </Dropdown>
                 </> : ''}
                 <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
               </Space>
