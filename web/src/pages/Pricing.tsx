@@ -1,6 +1,6 @@
 import { ArrowRightOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Divider, Layout, Row, Typography } from 'antd'
-import React from 'react'
+import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
@@ -11,6 +11,7 @@ import Navbar from './components/Navbar'
 const Pricing: React.FC = () => {
   const history = useHistory()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
+  const [loading, setLoading] = useState<boolean>()
 
   const select = (plan: 'free' | 'premium' | 'professional' | 'donation') => {
     if (plan === 'free' || me?.user.plan === plan) {
@@ -18,7 +19,10 @@ const Pricing: React.FC = () => {
     }
     if (plan === 'premium') {
       if (me) {
-        return req.post('/subscriptions').then(({ data }) => window.open(data.link, '_blank'))
+        setLoading(true)
+        return req.post('/subscriptions')
+          .then(({ data }) => window.location.replace(data.link))
+          .catch(() => setLoading(false))
       }
       return history.push('/login')
     }
@@ -39,7 +43,7 @@ const Pricing: React.FC = () => {
     </ul>
   </Card>
 
-  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Subscribe with<strong> PayPal</strong> <ArrowRightOutlined /></Button>]} onClick={() => select('premium')}>
+  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block loading={loading} type="text" size="large">Subscribe with<strong> PayPal</strong> <ArrowRightOutlined /></Button>]} onClick={() => select('premium')}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
       <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text>
       10
