@@ -236,12 +236,20 @@ export class Files {
     }
 
     // upload per part
-    const uploadPartStatus = await req.tg.invoke(new Api.upload.SaveBigFilePart({
+    let uploadPartStatus: boolean
+    const uploadPart = async () => await req.tg.invoke(new Api.upload.SaveBigFilePart({
       fileId: bigInt(model.file_id),
       filePart: Number(part),
       fileTotalParts: Number(totalPart),
       bytes: file.buffer
     }))
+
+    try {
+      uploadPartStatus = await uploadPart()
+    } catch (error) {
+      req.tg?.connect()
+      uploadPartStatus = await uploadPart()
+    }
 
     const { affected } = await Model.update(model.id, { upload_progress: (Number(part) + 1) / Number(totalPart) }, { reload: true })
     if (!affected) {
@@ -266,7 +274,7 @@ export class Files {
         attributes: [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ],
-        workers: 10
+        workers: 1
       })
 
       let data: any
