@@ -67,7 +67,7 @@ export const Endpoint = {
       try {
         await target(req, res, next)
       } catch (error) {
-        console.error(error)
+        console.error('RequestWrapper', error)
         req.tg?.disconnect()
         return next(error.code ? { status: error.code, body: { error: error.message, details: serializeError(error) } } : error)
       }
@@ -104,7 +104,7 @@ export const Endpoint = {
           await descriptor.value(req, res, next)
           req.tg?.disconnect()
         } catch (error) {
-          console.error(error)
+          console.error('handler', error)
           req.tg?.disconnect()
           const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
           return next(error.code ? {

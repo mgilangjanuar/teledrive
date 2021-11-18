@@ -247,7 +247,7 @@ export class Files {
     try {
       uploadPartStatus = await uploadPart()
     } catch (error) {
-      req.tg?.connect()
+      await req.tg?.connect()
       uploadPartStatus = await uploadPart()
     }
 

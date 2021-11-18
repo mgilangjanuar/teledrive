@@ -26,7 +26,13 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
   }
 
   await req.tg.connect()
-  const userAuth = await req.tg.getMe()
+  let userAuth: any
+  try {
+    userAuth = await req.tg.getMe()
+  } catch (error) {
+    await req.tg.connect()
+    userAuth = await req.tg.getMe()
+  }
 
   const user = await Users.findOne({ tg_id: userAuth['id'] })
   if (!user) {
