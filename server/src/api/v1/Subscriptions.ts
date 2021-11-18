@@ -13,10 +13,7 @@ export class Subscriptions {
       try {
         const result = await new PayPal().getSubscription(req.user.subscription_id)
         const link = result.links.find(link => link.rel === 'approve')?.href
-        if (!link) {
-          return res.send({ link: '/dashboard' })
-        }
-        return res.send({ link })
+        return res.send({ link: link || '/dashboard' })
       } catch (error) {
         // ignore
       }
