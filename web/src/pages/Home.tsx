@@ -1,6 +1,6 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
-import React from 'react'
+import React, { useState } from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
@@ -12,6 +12,7 @@ import Navbar from './components/Navbar'
 const Home: React.FC = () => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
   const { data: me } = useSWRImmutable('/users/me', fetcher)
+  const [visiblePreview, setVisiblePreview] = useState<boolean>()
 
   return <div id="top">
     <Navbar user={me} page="home" />
@@ -109,17 +110,24 @@ const Home: React.FC = () => {
 
       <Row style={{ marginTop: '50px', padding: '50px 0' }}>
         <Col span={20} offset={2}>
-          <Carousel autoplay dotPosition="right">
+          <Carousel autoplay>
             <div>
-              <Image src="./71e90abb-f036-4892-a255-0e3d1bf7e472.webp" style={{ width: '100%' }} />
+              <Image onClick={() => setVisiblePreview(true)} preview={{ visible: false }} src="./71e90abb-f036-4892-a255-0e3d1bf7e472.webp" style={{ width: '100%' }} />
             </div>
             <div>
-              <Image src="./d38bbf8e-636e-4acb-9300-1de90a6be13b.webp" style={{ width: '100%' }} />
+              <Image onClick={() => setVisiblePreview(true)} preview={{ visible: false }} src="./d38bbf8e-636e-4acb-9300-1de90a6be13b.webp" style={{ width: '100%' }} />
             </div>
             <div>
-              <Image src="./62fc2f89-0659-4312-ba9e-cbec10a003c5.webp" style={{ width: '100%' }} />
+              <Image onClick={() => setVisiblePreview(true)} preview={{ visible: false }} src="./Screen Shot 2021-11-18 at 09.19.11.png" style={{ width: '100%' }} />
             </div>
           </Carousel>
+          <div style={{ display: 'none' }}>
+            <Image.PreviewGroup preview={{ visible: visiblePreview, onVisibleChange: vis => setVisiblePreview(vis) }}>
+              <Image src="./71e90abb-f036-4892-a255-0e3d1bf7e472.webp" />
+              <Image src="./d38bbf8e-636e-4acb-9300-1de90a6be13b.webp" />
+              <Image src="./Screen Shot 2021-11-18 at 09.19.11.png" />
+            </Image.PreviewGroup>
+          </div>
           <Row style={{ marginTop: '50px', padding: '50px 0' }} gutter={72} align="middle">
             <Col lg={10} span={24} style={{ textAlign: 'center', marginBottom: '30px' }}>
               <Typography.Title level={3} style={{ fontWeight: 'lighter' }}>It comes with</Typography.Title>
