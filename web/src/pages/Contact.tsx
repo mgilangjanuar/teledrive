@@ -38,6 +38,7 @@ const Contact: React.FC = () => {
   const send = async () => {
     setLoading(true)
     await req.post('/contact/send', form.getFieldsValue())
+    form.setFieldsValue({ message: null })
     notification.success({
       message: 'Sent!',
       description: 'Your message sent successfully!'
