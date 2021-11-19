@@ -1,6 +1,9 @@
-import { Layout } from 'antd'
+import { TwitterOutlined } from '@ant-design/icons'
+import { Button, Layout, Result } from 'antd'
 import React, { lazy, Suspense, useEffect } from 'react'
 import { Route, Switch, useLocation } from 'react-router-dom'
+import useSWR from 'swr'
+import { fetcher } from './utils/Fetcher'
 
 import './App.less'
 
@@ -34,15 +37,22 @@ const NotFound = lazy(
 )
 
 function App(): React.ReactElement {
-  // if (location.host !== 'teledriveapp.com' && localStorage.getItem('environment') !== 'staging') {
-  //   location.replace(location.href.replace(location.host, 'teledriveapp.com'))
-  // }
   const { pathname } = useLocation()
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
+  const { data } = useSWR('/utils/maintenance', fetcher)
 
   return (
     <Layout className="App">
-      <Suspense fallback={<></>}>
+      {data?.maintenance ? <Result
+        status="warning"
+        title="This site is under maintenance"
+        subTitle="We're preparing to serve you better."
+        extra={
+          <Button shape="round" type="primary" icon={<TwitterOutlined />} href="https://twitter.com/teledriveapp">
+            Follow us for updates
+          </Button>
+        }
+      /> : <Suspense fallback={<></>}>
         <Switch>
           <Route path="/dashboard/:type?" exact component={Dashboard} />
           <Route path="/view/:id" exact component={View} />
@@ -55,7 +65,7 @@ function App(): React.ReactElement {
           <Route path="/" exact component={Home} />
           <Route component={NotFound} />
         </Switch>
-      </Suspense>
+      </Suspense>}
     </Layout>
   )
 }
