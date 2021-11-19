@@ -9,6 +9,7 @@ import { Github } from './Github'
 import { Messages } from './Messages'
 import { Subscriptions } from './Subscriptions'
 import { Users } from './Users'
+import { Utils } from './Utils'
 import { Waitings } from './Waitings'
 
 export const V1 = Router()
@@ -23,6 +24,7 @@ export const V1 = Router()
       Messages,
       Documents,
       Contact,
-      Subscriptions
+      Subscriptions,
+      Utils
     )
   )
