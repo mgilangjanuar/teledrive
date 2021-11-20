@@ -57,7 +57,7 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
     | REACT_APP_API_URL | no       | Base URL for the API, default: `''` (empty string) |
 
 - Create .npmrc in `~/.npmrc`
-  and Add your github personal token 
+  and add your GitHub personal token 
   
   ```bash
   # Copy these lines
