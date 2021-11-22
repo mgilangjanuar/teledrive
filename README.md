@@ -57,11 +57,11 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
     | REACT_APP_API_URL | no       | Base URL for the API, default: `''` (empty string) |
 
 - Create .npmrc in `~/.npmrc`
-  and add your GitHub personal token 
-  
+  and add your GitHub personal token
+
   ```bash
   # Copy these lines
-  
+
   //npm.pkg.github.com/:_authToken=yourtoken
   @mgilangjanuar:registry=https://npm.pkg.github.com/
   ```
@@ -104,6 +104,10 @@ Or, if you want to run in the local environment:
   # Define the REACT_APP_API_URL in web/.env first, then
   yarn web start
   ```
+
+## API Documentation
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://documenter.getpostman.com/view/1778529/UV5TGf4u)
 
 ## How to Contribute
 
