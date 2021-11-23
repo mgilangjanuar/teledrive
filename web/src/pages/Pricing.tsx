@@ -36,8 +36,8 @@ const Pricing: React.FC = () => {
       0
     </Typography.Title>
     <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
-      <li><strong>Unlimited</strong> files size</li>
       <li><strong>Unlimited</strong> total files</li>
+      <li><strong>Unlimited</strong> total files size</li>
       <li>Bandwidth <strong>512 kbps</strong></li>
       <li><strong>All basic features</strong></li>
     </ul>
@@ -50,8 +50,8 @@ const Pricing: React.FC = () => {
       <Typography.Text style={{ fontSize: '0.35em' }}>/year</Typography.Text>
     </Typography.Title>
     <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
-      <li><strong>Unlimited</strong> files size</li>
       <li><strong>Unlimited</strong> total files</li>
+      <li><strong>Unlimited</strong> total files size</li>
       <li><strong>Unlimited</strong> bandwidth</li>
       <li><strong>All features</strong></li>
     </ul>
