@@ -34,10 +34,7 @@ const Home: React.FC = () => {
               Using the <strong>Telegram API</strong> as your unlimited storage.
               So, you can upload as many as you want without any limit 👌
             </Typography.Paragraph>
-            <Typography.Paragraph>
-              {/* <a href="https://www.producthunt.com/posts/teledrive?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=315149&theme=light" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a> */}
-              <a href="https://www.producthunt.com/posts/teledrive?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=315149&theme=light&period=daily" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a>
-            </Typography.Paragraph>
+            <a style={{ position: 'fixed', bottom: '15px', right: '25px', zIndex: 999  }} href="https://www.producthunt.com/posts/teledrive?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=315149&theme=dark&period=daily" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a>
             <Typography.Paragraph>
               <Space>
                 <Follow username="teledriveapp" options={{ dnt: true }} />
