@@ -48,11 +48,11 @@ export interface SubscriptionDetails {
     },
     cycle_executions: {
       tenure_type: string,
-      sequence: 1,
-      cycles_completed: 1,
-      cycles_remaining: 0,
-      current_pricing_scheme_version: 4,
-      total_cycles: 0
+      sequence: number,
+      cycles_completed: number,
+      cycles_remaining: number,
+      current_pricing_scheme_version: number,
+      total_cycles: number
     }[],
     last_payment: {
       amount: {
@@ -61,7 +61,7 @@ export interface SubscriptionDetails {
       },
       time: string
     },
-    failed_payments_count: 0
+    failed_payments_count: number
   },
   links: {
     href: string,
