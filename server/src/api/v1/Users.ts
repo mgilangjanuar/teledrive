@@ -1,7 +1,7 @@
 import { Api } from '@mgilangjanuar/telegram'
 import { Request, Response } from 'express'
 import { Users as Model } from '../../model/entities/Users'
-import { PayPal } from '../../service/PayPal'
+import { PayPal, SubscriptionDetails } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
@@ -39,7 +39,7 @@ export class Users {
 
     if (username === 'me' || username === req.user.username) {
       const username = req.userAuth.username || req.userAuth.phone
-      let paymentDetails = null
+      let paymentDetails: SubscriptionDetails = null
       if (req.user.subscription_id) {
         try {
           paymentDetails = await new PayPal().getSubscription(req.user.subscription_id)
@@ -47,13 +47,17 @@ export class Users {
           // ignore
         }
       }
+
+      let plan: 'free' | 'premium' = 'free'
+      if (paymentDetails && paymentDetails.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ID) {
+        const isExpired = new Date().getTime() - new Date(paymentDetails.billing_info?.last_payment.time).getTime() > 3.154e+10
+        if (paymentDetails.status === 'APPROVED' || paymentDetails.status === 'ACTIVE' || !isExpired) {
+          plan = 'premium'
+        }
+      }
       await Model.update(req.user.id, {
+        plan,
         ...username ? { username } : {},
-        ...paymentDetails?.status === 'APPROVED' || paymentDetails?.status === 'ACTIVE' ? {
-          plan: 'premium'   // TODO: change based on plan_id
-        } : {
-          plan: 'free'
-        },
         name: `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username,
       })
     }

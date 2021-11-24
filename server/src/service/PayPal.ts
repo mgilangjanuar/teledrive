@@ -22,7 +22,7 @@ interface CreateSubscription {
   }[]
 }
 
-interface SubscriptionDetails {
+export interface SubscriptionDetails {
   status: 'APPROVAL_PENDING' | 'APPROVED' | 'ACTIVE' | 'SUSPENDED' | 'CANCELLED' | 'EXPIRED',
   id: string,
   plan_id: string,
@@ -41,6 +41,28 @@ interface SubscriptionDetails {
   },
   plan_overridden: boolean,
   create_time: string,
+  billing_info?: {
+    outstanding_balance: {
+      currency_code: string,
+      value: string
+    },
+    cycle_executions: {
+      tenure_type: string,
+      sequence: number,
+      cycles_completed: number,
+      cycles_remaining: number,
+      current_pricing_scheme_version: number,
+      total_cycles: number
+    }[],
+    last_payment: {
+      amount: {
+        currency_code: string,
+        value: string
+      },
+      time: string
+    },
+    failed_payments_count: number
+  },
   links: {
     href: string,
     rel: 'approve' | 'edit' | 'self',
