@@ -50,7 +50,7 @@ export class Users {
 
       let plan: 'free' | 'premium' = 'free'
       if (paymentDetails && paymentDetails.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ID) {
-        const isExpired = new Date().getTime() - new Date(paymentDetails.billing_info?.last_payment.time).getTime() > 3.154e+10
+        const isExpired = paymentDetails.billing_info?.last_payment && new Date().getTime() - new Date(paymentDetails.billing_info.last_payment.time).getTime() > 3.154e+10
         if (paymentDetails.status === 'APPROVED' || paymentDetails.status === 'ACTIVE' || !isExpired) {
           plan = 'premium'
         }
