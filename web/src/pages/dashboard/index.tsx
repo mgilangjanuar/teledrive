@@ -1,4 +1,4 @@
-import { FolderAddOutlined, HomeOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons'
+import { FolderAddOutlined, HomeOutlined, PlusOutlined, SyncOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
@@ -7,6 +7,7 @@ import {
   Input,
   Layout,
   Menu,
+  Modal,
   notification,
   Row,
   Space,
@@ -60,6 +61,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   const [scrollTop, setScrollTop] = useState<number>(0)
   const [fileList, setFileList] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>()
+  const [syncConfirmation, setSyncConfirmation] = useState<boolean>()
   const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
 
   const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
@@ -256,6 +258,17 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setAction(undefined)
   }
 
+  const sync = async () => {
+    await req.post('/files/sync', {}, {
+      params: {
+        limit: 50,
+        parent_id: parent?.id || undefined
+      }
+    })
+    refetch()
+    setSyncConfirmation(false)
+  }
+
   return <Layout>
     <Layout>
       <Layout.Content onClick={() => {
@@ -311,6 +324,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                     <Button shape="circle" icon={<FolderAddOutlined />} />
                   </Dropdown>
                 </> : ''}
+                <Button shape="circle" onClick={() => setSyncConfirmation(true)} icon={<SyncOutlined />} />
                 <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
               </Space>
             </Typography.Paragraph>
@@ -400,6 +414,16 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           dataSelect={[selectShare, setSelectShare]} />
       </Layout.Content>
       <Messaging me={me} collapsed={collapsedMessaging} parent={parent} setCollapsed={setCollapsedMessaging} />
+      <Modal title={<Typography.Text>
+        <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Sync confirmation
+      </Typography.Text>}
+      visible={syncConfirmation}
+      onCancel={() => setSyncConfirmation(false)}
+      onOk={sync}>
+        <Typography.Paragraph>
+          Are you sure to sync up to 50 files from your Saved Messages to the <code>{typeof parent?.name === 'string' ? parent.name : 'root'}</code> directory?
+        </Typography.Paragraph>
+      </Modal>
     </Layout>
     <Footer />
   </Layout>
