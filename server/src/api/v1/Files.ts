@@ -313,6 +313,74 @@ export class Files {
     return res.send({ breadcrumbs: breadcrumbs.reverse() })
   }
 
+  @Endpoint.POST('/sync', { middlewares: [Auth] })
+  public async sync(req: Request, res: Response): Promise<any> {
+    const { parent_id: parentId, limit } = req.query
+
+    let files = []
+    let found = true
+    let offsetId: number
+    while (files.length < (Number(limit) || 10) && found) {
+      const messages = await req.tg.invoke(new Api.messages.GetHistory({
+        peer: 'me',
+        limit: Number(limit) || 10,
+        offsetId: offsetId || 0,
+      }))
+
+      if (messages['messages']?.length) {
+        offsetId = messages['messages'][messages['messages'].length - 1].id
+        files = [...files, ...messages['messages'].filter((msg: any) => msg?.media?.photo || msg?.media?.document)]
+      } else {
+        found = false
+      }
+    }
+
+    files = files.slice(0, Number(limit) || 10)
+
+    if (files?.length) {
+      const existFiles = await Model
+        .createQueryBuilder('files')
+        .where(`message_id IN (:...ids) AND parent_id ${parentId ? '= :parentId' : 'IS NULL'} and forward_info IS NULL`, {
+          ids: files.map(file => file.id),
+          parentId
+        })
+        .getMany()
+      const filesWantToSave = files.filter(file => !existFiles.find(e => e.message_id == file.id))
+      if (filesWantToSave?.length) {
+        await Model.createQueryBuilder('files')
+          .insert()
+          .values(filesWantToSave.map(file => {
+            const mimeType = file.media.photo ? 'image/jpeg' : file.media.document.mimeType || 'unknown'
+            const name = file.media.photo ? `${file.media.photo.id}.jpg` : file.media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${file.media?.document.id}.${mimeType.split('/').pop()}`
+
+            const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
+            const size = file.media.photo ? getSizes(file.media.photo.sizes.pop()) : file.media.document?.size
+            let type = file.media.photo || mimeType.match(/^image/gi) ? 'image' : null
+            if (file.media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
+              type = 'video'
+            } else if (file.media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
+              type = 'document'
+            } else if (file.media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+              type = 'audio'
+            }
+
+            return {
+              name,
+              message_id: file.id,
+              mime_type: mimeType,
+              size,
+              user_id: req.user.id,
+              uploaded_at: new Date(file.date * 1000),
+              type,
+              parent_id: parentId ? parentId.toString() : null
+            }
+          }))
+          .execute()
+      }
+    }
+    return res.send({ files })
+  }
+
   public static async download(req: Request, res: Response, file: Model): Promise<any> {
     const { raw, dl, thumb } = req.query
     if (!raw || Number(raw) === 0) {
