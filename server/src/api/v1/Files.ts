@@ -262,38 +262,34 @@ export class Files {
     }
 
     // begin to send
+    const sendData = async (forceDocument: boolean) => await req.tg.sendFile('me', {
+      file: new Api.InputFileBig({
+        id: bigInt(model.file_id),
+        parts: Number(totalPart),
+        name: model.name
+      }),
+      forceDocument,
+      fileSize: model.size,
+      attributes: forceDocument ? [
+        new Api.DocumentAttributeFilename({ fileName: model.name })
+      ] : undefined,
+      workers: 1
+    })
+
+    let data: any
     try {
-      const sendData = async (forceDocument: boolean) => await req.tg.sendFile('me', {
-        file: new Api.InputFileBig({
-          id: bigInt(model.file_id),
-          parts: Number(totalPart),
-          name: model.name
-        }),
-        forceDocument,
-        fileSize: model.size,
-        attributes: [
-          new Api.DocumentAttributeFilename({ fileName: model.name })
-        ],
-        workers: 1
-      })
-
-      let data: any
-      try {
-        data = await sendData(false)
-      } catch (error) {
-        data = await sendData(true)
-      }
-
-      await Model.update(model.id, {
-        message_id: data.id,
-        uploaded_at: data.date ? new Date(data.date * 1000) : null,
-        upload_progress: null
-      })
-      return res.status(202).send({ accepted: true, file: { id: model.id } })
+      data = await sendData(false)
     } catch (error) {
-      console.error(error)
-      throw error
+      console.error('HJKBHJKBHJKBK', error)
+      data = await sendData(true)
     }
+
+    await Model.update(model.id, {
+      message_id: data.id,
+      uploaded_at: data.date ? new Date(data.date * 1000) : null,
+      upload_progress: null
+    })
+    return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
 
   @Endpoint.GET('/breadcrumbs/:id', { middlewares: [Auth] })
