@@ -419,7 +419,7 @@ export class Files {
     let idx = 0
 
     while (!cancel && data === null || data.length && idx * chunk < file.size) {
-      const startDate = Date.now()
+      // const startDate = Date.now()
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { sizeType: 'i' } : {},
         start: idx++ * chunk,
@@ -433,9 +433,9 @@ export class Files {
         })()
       })
       res.write(data)
-      if (!req.user?.plan || req.user?.plan === 'free') {
-        await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
-      }
+      // if (!req.user?.plan || req.user?.plan === 'free') {
+      //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
+      // }
     }
     res.end()
   }
