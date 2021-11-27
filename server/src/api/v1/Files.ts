@@ -401,6 +401,7 @@ export class Files {
 
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
       usage.expire = moment().add(1, 'day').toDate()
+      usage.usage = 0
       await usage.save()
     }
 
