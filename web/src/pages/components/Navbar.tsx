@@ -1,5 +1,7 @@
 import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
+import moment from 'moment'
+import prettyBytes from 'pretty-bytes'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
@@ -41,8 +43,8 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Popover placement="bottomRight" trigger={['click']} content={<div>
           <div style={{ padding: '10px' }}>
             Bandwidth usage
-            <Tooltip placement="right" title={<>{Number((usage.usage.usage / 1_500_000_000 * 100).toFixed(2))}%</>}>
-              <Progress showInfo={false} percent={usage.usage.usage / 1_500_000_000 * 100} />
+            <Tooltip placement="right" title={<>You can download up to {prettyBytes(1_500_000_000 - usage?.usage.usage)} until {moment(usage?.usage.expire).local().format('lll')}</>}>
+              <Progress percent={Number((usage?.usage.usage / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>
           </div>
           <Menu>
