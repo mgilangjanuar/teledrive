@@ -1,5 +1,5 @@
 import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
-import { Button, Divider, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
+import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
