@@ -1,9 +1,10 @@
 import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
-import { Button, Dropdown, Layout, Menu, Modal, Popover, Tag, Typography } from 'antd'
+import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
-import { req } from '../../utils/Fetcher'
+import useSWRImmutable from 'swr/immutable'
+import { fetcher, req } from '../../utils/Fetcher'
 
 interface Props {
   user?: any,
@@ -14,6 +15,7 @@ interface Props {
 const Navbar: React.FC<Props> = ({ user, page }) => {
   const history = useHistory()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
+  const { data: usage } = useSWRImmutable('/users/me/usage', fetcher)
 
   const logout = async () => {
     await req.post('/auth/logout')
@@ -36,12 +38,20 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         </span>
       </div>
       {user ?
-        <Dropdown trigger={['click']} overlay={<Menu>
-          <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
-          <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
-        </Menu>}>
+        <Popover placement="bottomRight" trigger={['click']} content={<div>
+          <div style={{ padding: '10px' }}>
+            Bandwidth usage
+            <Tooltip placement="right" title={<>{Number((usage.usage.usage / 1_500_000_000 * 100).toFixed(2))}%</>}>
+              <Progress showInfo={false} percent={usage.usage.usage / 1_500_000_000 * 100} />
+            </Tooltip>
+          </div>
+          <Menu>
+            <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
+            <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
+          </Menu>
+        </div>}>
           <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
-        </Dropdown> :
+        </Popover> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
       <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>

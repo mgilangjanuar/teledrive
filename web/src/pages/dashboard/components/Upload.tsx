@@ -78,7 +78,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     multiple: true,
     customRequest: upload,
     beforeUpload: (file) => {
-      if (file.size / 1_000_000_000 > 2) {
+      if (file.size > 2_000_000_000) {
         notification.error({
           message: 'Error',
           description: 'Maximum file size is 2 GB'
