@@ -4,8 +4,10 @@ import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
+import moment from 'moment'
 import multer from 'multer'
 import { Files as Model } from '../../model/entities/Files'
+import { Usages } from '../../model/entities/Usages'
 import { TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
@@ -314,7 +316,7 @@ export class Files {
     const { parent_id: parentId, limit } = req.query
 
     if (req.user.plan === 'free' || !req.user.plan) {
-      throw { status: 402, error: { body: 'Payment required' } }
+      throw { status: 402, body: { error: 'Payment required' } }
     }
 
     let files = []
@@ -388,6 +390,25 @@ export class Files {
       return res.send({ file: result })
     }
 
+    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.ip}` } })
+    if (!usage) {
+      usage = new Usages()
+      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.ip}`
+      usage.usage = 0
+      usage.expire = moment().add(1, 'day').toDate()
+      await usage.save()
+    }
+
+    if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
+      usage.expire = moment().add(1, 'day').toDate()
+      await usage.save()
+    } else if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
+      // check quota
+      if (usage.usage + file.size > 1_500_000_000) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
+    }
+
     let chat: any
     if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
       const [type, peerId, id, accessHash] = file.forward_info.split('/')
@@ -437,6 +458,8 @@ export class Files {
       //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
       // }
     }
+    usage.usage += file.size
+    await usage.save()
     res.end()
   }
 

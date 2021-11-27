@@ -1,11 +1,11 @@
-import { Column, Entity } from 'typeorm'
-import { BaseModelWithID } from '../base/BaseModel'
+import { Column, Entity, PrimaryColumn } from 'typeorm'
+import { BaseModel } from '../base/BaseModel'
 
 @Entity()
-export class Usages extends BaseModelWithID {
+export class Usages extends BaseModel {
 
-  @Column()
-  ip: string
+  @PrimaryColumn()
+  key: string
 
   @Column()
   usage: number
