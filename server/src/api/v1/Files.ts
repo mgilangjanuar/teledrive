@@ -313,6 +313,10 @@ export class Files {
   public async sync(req: Request, res: Response): Promise<any> {
     const { parent_id: parentId, limit } = req.query
 
+    if (req.user.plan === 'free' || !req.user.plan) {
+      throw { status: 402, error: { body: 'Payment required' } }
+    }
+
     let files = []
     let found = true
     let offsetId: number

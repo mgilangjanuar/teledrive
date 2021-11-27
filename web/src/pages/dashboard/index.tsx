@@ -6,8 +6,7 @@ import {
   Dropdown,
   Input,
   Layout,
-  Menu,
-  Modal,
+  Menu, Modal,
   notification,
   Row,
   Space,
@@ -259,14 +258,28 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
   }
 
   const sync = async () => {
-    await req.post('/files/sync', {}, {
-      params: {
-        limit: 50,
-        parent_id: parent?.id || undefined
+    try {
+      await req.post('/files/sync', {}, {
+        params: {
+          limit: 50,
+          parent_id: parent?.id || undefined
+        }
+      })
+      refetch()
+    } catch (error: any) {
+      if (error?.response?.status === 402) {
+        return notification.error({
+          message: 'Premium Feature',
+          description: 'Please upgrade your plan for using this feature'
+        })
       }
-    })
-    refetch()
-    setSyncConfirmation(false)
+      return notification.error({
+        message: error?.response?.status || 'Something error',
+        ...error?.response?.data ? { description: error.response.data.error } : {}
+      })
+    } finally {
+      setSyncConfirmation(false)
+    }
   }
 
   return <Layout>
