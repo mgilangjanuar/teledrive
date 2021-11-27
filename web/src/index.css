@@ -92,3 +92,7 @@ html, body {
   white-space: pre-wrap;
   font-size: 12px;
 }
+
+.ant-popover-inner-content {
+  padding: 0;
+}
