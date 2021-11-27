@@ -402,7 +402,9 @@ export class Files {
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
       usage.expire = moment().add(1, 'day').toDate()
       await usage.save()
-    } else if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
+    }
+
+    if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
       if (usage.usage + file.size > 1_500_000_000) {
         throw { status: 402, body: { error: 'Payment required' } }
