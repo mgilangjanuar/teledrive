@@ -4,8 +4,10 @@ import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
+import moment from 'moment'
 import multer from 'multer'
 import { Files as Model } from '../../model/entities/Files'
+import { Usages } from '../../model/entities/Usages'
 import { TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
@@ -262,38 +264,33 @@ export class Files {
     }
 
     // begin to send
+    const sendData = async (forceDocument: boolean) => await req.tg.sendFile('me', {
+      file: new Api.InputFileBig({
+        id: bigInt(model.file_id),
+        parts: Number(totalPart),
+        name: model.name
+      }),
+      forceDocument,
+      fileSize: model.size,
+      attributes: forceDocument ? [
+        new Api.DocumentAttributeFilename({ fileName: model.name })
+      ] : undefined,
+      workers: 1
+    })
+
+    let data: any
     try {
-      const sendData = async (forceDocument: boolean) => await req.tg.sendFile('me', {
-        file: new Api.InputFileBig({
-          id: bigInt(model.file_id),
-          parts: Number(totalPart),
-          name: model.name
-        }),
-        forceDocument,
-        fileSize: model.size,
-        attributes: [
-          new Api.DocumentAttributeFilename({ fileName: model.name })
-        ],
-        workers: 1
-      })
-
-      let data: any
-      try {
-        data = await sendData(false)
-      } catch (error) {
-        data = await sendData(true)
-      }
-
-      await Model.update(model.id, {
-        message_id: data.id,
-        uploaded_at: data.date ? new Date(data.date * 1000) : null,
-        upload_progress: null
-      })
-      return res.status(202).send({ accepted: true, file: { id: model.id } })
+      data = await sendData(false)
     } catch (error) {
-      console.error(error)
-      throw error
+      data = await sendData(true)
     }
+
+    await Model.update(model.id, {
+      message_id: data.id,
+      uploaded_at: data.date ? new Date(data.date * 1000) : null,
+      upload_progress: null
+    })
+    return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
 
   @Endpoint.GET('/breadcrumbs/:id', { middlewares: [Auth] })
@@ -313,8 +310,103 @@ export class Files {
     return res.send({ breadcrumbs: breadcrumbs.reverse() })
   }
 
+  @Endpoint.POST('/sync', { middlewares: [Auth] })
+  public async sync(req: Request, res: Response): Promise<any> {
+    const { parent_id: parentId, limit } = req.query
+
+    if (req.user.plan === 'free' || !req.user.plan) {
+      throw { status: 402, body: { error: 'Payment required' } }
+    }
+
+    let files = []
+    let found = true
+    let offsetId: number
+    while (files.length < (Number(limit) || 10) && found) {
+      const messages = await req.tg.invoke(new Api.messages.GetHistory({
+        peer: 'me',
+        limit: Number(limit) || 10,
+        offsetId: offsetId || 0,
+      }))
+
+      if (messages['messages']?.length) {
+        offsetId = messages['messages'][messages['messages'].length - 1].id
+        files = [...files, ...messages['messages'].filter((msg: any) => msg?.media?.photo || msg?.media?.document)]
+      } else {
+        found = false
+      }
+    }
+
+    files = files.slice(0, Number(limit) || 10)
+
+    if (files?.length) {
+      const existFiles = await Model
+        .createQueryBuilder('files')
+        .where(`message_id IN (:...ids) AND parent_id ${parentId ? '= :parentId' : 'IS NULL'} and forward_info IS NULL`, {
+          ids: files.map(file => file.id),
+          parentId
+        })
+        .getMany()
+      const filesWantToSave = files.filter(file => !existFiles.find(e => e.message_id == file.id))
+      if (filesWantToSave?.length) {
+        await Model.createQueryBuilder('files')
+          .insert()
+          .values(filesWantToSave.map(file => {
+            const mimeType = file.media.photo ? 'image/jpeg' : file.media.document.mimeType || 'unknown'
+            const name = file.media.photo ? `${file.media.photo.id}.jpg` : file.media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${file.media?.document.id}.${mimeType.split('/').pop()}`
+
+            const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
+            const size = file.media.photo ? getSizes(file.media.photo.sizes.pop()) : file.media.document?.size
+            let type = file.media.photo || mimeType.match(/^image/gi) ? 'image' : null
+            if (file.media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
+              type = 'video'
+            } else if (file.media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
+              type = 'document'
+            } else if (file.media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+              type = 'audio'
+            }
+
+            return {
+              name,
+              message_id: file.id,
+              mime_type: mimeType,
+              size,
+              user_id: req.user.id,
+              uploaded_at: new Date(file.date * 1000),
+              type,
+              parent_id: parentId ? parentId.toString() : null
+            }
+          }))
+          .execute()
+      }
+    }
+    return res.send({ files })
+  }
+
   public static async download(req: Request, res: Response, file: Model): Promise<any> {
     const { raw, dl, thumb } = req.query
+
+    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.ip}` } })
+    if (!usage) {
+      usage = new Usages()
+      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.ip}`
+      usage.usage = 0
+      usage.expire = moment().add(1, 'day').toDate()
+      await usage.save()
+    }
+
+    if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
+      usage.expire = moment().add(1, 'day').toDate()
+      usage.usage = 0
+      await usage.save()
+    }
+
+    if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
+      // check quota
+      if (usage.usage + file.size > 1_500_000_000) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
+    }
+
     if (!raw || Number(raw) === 0) {
       const { signed_key: _, ...result } = file
       return res.send({ file: result })
@@ -351,7 +443,7 @@ export class Files {
     let idx = 0
 
     while (!cancel && data === null || data.length && idx * chunk < file.size) {
-      const startDate = Date.now()
+      // const startDate = Date.now()
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { sizeType: 'i' } : {},
         start: idx++ * chunk,
@@ -365,10 +457,12 @@ export class Files {
         })()
       })
       res.write(data)
-      if (!req.user?.plan || req.user?.plan === 'free') {
-        await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
-      }
+      // if (!req.user?.plan || req.user?.plan === 'free') {
+      //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
+      // }
     }
+    usage.usage += file.size
+    await usage.save()
     res.end()
   }
 

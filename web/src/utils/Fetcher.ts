@@ -25,6 +25,9 @@ export const fetcher = async (url: string, authorization?: string): Promise<any>
       } catch (error) {
         throw response
       }
+    } else if ((response as any)?.status === 429) {
+      await new Promise(res => setTimeout(res, 1500))
+      return await fetch()
     }
     throw response
   }

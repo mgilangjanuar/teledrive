@@ -46,7 +46,7 @@ export const runDB = async (): Promise<void> => {
       rejectUnauthorized: false
     } : false,
     schema: 'public',
-    synchronize: false,
+    synchronize: true,
     logging: true,
     entities: [`${__dirname}/entities/*.js`],
     subscribers: [`${__dirname}/subscriber/*.js`],

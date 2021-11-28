@@ -22,6 +22,7 @@ import {
   Divider,
   Dropdown, Input,
   Layout, Menu, message,
+  notification,
   Result,
   Row,
   Space,
@@ -83,6 +84,16 @@ const View: React.FC<PageProps> = ({ match }) => {
     }
   }, [showContent])
 
+  useEffect(() => {
+    if (error?.status === 402) {
+      notification.error({
+        message: 'Bandwidth limit',
+        description: 'You just hit the daily bandwidth limit.'
+      })
+      return history.replace('/pricing')
+    }
+  }, [error])
+
   const copy = (val: string) => {
     clipboardy.write(val)
     return message.info('Copied!')
@@ -117,7 +128,7 @@ const View: React.FC<PageProps> = ({ match }) => {
     }
   }
 
-  if (error || data && data.file.upload_progress !== null) {
+  if (error && [403, 404, 500].includes(error?.status) || data && data.file.upload_progress !== null) {
     return <>
       <Navbar />
       <Layout.Content className="container">
@@ -189,14 +200,14 @@ const View: React.FC<PageProps> = ({ match }) => {
       <div style={{ position: 'absolute', right: 20, top: 30 }}>
         <Space direction="horizontal">
           {!showContent && <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />}
-          {!showContent && me?.user.id === data?.file.user_id && <Dropdown placement="bottomCenter" trigger={['click']} overlay={<Menu>
+          {!showContent && me?.user.id === data?.file.user_id ? <Dropdown placement="bottomCenter" trigger={['click']} overlay={<Menu>
             <Menu.Item key="rename" onClick={() => setFileRename(data?.file)} icon={<EditOutlined />}>Rename</Menu.Item>
             <Menu.Item key="share" onClick={() => setSelectShare(data?.file)} icon={<ShareAltOutlined />}>Share</Menu.Item>
             <Menu.Item key="download" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />}>Download</Menu.Item>
             <Menu.Item key="remove" danger onClick={() => setSelectDeleted([data?.file])} icon={<DeleteOutlined />}>Delete</Menu.Item>
           </Menu>}>
             <Button shape="circle" icon={<EllipsisOutlined />} />
-          </Dropdown>}
+          </Dropdown> : <Button shape="circle" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />} />}
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
         </Space>
       </div>

@@ -1,10 +1,12 @@
 import { Api } from '@mgilangjanuar/telegram'
 import { Request, Response } from 'express'
+import moment from 'moment'
+import { Usages } from '../../model/entities/Usages'
 import { Users as Model } from '../../model/entities/Users'
 import { PayPal, SubscriptionDetails } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
-import { Auth } from '../middlewares/Auth'
+import { Auth, AuthMaybe } from '../middlewares/Auth'
 
 @Endpoint.API()
 export class Users {
@@ -22,10 +24,30 @@ export class Users {
     return res.send({ users: data.users })
   }
 
-  @Endpoint.GET('/:username/:photo?', { middlewares: [Auth] })
+  @Endpoint.GET('/me/usage', { middlewares: [AuthMaybe] })
+  public async usage(req: Request, res: Response): Promise<any> {
+    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.ip}` } })
+    if (!usage) {
+      usage = new Usages()
+      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.ip}`
+      usage.usage = 0
+      usage.expire = moment().add(1, 'day').toDate()
+      await usage.save()
+    }
+
+    if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
+      usage.expire = moment().add(1, 'day').toDate()
+      usage.usage = 0
+      await usage.save()
+    }
+
+    return res.send({ usage })
+  }
+
+  @Endpoint.GET('/:username/:param?', { middlewares: [Auth] })
   public async retrieve(req: Request, res: Response): Promise<any> {
-    const { username, photo } = req.params
-    if (photo === 'photo') {
+    const { username, param } = req.params
+    if (param === 'photo') {
       const file = await req.tg.downloadProfilePhoto(username, { isBig: false })
       if (!file?.length) {
         return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
