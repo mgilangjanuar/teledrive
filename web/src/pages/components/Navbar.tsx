@@ -43,7 +43,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Popover placement="bottomRight" trigger={['click']} content={<div>
           <div style={{ padding: '10px' }}>
             Bandwidth usage { }
-            {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="right" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - usage?.usage.usage))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
+            {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - usage?.usage.usage))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
               <Progress status="exception" percent={Number((usage?.usage.usage / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
           </div>
