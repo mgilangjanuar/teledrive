@@ -22,6 +22,7 @@ import {
   Divider,
   Dropdown, Input,
   Layout, Menu, message,
+  notification,
   Result,
   Row,
   Space,
@@ -83,6 +84,16 @@ const View: React.FC<PageProps> = ({ match }) => {
     }
   }, [showContent])
 
+  useEffect(() => {
+    if (error?.status === 402) {
+      notification.error({
+        message: 'Bandwidth limit',
+        description: 'You just hit the daily bandwidth limit.'
+      })
+      return history.replace('/pricing')
+    }
+  }, [error])
+
   const copy = (val: string) => {
     clipboardy.write(val)
     return message.info('Copied!')
@@ -117,7 +128,7 @@ const View: React.FC<PageProps> = ({ match }) => {
     }
   }
 
-  if (error || data && data.file.upload_progress !== null) {
+  if (error && [403, 404, 500].includes(error?.status) || data && data.file.upload_progress !== null) {
     return <>
       <Navbar />
       <Layout.Content className="container">

@@ -282,7 +282,6 @@ export class Files {
     try {
       data = await sendData(false)
     } catch (error) {
-      console.error('HJKBHJKBHJKBK', error)
       data = await sendData(true)
     }
 
@@ -385,10 +384,6 @@ export class Files {
 
   public static async download(req: Request, res: Response, file: Model): Promise<any> {
     const { raw, dl, thumb } = req.query
-    if (!raw || Number(raw) === 0) {
-      const { signed_key: _, ...result } = file
-      return res.send({ file: result })
-    }
 
     let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.ip}` } })
     if (!usage) {
@@ -410,6 +405,11 @@ export class Files {
       if (usage.usage + file.size > 1_500_000_000) {
         throw { status: 402, body: { error: 'Payment required' } }
       }
+    }
+
+    if (!raw || Number(raw) === 0) {
+      const { signed_key: _, ...result } = file
+      return res.send({ file: result })
     }
 
     let chat: any

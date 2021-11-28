@@ -38,7 +38,7 @@ const Pricing: React.FC = () => {
     <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
       <li><strong>Unlimited</strong> total files</li>
       <li><strong>Unlimited</strong> total files size</li>
-      <li><strong>1.5GB</strong> daily bandwidth usage</li>
+      <li><strong>1.5GB</strong> daily bandwidth</li>
       <li><strong>All basic features</strong></li>
     </ul>
   </Card>
