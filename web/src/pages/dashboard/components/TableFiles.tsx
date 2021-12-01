@@ -201,7 +201,7 @@ const TableFiles: React.FC<Props> = ({
       responsive: ['md'],
       width: 100,
       align: 'center',
-      render: (value: any) => value ? prettyBytes(value) : '-'
+      render: (value: any) => value ? prettyBytes(Number(value)) : '-'
     },
     {
       title: 'Uploaded At',

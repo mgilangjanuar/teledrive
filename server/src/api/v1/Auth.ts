@@ -74,10 +74,15 @@ export class Auth {
     } else {
       signIn = await req.tg.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
     }
-    const userAuth = signIn['user']
+    let userAuth = signIn['user']
     if (!userAuth) {
       throw { status: 400, body: { error: 'User not found/authorized' } }
     }
+    userAuth = {
+      ...userAuth,
+      id: userAuth.id.toString().replace(/[^\d]/gi, '')
+    }
+
     let user = await Users.findOne({ tg_id: userAuth.id })
 
     if (!user) {
@@ -134,7 +139,7 @@ export class Auth {
 
     await req.tg.connect()
     const userAuth = await req.tg.getMe()
-    const user = await Users.findOne({ tg_id: userAuth['id'] })
+    const user = await Users.findOne({ tg_id: userAuth['id'].replace(/[^\d]/gi, '') })
     if (!user) {
       throw { status: 401, body: { error: 'User not found' } }
     }

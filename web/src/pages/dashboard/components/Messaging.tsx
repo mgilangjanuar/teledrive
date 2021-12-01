@@ -158,7 +158,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             user,
             onDownload: () => download(msg),
             data: {
-              size: size ? prettyBytes(size) : undefined,
+              size: size ? prettyBytes(Number(size)) : undefined,
               status: {
                 error: false,
                 download: false,

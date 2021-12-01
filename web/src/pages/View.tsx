@@ -176,7 +176,7 @@ const View: React.FC<PageProps> = ({ match }) => {
             contentStyle={{ color: '#fff' }}
             labelStyle={{ color: '#fff' }} column={1}>
 
-            <Descriptions.Item label="Size">{data?.file?.size && prettyBytes(data?.file?.size)}</Descriptions.Item>
+            <Descriptions.Item label="Size">{data?.file?.size && prettyBytes(Number(data?.file?.size))}</Descriptions.Item>
             <Descriptions.Item label="Uploaded At">{moment(data?.file.uploaded_at).local().format('llll')}</Descriptions.Item>
             {user?.user && <Descriptions.Item label="Uploaded By">
               <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>

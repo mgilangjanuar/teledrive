@@ -62,4 +62,4 @@ export const runDB = async (): Promise<void> => {
 }
 
 // hacky way for parse the value in int8 type columns
-types.setTypeParser(types.builtins.INT8, (value: string) => bigInt(value))
+types.setTypeParser(types.builtins.INT8, (value: string) => Number(value))

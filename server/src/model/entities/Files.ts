@@ -12,7 +12,7 @@ export class Files extends BaseModelWithID {
   type?: string
 
   @Column({ default: null })
-  message_id?: number
+  message_id?: string
 
   @Column({ default: null })
   mime_type?: string
