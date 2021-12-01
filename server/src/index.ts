@@ -14,6 +14,7 @@ import express, {
   urlencoded
 } from 'express'
 import listEndpoints from 'express-list-endpoints'
+// import bigInt from 'json-bigint'
 import morgan from 'morgan'
 import path from 'path'
 import { Pool } from 'pg'
@@ -22,6 +23,18 @@ import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
 import { API } from './api'
 import { runDB } from './model'
+
+// const parse = JSON.parse
+// JSON.parse = str => {
+//   if (!str) return str
+//   try {
+//     const res = bigInt({ storeAsString: true }).parse(str)
+//     return parse(JSON.stringify(res))
+//   } catch (error) {
+//     console.error('FATAL JSON.parse:', str)
+//     return parse(str)
+//   }
+// }
 
 runDB()
 

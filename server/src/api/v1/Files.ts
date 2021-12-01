@@ -50,7 +50,7 @@ export class Files {
         let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
-            channelId: Number(peerId),
+            channelId: bigInt(peerId),
             accessHash: bigInt(accessHash as string) })
           chat = await req.tg.invoke(new Api.channels.GetMessages({
             channel: peer,
@@ -418,7 +418,7 @@ export class Files {
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
       if (type === 'channel') {
         peer = new Api.InputPeerChannel({
-          channelId: Number(peerId),
+          channelId: bigInt(peerId),
           accessHash: bigInt(accessHash as string) })
         chat = await req.tg.invoke(new Api.channels.GetMessages({
           channel: peer,

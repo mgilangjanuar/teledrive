@@ -25,15 +25,15 @@ export class Dialogs {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(req.query.accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(req.query.accessHash as string) })
     }
 
@@ -61,15 +61,15 @@ export class Dialogs {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(req.query.accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(req.query.accessHash as string) })
     }
     try {

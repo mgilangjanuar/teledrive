@@ -15,15 +15,15 @@ export class Messages {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     }
 
@@ -43,15 +43,15 @@ export class Messages {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     }
 
@@ -72,22 +72,22 @@ export class Messages {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     }
 
     const result = await req.tg.invoke(new Api.messages.SendMessage({
       peer,
       message,
-      // ...replyToMsgId ? { replyToMsgId: new Api.InputMessageReplyTo({ id: Number(replyToMsgId) }) } : {}
+      // ...replyToMsgId ? { replyToMsgId: new Api.InputMessageReplyTo({ id: bigInt(replyToMsgId) }) } : {}
       ...replyToMsgId ? { replyToMsgId: replyToMsgId } : {}
     }))
     return res.send({ message: result })
@@ -102,15 +102,15 @@ export class Messages {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     }
 
@@ -130,15 +130,15 @@ export class Messages {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(accessHash as string) })
     }
 
@@ -167,29 +167,29 @@ export class Messages {
     let toPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (from.type === 'channel') {
       fromPeer = new Api.InputPeerChannel({
-        channelId: from.id,
+        channelId: bigInt(from.id),
         accessHash: bigInt(from.accessHash as string) })
     } else if (from.type === 'chat') {
       fromPeer = new Api.InputPeerChat({
-        chatId: from.id
+        chatId: bigInt(from.id)
       })
     } else if (from.type === 'user') {
       fromPeer = new Api.InputPeerUser({
-        userId: from.id,
+        userId: bigInt(from.id),
         accessHash: bigInt(from.accessHash as string) })
     }
 
     if (to.type === 'channel') {
       toPeer = new Api.InputPeerChannel({
-        channelId: to.id,
+        channelId: bigInt(to.id),
         accessHash: bigInt(to.accessHash as string) })
     } else if (to.type === 'chat') {
       toPeer = new Api.InputPeerChat({
-        chatId: to.id
+        chatId: bigInt(to.id)
       })
     } else if (to.type === 'user') {
       toPeer = new Api.InputPeerUser({
-        userId: to.id,
+        userId: bigInt(to.id),
         accessHash: bigInt(to.accessHash as string) })
     }
 
@@ -219,7 +219,7 @@ export class Messages {
       addOffset: Number(offset) || 0,
       maxId: 0,
       minId: 0,
-      hash: 0,
+      hash: bigInt(0),
     }))
     return res.send({ messages })
   }
@@ -245,15 +245,15 @@ export class Messages {
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: Number(id),
+        channelId: bigInt(id),
         accessHash: bigInt(req.query.accessHash as string) })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: Number(id)
+        chatId: bigInt(id)
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: Number(id),
+        userId: bigInt(id),
         accessHash: bigInt(req.query.accessHash as string) })
     }
     try {

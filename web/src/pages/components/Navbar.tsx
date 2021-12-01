@@ -5,7 +5,7 @@ import prettyBytes from 'pretty-bytes'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
-import useSWRImmutable from 'swr/immutable'
+import useSWR from 'swr'
 import { fetcher, req } from '../../utils/Fetcher'
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
 const Navbar: React.FC<Props> = ({ user, page }) => {
   const history = useHistory()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
-  const { data: usage } = useSWRImmutable('/users/me/usage', fetcher)
+  const { data: usage } = useSWR('/users/me/usage', fetcher)
 
   const logout = async () => {
     await req.post('/auth/logout')
@@ -42,7 +42,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
       {user ?
         <Popover placement="bottomRight" trigger={['click']} content={<div>
           <div style={{ padding: '10px' }}>
-            Bandwidth usage { }
+            Bandwidth usage: { }
             {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - usage?.usage.usage))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
               <Progress status="exception" percent={Number((usage?.usage.usage / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
