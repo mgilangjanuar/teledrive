@@ -34,7 +34,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
     userAuth = await req.tg.getMe()
   }
 
-  const user = await Users.findOne({ tg_id: userAuth['id'].toString().replace(/[^\d]/gi, '') })
+  const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
   if (!user) {
     throw { status: 401, body: { error: 'User not found' } }
   }
@@ -64,7 +64,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
     await req.tg.connect()
     const userAuth = await req.tg.getMe()
 
-    const user = await Users.findOne({ tg_id: userAuth['id'].toString().replace(/[^\d]/gi, '') })
+    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
     if (!user) {
       throw { status: 401, body: { error: 'User not found' } }
     }
