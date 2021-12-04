@@ -25,12 +25,14 @@ export class Files {
     }
 
     const [files, length] = await Model.createQueryBuilder('files')
-      .where(shared && parent?.sharing_options?.includes(req.user.username) ? 'true' : shared ? ':user = any(sharing_options)' : 'files.user_id = :user', {
+      .where(shared && parent?.sharing_options?.includes(req.user.username) ? 'true' : shared ? ':user = any(files.sharing_options)' : 'files.user_id = :user', {
         user: shared ? req.user.username : req.user.id  })
-      .andWhere(buildWhereQuery(filters) || 'true')
+      // .andWhere(shared ? `files.parent_id ${filters?.parent_id ? `= '${filters.parent_id}'` : 'is null'} or not :user = any(parent.sharing_options)` : 'true', { user: req.user.username })
+      .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+      // .leftJoin('files.parent', 'parent')
       .skip(Number(offset) || undefined)
       .take(Number(limit) || undefined)
-      .orderBy(buildSort(sort as string))
+      .orderBy(buildSort(sort as string, 'files.'))
       .getManyAndCount()
     return res.send({ files, length })
   }
@@ -151,7 +153,7 @@ export class Files {
         throw { status: 404, body: { error: 'File not found' } }
       }
     }
-    file.signed_key = parent.signed_key
+    file.signed_key = file.signed_key || parent?.signed_key
 
     if (!req.user || file.user_id !== req.user?.id) {
       await Files.initiateSessionTG(req, file)
@@ -206,6 +208,24 @@ export class Files {
       .where({ id, user_id: req.user.id })
       .returning('*')
       .execute()
+
+    if (file.sharing_options !== undefined && currentFile.type === 'folder') {
+      const updateSharingOptions = async (currentFile: Model) => {
+        const children = await Model.createQueryBuilder('files')
+          .where('parent_id = :parent_id and type = \'folder\'', { parent_id: currentFile.id })
+          .addSelect('files.signed_key')
+          .getMany()
+        for (const child of children) {
+          await Model.createQueryBuilder('files')
+            .update({ sharing_options: file.sharing_options, signed_key: key })
+            .where({ id: child.id, user_id: req.user.id })
+            .execute()
+          await updateSharingOptions(child)
+        }
+      }
+      await updateSharingOptions(currentFile)
+    }
+
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
     }
