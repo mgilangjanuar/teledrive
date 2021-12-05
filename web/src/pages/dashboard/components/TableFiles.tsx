@@ -104,10 +104,10 @@ const TableFiles: React.FC<Props> = ({
           icon={<ScissorOutlined />}
           key="cut"
           onClick={() => onCut?.(popup?.row)}>Cut</Menu.Item>
-        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+        <Menu.Item {...baseProps}
           icon={<ShareAltOutlined />}
           key="share"
-          onClick={() => onShare(popup?.row)}>Share</Menu.Item> : ''}
+          onClick={() => onShare(popup?.row)}>Share</Menu.Item>
         {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
           icon={<DownloadOutlined />}
           key="download"
