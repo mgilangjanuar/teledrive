@@ -86,7 +86,7 @@ export class Auth {
       user = await getRepository<Users>(Users).save({
         username,
         name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
-        tg_id: userAuth.id
+        tg_id: userAuth.id.toString()
       }, { reload: true })
     }
 
