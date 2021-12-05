@@ -41,7 +41,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
 
   const history = useHistory()
   const [parent, setParent] = useState<Record<string, any> | null>()
-  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /></> }])
+  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /> Home</> }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{
     pagination?: TablePaginationConfig,
