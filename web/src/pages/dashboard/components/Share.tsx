@@ -1,5 +1,5 @@
 import { CopyOutlined, InfoCircleOutlined, LinkOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import { AutoComplete, Button, Col, Divider, Empty, Form, Input, message, Modal, Row, Spin, Switch, Typography } from 'antd'
+import { AutoComplete, Button, Col, Divider, Empty, Form, Input, message, Modal, notification, Row, Spin, Switch, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import * as clipboardy from 'clipboardy'
 import React, { useEffect, useState } from 'react'
@@ -66,8 +66,18 @@ const Share: React.FC<Props> = ({
     ]
     setSharingOptions(sharing)
 
-    await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
-    dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
+    try {
+      await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
+      dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
+    } catch (error: any) {
+      if (error?.response?.status === 402) {
+        notification.error({
+          message: 'Premium Feature',
+          description: 'Please upgrade your plan for using this feature'
+        })
+        setSelectShare(undefined)
+      }
+    }
     setLoadingShare(false)
     onFinish?.()
   }

@@ -192,6 +192,12 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
+    if (file.sharing_options?.length && currentFile.type === 'folder') {
+      if (req.user.plan === 'free' || !req.user.plan) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
+    }
+
     let key: string = currentFile.signed_key
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
@@ -216,7 +222,7 @@ export class Files {
           .getMany()
         for (const child of children) {
           await Model.createQueryBuilder('files')
-            .update({ sharing_options: file.sharing_options, signed_key: key })
+            .update({ sharing_options: file.sharing_options, signed_key: key || child.signed_key })
             .where({ id: child.id, user_id: req.user.id })
             .execute()
           await updateSharingOptions(child)
