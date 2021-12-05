@@ -25,11 +25,10 @@ export class Files {
     }
 
     const [files, length] = await Model.createQueryBuilder('files')
-      .where(shared && parent?.sharing_options?.includes(req.user.username) ? 'true' : shared ? ':user = any(files.sharing_options)' : 'files.user_id = :user', {
+      .where(shared && parent?.sharing_options?.includes(req.user.username) ? 'true' : shared ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))' : 'files.user_id = :user', {
         user: shared ? req.user.username : req.user.id  })
-      // .andWhere(shared ? `files.parent_id ${filters?.parent_id ? `= '${filters.parent_id}'` : 'is null'} or not :user = any(parent.sharing_options)` : 'true', { user: req.user.username })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
-      // .leftJoin('files.parent', 'parent')
+      .leftJoin('files.parent', 'parent')
       .skip(Number(offset) || undefined)
       .take(Number(limit) || undefined)
       .orderBy(buildSort(sort as string, 'files.'))
