@@ -49,7 +49,7 @@ const Share: React.FC<Props> = ({
         message: 'Hey, please check this out! 👆',
         public: isPublic,
         sharing_options: selectShare.sharing_options?.length ? selectShare.sharing_options.filter((opt: string) => opt !== '*') : [''],
-        link: `${window.location.origin}/view/${selectShare.id}`
+        link: selectShare.type === 'folder' ? `${window.location.origin}/dashboard/shared?parent=${selectShare.id}` : `${window.location.origin}/view/${selectShare.id}`
       })
     } else {
       formShare.resetFields()
