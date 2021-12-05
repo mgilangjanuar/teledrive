@@ -19,13 +19,19 @@ export class Files {
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, shared, t: _t, ...filters } = req.query
+    const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
+    if (filters?.parent_id && !parent) {
+      throw { status: 404, body: { error: 'Parent not found' } }
+    }
+
     const [files, length] = await Model.createQueryBuilder('files')
-      .where(!shared ? 'files.user_id = :user' : ':user = any(sharing_options)', {
-        user: !shared ? req.user.id : req.user.username })
-      .andWhere(buildWhereQuery(filters) || 'true')
+      .where(shared && parent?.sharing_options?.includes(req.user.username) ? 'true' : shared ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))' : 'files.user_id = :user', {
+        user: shared ? req.user.username : req.user.id  })
+      .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+      .leftJoin('files.parent', 'parent')
       .skip(Number(offset) || undefined)
       .take(Number(limit) || undefined)
-      .orderBy(buildSort(sort as string))
+      .orderBy(buildSort(sort as string, 'files.'))
       .getManyAndCount()
     return res.send({ files, length })
   }
@@ -103,13 +109,22 @@ export class Files {
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
     const count = data?.name ? null : await Model.count({ type: 'folder', user_id: req.user.id, ...data?.parent_id ? { parent_id: data?.parent_id } : {} })
+    const parent = data?.parent_id ? await Model.createQueryBuilder('files')
+      .where('id = :id', { id: data.parent_id })
+      .addSelect('files.signed_key')
+      .getOne() : null
+
     const { raw } = await Model.createQueryBuilder('files').insert().values({
       name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
       mime_type: 'teledrive/folder',
       user_id: req.user.id,
       type: 'folder',
-      parent_id: data?.parent_id,
-      uploaded_at: new Date()
+      uploaded_at: new Date(),
+      ...parent ? {
+        parent_id: parent.id,
+        sharing_options: parent.sharing_options,
+        signed_key: parent.signed_key
+      } : {}
     }).returning('*').execute()
     return res.send({ file: raw[0] })
   }
@@ -118,14 +133,26 @@ export class Files {
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
 
+    // const file = await Model.createQueryBuilder('files')
+    //   .where(`id = :id and (\'*\' = any(sharing_options) or ${req.user ? ':username = any(sharing_options) or user_id = :user_id' : 'false'})`, {
+    //     id, username: req.user?.username, user_id: req.user?.id })
+    //   .addSelect('files.signed_key')
+    //   .getOne()
     const file = await Model.createQueryBuilder('files')
-      .where(`id = :id and (\'*\' = any(sharing_options) or ${req.user ? ':username = any(sharing_options) or user_id = :user_id' : 'false'})`, {
-        id, username: req.user?.username, user_id: req.user?.id })
+      .where('id = :id', { id })
       .addSelect('files.signed_key')
       .getOne()
-    if (!file) {
-      throw { status: 404, body: { error: 'File not found' } }
+
+    const parent = file?.parent_id ? await Model.createQueryBuilder('files')
+      .where('id = :id', { id: file.parent_id })
+      .addSelect('files.signed_key')
+      .getOne() : null
+    if (!file || file.user_id !== req.user?.id && !file.sharing_options?.includes('*') && !file.sharing_options?.includes(req.user?.username)) {
+      if (!parent?.sharing_options?.includes(req.user?.username)) {
+        throw { status: 404, body: { error: 'File not found' } }
+      }
     }
+    file.signed_key = file.signed_key || parent?.signed_key
 
     if (!req.user || file.user_id !== req.user?.id) {
       await Files.initiateSessionTG(req, file)
@@ -165,6 +192,12 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
+    if (file.sharing_options?.length && currentFile.type === 'folder') {
+      if (req.user.plan === 'free' || !req.user.plan) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
+    }
+
     let key: string = currentFile.signed_key
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
@@ -180,6 +213,24 @@ export class Files {
       .where({ id, user_id: req.user.id })
       .returning('*')
       .execute()
+
+    if (file.sharing_options !== undefined && currentFile.type === 'folder') {
+      const updateSharingOptions = async (currentFile: Model) => {
+        const children = await Model.createQueryBuilder('files')
+          .where('parent_id = :parent_id and type = \'folder\'', { parent_id: currentFile.id })
+          .addSelect('files.signed_key')
+          .getMany()
+        for (const child of children) {
+          await Model.createQueryBuilder('files')
+            .update({ sharing_options: file.sharing_options, signed_key: key || child.signed_key })
+            .where({ id: child.id, user_id: req.user.id })
+            .execute()
+          await updateSharingOptions(child)
+        }
+      }
+      await updateSharingOptions(currentFile)
+    }
+
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
     }

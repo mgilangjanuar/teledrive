@@ -24,35 +24,35 @@ export async function filterQuery<T = any>(base: Record<string, any>, query: Rec
   return result.data
 }
 
-export function buildWhereQuery(data: Record<string, any>): string {
+export function buildWhereQuery(data: Record<string, any>, prefix: string = ''): string {
   const res = Object.keys(data).reduce((res, key) => {
     let item = ''
 
     const [column, op] = key.split(/(.+)\./).filter(Boolean)
     if (!op) {
-      item = `${column} = '${data[key].trim()}'`
+      item = `${prefix}${column} = '${data[key].trim()}'`
     } else if (op === 'lt') {
-      item = `${column} < '${data[key].trim()}'`
+      item = `${prefix}${column} < '${data[key].trim()}'`
     } else if (op === 'lte') {
-      item = `${column} <= '${data[key].trim()}'`
+      item = `${prefix}${column} <= '${data[key].trim()}'`
     } else if (op === 'gt') {
-      item = `${column} > '${data[key].trim()}'`
+      item = `${prefix}${column} > '${data[key].trim()}'`
     } else if (op === 'gte') {
-      item = `${column} >= '${data[key].trim()}'`
+      item = `${prefix}${column} >= '${data[key].trim()}'`
     } else if (op === 'between') {
       const [from, to] = data[key].trim().split('_')
-      item = `${column} between '${from.trim()}' and '${to.trim()}'`
+      item = `${prefix}${column} between '${from.trim()}' and '${to.trim()}'`
     } else {
-      item = `${column} ${op} ${data[key].trim()}`
+      item = `${prefix}${column} ${op} ${data[key].trim()}`
     }
     return [...res, item]
   }, []).join(' and ')
   return res
 }
 
-export function buildSort(sort?: string): Record<string, any> {
+export function buildSort(sort?: string, prefix: string = ''): Record<string, any> {
   return sort?.split(',').reduce((res, data) => {
     const [column, order] = data.split(':')
-    return { ...res, [column]: order?.toUpperCase() || 'ASC' }
+    return { ...res, [`${prefix}${column}`]: order?.toUpperCase() || 'ASC' }
   }, {}) || {}
 }
