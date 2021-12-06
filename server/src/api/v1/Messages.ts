@@ -32,7 +32,9 @@ export class Messages {
       limit: Number(limit) || 0,
       offsetId: Number(offset) || 0,
     }))
-    return res.send({ messages })
+    const result = JSON.parse(JSON.stringify(messages))
+    result.messages = result.messages?.map((msg, i) => ({ ...msg, action: { ...msg.action, className: messages['messages'][i]?.action?.className } }))
+    return res.send({ messages: result })
   }
 
   @Endpoint.POST('/read/:type/:id', { middlewares: [Auth] })
