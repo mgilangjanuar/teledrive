@@ -36,6 +36,19 @@ import { runDB } from './model'
 //   }
 // }
 
+// const stringify = JSON.stringify
+// JSON.stringify = str => {
+//   if (!str) return str
+//   try {
+//     const res = bigInt({ storeAsString: true }).stringify(str)
+//     return stringify(JSON.stringify(res))
+//   } catch (error) {
+//     console.error('FATAL JSON.stringify:', str)
+//     return stringify(str)
+//   }
+// }
+
+
 runDB()
 
 const app = express()
