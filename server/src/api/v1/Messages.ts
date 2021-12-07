@@ -37,6 +37,47 @@ export class Messages {
     return res.send({ messages: result })
   }
 
+  @Endpoint.GET('/sponsoredMessages/:type/:id', { middlewares: [Auth] })
+  public async sponsoredMessages(req: Request, res: Response): Promise<any> {
+    const { type, id } = req.params
+    const { accessHash } = req.query
+
+    let peer: Api.InputPeerChannel
+    if (type === 'channel') {
+      peer = new Api.InputPeerChannel({
+        channelId: bigInt(id),
+        accessHash: bigInt(accessHash as string) })
+    } else {
+      return res.send({ messages: {
+        messages: [],
+        chats: [],
+        users: []
+      } })
+    }
+    const messages = await req.tg.invoke(new Api.channels.GetSponsoredMessages({ channel: peer }))
+    return res.send({ messages })
+  }
+
+  @Endpoint.POST('/readSponsoredMessages/:type/:id', { middlewares: [Auth] })
+  public async readSponsoredMessages(req: Request, res: Response): Promise<any> {
+    const { type, id } = req.params
+    const { accessHash } = req.query
+    const { random_id: randomId } = req.body
+
+    let peer: Api.InputPeerChannel
+    if (type === 'channel') {
+      peer = new Api.InputPeerChannel({
+        channelId: bigInt(id),
+        accessHash: bigInt(accessHash as string) })
+    } else {
+      return res.status(202).send({ accepted: true })
+    }
+    const accepted = await req.tg.invoke(new Api.channels.ViewSponsoredMessage({
+      channel: peer, randomId: Buffer.from(randomId)
+    }))
+    return res.status(202).send({ accepted })
+  }
+
   @Endpoint.POST('/read/:type/:id', { middlewares: [Auth] })
   public async read(req: Request, res: Response): Promise<any> {
     const { type, id } = req.params
