@@ -120,7 +120,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }, [messageHistory])
 
   useEffect(() => {
-    const setDataMessages = (dialog?: any) => {
+    const setDataMessages = (dialog?: any, sponsoredMessages?: { messages: any[], chats: any[], users: any[] }) => {
       setMessagesParsed(messages?.messages.reduce((res: any[], msg: any) => {
         let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
         if (!user) {
@@ -197,16 +197,41 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             } : undefined
           } : null
         ]
-      }, []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])
+      }, sponsoredMessages?.messages?.map((msg: any) => {
+        let user = sponsoredMessages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
+        if (!user) {
+          user = sponsoredMessages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
+        }
+        return {
+          id: `${message?.id.replace(/\?.*$/gi, '')}/sponsor`,
+          messageId: message?.id,
+          key: 'sponsor',
+          position: 'left',
+          type: 'text',
+          // status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
+          title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+          text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message ? `${msg.message.replaceAll('\n', '  \n')}\n\n_(sponsored message)_` : 'Unknown message'}</ReactMarkdown>,
+          message: msg.message,
+          fwdFrom: msg.fwdFrom,
+          date: new Date().getTime(),
+          titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+          user
+        }
+      }) || []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])
       // messageList.current?.scrollToRow = 50
     }
     if (message) {
       req.get(`/dialogs/${message.id}`).then(({ data }) => {
-        setDataMessages(data.dialog)
-        // const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
-        // if (sidebar) {
-        //   sidebar.scroll({ top: sidebar.scrollHeight, behavior: 'smooth' })
-        // }
+        req.get(`/messages/sponsoredMessages/${message.id}`).then(({ data: sponsoredData }) => {
+          setDataMessages(data.dialog, sponsoredData?.messages)
+          sponsoredData.messages?.messages.map((msg: any) => req.post(`/messages/readSponsoredMessages/${message.id}`, { random_id: msg.randomId?.data }))
+          // const sidebar = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+          // if (sidebar) {
+          //   sidebar.scroll({ top: sidebar.scrollHeight, behavior: 'smooth' })
+          // }
+        }).catch(_ => {
+          setDataMessages(data.dialog)
+        })
       })
     } else {
       setDataMessages()
