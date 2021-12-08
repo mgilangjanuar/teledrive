@@ -121,7 +121,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
   useEffect(() => {
     const setDataMessages = (dialog?: any, sponsoredMessages?: { messages: any[], chats: any[], users: any[] }) => {
-      setMessagesParsed([...messages?.messages.reduce((res: any[], msg: any) => {
+      setMessagesParsed(messages?.messages.reduce((res: any[], msg: any) => {
         let user = messages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
         if (!user) {
           user = messages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
@@ -197,7 +197,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             } : undefined
           } : null
         ]
-      }, []).filter(Boolean), ...sponsoredMessages?.messages?.map((msg: any) => {
+      }, sponsoredMessages?.messages?.map((msg: any) => {
         let user = sponsoredMessages?.users.find((user: any) => user.id === (msg.fromId || msg.peerId)?.userId)
         if (!user) {
           user = sponsoredMessages?.chats.find((user: any) => user.id === (msg.fromId || msg.peerId)?.channelId)
@@ -217,7 +217,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
           user
         }
-      }) || []].sort((a: any, b: any) => a.date - b.date)  || [])
+      }) || []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])
       // messageList.current?.scrollToRow = 50
     }
     if (message) {
