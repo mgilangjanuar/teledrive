@@ -88,7 +88,6 @@ const Share: React.FC<Props> = ({
           description: `${selectShare?.row.name} sent to @${username} successfully`
         })
         formShare.setFieldsValue({ username: null })
-        setSelectShare(undefined)
       }
     } catch (error: any) {
       if (error?.response?.status === 402) {
