@@ -1,4 +1,4 @@
-import { CopyOutlined, InfoCircleOutlined, LinkOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
+import { CopyOutlined, InfoCircleOutlined, LinkOutlined, MinusCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons'
 import { AutoComplete, Button, Col, Divider, Empty, Form, Input, message, Modal, notification, Row, Spin, Switch, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import * as clipboardy from 'clipboardy'
@@ -10,7 +10,7 @@ interface Props {
   me: any,
   dataSource?: [any[], (data: any[]) => void],
   onFinish?: () => void,
-  dataSelect: [any, (data: any) => void]
+  dataSelect: [{ row: any, action: string }, (data?: { row: any, action: string }) => void]
 }
 
 const Share: React.FC<Props> = ({
@@ -41,15 +41,15 @@ const Share: React.FC<Props> = ({
 
   useEffect(() => {
     if (selectShare) {
-      const isPublic = (selectShare.sharing_options || [])?.includes('*')
+      const isPublic = (selectShare.row.sharing_options || [])?.includes('*')
       setIsPublic(isPublic)
-      setSharingOptions(selectShare.sharing_options)
+      setSharingOptions(selectShare.row.sharing_options)
       formShare.setFieldsValue({
-        id: selectShare.id,
+        id: selectShare.row.id,
         message: 'Hey, please check this out! 👆',
         public: isPublic,
-        sharing_options: selectShare.sharing_options?.length ? selectShare.sharing_options.filter((opt: string) => opt !== '*') : [''],
-        link: selectShare.type === 'folder' ? `${window.location.origin}/dashboard/shared?parent=${selectShare.id}` : `${window.location.origin}/view/${selectShare.id}`
+        sharing_options: selectShare.row.sharing_options?.length ? selectShare.row.sharing_options.filter((opt: string) => opt !== '*') : [''],
+        link: selectShare.row.type === 'folder' ? `${window.location.origin}/dashboard/shared?parent=${selectShare.row.id}` : `${window.location.origin}/view/${selectShare.row.id}`
       })
     } else {
       formShare.resetFields()
@@ -87,15 +87,15 @@ const Share: React.FC<Props> = ({
     return message.info('Copied!')
   }
 
-  return <Modal visible={selectShare}
+  return <Modal visible={selectShare?.row}
     onCancel={() => setSelectShare(undefined)}
     footer={null}
-    title={`Share ${selectShare?.name}`}>
+    title={`${selectShare?.action === 'share' ? 'Share' : 'Send'} ${selectShare?.row.name}`}>
     <Form form={formShare} layout="horizontal">
       <Form.Item name="id" hidden>
         <Input />
       </Form.Item>
-      {selectShare?.type !== 'folder' ? <Form.Item name="public" label="Make public">
+      {selectShare?.row.type !== 'folder' && selectShare?.action === 'share' ? <Form.Item name="public" label="Make public">
         <Switch checked={isPublic} onClick={val => {
           setIsPublic(val)
           share()
@@ -126,6 +126,9 @@ const Share: React.FC<Props> = ({
           </Form.Item>
         </>}
       </Form.List>}
+      {selectShare?.action === 'share' && <Typography.Paragraph type="secondary">
+        <WarningOutlined /> Your encrypted session will be saved for downloading this file
+      </Typography.Paragraph>}
       <Divider />
       <Spin spinning={loadingShare}>
         <Typography.Paragraph type="secondary">
