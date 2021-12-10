@@ -356,9 +356,9 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 setSelected([row])
                 setFileRename(row)
               }}
-              onShare={row => {
+              onShare={(row, action) => {
                 setSelected([row])
-                setSelectShare(row)
+                setSelectShare({ row, action })
               }}
               onRowClick={row => {
                 if (row.type === 'folder') {

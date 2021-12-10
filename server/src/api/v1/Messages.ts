@@ -196,7 +196,7 @@ export class Messages {
   @Endpoint.POST('/forward/:msgId', { middlewares: [Auth] })
   public async forward(req: Request, res: Response): Promise<any> {
     const { msgId } = req.params
-    const { from, to } = req.body as { from: {
+    const { from, to } = req.body as { from?: {
       type: string,
       id: number,
       accessHash?: string
@@ -204,11 +204,13 @@ export class Messages {
       type: string,
       id: number,
       accessHash?: string
-    } }
+    } | string }
 
-    let fromPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-    let toPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-    if (from.type === 'channel') {
+    let fromPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | 'me'
+    let toPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | string
+    if (!from) {
+      fromPeer = 'me'
+    } else if (from.type === 'channel') {
       fromPeer = new Api.InputPeerChannel({
         channelId: bigInt(from.id),
         accessHash: bigInt(from.accessHash as string) })
@@ -222,7 +224,9 @@ export class Messages {
         accessHash: bigInt(from.accessHash as string) })
     }
 
-    if (to.type === 'channel') {
+    if (typeof to === 'string') {
+      toPeer = to
+    } else if (to.type === 'channel') {
       toPeer = new Api.InputPeerChannel({
         channelId: bigInt(to.id),
         accessHash: bigInt(to.accessHash as string) })

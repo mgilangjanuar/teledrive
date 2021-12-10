@@ -12,6 +12,7 @@ import {
   GlobalOutlined,
   ScissorOutlined,
   ShareAltOutlined,
+  ArrowRightOutlined,
   SnippetsOutlined,
   TeamOutlined,
   VideoCameraOutlined
@@ -29,7 +30,7 @@ interface Props {
   onChange: (...args: any[]) => void,
   onDelete: (row: any) => void,
   onRename: (row: any) => void,
-  onShare: (row: any) => void,
+  onShare: (row: any, action: string) => void,
   onRowClick: (row: any) => void,
   onCut?: (row: any) => void,
   onCopy?: (row: any) => void,
@@ -107,7 +108,11 @@ const TableFiles: React.FC<Props> = ({
         <Menu.Item {...baseProps}
           icon={<ShareAltOutlined />}
           key="share"
-          onClick={() => onShare(popup?.row)}>Share</Menu.Item>
+          onClick={() => onShare(popup?.row, 'share')}>Share</Menu.Item>
+        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+          icon={<ArrowRightOutlined />}
+          key="send"
+          onClick={() => onShare(popup?.row, 'forward')}>Send to</Menu.Item> : ''}
         {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
           icon={<DownloadOutlined />}
           key="download"
