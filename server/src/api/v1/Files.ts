@@ -203,6 +203,10 @@ export class Files {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
     }
 
+    if (!file.sharing_options?.length && !currentFile.sharing_options?.length) {
+      key = null
+    }
+
     const { affected } = await Model.createQueryBuilder('files')
       .update({
         ...file.name ? { name: file.name } : {},

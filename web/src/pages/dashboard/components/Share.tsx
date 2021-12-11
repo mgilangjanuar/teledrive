@@ -1,4 +1,4 @@
-import { CopyOutlined, InfoCircleOutlined, LinkOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, CopyOutlined, InfoCircleOutlined, LinkOutlined, MinusCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons'
 import { AutoComplete, Button, Col, Divider, Empty, Form, Input, message, Modal, notification, Row, Spin, Switch, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import * as clipboardy from 'clipboardy'
@@ -10,7 +10,7 @@ interface Props {
   me: any,
   dataSource?: [any[], (data: any[]) => void],
   onFinish?: () => void,
-  dataSelect: [any, (data: any) => void]
+  dataSelect: [{ row: any, action: string }, (data?: { row: any, action: string }) => void]
 }
 
 const Share: React.FC<Props> = ({
@@ -41,15 +41,16 @@ const Share: React.FC<Props> = ({
 
   useEffect(() => {
     if (selectShare) {
-      const isPublic = (selectShare.sharing_options || [])?.includes('*')
+      const isPublic = (selectShare.row.sharing_options || [])?.includes('*')
       setIsPublic(isPublic)
-      setSharingOptions(selectShare.sharing_options)
+      setSharingOptions(selectShare.row.sharing_options)
       formShare.setFieldsValue({
-        id: selectShare.id,
+        id: selectShare.row.id,
         message: 'Hey, please check this out! 👆',
         public: isPublic,
-        sharing_options: selectShare.sharing_options?.length ? selectShare.sharing_options.filter((opt: string) => opt !== '*') : [''],
-        link: selectShare.type === 'folder' ? `${window.location.origin}/dashboard/shared?parent=${selectShare.id}` : `${window.location.origin}/view/${selectShare.id}`
+        sharing_options: selectShare.row.sharing_options?.length ? selectShare.row.sharing_options.filter((opt: string) => opt !== '*') : [''],
+        link: selectShare.row.type === 'folder' ? `${window.location.origin}/dashboard/shared?parent=${selectShare.row.id}` : `${window.location.origin}/view/${selectShare.row.id}`,
+        username: null
       })
     } else {
       formShare.resetFields()
@@ -58,17 +59,36 @@ const Share: React.FC<Props> = ({
 
   const share = async () => {
     setLoadingShare(true)
-    const { id, public: isPublic, sharing_options: sharingOpts } = formShare.getFieldsValue()
+    const { id, public: isPublic, sharing_options: sharingOpts, username } = formShare.getFieldsValue()
 
-    const sharing = [
+    const sharing = sharingOpts?.length ? [
       ...new Set([...sharingOpts === undefined ? sharingOptions : sharingOpts, isPublic ? '*' : null]
         .filter(sh => isPublic ? sh : sh !== '*').filter(Boolean)) as any
-    ]
+    ] : []
     setSharingOptions(sharing)
 
     try {
-      await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
-      dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
+      if (selectShare?.action === 'share') {
+        await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
+        dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
+      } else {
+        const [type, peerId, _id, accessHash] = selectShare.row.forward_info?.split('/') || [null, null, null, null]
+        await req.post(`/messages/forward/${selectShare.row.message_id}`, {
+          ...selectShare.row.forward_info ? {
+            from: {
+              id: peerId,
+              type,
+              accessHash
+            }
+          } : {},
+          to: username
+        })
+        notification.success({
+          message: 'Success',
+          description: `${selectShare?.row.name} sent to @${username} successfully`
+        })
+        formShare.setFieldsValue({ username: null })
+      }
     } catch (error: any) {
       if (error?.response?.status === 402) {
         notification.error({
@@ -77,6 +97,7 @@ const Share: React.FC<Props> = ({
         })
         setSelectShare(undefined)
       }
+      setLoadingShare(false)
     }
     setLoadingShare(false)
     onFinish?.()
@@ -87,21 +108,21 @@ const Share: React.FC<Props> = ({
     return message.info('Copied!')
   }
 
-  return <Modal visible={selectShare}
+  return <Modal visible={selectShare?.row}
     onCancel={() => setSelectShare(undefined)}
     footer={null}
-    title={`Share ${selectShare?.name}`}>
-    <Form form={formShare} layout="horizontal">
+    title={`${selectShare?.action === 'share' ? 'Share' : 'Send'} ${selectShare?.row.name}`}>
+    <Form form={formShare} layout="horizontal" onFinish={share}>
       <Form.Item name="id" hidden>
         <Input />
       </Form.Item>
-      {selectShare?.type !== 'folder' ? <Form.Item name="public" label="Make public">
+      {selectShare?.row.type !== 'folder' && selectShare?.action === 'share' ? <Form.Item name="public" label="Make public">
         <Switch checked={isPublic} onClick={val => {
           setIsPublic(val)
           share()
         }} />
       </Form.Item> : ''}
-      {!isPublic && <Form.List name="sharing_options">
+      {!isPublic && selectShare?.action === 'share' && <Form.List name="sharing_options">
         {(fields, { add, remove }) => <>
           {fields.map((field, i) => <Row gutter={14} key={i}>
             <Col span={22}>
@@ -126,16 +147,33 @@ const Share: React.FC<Props> = ({
           </Form.Item>
         </>}
       </Form.List>}
+      {selectShare?.action === 'forward' && <>
+        <Form.Item rules={[{ required: true, message: 'Username is required' }]} name="username">
+          <AutoComplete notFoundContent={<Empty />} options={users?.map((user: any) => ({ value: user.username }))}>
+            <Input placeholder="username" prefix="@" onChange={e => setUsername(e.target.value)} />
+          </AutoComplete>
+        </Form.Item>
+        <Form.Item style={{ textAlign: 'right' }}>
+          <Button htmlType="submit" shape="round" loading={loadingShare} icon={<ArrowRightOutlined />}>Send</Button>
+        </Form.Item>
+      </>}
+      {selectShare?.action === 'share' && <Typography.Paragraph type="secondary">
+        <WarningOutlined /> Your encrypted session will be saved for downloading this file
+      </Typography.Paragraph>}
       <Divider />
       <Spin spinning={loadingShare}>
-        <Typography.Paragraph type="secondary">
-          <InfoCircleOutlined /> You are shared {isPublic ? 'with anyone.' :
-            `with ${formShare.getFieldValue('sharing_options')?.[0] || 'no one'}
-              ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length > 1 ? ` and ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length - 1} people` : ''}`}
-        </Typography.Paragraph>
-        {sharingOptions?.[0] ? <Form.Item label={<><LinkOutlined /> &nbsp;Share URL</>} name="link">
-          <Input.Search readOnly contentEditable={false} enterButton={<CopyOutlined />} onSearch={copy} />
-        </Form.Item> : ''}
+        {selectShare?.action === 'share' ? <>
+          <Typography.Paragraph type="secondary">
+            <InfoCircleOutlined /> You are shared {isPublic ? 'with anyone.' :
+              `with ${formShare.getFieldValue('sharing_options')?.[0] || 'no one'}
+                ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length > 1 ? ` and ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length - 1} people` : ''}`}
+          </Typography.Paragraph>
+          {sharingOptions?.[0] ? <Form.Item label={<><LinkOutlined /> &nbsp;Share URL</>} name="link">
+            <Input.Search readOnly contentEditable={false} enterButton={<CopyOutlined />} onSearch={copy} />
+          </Form.Item> : ''}
+        </> : <Typography.Paragraph type="secondary">
+          <InfoCircleOutlined /> You will send this file to the user directly
+        </Typography.Paragraph>}
       </Spin>
     </Form>
   </Modal>

@@ -37,6 +37,47 @@ export class Messages {
     return res.send({ messages: result })
   }
 
+  @Endpoint.GET('/sponsoredMessages/:type/:id', { middlewares: [Auth] })
+  public async sponsoredMessages(req: Request, res: Response): Promise<any> {
+    const { type, id } = req.params
+    const { accessHash } = req.query
+
+    let peer: Api.InputPeerChannel
+    if (type === 'channel') {
+      peer = new Api.InputPeerChannel({
+        channelId: bigInt(id),
+        accessHash: bigInt(accessHash as string) })
+    } else {
+      return res.send({ messages: {
+        messages: [],
+        chats: [],
+        users: []
+      } })
+    }
+    const messages = await req.tg.invoke(new Api.channels.GetSponsoredMessages({ channel: peer }))
+    return res.send({ messages })
+  }
+
+  @Endpoint.POST('/readSponsoredMessages/:type/:id', { middlewares: [Auth] })
+  public async readSponsoredMessages(req: Request, res: Response): Promise<any> {
+    const { type, id } = req.params
+    const { accessHash } = req.query
+    const { random_id: randomId } = req.body
+
+    let peer: Api.InputPeerChannel
+    if (type === 'channel') {
+      peer = new Api.InputPeerChannel({
+        channelId: bigInt(id),
+        accessHash: bigInt(accessHash as string) })
+    } else {
+      return res.status(202).send({ accepted: true })
+    }
+    const accepted = await req.tg.invoke(new Api.channels.ViewSponsoredMessage({
+      channel: peer, randomId: Buffer.from(randomId)
+    }))
+    return res.status(202).send({ accepted })
+  }
+
   @Endpoint.POST('/read/:type/:id', { middlewares: [Auth] })
   public async read(req: Request, res: Response): Promise<any> {
     const { type, id } = req.params
@@ -155,7 +196,7 @@ export class Messages {
   @Endpoint.POST('/forward/:msgId', { middlewares: [Auth] })
   public async forward(req: Request, res: Response): Promise<any> {
     const { msgId } = req.params
-    const { from, to } = req.body as { from: {
+    const { from, to } = req.body as { from?: {
       type: string,
       id: number,
       accessHash?: string
@@ -163,11 +204,13 @@ export class Messages {
       type: string,
       id: number,
       accessHash?: string
-    } }
+    } | string }
 
-    let fromPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-    let toPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-    if (from.type === 'channel') {
+    let fromPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | 'me'
+    let toPeer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | string
+    if (!from) {
+      fromPeer = 'me'
+    } else if (from.type === 'channel') {
       fromPeer = new Api.InputPeerChannel({
         channelId: bigInt(from.id),
         accessHash: bigInt(from.accessHash as string) })
@@ -181,7 +224,9 @@ export class Messages {
         accessHash: bigInt(from.accessHash as string) })
     }
 
-    if (to.type === 'channel') {
+    if (typeof to === 'string') {
+      toPeer = to
+    } else if (to.type === 'channel') {
       toPeer = new Api.InputPeerChannel({
         channelId: bigInt(to.id),
         accessHash: bigInt(to.accessHash as string) })
