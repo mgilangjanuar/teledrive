@@ -184,7 +184,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             type: 'text',
             status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
             title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
-            text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message ? `${msg.message.replaceAll('\n', '  \n')}${msg.editDate ? '\n\n_(edited)_' : ''}${msg.fwdFrom ? '\n\n_(forwarded)_' : ''}` : 'Unknown message'}</ReactMarkdown>,
+            text: <ReactMarkdown className="messageItem" remarkPlugins={[remarkGfm]}>{msg.message ? `${msg.message.replaceAll('\n', '  \n')}${msg.editDate && !msg.editHide ? '\n\n_(edited)_' : ''}${msg.fwdFrom ? '\n\n_(forwarded)_' : ''}` : 'Unknown message'}</ReactMarkdown>,
             message: msg.message,
             fwdFrom: msg.fwdFrom,
             date: msg.date * 1000,
