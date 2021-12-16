@@ -1,4 +1,4 @@
-import { GithubOutlined, TwitterOutlined } from '@ant-design/icons'
+import { ExportOutlined, GithubOutlined, TwitterOutlined } from '@ant-design/icons'
 import { Button, Col, Divider, Layout, Row, Space, Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -36,11 +36,12 @@ const Footer: React.FC = () => {
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Links</Typography.Title>
               <Space direction="vertical">
-                <Link to="/faq">FAQ</Link>
                 <Link to="/pricing">Pricing</Link>
+                <Link to="/faq">FAQ</Link>
                 <Link to="/contact">Contact Us</Link>
                 <Link to="/privacy">Privacy Policy</Link>
                 <Link to="/terms">Terms &amp; Conditions</Link>
+                <Link target="_blank" to={{ pathname: 'https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8' }}>Blog <ExportOutlined /></Link>
               </Space>
             </Col>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>

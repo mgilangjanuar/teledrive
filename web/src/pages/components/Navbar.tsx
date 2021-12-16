@@ -1,4 +1,4 @@
-import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined, ExportOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -56,11 +56,12 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         </Popover> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
       <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
-        <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
+        <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>
         <Menu.Item onClick={() => history.push('/privacy')} key="privacy">Privacy Policy</Menu.Item>
         <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item>
+        <Menu.Item onClick={() => window.open('https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8', '_blank')} key="blog">Blog <ExportOutlined /></Menu.Item>
       </Menu>
     </Layout.Header>
 
