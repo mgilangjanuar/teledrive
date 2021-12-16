@@ -161,10 +161,15 @@ const Home: React.FC = () => {
             <Col lg={12} span={24} style={{ textAlign: 'left', marginBottom: '30px' }}>
               <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Sponsor</Typography.Title>
               <Typography.Paragraph style={{ marginBottom: '20px' }}>
-                <Space wrap>
+                <Space wrap size={30}>
                   <Tooltip placement="bottom" title="Bahasa.ai - Chatbot Which Serves Customers Fully" key="bahasa-ai">
                     <a href="https://bahasa.ai" target="_blank">
                       <img style={{ width: '100%', maxWidth: '212px' }} src="https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png" />
+                    </a>
+                  </Tooltip>
+                  <Tooltip  placement="bottom" title="DigitalOcean – The developer cloud" key="digitalocean">
+                    <a href="https://m.do.co/c/d578c43dcd66" target="_blank">
+                      <img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/PoweredByDO/DO_Powered_by_Badge_blue.svg" style={{ width: '100%', maxWidth: '280px' }} />
                     </a>
                   </Tooltip>
                 </Space>
