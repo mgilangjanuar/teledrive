@@ -1,5 +1,5 @@
 import { ArrowRightOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Divider, Layout, Row, Typography } from 'antd'
+import { Button, Card, Col, Divider, Layout, notification, Row, Switch, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
@@ -12,6 +12,7 @@ const Pricing: React.FC = () => {
   const history = useHistory()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [loading, setLoading] = useState<boolean>()
+  const [isIDR, setIsIDR] = useState<boolean>(false)
 
   const select = (plan: 'free' | 'premium' | 'professional' | 'donation') => {
     if (plan === 'free' || me?.user.plan === plan) {
@@ -43,10 +44,13 @@ const Pricing: React.FC = () => {
     </ul>
   </Card>
 
-  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block loading={loading} type="text" size="large">Subscribe with<strong> PayPal</strong> <ArrowRightOutlined /></Button>]} onClick={() => select('premium')}>
+  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block loading={loading} type="text" size="large">{isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined /></Button>]} onClick={() => isIDR ? notification.info({ message: 'Coming soon', description: 'Please wait, we\'re on it.' }) : select('premium')}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
-      <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text>
-      10
+      {isIDR ? <>
+        <Typography.Text style={{ fontSize: '0.35em' }}>Rp</Typography.Text> 144k
+      </> : <>
+        <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text> 10
+      </>}
       <Typography.Text style={{ fontSize: '0.35em' }}>/year</Typography.Text>
     </Typography.Title>
     <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
@@ -81,6 +85,9 @@ const Pricing: React.FC = () => {
     <Layout.Content className="container" style={{ marginTop: '80px' }}>
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
+          <Typography.Title level={4} style={{ textAlign: 'center', marginBottom: '70px' }}>
+            USD 🇺🇸 &nbsp; <Switch onChange={e => setIsIDR(e)} /> &nbsp; IDR 🇮🇩
+          </Typography.Title>
           <Row gutter={48} align="middle">
             <Col lg={{ span: 8, offset: 4 }} span={24} style={{ marginBottom: '35px' }}>
               <Free />
