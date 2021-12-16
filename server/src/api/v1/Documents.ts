@@ -249,4 +249,46 @@ South Jakarta, Indonesia
 Indonesia
 mgilangjanuar@gmail.com` })
   }
+
+  @Endpoint.GET()
+  public async refund(_: Request, res: Response): Promise<any> {
+    return res.send({ document: `# REFUND POLICY
+
+All our clients are very important to us, that's why TeleDrive ("Company"), has created the following Refund Policy to let You know how we handle the refunds for the goods ordered and bought on our website https://teledriveapp.com ("Website").
+The terms "You," "Your," and "Yours" refer to the entity/ person/ organization using our Website. When this Policy mentions "we", "us,", and "our" it refers to the Company and its subsidiaries or /and affiliates. The term "goods" refer to any product or item bought on our Website by You.
+This Refund Policy is governed by our [Terms of Services](https://teledriveapp.com/terms).
+For any questions regarding this Refund Policy or any requests regarding the refunds and returns, please contact us by email mgilangjanuar@gmail.com, phone +6289676721188 or other contacts provided below.
+You have the right, without giving a reason, to return the goods within 14 days, if it has not been used, damaged or its appearance has not substantially changed, that is, the appearance of the product or its packaging has been made only such alterations as were necessary to inspect the goods received.
+The right to withdraw from a distance contract within 14 days without giving a reason does not apply to legal persons (e.g. companies, entrepreneurs).
+This Return policy does not limit Your statutory rights to withdraw or rights You may have in relation to incorrect, damaged or defective goods.
+
+
+## Standard Returns
+Any goods that You wish to return must be in the original packaging and unopened, in a condition fit for resale. If the Goods to be returned do not meet these conditions, we will be unable to offer a refund.
+You must place your refund request within 14 days of delivery of the item.
+Please contact our Support to begin the return and refund process, Support team will walk you through the process and help you.
+In case of the return of the goods, you will be responsible for paying the return shipping costs.
+You must exercise return right responsibly and return the product in the original neat packaging, as well as return all complete parts of the product. You are responsible for the complete set of the returned goods. If the goods are not complete, we won't be able to accept the returned goods and issue a refund.
+Once the Goods have been received and checked by our staff, a refund will be authorised by the same method that the payment was made. Depending on your financial institution, refunds can take up to 30 days to be credited to your original payment method. In all cases we have the right to suspend the refund until the good are received back and inspected.
+If You fail to meet the deadlines of our Return policy, we will be unable to offer a refund.
+
+
+## Defective goods
+In certain cases, such as defective, damaged or wrong goods, you may be required to provide evidence of the issue, such as a photo or video, or to return the item to receive a refund.
+You must contact our company at mgilangjanuar@gmail.com within 14 days upon purchase and provide detailed information, such as:
+
+  - Proof of purchase
+  - Order number
+
+When submitting a complaint, You must indicate how You wish the claim to be resolved:
+
+  - To refund the money paid
+
+In case You are required to return the goods back to us, You will be responsible for paying the return shipping costs.
+The goods must be returned in the original packaging (with instructions and/or warranty card, if they were delivered with the product).
+
+
+## Further information
+This Policy was created with the help of the [TermsHub.io](https://termshub.io?utm_source=referral&utm_medium=generated_documents&utm_campaign=referral_documents&utm_content=pp_th_text) and the [Refund & Return Policy Generator](https://termshub.io/refund-policy) and applies only to the refunds for the goods and services sold by our Company. Our Policy does not apply to the refunds for the goods and services offered by other companies or individuals.` })
+  }
 }

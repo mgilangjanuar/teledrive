@@ -61,6 +61,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>
         <Menu.Item onClick={() => history.push('/privacy')} key="privacy">Privacy Policy</Menu.Item>
         <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item>
+        <Menu.Item onClick={() => history.push('/refund')} key="refund">Refund Policy</Menu.Item>
         <Menu.Item onClick={() => window.open('https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8', '_blank')} key="blog">Blog <ExportOutlined /></Menu.Item>
       </Menu>
     </Layout.Header>

@@ -44,6 +44,7 @@ const Footer: React.FC = () => {
                 <Link to="/contact">Contact Us</Link>
                 <Link to="/privacy">Privacy Policy</Link>
                 <Link to="/terms">Terms &amp; Conditions</Link>
+                <Link to="/refund">Refund Policy</Link>
                 <Link target="_blank" to={{ pathname: 'https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8' }}>Blog <ExportOutlined /></Link>
               </Space>
             </Col>
