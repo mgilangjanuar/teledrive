@@ -25,9 +25,12 @@ const Footer: React.FC = () => {
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Support Us</Typography.Title>
               <Typography.Paragraph>
-                <a href="https://www.buymeacoffee.com/mgilangjanuar" target="_blank">
-                  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ width: '100%', maxWidth: '160px' }} />
+                <a href="https://opencollective.com/teledrive/contribute" target="_blank">
+                  <img src="https://opencollective.com/teledrive/donate/button@2x.png?color=blue" style={{ width: '100%', maxWidth: '200px' }} />
                 </a>
+                {/* <a href="https://www.buymeacoffee.com/mgilangjanuar" target="_blank">
+                  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ width: '100%', maxWidth: '160px' }} />
+                </a> */}
               </Typography.Paragraph>
               <Typography.Paragraph type="secondary">
                 Or, become <a href="https://teledriveapp.com/contact?intent=sponsor">a sponsor</a>.

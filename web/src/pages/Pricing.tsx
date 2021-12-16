@@ -63,12 +63,12 @@ const Pricing: React.FC = () => {
 
   const Donation = () => <div style={{ textAlign: 'center' }}>
     <Typography.Title level={2}>
-      Support us to keep this service running 🚀
+      Support us to keep this service running
     </Typography.Title>
     <br />
     <Typography.Paragraph>
-      <a href="https://www.buymeacoffee.com/mgilangjanuar" target="_blank">
-        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ width: '100%', maxWidth: '170px' }} />
+      <a href="https://opencollective.com/teledrive/contribute" target="_blank">
+        <img src="https://opencollective.com/teledrive/donate/button@2x.png?color=blue" style={{ width: '100%', maxWidth: '300px' }} />
       </a>
     </Typography.Paragraph>
     <Typography.Paragraph>
@@ -78,6 +78,7 @@ const Pricing: React.FC = () => {
     <Typography.Paragraph type="secondary">
       Feel free to <Link to="/contact?intent=sponsor">contact us</Link> if you have any questions or become a sponsor &mdash; or if you would like to help us in other ways.
     </Typography.Paragraph>
+    {/* <script src="https://opencollective.com/teledrive/banner.js"></script> */}
   </div>
 
   return <>
