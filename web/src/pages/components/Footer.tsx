@@ -1,4 +1,4 @@
-import { ExportOutlined, GithubOutlined, TwitterOutlined } from '@ant-design/icons'
+import { GithubOutlined, TwitterOutlined } from '@ant-design/icons'
 import { Button, Col, Divider, Layout, Row, Space, Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -7,8 +7,8 @@ const Footer: React.FC = () => {
   return <>
     <Layout.Footer style={{ background: '#f0f2f5', paddingTop: '50px' }}>
       <Row>
-        <Col lg={{ span: 16, offset: 4 }} md={{ span: 22, offset: 1 }} span={24}>
-          <Row gutter={72}>
+        <Col lg={{ span: 18, offset: 3 }} md={{ span: 24, offset: 1 }} span={24}>
+          <Row gutter={48}>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Paragraph>
                 <Button type="link" href="/" style={{ fontSize: '20px', fontWeight: 'bolder' }}
@@ -26,11 +26,8 @@ const Footer: React.FC = () => {
               <Typography.Title level={5}>Support Us</Typography.Title>
               <Typography.Paragraph>
                 <a href="https://opencollective.com/teledrive/contribute" target="_blank">
-                  <img src="https://opencollective.com/teledrive/donate/button@2x.png?color=blue" style={{ width: '100%', maxWidth: '200px' }} />
+                  <img src="https://opencollective.com/teledrive/contribute/button@2x.png?color=blue" style={{ width: '100%', maxWidth: '240px' }} />
                 </a>
-                {/* <a href="https://www.buymeacoffee.com/mgilangjanuar" target="_blank">
-                  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{ width: '100%', maxWidth: '160px' }} />
-                </a> */}
               </Typography.Paragraph>
               <Typography.Paragraph type="secondary">
                 Or, become <a href="https://teledriveapp.com/contact?intent=sponsor">a sponsor</a>.
@@ -38,15 +35,23 @@ const Footer: React.FC = () => {
             </Col>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Links</Typography.Title>
-              <Space direction="vertical">
-                <Link to="/pricing">Pricing</Link>
-                <Link to="/faq">FAQ</Link>
-                <Link to="/contact">Contact Us</Link>
-                <Link to="/privacy">Privacy Policy</Link>
-                <Link to="/terms">Terms &amp; Conditions</Link>
-                <Link to="/refund">Refund Policy</Link>
-                <Link target="_blank" to={{ pathname: 'https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8' }}>Blog <ExportOutlined /></Link>
-              </Space>
+              <Row>
+                <Col span={12}>
+                  <Space direction="vertical">
+                    <Link to="/pricing">Pricing</Link>
+                    <Link to="/contact">Contact Us</Link>
+                    <Link to="/terms">Terms</Link>
+                    <Link target="_blank" to={{ pathname: 'https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8' }}>Blog</Link>
+                  </Space>
+                </Col>
+                <Col span={12}>
+                  <Space direction="vertical">
+                    <Link to="/faq">FAQ</Link>
+                    <Link to="/privacy">Privacy Policy</Link>
+                    <Link to="/refund">Refund Policy</Link>
+                  </Space>
+                </Col>
+              </Row>
             </Col>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Social Media</Typography.Title>

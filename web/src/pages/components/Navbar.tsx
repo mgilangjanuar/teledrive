@@ -1,4 +1,4 @@
-import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined, ExportOutlined } from '@ant-design/icons'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -62,7 +62,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Menu.Item onClick={() => history.push('/privacy')} key="privacy">Privacy Policy</Menu.Item>
         <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item>
         <Menu.Item onClick={() => history.push('/refund')} key="refund">Refund Policy</Menu.Item>
-        <Menu.Item onClick={() => window.open('https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8', '_blank')} key="blog">Blog <ExportOutlined /></Menu.Item>
+        <Menu.Item onClick={() => window.open('https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8', '_blank')} key="blog">Blog</Menu.Item>
       </Menu>
     </Layout.Header>
 

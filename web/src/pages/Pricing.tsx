@@ -68,7 +68,7 @@ const Pricing: React.FC = () => {
     <br />
     <Typography.Paragraph>
       <a href="https://opencollective.com/teledrive/contribute" target="_blank">
-        <img src="https://opencollective.com/teledrive/donate/button@2x.png?color=blue" style={{ width: '100%', maxWidth: '300px' }} />
+        <img src="https://opencollective.com/teledrive/contribute/button@2x.png?color=blue" style={{ width: '100%', maxWidth: '300px' }} />
       </a>
     </Typography.Paragraph>
     <Typography.Paragraph>
