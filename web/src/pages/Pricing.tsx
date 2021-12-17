@@ -47,9 +47,9 @@ const Pricing: React.FC = () => {
   const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block loading={loading} type="text" size="large">{isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined /></Button>]} onClick={() => isIDR ? notification.info({ message: 'Coming soon', description: 'Please wait, we\'re on it.' }) : select('premium')}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
       {isIDR ? <>
-        <Typography.Text style={{ fontSize: '0.35em' }}>Rp</Typography.Text> 144k
+        <Typography.Text style={{ fontSize: '0.35em' }}>Rp</Typography.Text>144k
       </> : <>
-        <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text> 10
+        <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text>10
       </>}
       <Typography.Text style={{ fontSize: '0.35em' }}>/year</Typography.Text>
     </Typography.Title>
