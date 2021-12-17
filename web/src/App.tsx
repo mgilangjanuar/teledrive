@@ -22,6 +22,9 @@ const Login = lazy(
 const Terms = lazy(
   () => import(/* webpackChunkName: 'TermsPage' */ './pages/Terms')
 )
+const Refund = lazy(
+  () => import(/* webpackChunkName: 'RefundPage' */ './pages/Refund')
+)
 const Privacy = lazy(
   () => import(/* webpackChunkName: 'PrivacyPage'  */ './pages/Privacy')
 )
@@ -58,6 +61,7 @@ function App(): React.ReactElement {
           <Route path="/view/:id" exact component={View} />
           <Route path="/login" exact component={Login} />
           <Route path="/terms" exact component={Terms} />
+          <Route path="/refund" exact component={Refund} />
           <Route path="/privacy" exact component={Privacy} />
           <Route path="/pricing" exact component={Pricing} />
           <Route path="/contact" exact component={Contact} />
