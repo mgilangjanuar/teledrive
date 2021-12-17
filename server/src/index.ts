@@ -99,7 +99,7 @@ const rateLimiter = new RateLimiterPostgres({
   points: Number(process.env.RPS) || 20,
   duration: 1,
   tableName: 'rate_limits',
-  tableCreated: true
+  tableCreated: false
 })
 
 app.get('/ping', (_, res) => res.send({ pong: true }))
