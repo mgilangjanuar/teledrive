@@ -27,7 +27,7 @@ jobs:
       env:
         NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
     - run: yarn install
-    - run: REACT_APP_API_URL=https://sg.teledriveapp.com GENERATE_SOURCEMAP=false yarn workspaces run build
+    - run: REACT_APP_API_URL=https://teledriveapp.com GENERATE_SOURCEMAP=false yarn workspaces run build
     - name: Compress node_modules root
       if: ${{ github.event_name == 'push' }}
       run: tar -czf build-root.tar.gz node_modules
@@ -93,7 +93,7 @@ jobs:
         message: |
           🎉 *Deployed to Production*
 
-          Please take a look -> https://sg.teledriveapp.com
+          Please take a look -> https://teledriveapp.com
         format: markdown
     - name: Failed Notification
       if: ${{ failure() }}
