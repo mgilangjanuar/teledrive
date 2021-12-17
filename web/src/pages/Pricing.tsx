@@ -33,7 +33,7 @@ const Pricing: React.FC = () => {
 
   const Free = () => <Card color="warning" hoverable title="FREE" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select <ArrowRightOutlined /></Button>]} onClick={() => select('free')}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
-      <Typography.Text style={{ fontSize: '0.35em' }}>$</Typography.Text>
+      <Typography.Text style={{ fontSize: '0.35em' }}>{isIDR ? 'Rp' : '$'}</Typography.Text>
       0
     </Typography.Title>
     <ul style={{ textAlign: 'center', listStyleType: 'none' }}>

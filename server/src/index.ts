@@ -119,6 +119,7 @@ app.use('/api', (req, res, next) => {
 // error handler
 app.use(Sentry.Handlers.errorHandler())
 app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
+  console.error('FATAL:', err)
   return res.status(err.status || 500).send(err.body || { error: 'Something error' })
 })
 
