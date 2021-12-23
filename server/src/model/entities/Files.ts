@@ -23,7 +23,7 @@ export class Files extends BaseModelWithID {
   @Column({ type: 'timestamptz', default: null })
   uploaded_at?: Date
 
-  @Column({ default: null })
+  @Column('double precision', { default: null })
   upload_progress?: number
 
   @Column()

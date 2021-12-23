@@ -37,7 +37,7 @@ const Home: React.FC = () => {
             <a style={{ position: 'fixed', bottom: '15px', right: '25px', zIndex: 999  }} href="https://www.producthunt.com/posts/teledrive?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-teledrive" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=315149&theme=dark&period=daily" alt="TeleDrive - Free unlimited cloud storage service using the Telegram API | Product Hunt" style={{ width: '250px', height: '54px' }} width="250" height="54" /></a>
             <Typography.Paragraph>
               <Space>
-                <Follow username="teledriveapp" options={{ dnt: true }} />
+                <Follow username="teledriveapp" options={{ dnt: true, showCount: false }} />
                 <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
               </Space>
             </Typography.Paragraph>
