@@ -24,6 +24,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
+    "express-ipinfo": "^1.0.0",
     "express-list-endpoints": "^6.0.0",
     "express-rate-limit": "^5.3.0",
     "flatted": "^3.2.2",

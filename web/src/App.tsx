@@ -6,6 +6,7 @@ import useSWR from 'swr'
 import { fetcher } from './utils/Fetcher'
 
 import './App.less'
+import 'antd-country-phone-input/dist/index.css'
 
 const Dashboard = lazy(
   () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
