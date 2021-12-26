@@ -222,22 +222,22 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     fetch(pagination, filters, sorter, actions)
   }
 
-  const paste = async (rows: any[]) => {
-    rows = rows?.filter(row => row.id !== parent?.id && !row.link_id)
+  const paste = async (rows: any[], p: any = parent, act?: string) => {
+    rows = rows?.filter(row => row.id !== p?.id && !row.link_id)
     setLoading(true)
     try {
-      if (action === 'copy') {
+      if ((act || action) === 'copy') {
         await Promise.all(rows?.map(async row => {
           if (row.type === 'folder') {
             const name = `Link of ${row.name}`
-            await req.post('/files', { file: { ...row, name, link_id: row.id, parent_id: parent?.link_id || parent?.id, id: undefined } })
+            await req.post('/files', { file: { ...row, name, link_id: row.id, parent_id: p?.link_id || p?.id, id: undefined } })
           } else {
             const name = data?.find(datum => datum.name === row.name) ? `Copy of ${row.name}` : row.name
-            await req.post('/files', { file: { ...row, name, parent_id: parent?.link_id || parent?.id, id: undefined } })
+            await req.post('/files', { file: { ...row, name, parent_id: p?.link_id || p?.id, id: undefined } })
           }
         }))
-      } else if (action === 'cut') {
-        await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: parent?.link_id || parent?.id } })))
+      } else if ((act || action) === 'cut') {
+        await Promise.all(rows?.map(async row => await req.patch(`/files/${row.id}`, { file: { parent_id: p?.link_id || p?.id } })))
       }
     } catch (error) {
       // ignore
@@ -252,7 +252,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
     setLoading(false)
     notification.success({
       message: 'Success',
-      description: `Files are ${action === 'cut' ? 'moved' : 'copied'} successfully!`
+      description: `${rows?.length || 0} files are ${(act || action) === 'cut' ? 'moved' : 'copied'} successfully!`
     })
     setAction(undefined)
   }
@@ -389,6 +389,14 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                 setAction('cut')
               }}
               onPaste={rows => paste(rows)}
+              onCutAndPaste={(dragRow, destination) => {
+                let rows = selected
+                if (!selected?.find(select => select.id === dragRow.id)) {
+                  setSelected([dragRow])
+                  rows = [dragRow]
+                }
+                paste(rows, destination, 'cut')
+              }}
               dataSource={data}
               sorterData={dataChanges?.sorter as SorterResult<any>}
               dataSelect={[selected, setSelected]}
@@ -426,7 +434,9 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           dataSource={[data, setData]}
           dataSelect={[selectShare, setSelectShare]} />
       </Layout.Content>
+
       <Messaging me={me} collapsed={collapsedMessaging} parent={parent} setCollapsed={setCollapsedMessaging} />
+
       <Modal title={<Typography.Text>
         <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Sync confirmation
       </Typography.Text>}

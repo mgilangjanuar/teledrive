@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
@@ -9,7 +9,7 @@
     "build": "rimraf dist && eslint --fix -c .eslintrc.js --ext .ts . && tsc"
   },
   "dependencies": {
-    "@mgilangjanuar/telegram": "2.0.15",
+    "@mgilangjanuar/telegram": "2.1.0",
     "@sentry/node": "^6.14.1",
     "@sentry/tracing": "^6.14.1",
     "@types/moment": "^2.13.0",
@@ -24,6 +24,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
+    "express-ipinfo": "^1.0.0",
     "express-list-endpoints": "^6.0.0",
     "express-rate-limit": "^5.3.0",
     "flatted": "^3.2.2",

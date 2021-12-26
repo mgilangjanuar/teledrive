@@ -14,7 +14,7 @@ import express, {
   urlencoded
 } from 'express'
 import listEndpoints from 'express-list-endpoints'
-// import bigInt from 'json-bigint'
+import expressip from 'express-ipinfo'
 import morgan from 'morgan'
 import path from 'path'
 import { Pool } from 'pg'
@@ -24,6 +24,7 @@ import * as Tracing from '@sentry/tracing'
 import { API } from './api'
 import { runDB } from './model'
 
+// import bigInt from 'json-bigint'
 // const parse = JSON.parse
 // JSON.parse = str => {
 //   if (!str) return str
@@ -74,6 +75,8 @@ app.use(Sentry.Handlers.requestHandler())
 app.use(Sentry.Handlers.tracingHandler())
 
 app.set('trust proxy', 1)
+
+app.use(expressip().getIpInfoMiddleware)
 
 app.use(cors({
   credentials: true,
