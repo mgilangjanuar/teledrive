@@ -136,7 +136,7 @@ const Login: React.FC = () => {
               {currentStep === 0 && <>
                 <Form.Item>
                   <ConfigProvider locale={en}>
-                    <CountryPhoneInput value={phoneData} onChange={e => setPhoneData(e)} />
+                    <CountryPhoneInput value={phoneData} type="tel" onChange={e => setPhoneData(e)} />
                   </ConfigProvider>
                   {/* <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} /> */}
                 </Form.Item>
