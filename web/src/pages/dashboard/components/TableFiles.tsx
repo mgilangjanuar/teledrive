@@ -17,7 +17,7 @@ import {
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Button, Menu, Table } from 'antd'
+import { Button, Descriptions, Menu, Table } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -231,7 +231,7 @@ const TableFiles: React.FC<Props> = ({
       columns={columns as any}
       onChange={onChange}
       pagination={false}
-      scroll={{ x: 340 }}
+      scroll={{ x: 330 }}
       onRow={row => ({
         onContextMenu: e => {
           if (tab !== 'mine') return
@@ -251,7 +251,14 @@ const TableFiles: React.FC<Props> = ({
             y: e.clientY - (parent?.getBoundingClientRect().top || 0)
           })
         }
-      })} />
+      })}
+      expandable={window.innerWidth < 752 ? {
+        expandedRowRender: (row: any) => <Descriptions labelStyle={{ fontWeight: 'bold' }} column={1}>
+          <Descriptions.Item label="Size">{row.size ? prettyBytes(Number(row.size)) : '-'}</Descriptions.Item>
+          <Descriptions.Item label="Uploaded At">{row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(row.uploaded_at).local().format('lll')}</Descriptions.Item>
+        </Descriptions>,
+        rowExpandable: (_: any) => window.innerWidth < 752,
+      } : undefined} />
     <ContextMenu />
   </>
 }
