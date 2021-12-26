@@ -1,12 +1,12 @@
-import { LoginOutlined, ArrowRightOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, LoginOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Form, Input, Layout, notification, Row, Steps, Typography } from 'antd'
+import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
 import JSCookie from 'js-cookie'
 import React, { useEffect, useState } from 'react'
+import OtpInput from 'react-otp-input'
 import { useHistory } from 'react-router'
 import useSWRImmutable from 'swr/immutable'
-import OtpInput from 'react-otp-input'
-import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import en from 'world_countries_lists/data/en/world.json'
 import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
@@ -24,6 +24,7 @@ const Login: React.FC = () => {
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
+  const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData({ short: ipinfo?.country || 'ID' }) })
 
   const sendCode = async (phoneNumber?: string) => {
     phoneNumber = phoneNumber || phoneData.phone ? `+${phoneData.code}${phoneData.phone}` : ''
@@ -135,7 +136,7 @@ const Login: React.FC = () => {
               {currentStep === 0 && <>
                 <Form.Item>
                   <ConfigProvider locale={en}>
-                    <CountryPhoneInput defaultValue={{ code: 62, short: 'ID' }} onChange={e => setPhoneData(e)} />
+                    <CountryPhoneInput value={phoneData} onChange={e => setPhoneData(e)} />
                   </ConfigProvider>
                   {/* <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} /> */}
                 </Form.Item>
