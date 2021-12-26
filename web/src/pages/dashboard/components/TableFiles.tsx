@@ -1,4 +1,5 @@
 import {
+  ArrowRightOutlined,
   AudioOutlined,
   BranchesOutlined,
   CopyOutlined,
@@ -12,7 +13,6 @@ import {
   GlobalOutlined,
   ScissorOutlined,
   ShareAltOutlined,
-  ArrowRightOutlined,
   SnippetsOutlined,
   TeamOutlined,
   VideoCameraOutlined
@@ -21,7 +21,9 @@ import { Button, Descriptions, Menu, Table } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { DndProvider, useDrag, useDrop } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { apiUrl } from '../../../utils/Fetcher'
 
 interface Props {
@@ -35,6 +37,7 @@ interface Props {
   onCut?: (row: any) => void,
   onCopy?: (row: any) => void,
   onPaste?: (rows: any[]) => void,
+  onCutAndPaste?: (dragRow: any, hoverRow: any) => void,
   loading?: boolean,
   sorterData?: SorterResult<any>,
   dataSource: any[],
@@ -53,6 +56,7 @@ const TableFiles: React.FC<Props> = ({
   onCut,
   onCopy,
   onPaste,
+  onCutAndPaste,
   loading,
   sorterData,
   dataSource,
@@ -221,44 +225,96 @@ const TableFiles: React.FC<Props> = ({
     }
   ]
 
-  return <>
-    <Table
-      className="tableFiles"
-      loading={!files || loading}
-      showSorterTooltip={false}
-      rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
-      dataSource={dataSource}
-      columns={columns as any}
-      onChange={onChange}
-      pagination={false}
-      scroll={{ x: 330 }}
-      onRow={row => ({
-        onContextMenu: e => {
-          if (tab !== 'mine') return
+  const DraggableBodyRow = ({ index, moveRow, className, style, ...restProps }) => {
+    const ref = useRef()
+    const [{ isOver, dropClassName }, drop] = useDrop({
+      accept: 'DraggableBodyRow',
+      collect: (monitor: any) => {
+        const { index: dragIndex } = monitor.getItem() || {}
+        if (dragIndex === index) {
+          return {}
+        }
+        return {
+          isOver: monitor.isOver(),
+          dropClassName: dragIndex < index ? ' drop-over-downward' : ' drop-over-upward',
+        }
+      },
+      drop: (item: any) => {
+        moveRow(item.index, index)
+      },
+    })
+    const [, drag] = useDrag({
+      type: 'DraggableBodyRow',
+      item: { index },
+      collect: monitor => ({
+        isDragging: monitor.isDragging(),
+      }),
+    })
+    drop(drag(ref))
 
-          e.preventDefault()
-          if (!popup?.visible) {
-            document.addEventListener('click', function onClickOutside() {
-              setPopup({ visible: false })
-              document.removeEventListener('click', onClickOutside)
+    return (
+      <tr
+        ref={ref as any}
+        className={`${className}${isOver ? dropClassName : ''}`}
+        style={{ cursor: 'move', ...style }}
+        {...restProps}
+      />
+    )
+  }
+
+  return <>
+    <DndProvider backend={HTML5Backend}>
+      <Table
+        className="tableFiles"
+        loading={!files || loading}
+        showSorterTooltip={false}
+        rowSelection={{ type: 'checkbox', selectedRowKeys: selected.map(row => row.key), onChange: (_: React.Key[], rows: any[]) => setSelected(rows) }}
+        dataSource={dataSource}
+        columns={columns as any}
+        components={{
+          body: {
+            row: DraggableBodyRow
+          }
+        }}
+        onChange={onChange}
+        pagination={false}
+        scroll={{ x: 330 }}
+        onRow={(row, index) => ({
+          index,
+          moveRow: useCallback((dragIndex, hoverIndex) => {
+            const hoverRow = dataSource[hoverIndex]
+            const dragRow = dataSource[dragIndex]
+            if (hoverRow.type === 'folder') {
+              onCutAndPaste?.(dragRow, hoverRow)
+            }
+          }, [dataSource, selected]),
+          onContextMenu: e => {
+            if (tab !== 'mine') return
+
+            e.preventDefault()
+            if (!popup?.visible) {
+              document.addEventListener('click', function onClickOutside() {
+                setPopup({ visible: false })
+                document.removeEventListener('click', onClickOutside)
+              })
+            }
+            const parent = document.querySelector('.ant-col-24.ant-col-md-20.ant-col-md-offset-2')
+            setPopup({
+              row,
+              visible: true,
+              x: e.clientX - (parent?.getBoundingClientRect().left || 0),
+              y: e.clientY - (parent?.getBoundingClientRect().top || 0)
             })
           }
-          const parent = document.querySelector('.ant-col-24.ant-col-md-20.ant-col-md-offset-2')
-          setPopup({
-            row,
-            visible: true,
-            x: e.clientX - (parent?.getBoundingClientRect().left || 0),
-            y: e.clientY - (parent?.getBoundingClientRect().top || 0)
-          })
-        }
-      })}
-      expandable={window.innerWidth < 752 ? {
-        expandedRowRender: (row: any) => <Descriptions labelStyle={{ fontWeight: 'bold' }} column={1}>
-          <Descriptions.Item label="Size">{row.size ? prettyBytes(Number(row.size)) : '-'}</Descriptions.Item>
-          <Descriptions.Item label="Uploaded At">{row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(row.uploaded_at).local().format('lll')}</Descriptions.Item>
-        </Descriptions>,
-        rowExpandable: (_: any) => window.innerWidth < 752,
-      } : undefined} />
+        })}
+        expandable={window.innerWidth < 752 ? {
+          expandedRowRender: (row: any) => <Descriptions labelStyle={{ fontWeight: 'bold' }} column={1}>
+            <Descriptions.Item label="Size">{row.size ? prettyBytes(Number(row.size)) : '-'}</Descriptions.Item>
+            <Descriptions.Item label="Uploaded At">{row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(row.uploaded_at).local().format('lll')}</Descriptions.Item>
+          </Descriptions>,
+          rowExpandable: (_: any) => window.innerWidth < 752,
+        } : undefined} />
+    </DndProvider>
     <ContextMenu />
   </>
 }
