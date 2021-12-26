@@ -434,7 +434,9 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
           dataSource={[data, setData]}
           dataSelect={[selectShare, setSelectShare]} />
       </Layout.Content>
+
       <Messaging me={me} collapsed={collapsedMessaging} parent={parent} setCollapsed={setCollapsedMessaging} />
+
       <Modal title={<Typography.Text>
         <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Sync confirmation
       </Typography.Text>}
