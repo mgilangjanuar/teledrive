@@ -30,14 +30,14 @@ export class Users {
     if (!usage) {
       usage = new Usages()
       usage.key = req.user ? `u:${req.user.id}` : `ip:${req.ip}`
-      usage.usage = 0
+      usage.usage = '0'
       usage.expire = moment().add(1, 'day').toDate()
       await usage.save()
     }
 
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
       usage.expire = moment().add(1, 'day').toDate()
-      usage.usage = 0
+      usage.usage = '0'
       await usage.save()
     }
 

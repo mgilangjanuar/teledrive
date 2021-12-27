@@ -1,7 +1,5 @@
 
-import bigInt from 'big-integer'
 import { readFileSync } from 'fs'
-import { types } from 'pg'
 import {
   Connection,
   ConnectionOptions,
@@ -62,4 +60,4 @@ export const runDB = async (): Promise<void> => {
 }
 
 // hacky way for parse the value in int8 type columns
-types.setTypeParser(types.builtins.INT8, (value: string) => bigInt(value))
+// types.setTypeParser(types.builtins.INT8, (value: string) => bigInt(value))

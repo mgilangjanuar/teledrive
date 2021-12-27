@@ -14,7 +14,6 @@ import express, {
   urlencoded
 } from 'express'
 import listEndpoints from 'express-list-endpoints'
-import expressip from 'express-ipinfo'
 import morgan from 'morgan'
 import path from 'path'
 import { Pool } from 'pg'
@@ -75,8 +74,6 @@ app.use(Sentry.Handlers.requestHandler())
 app.use(Sentry.Handlers.tracingHandler())
 
 app.set('trust proxy', 1)
-
-app.use(expressip().getIpInfoMiddleware)
 
 app.use(cors({
   credentials: true,
