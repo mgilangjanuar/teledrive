@@ -87,6 +87,10 @@ app.use(urlencoded({ extended: true }))
 app.use(raw())
 app.use(cookieParser())
 app.use(morgan('tiny'))
+app.use((req, _, next) => {
+  req.ip = req.headers['cf-connecting-ip'] as string || req.ip
+  return next()
+})
 
 const rateLimiter = new RateLimiterPostgres({
   storeClient: new Pool({
