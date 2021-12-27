@@ -26,10 +26,10 @@ export class Users {
 
   @Endpoint.GET('/me/usage', { middlewares: [AuthMaybe] })
   public async usage(req: Request, res: Response): Promise<any> {
-    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.ip}` } })
+    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
     if (!usage) {
       usage = new Usages()
-      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.ip}`
+      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
       usage.usage = '0'
       usage.expire = moment().add(1, 'day').toDate()
       await usage.save()

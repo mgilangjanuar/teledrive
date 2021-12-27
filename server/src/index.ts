@@ -87,10 +87,10 @@ app.use(urlencoded({ extended: true }))
 app.use(raw())
 app.use(cookieParser())
 app.use(morgan('tiny'))
-app.use((req, _, next) => {
-  req.ip = req.headers['cf-connecting-ip'] as string || req.ip
-  return next()
-})
+// app.use((req, _, next) => {
+//   req['ip'] = req.headers['cf-connecting-ip'] as string || req.ip
+//   return next()
+// })
 
 const rateLimiter = new RateLimiterPostgres({
   storeClient: new Pool({
@@ -112,7 +112,7 @@ app.get('/security.txt', (_, res) => {
   res.send('Contact: mgilangjanuar+tdsecurity@gmail.com\nPreferred-Languages: en, id')
 })
 app.use('/api', (req, res, next) => {
-  rateLimiter.consume(req.ip).then(() => next()).catch(error => {
+  rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {
     if (error.msBeforeNext) {
       return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests' })
     }

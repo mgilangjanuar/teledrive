@@ -12,6 +12,6 @@ export class Utils {
 
   @Endpoint.GET()
   public async ipinfo(req: Request, res: Response): Promise<any> {
-    return res.send({ ipinfo: { ip: req.ip, ...lookup(req.ip) } })
+    return res.send({ ipinfo: { ip: req.headers['cf-connecting-ip'] as string || req.ip, ...lookup(req.headers['cf-connecting-ip'] as string || req.ip) } })
   }
 }

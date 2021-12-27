@@ -440,10 +440,10 @@ export class Files {
   public static async download(req: Request, res: Response, file: Model): Promise<any> {
     const { raw, dl, thumb } = req.query
 
-    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.ip}` } })
+    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
     if (!usage) {
       usage = new Usages()
-      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.ip}`
+      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
       usage.usage = '0'
       usage.expire = moment().add(1, 'day').toDate()
       await usage.save()
