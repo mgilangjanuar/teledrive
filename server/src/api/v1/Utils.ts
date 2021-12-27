@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { lookup } from 'geoip-lite'
 import { Endpoint } from '../base/Endpoint'
 
 @Endpoint.API()
@@ -10,7 +11,7 @@ export class Utils {
   }
 
   @Endpoint.GET()
-  public async ipinfo(req: Request & { ipInfo: any }, res: Response): Promise<any> {
-    return res.send({ ipinfo: req.ipInfo })
+  public async ipinfo(req: Request, res: Response): Promise<any> {
+    return res.send({ ipinfo: { ip: req.ip, ...lookup(req.ip) } })
   }
 }
