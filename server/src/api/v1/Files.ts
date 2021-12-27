@@ -283,7 +283,7 @@ export class Files {
       model = new Model()
       model.name = name,
       model.mime_type = mimetype
-      model.size = Number(size)
+      model.size = size
       model.user_id = req.user.id
       model.type = type
       model.parent_id = parentId as string || null
@@ -326,7 +326,7 @@ export class Files {
         name: model.name
       }),
       forceDocument,
-      fileSize: model.size,
+      fileSize: Number(model.size),
       attributes: forceDocument ? [
         new Api.DocumentAttributeFilename({ fileName: model.name })
       ] : undefined,
@@ -444,20 +444,20 @@ export class Files {
     if (!usage) {
       usage = new Usages()
       usage.key = req.user ? `u:${req.user.id}` : `ip:${req.ip}`
-      usage.usage = 0
+      usage.usage = '0'
       usage.expire = moment().add(1, 'day').toDate()
       await usage.save()
     }
 
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
       usage.expire = moment().add(1, 'day').toDate()
-      usage.usage = 0
+      usage.usage = '0'
       await usage.save()
     }
 
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
-      if (usage.usage + file.size > 1_500_000_000) {
+      if (Number(usage.usage) + Number(file.size) > 1_500_000_000) {
         throw { status: 402, body: { error: 'Payment required' } }
       }
     }
@@ -497,12 +497,12 @@ export class Files {
     const chunk = 512 * 1024
     let idx = 0
 
-    while (!cancel && data === null || data.length && idx * chunk < file.size) {
+    while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {
       // const startDate = Date.now()
       data = await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { sizeType: 'i' } : {},
         start: idx++ * chunk,
-        end: Math.min(file.size, idx * chunk - 1),
+        end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
         workers: 1,   // using 1 for stable
         progressCallback: (() => {
           const updateProgess: any = () => {

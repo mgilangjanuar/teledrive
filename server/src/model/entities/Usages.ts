@@ -7,8 +7,8 @@ export class Usages extends BaseModel {
   @PrimaryColumn()
   key: string
 
-  @Column()
-  usage: number
+  @Column('bigint')
+  usage: string
 
   @Column('timestamptz')
   expire: Date

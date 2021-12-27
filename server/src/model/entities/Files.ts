@@ -17,8 +17,8 @@ export class Files extends BaseModelWithID {
   @Column({ default: null })
   mime_type?: string
 
-  @Column({ default: null })
-  size?: number
+  @Column('bigint', { default: null })
+  size?: string
 
   @Column({ type: 'timestamptz', default: null })
   uploaded_at?: Date
