@@ -24,7 +24,7 @@ const Login: React.FC = () => {
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
-  const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData({ short: ipinfo?.country || 'ID' }) })
+  const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
 
   const sendCode = async (phoneNumber?: string) => {
     phoneNumber = phoneNumber || phoneData.phone ? `+${phoneData.code}${phoneData.phone}` : ''
@@ -38,7 +38,7 @@ const Login: React.FC = () => {
     const fetch = async (phoneCodeHash?: string) => {
       const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { phoneNumber })
       setPhoneCodeHash(data.phoneCodeHash)
-      setCountdown(60)
+      setCountdown(90)
       notification.info({
         message: 'Sent!',
         description: 'Please check your Telegram app and input the code'
@@ -48,7 +48,7 @@ const Login: React.FC = () => {
     try {
       setLoadingSendCode(true)
       await fetch(phoneCodeHash)
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(1)
     } catch (error: any) {
       setLoadingSendCode(false)
       notification.error({
@@ -141,23 +141,30 @@ const Login: React.FC = () => {
                   {/* <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} /> */}
                 </Form.Item>
                 <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
-                  <Button type="primary" size="large" htmlType="submit" icon={<ArrowRightOutlined />} shape="round" loading={loadingSendCode}>{phoneCodeHash ? 'Re-send code' : 'Send code'}</Button>
+                  <Button disabled={!phoneData?.phone} type="primary" size="large" htmlType="submit" icon={<ArrowRightOutlined />} shape="round" loading={loadingSendCode}>{phoneCodeHash ? 'Re-send code' : 'Send code'}</Button>
                 </Form.Item>
               </>}
 
               {currentStep === 1 && <>
-                <Form.Item>
+                <Form.Item style={{ textAlign: 'center' }}>
                   <OtpInput numInputs={5} value={otp} onChange={setOtp} isInputNum containerStyle={{ justifyContent: 'center' }} inputStyle={{
                     width: '2.7rem',
                     height: '2.7rem',
-                    margin: '0 0.3rem 0 0',
+                    margin: '0 0.3rem 1rem 0',
                     borderRadius: '4px',
                     fontSize: '1.2rem',
                     border: '1px solid rgba(0, 0, 0, 0.3)' }} />
-                  {/* <Input disabled={!phoneCodeHash} /> */}
+                  {countdown ? <Typography.Paragraph type="secondary">Re-send in {countdown}s...</Typography.Paragraph> : <Typography.Paragraph>
+                    <Button type="link" onClick={() => sendCode()}>Re-send code</Button>
+                  </Typography.Paragraph>}
                 </Form.Item>
-                <Form.Item style={{ marginTop: '50px' }} wrapperCol={{ span: 24 }}>
-                  <Button shape="round" block size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
+                <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
+                  <Typography.Paragraph>
+                    <Button disabled={otp?.length !== 5} shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
+                  </Typography.Paragraph>
+                  <Typography.Paragraph>
+                    <Button type="link" onClick={() => setCurrentStep(currentStep - 1)}>Or, change phone number</Button>
+                  </Typography.Paragraph>
                 </Form.Item>
               </>}
 
@@ -165,8 +172,8 @@ const Login: React.FC = () => {
                 <Form.Item name="password" hidden={!needPassword}>
                   <Input.Password size="large" />
                 </Form.Item>
-                <Form.Item style={{ marginTop: '50px' }} wrapperCol={{ span: 24 }}>
-                  <Button shape="round" block size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
+                <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
+                  <Button disabled={!formLogin.getFieldValue('password')} shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
                 </Form.Item>
               </>}
 
