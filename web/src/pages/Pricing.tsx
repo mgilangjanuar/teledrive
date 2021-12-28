@@ -1,5 +1,5 @@
 import { ArrowRightOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Divider, Layout, notification, Row, Switch, Typography } from 'antd'
+import { Button, Card, Col, Divider, Layout, Row, Switch, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
@@ -14,14 +14,14 @@ const Pricing: React.FC = () => {
   const [loading, setLoading] = useState<boolean>()
   const [isIDR, setIsIDR] = useState<boolean>(false)
 
-  const select = (plan: 'free' | 'premium' | 'professional' | 'donation') => {
+  const select = (plan: 'free' | 'premium' | 'professional' | 'donation', provider?: string) => {
     if (plan === 'free' || me?.user.plan === plan) {
       return history.push('/login')
     }
     if (plan === 'premium') {
       if (me) {
         setLoading(true)
-        return req.post('/subscriptions')
+        return req.post('/subscriptions', {}, provider ? { params: { provider } } : {})
           .then(({ data }) => window.location.replace(data.link))
           .catch(() => setLoading(false))
       }
@@ -44,7 +44,7 @@ const Pricing: React.FC = () => {
     </ul>
   </Card>
 
-  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block loading={loading} type="text" size="large">{isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined /></Button>]} onClick={() => isIDR ? notification.info({ message: 'Coming soon', description: 'Please wait, we\'re on it.' }) : select('premium')}>
+  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block loading={loading} type="text" size="large">{isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined /></Button>]} onClick={() => isIDR ? select('premium', 'midtrans') : select('premium')}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
       {isIDR ? <>
         <Typography.Text style={{ fontSize: '0.35em' }}>Rp</Typography.Text>144k
