@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import moment from 'moment'
 import { Usages } from '../../model/entities/Usages'
 import { Users as Model } from '../../model/entities/Users'
+import { Midtrans, TransactionDetails } from '../../service/Midtrans'
 import { PayPal, SubscriptionDetails } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
@@ -61,7 +62,7 @@ export class Users {
 
     if (username === 'me' || username === req.user.username) {
       const username = req.userAuth.username || req.userAuth.phone
-      let paymentDetails: SubscriptionDetails = null
+      let paymentDetails: SubscriptionDetails | TransactionDetails = null
       if (req.user.subscription_id) {
         try {
           paymentDetails = await new PayPal().getSubscription(req.user.subscription_id)
@@ -70,23 +71,48 @@ export class Users {
         }
       }
 
+      if (req.user.midtrans_id) {
+        try {
+          paymentDetails = await new Midtrans().getTransactionStatus(req.user.midtrans_id)
+          if (!paymentDetails?.transaction_status) {
+            paymentDetails = null
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+
       let plan: 'free' | 'premium' = 'free'
-      if (paymentDetails && paymentDetails.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ID) {
-        const isExpired = new Date().getTime() - new Date(paymentDetails.billing_info?.last_payment.time).getTime() > 3.154e+10
-        if (paymentDetails.billing_info?.last_payment && !isExpired || ['APPROVED', 'ACTIVE'].includes(paymentDetails.status)) {
+
+      if (paymentDetails) {
+        if (req.user.subscription_id && (paymentDetails as SubscriptionDetails).plan_id === process.env.PAYPAL_PLAN_PREMIUM_ID) {
+          const isExpired = new Date().getTime() - new Date((paymentDetails as SubscriptionDetails).billing_info?.last_payment.time).getTime() > 3.154e+10
+          if ((paymentDetails as SubscriptionDetails).billing_info?.last_payment && !isExpired || ['APPROVED', 'ACTIVE'].includes((paymentDetails as SubscriptionDetails).status)) {
+            plan = 'premium'
+          }
+        } else if (req.user.midtrans_id && ((paymentDetails as TransactionDetails).settlement_time || (paymentDetails as TransactionDetails).transaction_time)) {
+          const isExpired = new Date().getTime() - new Date((paymentDetails as TransactionDetails).settlement_time || (paymentDetails as TransactionDetails).transaction_time).getTime() > 3.154e+10
+          if (['settlement', 'capture'].includes((paymentDetails as TransactionDetails).transaction_status) && !isExpired) {
+            plan = 'premium'
+          }
           plan = 'premium'
         }
       }
-      await Model.update(req.user.id, {
-        plan,
-        ...username ? { username } : {},
-        name: `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username,
-      })
+
+      req.user.plan = plan
+      req.user.username = username
+      req.user.name = `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
+      await req.user.save()
+      // await Model.update(req.user.id, {
+      //   plan,
+      //   ...username ? { username } : {},
+      //   name: `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username,
+      // })
     }
 
-    const user = await Model.findOne({ where: [
-      { username: username === 'me' ? req.user.username : username },
-      { id: username === 'me' ? req.user.id : username }] })
+    const user = username === 'me' || username === req.user.username ? req.user : await Model.findOne({ where: [
+      { username },
+      { id: username }] })
     if (!user) {
       throw { status: 404, body: { error: 'User not found' } }
     }
