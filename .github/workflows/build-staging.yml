@@ -21,7 +21,7 @@ jobs:
       env:
         NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
     - run: yarn install
-    - run: REACT_APP_API_URL=https://teledrive.vercel.app yarn workspaces run build
+    - run: yarn workspaces run build
     - run: npm i vercel -g
     - name: "Deploy to Vercel"
       run: npx vercel --token ${VERCEL_TOKEN} --prod
