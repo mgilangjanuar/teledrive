@@ -457,7 +457,7 @@ export class Files {
 
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
-      if (Number(usage.usage) + Number(file.size) > 1_500_000_000) {
+      if (bigInt(usage.usage).add(bigInt(file.size)).greater(1_500_000_000)) {
         throw { status: 402, body: { error: 'Payment required' } }
       }
     }
@@ -516,7 +516,7 @@ export class Files {
       //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
       // }
     }
-    usage.usage += file.size
+    usage.usage = bigInt(file.size).add(bigInt(usage.usage)).toString()
     await usage.save()
     res.end()
   }
