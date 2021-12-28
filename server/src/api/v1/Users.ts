@@ -95,7 +95,6 @@ export class Users {
           if (['settlement', 'capture'].includes((paymentDetails as TransactionDetails).transaction_status) && !isExpired) {
             plan = 'premium'
           }
-          plan = 'premium'
         }
       }
 
