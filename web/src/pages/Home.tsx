@@ -1,6 +1,6 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
@@ -13,6 +13,12 @@ const Home: React.FC = () => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
   const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
+
+  useEffect(() => {
+    if (localStorage.getItem('dc') === 'ge' && window.location.host === 'teledriveapp.com') {
+      return window.location.replace('https://ge.teledriveapp.com')
+    }
+  }, [])
 
   return <div id="top">
     <Navbar user={me} page="home" />

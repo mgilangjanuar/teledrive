@@ -150,7 +150,7 @@ jobs:
         message: |
           🎉 *Deployed to Production*
 
-          Please take a look ->\n\nhttps://teledriveapp.com\nhttps://ge.teledriveapp.com
+          Please take a look -> https://teledriveapp.com https://ge.teledriveapp.com
         format: markdown
     - name: Failed Notification
       if: ${{ failure() }}

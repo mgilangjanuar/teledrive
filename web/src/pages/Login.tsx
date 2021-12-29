@@ -1,5 +1,5 @@
-import { ArrowRightOutlined, LoginOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Form, Input, Layout, notification, Row, Steps, Typography } from 'antd'
+import { ArrowRightOutlined, CheckCircleTwoTone, LoginOutlined } from '@ant-design/icons'
+import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
 import JSCookie from 'js-cookie'
@@ -15,7 +15,8 @@ import Navbar from './components/Navbar'
 const Login: React.FC = () => {
   const history = useHistory()
   const [formLogin] = useForm()
-  const [currentStep, setCurrentStep] = useState(0)
+  const [dc, setDc] = useState<string>()
+  const [currentStep, setCurrentStep] = useState<number>(0)
   const [phoneData, setPhoneData] = useState<{ phone?: string, code?: number, short?: string }>({})
   const [otp, setOtp] = useState<string>()
   const [loadingSendCode, setLoadingSendCode] = useState<boolean>()
@@ -25,6 +26,16 @@ const Login: React.FC = () => {
   const [needPassword, setNeedPassword] = useState<boolean>()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
+
+  useEffect(() => {
+    if (window.location.host === 'ge.teledriveapp.com') {
+      setDc('ge')
+      localStorage.setItem('dc', 'ge')
+    } else {
+      setDc('sg')
+      localStorage.setItem('dc', 'sg')
+    }
+  }, [])
 
   const sendCode = async (phoneNumber?: string) => {
     phoneNumber = phoneNumber || phoneData.phone ? `+${phoneData.code}${phoneData.phone}` : ''
@@ -117,8 +128,53 @@ const Login: React.FC = () => {
   return <>
     <Navbar />
     <Layout.Content className="container">
-      <Row style={{ marginTop: '80px' }}>
+      <Row style={{ marginTop: '30px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
+          <Collapse>
+            <Collapse.Panel key="1" header="Choose datacenter region">
+              <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
+                This will affect your upload and download speed, choose the nearest datacenter region to you.
+              </Typography.Paragraph>
+              <Row gutter={24} justify="center">
+                <Col span={12} style={{ textAlign: 'center' }}>
+                  <Card hoverable onClick={() => {
+                    setDc('sg')
+                    localStorage.setItem('dc', 'sg')
+                    return window.location.replace('https://teledriveapp.com/login')
+                  }}>
+                    <Typography.Paragraph style={dc === 'sg' || !dc ? {} : { visibility: 'hidden' }}>
+                      <CheckCircleTwoTone />
+                    </Typography.Paragraph>
+                    <Typography.Paragraph>
+                      <img style={{ width: '100%', maxWidth: '80px' }} src="https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Singapore.svg" />
+                    </Typography.Paragraph>
+                    <Typography.Paragraph>
+                      Singapore
+                    </Typography.Paragraph>
+                  </Card>
+                </Col>
+                <Col span={12} style={{ textAlign: 'center' }}>
+                  <Card hoverable onClick={() => {
+                    setDc('ge')
+                    localStorage.setItem('dc', 'ge')
+                    return window.location.replace('https://ge.teledriveapp.com/login')
+                  }}>
+                    <Typography.Paragraph style={dc === 'ge' ? {} : { visibility: 'hidden' }}>
+                      <CheckCircleTwoTone />
+                    </Typography.Paragraph>
+                    <Typography.Paragraph>
+                      <img style={{ width: '100%', maxWidth: '80px' }} src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Flag_of_Germany.svg" />
+                    </Typography.Paragraph>
+                    <Typography.Paragraph>
+                      Frankfurt
+                    </Typography.Paragraph>
+                  </Card>
+                </Col>
+              </Row>
+            </Collapse.Panel>
+          </Collapse>
+          <br /><br />
+
           <Typography.Title level={2}>
             Login with Telegram
           </Typography.Title>
