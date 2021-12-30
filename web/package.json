@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@craco/craco": "^6.3.0",
+    "@ideasio/add-to-homescreen-react": "^1.0.10",
     "antd": "^4.16.13",
     "antd-country-phone-input": "^4.2.1",
     "axios": "^0.21.4",

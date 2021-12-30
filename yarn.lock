@@ -1346,6 +1346,11 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.0.tgz#87de7af9c231826fdd68ac7258f77c429e0e5fcf"
   integrity sha512-wdppn25U8z/2yiaT6YGquE6X8sSv7hNMWSXYSSU1jGv/yd6XqjXgTDJ8KP4NgjTXfJ3GbRjeeb8RTV7a/VpM+w==
 
+"@ideasio/add-to-homescreen-react@^1.0.10":
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@ideasio/add-to-homescreen-react/-/add-to-homescreen-react-1.0.10.tgz#338d5095e91e5907cae0fbd8aa934775d7230958"
+  integrity sha512-GMx4ilDmlFzR+280kb8z9qhC2C/3PKdFQpH5XntHhqNnSZSWdLZ1jNoJfrTpOM8Ci6NJwBE4/Bwp+Qwhh9QrYw==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
