@@ -15,8 +15,11 @@ const Home: React.FC = () => {
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
 
   useEffect(() => {
-    if (localStorage.getItem('dc') === 'ge' && window.location.host === 'teledriveapp.com') {
+    if (localStorage.getItem('dc') === 'ge' && window.location.host !== 'ge.teledriveapp.com' && /teledriveapp\.com$/gi.test(window.location.host)) {
       return window.location.replace('https://ge.teledriveapp.com')
+    }
+    if (localStorage.getItem('dc') === 'us' && window.location.host !== 'us.teledriveapp.com' && /teledriveapp\.com$/gi.test(window.location.host)) {
+      return window.location.replace('https://us.teledriveapp.com')
     }
   }, [])
 
