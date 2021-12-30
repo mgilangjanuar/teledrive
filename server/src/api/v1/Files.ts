@@ -304,8 +304,15 @@ export class Files {
     try {
       uploadPartStatus = await uploadPart()
     } catch (error) {
-      await req.tg?.connect()
-      uploadPartStatus = await uploadPart()
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await req.tg?.connect()
+        uploadPartStatus = await uploadPart()
+      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await req.tg?.connect()
+        uploadPartStatus = await uploadPart()
+      }
     }
 
     const { affected } = await Model.update(model.id, { upload_progress: (Number(part) + 1) / Number(totalPart) }, { reload: true })

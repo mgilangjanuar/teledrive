@@ -25,13 +25,20 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
     throw { status: 401, body: { error: 'Invalid key' } }
   }
 
-  await req.tg.connect()
   let userAuth: any
   try {
-    userAuth = await req.tg.getMe()
-  } catch (error) {
     await req.tg.connect()
     userAuth = await req.tg.getMe()
+  } catch (error) {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await req.tg.connect()
+      userAuth = await req.tg.getMe()
+    } catch (error) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await req.tg.connect()
+      userAuth = await req.tg.getMe()
+    }
   }
 
   const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
