@@ -31,6 +31,9 @@ const Login: React.FC = () => {
     if (window.location.host === 'ge.teledriveapp.com') {
       setDc('ge')
       localStorage.setItem('dc', 'ge')
+    } else if (window.location.host === 'us.teledriveapp.com') {
+      setDc('us')
+      localStorage.setItem('dc', 'us')
     } else {
       setDc('sg')
       localStorage.setItem('dc', 'sg')
@@ -131,13 +134,13 @@ const Login: React.FC = () => {
       <Row style={{ marginTop: '30px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
           <Collapse>
-            <Collapse.Panel key="1" header="Choose datacenter region">
+            <Collapse.Panel key="1" header="Data center region">
               <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
                 This will affect your upload and download speed, choose the nearest datacenter region to you.
               </Typography.Paragraph>
-              <Row gutter={24} justify="center">
-                <Col span={12} style={{ textAlign: 'center' }}>
-                  <Card hoverable onClick={() => {
+              <Row gutter={12} justify="center">
+                <Col span={24} md={8} style={{ textAlign: 'center' }}>
+                  <Card hoverable style={{ marginBottom: '12px' }} onClick={() => {
                     setDc('sg')
                     localStorage.setItem('dc', 'sg')
                     return window.location.replace('https://teledriveapp.com/login')
@@ -153,8 +156,8 @@ const Login: React.FC = () => {
                     </Typography.Paragraph>
                   </Card>
                 </Col>
-                <Col span={12} style={{ textAlign: 'center' }}>
-                  <Card hoverable onClick={() => {
+                <Col span={24} md={8} style={{ textAlign: 'center' }}>
+                  <Card hoverable style={{ marginBottom: '12px' }} onClick={() => {
                     setDc('ge')
                     localStorage.setItem('dc', 'ge')
                     return window.location.replace('https://ge.teledriveapp.com/login')
@@ -167,6 +170,23 @@ const Login: React.FC = () => {
                     </Typography.Paragraph>
                     <Typography.Paragraph>
                       Frankfurt
+                    </Typography.Paragraph>
+                  </Card>
+                </Col>
+                <Col span={24} md={8} style={{ textAlign: 'center' }}>
+                  <Card hoverable style={{ marginBottom: '12px' }} onClick={() => {
+                    setDc('us')
+                    localStorage.setItem('dc', 'us')
+                    return window.location.replace('https://us.teledriveapp.com/login')
+                  }}>
+                    <Typography.Paragraph style={dc === 'us' ? {} : { visibility: 'hidden' }}>
+                      <CheckCircleTwoTone />
+                    </Typography.Paragraph>
+                    <Typography.Paragraph>
+                      <img style={{ width: '100%', maxWidth: '80px' }} src="https://upload.wikimedia.org/wikipedia/commons/0/05/US_flag_51_stars.svg" />
+                    </Typography.Paragraph>
+                    <Typography.Paragraph>
+                      New York
                     </Typography.Paragraph>
                   </Card>
                 </Col>
