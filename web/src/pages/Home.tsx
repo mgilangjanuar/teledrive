@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
+import { URLSearchParams } from 'url'
 import { ReactComponent as UploadingAnimate } from '../svg/Uploading-amico.svg'
 import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
@@ -20,6 +21,10 @@ const Home: React.FC = () => {
     }
     if (localStorage.getItem('dc') === 'us' && window.location.host !== 'us.teledriveapp.com' && /teledriveapp\.com$/gi.test(window.location.host)) {
       return window.location.replace('https://us.teledriveapp.com')
+    }
+
+    if (new URLSearchParams(window.location.search).get('source') === 'pwa') {
+      return window.location.replace('/dashboard')
     }
   }, [])
 
