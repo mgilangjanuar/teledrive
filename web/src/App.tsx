@@ -1,7 +1,7 @@
 import { TwitterOutlined } from '@ant-design/icons'
 import { Button, Layout, Result } from 'antd'
 import React, { lazy, Suspense, useEffect } from 'react'
-import { Route, Switch, useLocation } from 'react-router-dom'
+import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
 import { fetcher } from './utils/Fetcher'
 
@@ -67,7 +67,9 @@ function App(): React.ReactElement {
           <Route path="/pricing" exact component={Pricing} />
           <Route path="/contact" exact component={Contact} />
           <Route path="/faq" exact component={Faq} />
-          <Route path="/" exact component={Home} />
+          <Route path="/" exact>
+            {new URLSearchParams(window.location.search).get('source') === 'pwa' ? <Redirect to="/dashboard" /> : <Home />}
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </Suspense>}
