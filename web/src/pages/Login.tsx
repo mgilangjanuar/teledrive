@@ -52,7 +52,7 @@ const Login: React.FC = () => {
     const fetch = async (phoneCodeHash?: string) => {
       const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { phoneNumber })
       setPhoneCodeHash(data.phoneCodeHash)
-      setCountdown(90)
+      setCountdown(170)
       notification.info({
         message: 'Sent!',
         description: 'Please check your Telegram app and input the code'
@@ -63,6 +63,7 @@ const Login: React.FC = () => {
       setLoadingSendCode(true)
       await fetch(phoneCodeHash)
       setCurrentStep(1)
+      setLoadingSendCode(false)
     } catch (error: any) {
       setLoadingSendCode(false)
       notification.error({
@@ -239,7 +240,10 @@ const Login: React.FC = () => {
                     <Button disabled={otp?.length !== 5} shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
                   </Typography.Paragraph>
                   <Typography.Paragraph>
-                    <Button type="link" onClick={() => setCurrentStep(currentStep - 1)}>Or, change phone number</Button>
+                    <Button type="link" onClick={() => {
+                      setPhoneCodeHash(undefined)
+                      setCurrentStep(currentStep - 1)
+                    }}>Or, change phone number</Button>
                   </Typography.Paragraph>
                 </Form.Item>
               </>}
