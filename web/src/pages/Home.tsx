@@ -21,6 +21,10 @@ const Home: React.FC = () => {
     if (localStorage.getItem('dc') === 'us' && window.location.host !== 'us.teledriveapp.com' && /teledriveapp\.com$/gi.test(window.location.host)) {
       return window.location.replace('https://us.teledriveapp.com')
     }
+
+    if (new URLSearchParams(window.location.search).get('source') === 'pwa') {
+      return window.location.replace('/dashboard')
+    }
   }, [])
 
   return <div id="top">
