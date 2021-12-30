@@ -506,7 +506,7 @@ export class Files {
 
     while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {
       // const startDate = Date.now()
-      data = await req.tg.downloadMedia(chat['messages'][0].media, {
+      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { sizeType: 'i' } : {},
         start: idx++ * chunk,
         end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
@@ -518,7 +518,22 @@ export class Files {
           return updateProgess
         })()
       })
-      res.write(data)
+      try {
+        data = await getData()
+        res.write(data)
+      } catch (error) {
+        try {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          await req.tg?.connect()
+          const data = await getData()
+          res.write(data)
+        } catch (error) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          await req.tg?.connect()
+          const data = await getData()
+          res.write(data)
+        }
+      }
       // if (!req.user?.plan || req.user?.plan === 'free') {
       //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
       // }
