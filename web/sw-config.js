@@ -4,9 +4,9 @@ module.exports = {
       urlPattern: /^(.*\/api\/).*$/,
       handler: 'networkFirst',
     },
-    {
-      urlPattern: /^(?!.*\/api\/).*$/,
-      handler: 'fastest',
-    },
+    // {
+    //   urlPattern: /^(?!.*\/api\/).*$/,
+    //   handler: 'fastest',
+    // },
   ],
 }
