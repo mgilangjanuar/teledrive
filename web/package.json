@@ -28,6 +28,7 @@
     "react-twitter-widgets": "^1.10.0",
     "react-virtualized": "^9.22.3",
     "remark-gfm": "^2.0.0",
+    "sw-precache-cra": "^1.0.0",
     "swr": "^1.0.0",
     "typescript": "^4.0.3",
     "use-debounce": "^7.0.0",
@@ -36,7 +37,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "craco build && sw-precache-cra --config sw-config.js",
     "test": "craco test",
     "eject": "craco eject"
   },
