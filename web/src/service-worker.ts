@@ -47,6 +47,10 @@ registerRoute(
       return false
     }
 
+    if (url.pathname.match(/\/api\/.*/gi)) {
+      return false
+    }
+
     // Return true to signal that we want to use the handler.
     return true
   },
