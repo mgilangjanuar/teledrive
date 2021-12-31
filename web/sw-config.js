@@ -1,4 +1,5 @@
 module.exports = {
+  navigateFallbackWhitelist: [/^(?!.*\/api\/).*/],
   runtimeCaching: [
     {
       urlPattern: '/api/',
