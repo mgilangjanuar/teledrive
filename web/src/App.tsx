@@ -36,9 +36,9 @@ const Contact = lazy(
   () => import(/* webpackChunkName: 'ContactPage'  */ './pages/Contact')
 )
 const Faq = lazy(() => import(/* webpackChunkName: 'FaqPage' */ './pages/Faq'))
-// const NotFound = lazy(
-//   () => import(/* webpackChunkName: 'NotFoundPage' */ './pages/errors/NotFound')
-// )
+const NotFound = lazy(
+  () => import(/* webpackChunkName: 'NotFoundPage' */ './pages/errors/NotFound')
+)
 
 function App(): React.ReactElement {
   const { pathname } = useLocation()
@@ -70,7 +70,7 @@ function App(): React.ReactElement {
           <Route path="/" exact>
             {new URLSearchParams(window.location.search).get('source') === 'pwa' ? <Redirect to="/dashboard" /> : <Home />}
           </Route>
-          {/* <Route component={NotFound} /> */}
+          <Route component={NotFound} />
         </Switch>
       </Suspense>}
     </Layout>
