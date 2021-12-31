@@ -37,7 +37,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build && sw-precache-cra --config sw-config.js",
+    "build": "craco build",
     "test": "craco test",
     "eject": "craco eject"
   },
