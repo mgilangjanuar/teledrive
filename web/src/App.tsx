@@ -11,6 +11,9 @@ import 'antd-country-phone-input/dist/index.css'
 const Dashboard = lazy(
   () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
 )
+const Settings = lazy(
+  () => import(/* webpackChunkName: 'SettingsPage' */ './pages/Settings')
+)
 const Home = lazy(
   () => import(/* webpackChunkName: 'HomePage' */ './pages/Home')
 )
@@ -59,6 +62,7 @@ function App(): React.ReactElement {
       /> : <Suspense fallback={<></>}>
         <Switch>
           <Route path="/dashboard/:type?" exact component={Dashboard} />
+          <Route path="/settings" exact component={Settings} />
           <Route path="/view/:id" exact component={View} />
           <Route path="/login" exact component={Login} />
           <Route path="/terms" exact component={Terms} />

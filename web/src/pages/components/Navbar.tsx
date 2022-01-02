@@ -1,4 +1,4 @@
-import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -44,11 +44,12 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
           <div style={{ padding: '10px' }}>
             Bandwidth usage: { }
             {(user?.user?.plan || user?.plan) === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - Number(usage?.usage.usage)))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
-              <Progress status="exception" percent={Number((Number(usage?.usage.usage) / 1_500_000_000 * 100).toFixed(1))} />
+              <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
           </div>
           <Menu>
             <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
+            <Menu.Item key="settings" icon={<SettingOutlined />} onClick={() => history.push('/settings')}>Settings</Menu.Item>
             <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
           </Menu>
         </div>}>
