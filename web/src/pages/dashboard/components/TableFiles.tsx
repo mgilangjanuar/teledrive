@@ -3,22 +3,19 @@ import {
   AudioOutlined,
   BranchesOutlined,
   CopyOutlined,
-  DeleteOutlined,
-  ProfileOutlined,
-  DownloadOutlined,
+  DeleteOutlined, DownloadOutlined,
   EditOutlined,
   FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
   FolderOpenOutlined,
-  GlobalOutlined,
-  ScissorOutlined,
+  GlobalOutlined, ProfileOutlined, ScissorOutlined,
   ShareAltOutlined,
   SnippetsOutlined,
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Button, Descriptions, Menu, Modal, Table, Typography } from 'antd'
+import { Button, Descriptions, Menu, Modal, Table } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
