@@ -1,4 +1,4 @@
-import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -49,6 +49,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
           </div>
           <Menu>
             <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
+            <Menu.Item key="settings" icon={<SettingOutlined />} onClick={() => history.push('/settings')}>Settings</Menu.Item>
             <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
           </Menu>
         </div>}>

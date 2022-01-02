@@ -7,12 +7,12 @@ import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Terms: React.FC = () => {
+const Refund: React.FC = () => {
   const { data } = useSWRImmutable('/documents/refund', fetcher)
   const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   return <>
-    <Navbar page="terms" user={me} />
+    <Navbar page="refund" user={me} />
     <Layout.Content className="container">
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
@@ -26,4 +26,4 @@ const Terms: React.FC = () => {
   </>
 }
 
-export default Terms
+export default Refund

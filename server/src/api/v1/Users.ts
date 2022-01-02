@@ -1,4 +1,5 @@
 import { Api } from '@mgilangjanuar/telegram'
+import axios from 'axios'
 import { Request, Response } from 'express'
 import moment from 'moment'
 import { Usages } from '../../model/entities/Usages'
@@ -130,6 +131,30 @@ export class Users {
       .orderBy(buildSort(sort as string))
       .getManyAndCount()
     return res.send({ users, length })
+  }
+
+  @Endpoint.PATCH('/me/settings', { middlewares: [Auth] })
+  public async settings(req: Request, res: Response): Promise<any> {
+    const { settings } = req.body
+    req.user.settings = settings
+    await req.user.save()
+    return res.send({ settings: req.user?.settings })
+  }
+
+  @Endpoint.DELETE('/me', { middlewares: [Auth] })
+  public async remove(req: Request, res: Response): Promise<any> {
+    const { reason, agreement } = req.body
+    if (agreement !== 'permanently removed') {
+      throw { status: 400, body: { error: 'Invalid agreement' } }
+    }
+    await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+      chat_id: process.env.TG_BOT_OWNER_ID,
+      text: `😭 ${req.user.name} (@${req.user.username}) removed their account.\n\nReason: ${reason}`,
+      parse_mode: 'markdown'
+    })
+    await req.user.remove()
+    const success = await req.tg.invoke(new Api.auth.LogOut())
+    return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
   }
 
   // @Endpoint.USE('/upgradePlans', { middlewares: [Auth] })
