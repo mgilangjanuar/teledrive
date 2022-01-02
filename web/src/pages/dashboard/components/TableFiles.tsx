@@ -29,6 +29,7 @@ import { apiUrl } from '../../../utils/Fetcher'
 interface Props {
   files?: any,
   tab: string,
+  me?: any,
   onChange: (...args: any[]) => void,
   onDelete: (row: any) => void,
   onRename: (row: any) => void,
@@ -48,6 +49,7 @@ interface Props {
 const TableFiles: React.FC<Props> = ({
   files,
   tab,
+  me,
   onChange,
   onDelete,
   onRename,
@@ -307,7 +309,7 @@ const TableFiles: React.FC<Props> = ({
             })
           }
         })}
-        expandable={window.innerWidth < 752 ? {
+        expandable={me?.settings?.expandable_rows && window.innerWidth < 752 ? {
           expandedRowRender: (row: any) => <Descriptions labelStyle={{ fontWeight: 'bold' }} column={1}>
             <Descriptions.Item label="Size">{row.size ? prettyBytes(Number(row.size)) : '-'}</Descriptions.Item>
             <Descriptions.Item label="Uploaded At">{row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(row.uploaded_at).local().format('lll')}</Descriptions.Item>
