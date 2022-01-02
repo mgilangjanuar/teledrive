@@ -31,4 +31,9 @@ export class Users extends BaseModelWithID {
 
   @OneToMany(() => Files, files => files.user)
   files?: Files[]
+
+  @Column('jsonb', { default: null })
+  settings?: {
+    expandable_rows?: boolean
+  }
 }

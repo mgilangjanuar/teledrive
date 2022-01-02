@@ -1,4 +1,11 @@
-import { FolderAddOutlined, HomeOutlined, PlusOutlined, SyncOutlined, UploadOutlined, WarningOutlined } from '@ant-design/icons'
+import {
+  FolderAddOutlined,
+  HomeOutlined,
+  PlusOutlined,
+  SyncOutlined,
+  UploadOutlined,
+  WarningOutlined
+} from '@ant-design/icons'
 import {
   Alert,
   Button,
@@ -344,6 +351,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             <TableFiles
               files={files}
               tab={tab}
+              me={me?.user}
               onChange={change}
               onDelete={row => {
                 if (!selected?.find(select => select.id === row.id)) {
