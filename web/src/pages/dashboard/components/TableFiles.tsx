@@ -4,6 +4,7 @@ import {
   BranchesOutlined,
   CopyOutlined,
   DeleteOutlined,
+  ProfileOutlined,
   DownloadOutlined,
   EditOutlined,
   FileImageOutlined,
@@ -17,14 +18,15 @@ import {
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Button, Descriptions, Menu, Table } from 'antd'
+import { Button, Descriptions, Menu, Modal, Table, Typography } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { apiUrl } from '../../../utils/Fetcher'
+import useSWR from 'swr'
+import { apiUrl, fetcher } from '../../../utils/Fetcher'
 
 interface Props {
   files?: any,
@@ -66,6 +68,8 @@ const TableFiles: React.FC<Props> = ({
   dataSelect: [selected, setSelected] }) => {
 
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
+  const [showDetails, setShowDetails] = useState<any>()
+  const { data: user } = useSWR(showDetails ? `/users/${showDetails.user_id}` : null, fetcher)
   const pasteEnabled = useRef<boolean | null>(null)
 
   useEffect(() => {
@@ -92,6 +96,22 @@ const TableFiles: React.FC<Props> = ({
     })
   }, [selected, action])
 
+  const Icon = ({ type }: { type: string }) => {
+    if (type === 'image') {
+      return <FileImageOutlined />
+    } else if (type === 'video') {
+      return <VideoCameraOutlined />
+    } else if (type === 'document') {
+      return <FilePdfOutlined />
+    } else if (type === 'folder') {
+      return <FolderOpenOutlined />
+    } else if (type === 'audio') {
+      return <AudioOutlined />
+    } else {
+      return <FileOutlined />
+    }
+  }
+
   const ContextMenu = () => {
     const baseProps = {
       style: { margin: 0 }
@@ -99,6 +119,10 @@ const TableFiles: React.FC<Props> = ({
     if (!popup?.visible) return <></>
     if (popup?.row) {
       return <Menu style={{ zIndex: 1, position: 'absolute', left: `${popup?.x}px`, top: `${popup?.y}px`, boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)' }}>
+        <Menu.Item {...baseProps}
+          icon={<ProfileOutlined />}
+          key="details"
+          onClick={() => setShowDetails(popup?.row)}>Details</Menu.Item>
         <Menu.Item {...baseProps}
           icon={<EditOutlined />}
           key="rename"
@@ -176,21 +200,6 @@ const TableFiles: React.FC<Props> = ({
         onClick: () => onRowClick(row)
       }),
       render: (_: any, row: any) => {
-        let component
-        if (row.type === 'image') {
-          component = <FileImageOutlined />
-        } else if (row.type === 'video') {
-          component = <VideoCameraOutlined />
-        } else if (row.type === 'document') {
-          component = <FilePdfOutlined />
-        } else if (row.type === 'folder') {
-          component = <FolderOpenOutlined />
-        } else if (row.type === 'audio') {
-          component = <AudioOutlined />
-        } else {
-          component = <FileOutlined />
-        }
-
         let type
         if (row.sharing_options?.includes('*')) {
           type = <GlobalOutlined />
@@ -199,7 +208,7 @@ const TableFiles: React.FC<Props> = ({
         }
 
         return <Button type="link" style={{ color: '#000', paddingLeft: 0, paddingRight: 0 }}>
-          {row.link_id ? <BranchesOutlined /> : '' } {type} {component} {row.name}
+          {row.link_id ? <BranchesOutlined /> : '' } {type} <Icon type={row.type} /> {row.name}
         </Button>
       }
     },
@@ -318,6 +327,18 @@ const TableFiles: React.FC<Props> = ({
         } : undefined} />
     </DndProvider>
     <ContextMenu />
+    <Modal title={<>Details <Icon type={showDetails?.type} /> {showDetails?.name}</>}
+      visible={Boolean(showDetails)}
+      onCancel={() => setShowDetails(undefined)}
+      onOk={() => setShowDetails(undefined)}>
+      <Descriptions column={1}>
+        <Descriptions.Item label="Size">{showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}</Descriptions.Item>
+        <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('llll')}</Descriptions.Item>
+        <Descriptions.Item label="Uploaded By">
+          <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>
+        </Descriptions.Item>
+      </Descriptions>
+    </Modal>
   </>
 }
 
