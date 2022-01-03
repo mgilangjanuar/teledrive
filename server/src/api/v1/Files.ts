@@ -154,12 +154,21 @@ export class Files {
     }
     file.signed_key = file.signed_key || parent?.signed_key
 
+    let files = [file]
+    if (/.*\.part1$/gi.test(file?.name)) {
+      files = await Model.createQueryBuilder('files')
+        .where(`id = :id or name like '${file.name.replace(/\.part1$/gi, '')}%'`, { id })
+        .addSelect('files.signed_key')
+        .orderBy('created_at')
+        .getMany()
+    }
+
     if (!req.user || file.user_id !== req.user?.id) {
-      await Files.initiateSessionTG(req, file)
+      await Files.initiateSessionTG(req, files)
       await req.tg.connect()
     }
 
-    return await Files.download(req, res, file)
+    return await Files.download(req, res, files)
   }
 
   @Endpoint.DELETE('/:id', { middlewares: [Auth] })
@@ -283,7 +292,7 @@ export class Files {
       model = new Model()
       model.name = name,
       model.mime_type = mimetype
-      model.size = size
+      model.size = '0'
       model.user_id = req.user.id
       model.type = type
       model.parent_id = parentId as string || null
@@ -315,7 +324,10 @@ export class Files {
       }
     }
 
-    const { affected } = await Model.update(model.id, { upload_progress: (Number(part) + 1) / Number(totalPart) }, { reload: true })
+    const { affected } = await Model.update(model.id, {
+      size: bigInt(model.size).add(file.buffer.length).toString(),
+      upload_progress: (Number(part) + 1) / Number(totalPart)
+    }, { reload: true })
     if (!affected) {
       await Model.delete(model.id)
       throw { status: 404, body: { error: 'File not found' } }
@@ -444,7 +456,7 @@ export class Files {
     return res.send({ files })
   }
 
-  public static async download(req: Request, res: Response, file: Model): Promise<any> {
+  public static async download(req: Request, res: Response, files: Model[]): Promise<any> {
     const { raw, dl, thumb } = req.query
 
     let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
@@ -462,95 +474,99 @@ export class Files {
       await usage.save()
     }
 
+    const totalFileSize = files.reduce((res, file) => res.add(file.size), bigInt(0))
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
-      if (bigInt(usage.usage).add(bigInt(file.size)).greater(1_500_000_000)) {
+      if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {
         throw { status: 402, body: { error: 'Payment required' } }
       }
     }
 
     if (!raw || Number(raw) === 0) {
-      const { signed_key: _, ...result } = file
+      const { signed_key: _, ...result } = files[0]
       return res.send({ file: result })
-    }
-
-    let chat: any
-    if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-      const [type, peerId, id, accessHash] = file.forward_info.split('/')
-      let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      if (type === 'channel') {
-        peer = new Api.InputPeerChannel({
-          channelId: bigInt(peerId),
-          accessHash: bigInt(accessHash as string) })
-        chat = await req.tg.invoke(new Api.channels.GetMessages({
-          channel: peer,
-          id: [new Api.InputMessageID({ id: Number(id) })]
-        }))
-      }
-    } else {
-      chat = await req.tg.invoke(new Api.messages.GetMessages({
-        id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-      }))
     }
 
     let cancel = false
     req.on('close', () => cancel = true)
+    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
+    res.setHeader('Content-Type', files[0].mime_type)
+    res.setHeader('Content-Length', totalFileSize.toString())
 
-    res.setHeader('Content-Disposition', contentDisposition(file.name, { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
-    res.setHeader('Content-Type', file.mime_type)
-    res.setHeader('Content-Length', file.size)
-    let data = null
+    for (const file of files) {
+      let chat: any
+      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+        const [type, peerId, id, accessHash] = file.forward_info.split('/')
+        let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+          chat = await req.tg.invoke(new Api.channels.GetMessages({
+            channel: peer,
+            id: [new Api.InputMessageID({ id: Number(id) })]
+          }))
+        }
+      } else {
+        chat = await req.tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+        }))
+      }
 
-    const chunk = 512 * 1024
-    let idx = 0
+      let data = null
 
-    while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {
-      // const startDate = Date.now()
-      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
-        ...thumb ? { sizeType: 'i' } : {},
-        start: idx++ * chunk,
-        end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
-        workers: 1,   // using 1 for stable
-        progressCallback: (() => {
-          const updateProgess: any = () => {
-            updateProgess.isCanceled = cancel
-          }
-          return updateProgess
-        })()
-      })
-      try {
-        data = await getData()
-        res.write(data)
-      } catch (error) {
+      const chunk = 512 * 1024
+      let idx = 0
+
+      while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {
+        // const startDate = Date.now()
+        const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
+          ...thumb ? { sizeType: 'i' } : {},
+          start: idx++ * chunk,
+          end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
+          workers: 1,   // using 1 for stable
+          progressCallback: (() => {
+            const updateProgess: any = () => {
+              updateProgess.isCanceled = cancel
+            }
+            return updateProgess
+          })()
+        })
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          await req.tg?.connect()
-          const data = await getData()
+          data = await getData()
           res.write(data)
         } catch (error) {
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          await req.tg?.connect()
-          const data = await getData()
-          res.write(data)
+          try {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            await req.tg?.connect()
+            const data = await getData()
+            res.write(data)
+          } catch (error) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            await req.tg?.connect()
+            const data = await getData()
+            res.write(data)
+          }
         }
+        // if (!req.user?.plan || req.user?.plan === 'free') {
+        //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
+        // }
       }
-      // if (!req.user?.plan || req.user?.plan === 'free') {
-      //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
-      // }
+      usage.usage = bigInt(file.size).add(bigInt(usage.usage)).toString()
+      await usage.save()
     }
-    usage.usage = bigInt(file.size).add(bigInt(usage.usage)).toString()
-    await usage.save()
+
     res.end()
   }
 
-  public static async initiateSessionTG(req: Request, file?: Model): Promise<Model> {
-    if (!file) {
+  public static async initiateSessionTG(req: Request, files?: Model[]): Promise<Model[]> {
+    if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
     let data: { file: { id: string }, session: string }
     try {
-      data = JSON.parse(AES.decrypt(file.signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
+      data = JSON.parse(AES.decrypt(files[0].signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
     } catch (error) {
       throw { status: 401, body: { error: 'Invalid token' } }
     }
@@ -561,6 +577,6 @@ export class Files {
     } catch (error) {
       throw { status: 401, body: { error: 'Invalid key' } }
     }
-    return file
+    return files
   }
 }
