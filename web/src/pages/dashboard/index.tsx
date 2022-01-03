@@ -311,6 +311,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
             </Typography.Paragraph>
             <Typography.Paragraph>
               {tab === 'mine' ? <Upload
+                me={me}
                 onCancel={file => setSelectDeleted([file])}
                 parent={parent}
                 dataFileList={[fileList, setFileList]}
@@ -331,6 +332,7 @@ const Dashboard: React.FC<PageProps> = ({ match }) => {
                   <Dropdown trigger={['click']} placement="bottomCenter" overlay={<Menu>
                     <Menu.Item key="upload" icon={<UploadOutlined />}>
                       <Upload
+                        me={me}
                         isDirectory
                         onCancel={file => setSelectDeleted([file])}
                         parent={parent}

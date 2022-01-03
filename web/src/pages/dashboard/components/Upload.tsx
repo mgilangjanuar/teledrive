@@ -8,10 +8,11 @@ interface Props {
   dataFileList: [any[], (data: any[]) => void],
   parent?: Record<string, any> | null,
   isDirectory?: boolean,
+  me?: any,
   onCancel: (file: any) => void
 }
 
-const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent, isDirectory, onCancel }) => {
+const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent, isDirectory, me, onCancel }) => {
   const cancelUploading = useRef<string | null>(null)
 
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
@@ -20,40 +21,48 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       message: 'Warning',
       description: 'Please don\'t close/reload this browser'
     })
-    const chunkSize = 512 * 1024
-    const parts = Math.ceil(file.size / chunkSize)
-    let firstResponse: any
+    // const maxSize = 1024 * 1024 * 1024 * 2
+    const maxSize = 2_000_000_000
+    const fileParts = Math.ceil(file.size / maxSize)
     let deleted = false
 
     try {
-      for (let i = 0; i < parts; i++) {
-        if (firstResponse?.file && cancelUploading.current && file.uid === cancelUploading.current) {
-          await req.delete(`/files/${firstResponse?.file.id}`)
-          cancelUploading.current = null
-          deleted = true
-          break
-        }
-        const blobPart = file.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
-        const data = new FormData()
-        data.append('upload', blobPart)
+      let firstResponse: any
+      let totalParts: number = 1
 
-        const { data: response } = await req.post(`/files/upload${firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
-          params: {
-            ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
-            name: file.name,
-            size: file.size,
-            mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-            part: i,
-            total_part: parts,
-          },
-        })
+      for (let j = 0; j < fileParts; j++) {
+        const fileBlob = file.slice(j * maxSize, Math.min(j * maxSize + maxSize, file.size))
+        const chunkSize = 512 * 1024
+        const parts = Math.ceil(fileBlob.size / chunkSize)
+        const partName = `.part${j + 1}`
 
-        if (!firstResponse) {
+        for (let i = 0; i < parts; i++) {
+          if (firstResponse?.file && cancelUploading.current && file.uid === cancelUploading.current) {
+            await req.delete(`/files/${firstResponse?.file.id}`)
+            cancelUploading.current = null
+            deleted = true
+            break
+          }
+          const blobPart = fileBlob.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
+          const data = new FormData()
+          data.append('upload', blobPart)
+
+          const { data: response } = await req.post(`/files/upload${i > 0 && firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
+            params: {
+              ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
+              name: `${file.name}${fileParts > 1 ? partName : ''}`,
+              size: fileBlob.size,
+              mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+              part: i,
+              total_part: parts,
+            },
+          })
           firstResponse = response
-        }
 
-        const percent = ((i + 1) / parts * 100).toFixed(1)
-        onProgress({ percent }, file)
+          const percent = ((totalParts / (parts * fileParts)) * 100).toFixed(1) // eslint-disable-line
+          onProgress({ percent }, file)
+          totalParts += 1
+        }
       }
       // notification.close(`upload-${file.uid}`)
       if (!deleted) {
@@ -77,11 +86,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   const params = {
     multiple: true,
     customRequest: upload,
-    beforeUpload: (file) => {
-      if (file.size > 2_000_000_000) {
+    beforeUpload: (file: any) => {
+      if (file.size > 2_000_000_000 && (!me?.user.plan || me?.user.plan === 'free')) {
         notification.error({
           message: 'Error',
-          description: 'Maximum file size is 2 GB'
+          description: 'Maximum file size is 2 GB. Upgrade your plan to upload larger files.'
         })
         return false
       }
@@ -115,7 +124,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     <p className="ant-upload-drag-icon"><CloudUploadOutlined /></p>
     <p className="ant-upload-text">Click or drag file to this area to upload</p>
     <p className="ant-upload-hint">
-      Maximum file size is 2 GB
+      Maximum file size is unlimited
     </p>
   </BaseUpload.Dragger>
 }
