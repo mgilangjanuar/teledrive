@@ -51,8 +51,12 @@ const Pricing: React.FC = () => {
 
   const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[
     <>
-      {isIDR && <Form.Item style={{ margin: '15px 20px' }} label={<>Email &nbsp; <Tooltip placement="topLeft" title="This is required for sending the invoice to your email"><QuestionCircleOutlined /></Tooltip></>}>
-        <Input.Search type="email" size="large" placeholder="Type your email here..." required defaultValue={email} onBlur={({ target }) => setEmail(target.value)} enterButton={<ArrowRightOutlined />} onSearch={val => select('premium', 'midtrans', val)} />
+      {isIDR && <Form.Item style={{ margin: '15px 20px' }}>
+        <Tooltip placement="topLeft" title="This is required for sending the invoice to your email">
+          <Input.Search type="email" size="large" placeholder="Type your email here..." required defaultValue={email}
+            onBlur={({ target }) => setEmail(target.value)} enterButton={<ArrowRightOutlined />}
+            onSearch={val => select('premium', 'midtrans', val)} />
+        </Tooltip>
       </Form.Item>}
       <Button block loading={loading} type="text" size="large" onClick={() => isIDR ? select('premium', 'midtrans') : select('premium')}>
         {isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined />
