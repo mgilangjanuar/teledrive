@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, QuestionCircleOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Divider, Form, Input, Layout, notification, Row, Switch, Tooltip, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
@@ -44,14 +44,19 @@ const Pricing: React.FC = () => {
       <li><strong>Unlimited</strong> total files</li>
       <li><strong>Unlimited</strong> total files size</li>
       <li><strong>1.5GB</strong> daily bandwidth</li>
+      <li><strong>2GB</strong> upload &amp; download max</li>
       <li><strong>All basic features</strong></li>
     </ul>
   </Card>
 
   const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[
     <>
-      {isIDR && <Form.Item style={{ margin: '15px 20px' }} label={<>Email &nbsp; <Tooltip placement="topLeft" title="This is required for sending the invoice to your email"><QuestionCircleOutlined /></Tooltip></>}>
-        <Input.Search type="email" size="large" placeholder="Type your email here..." required defaultValue={email} onBlur={({ target }) => setEmail(target.value)} enterButton={<ArrowRightOutlined />} onSearch={val => select('premium', 'midtrans', val)} />
+      {isIDR && <Form.Item style={{ margin: '15px 20px' }}>
+        <Tooltip placement="topLeft" title="This is required for sending the invoice to your email">
+          <Input.Search type="email" size="large" placeholder="Type your email here..." required defaultValue={email}
+            onBlur={({ target }) => setEmail(target.value)} enterButton={<ArrowRightOutlined />}
+            onSearch={val => select('premium', 'midtrans', val)} />
+        </Tooltip>
       </Form.Item>}
       <Button block loading={loading} type="text" size="large" onClick={() => isIDR ? select('premium', 'midtrans') : select('premium')}>
         {isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined />
@@ -70,6 +75,7 @@ const Pricing: React.FC = () => {
       <li><strong>Unlimited</strong> total files</li>
       <li><strong>Unlimited</strong> total files size</li>
       <li><strong>Unlimited</strong> bandwidth usage</li>
+      <li><strong>Unlimited</strong> upload &amp; download</li>
       <li><strong>All features</strong></li>
     </ul>
   </Card>
