@@ -269,6 +269,10 @@ export class Files {
       throw { status: 400, body: { error: 'Maximum file part size is 500kB' } }
     }
 
+    if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
+      throw { status: 402, body: { error: 'Payment required' } }
+    }
+
     let model: Model
     if (req.params?.id) {
       model = await Model.createQueryBuilder('files')
@@ -492,7 +496,7 @@ export class Files {
 
     let cancel = false
     req.on('close', () => cancel = true)
-    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
+    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part1$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
 
