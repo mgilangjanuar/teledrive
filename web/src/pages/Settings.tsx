@@ -103,10 +103,10 @@ const Settings: React.FC = () => {
     onOk={remove}
     okButtonProps={{ danger: true, type: 'primary' }}>
       <Form form={formRemoval} onFinish={remove} layout="vertical">
-        <Form.Item name="reason" label="Reason" rules={[{ required: true, message: 'Please input your username' }]}>
+        <Form.Item name="reason" label="Reason" rules={[{ required: true, message: 'Please input your reason' }]}>
           <Input.TextArea />
         </Form.Item>
-        <Form.Item name="agreement" label={<>Please type &nbsp; <Typography.Text type="danger">permanently removed</Typography.Text> &nbsp; for your confirmation</>} rules={[{ required: true, message: 'Please input your username' }]}>
+        <Form.Item name="agreement" label={<Typography.Text>Please type <Typography.Text type="danger">permanently removed</Typography.Text> for your confirmation</Typography.Text>} rules={[{ required: true, message: 'Please input the confirmation' }]}>
           <Input />
         </Form.Item>
       </Form>
