@@ -156,6 +156,9 @@ export class Files {
 
     let files = [file]
     if (/.*\.part1$/gi.test(file?.name)) {
+      if (req.user?.plan !== 'premium') {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
       files = await Model.createQueryBuilder('files')
         .where(`id = :id or name like '${file.name.replace(/\.part1$/gi, '')}%'`, { id })
         .addSelect('files.signed_key')

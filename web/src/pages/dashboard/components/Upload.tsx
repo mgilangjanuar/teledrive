@@ -12,7 +12,7 @@ interface Props {
   onCancel: (file: any) => void
 }
 
-const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent, isDirectory, onCancel }) => {
+const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent, isDirectory, me, onCancel }) => {
   const cancelUploading = useRef<string | null>(null)
 
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
@@ -86,14 +86,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   const params = {
     multiple: true,
     customRequest: upload,
-    beforeUpload: (_file: any) => {
-      // if (file.size > 2_000_000_000) {
-      //   notification.error({
-      //     message: 'Error',
-      //     description: 'Maximum file size is 2 GB'
-      //   })
-      //   return false
-      // }
+    beforeUpload: (file: any) => {
+      if (file.size > 2_000_000_000 && (!me?.user.plan || me?.user.plan === 'free')) {
+        notification.error({
+          message: 'Error',
+          description: 'Maximum file size is 2 GB. Upgrade your plan to upload larger files.'
+        })
+        return false
+      }
       return true
     },
     fileList: fileList,
@@ -124,7 +124,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     <p className="ant-upload-drag-icon"><CloudUploadOutlined /></p>
     <p className="ant-upload-text">Click or drag file to this area to upload</p>
     <p className="ant-upload-hint">
-      Maximum file size is 2 GB
+      Maximum file size is unlimited
     </p>
   </BaseUpload.Dragger>
 }
