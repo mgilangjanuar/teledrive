@@ -44,6 +44,7 @@ const Pricing: React.FC = () => {
       <li><strong>Unlimited</strong> total files</li>
       <li><strong>Unlimited</strong> total files size</li>
       <li><strong>1.5GB</strong> daily bandwidth</li>
+      <li><strong>2GB</strong> upload &amp; download max</li>
       <li><strong>All basic features</strong></li>
     </ul>
   </Card>
@@ -70,6 +71,7 @@ const Pricing: React.FC = () => {
       <li><strong>Unlimited</strong> total files</li>
       <li><strong>Unlimited</strong> total files size</li>
       <li><strong>Unlimited</strong> bandwidth usage</li>
+      <li><strong>Unlimited</strong> upload &amp; download</li>
       <li><strong>All features</strong></li>
     </ul>
   </Card>
