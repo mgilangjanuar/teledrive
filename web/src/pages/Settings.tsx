@@ -1,7 +1,7 @@
 import { DeleteOutlined, LogoutOutlined, WarningOutlined } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, Modal, notification, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
@@ -10,22 +10,29 @@ import Navbar from './components/Navbar'
 
 const Settings: React.FC = () => {
   const history = useHistory()
-  const [expandableRows, setExpandableRows] = useState<boolean>(false)
+  const [expandableRows, setExpandableRows] = useState<boolean>()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
   const [formRemoval] = useForm()
-  const { data: me } = useSWRImmutable('/users/me', fetcher, {
-    onError: () => history.push('/login'),
-    onSuccess: ({ user }) => {
-      setExpandableRows(user?.settings?.expandable_rows)
-    }
+  const { data: me, mutate, error } = useSWRImmutable('/users/me', fetcher, {
+    onError: () => history.push('/login')
   })
 
   const save = (settings: any) => {
     req.patch('/users/me/settings', { settings })
-      .then(() => notification.success({  message: 'Settings saved' }))
+      .then(() => {
+        notification.success({  message: 'Settings saved' })
+        // setExpandableRows(!expandableRows)
+        mutate()
+      })
       .catch(() => notification.error({ message: 'Something error. Please try again.' }))
   }
+
+  useEffect(() => {
+    if (me) {
+      setExpandableRows(me.user?.settings?.expandable_rows)
+    }
+  }, [me])
 
   const logout = async () => {
     await req.post('/auth/logout')
@@ -50,7 +57,7 @@ const Settings: React.FC = () => {
           <Typography.Title level={2}>
             Settings
           </Typography.Title>
-          <Card>
+          <Card loading={!me && !error}>
             <Card.Meta avatar={<Avatar size="large" src={`${apiUrl}/users/me/photo`} />} title={me?.user.name} description={me?.user.username} />
             <Divider />
             <Form layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
@@ -58,7 +65,7 @@ const Settings: React.FC = () => {
                 <Switch onChange={val => {
                   setExpandableRows(val)
                   save({ expandable_rows: val })
-                }} checked={expandableRows} />
+                }} checked={expandableRows} defaultChecked={expandableRows} />
               </Form.Item>
               <Form.Item label={<Typography.Text type="danger">Delete Account</Typography.Text>}>
                 <Button shape="round" danger type="primary" icon={<DeleteOutlined />} onClick={() => setRemoveConfirmation(true)}>Permanently Removed</Button>
@@ -96,10 +103,10 @@ const Settings: React.FC = () => {
     onOk={remove}
     okButtonProps={{ danger: true, type: 'primary' }}>
       <Form form={formRemoval} onFinish={remove} layout="vertical">
-        <Form.Item name="reason" label="Reason" rules={[{ required: true, message: 'Please input your username' }]}>
+        <Form.Item name="reason" label="Reason" rules={[{ required: true, message: 'Please input your reason' }]}>
           <Input.TextArea />
         </Form.Item>
-        <Form.Item name="agreement" label={<>Please type &nbsp; <Typography.Text type="danger">permanently removed</Typography.Text> &nbsp; for your confirmation</>} rules={[{ required: true, message: 'Please input your username' }]}>
+        <Form.Item name="agreement" label={<Typography.Text>Please type <Typography.Text type="danger">permanently removed</Typography.Text> for your confirmation</Typography.Text>} rules={[{ required: true, message: 'Please input the confirmation' }]}>
           <Input />
         </Form.Item>
       </Form>

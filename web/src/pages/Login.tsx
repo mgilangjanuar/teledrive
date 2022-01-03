@@ -224,6 +224,9 @@ const Login: React.FC = () => {
 
               {currentStep === 1 && <>
                 <Form.Item style={{ textAlign: 'center' }}>
+                  <Typography.Paragraph type="secondary">
+                    Authentication code sent to <b>+{phoneData.code}&bull;&bull;&bull;&bull;&bull;&bull;&bull;{phoneData.phone?.substring(phoneData.phone.length - 4)}</b>
+                  </Typography.Paragraph>
                   <OtpInput numInputs={5} value={otp} onChange={setOtp} isInputNum containerStyle={{ justifyContent: 'center' }} inputStyle={{
                     width: '2.7rem',
                     height: '2.7rem',

@@ -120,35 +120,37 @@ const TableFiles: React.FC<Props> = ({
           icon={<ProfileOutlined />}
           key="details"
           onClick={() => setShowDetails(popup?.row)}>Details</Menu.Item>
-        <Menu.Item {...baseProps}
-          icon={<EditOutlined />}
-          key="rename"
-          onClick={() => onRename(popup?.row)}>Rename</Menu.Item>
-        {!popup?.row.link_id ? <Menu.Item {...baseProps}
-          icon={<CopyOutlined />}
-          key="copy"
-          onClick={() => onCopy?.(popup?.row)}>Copy</Menu.Item> : ''}
-        <Menu.Item {...baseProps}
-          icon={<ScissorOutlined />}
-          key="cut"
-          onClick={() => onCut?.(popup?.row)}>Cut</Menu.Item>
-        <Menu.Item {...baseProps}
-          icon={<ShareAltOutlined />}
-          key="share"
-          onClick={() => onShare(popup?.row, 'share')}>Share</Menu.Item>
-        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
-          icon={<ArrowRightOutlined />}
-          key="send"
-          onClick={() => onShare(popup?.row, 'forward')}>Send to</Menu.Item> : ''}
-        {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
-          icon={<DownloadOutlined />}
-          key="download"
-          onClick={() => location.replace(`${apiUrl}/files/${popup?.row.id}?raw=1&dl=1`)}>Download</Menu.Item> : ''}
-        <Menu.Item {...baseProps}
-          icon={<DeleteOutlined />}
-          key="delete"
-          danger
-          onClick={() => onDelete(popup?.row)}>Delete</Menu.Item>
+        {tab === 'mine' && <>
+          <Menu.Item {...baseProps}
+            icon={<EditOutlined />}
+            key="rename"
+            onClick={() => onRename(popup?.row)}>Rename</Menu.Item>
+          {!popup?.row.link_id ? <Menu.Item {...baseProps}
+            icon={<CopyOutlined />}
+            key="copy"
+            onClick={() => onCopy?.(popup?.row)}>Copy</Menu.Item> : ''}
+          <Menu.Item {...baseProps}
+            icon={<ScissorOutlined />}
+            key="cut"
+            onClick={() => onCut?.(popup?.row)}>Cut</Menu.Item>
+          <Menu.Item {...baseProps}
+            icon={<ShareAltOutlined />}
+            key="share"
+            onClick={() => onShare(popup?.row, 'share')}>Share</Menu.Item>
+          {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+            icon={<ArrowRightOutlined />}
+            key="send"
+            onClick={() => onShare(popup?.row, 'forward')}>Send to</Menu.Item> : ''}
+          {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+            icon={<DownloadOutlined />}
+            key="download"
+            onClick={() => location.replace(`${apiUrl}/files/${popup?.row.id}?raw=1&dl=1`)}>Download</Menu.Item> : ''}
+          <Menu.Item {...baseProps}
+            icon={<DeleteOutlined />}
+            key="delete"
+            danger
+            onClick={() => onDelete(popup?.row)}>Delete</Menu.Item>
+        </>}
       </Menu>
     }
     if (selected?.length && action) {
@@ -297,7 +299,7 @@ const TableFiles: React.FC<Props> = ({
             }
           }, [dataSource, selected]),
           onContextMenu: e => {
-            if (tab !== 'mine') return
+            // if (tab !== 'mine') return
 
             e.preventDefault()
             if (!popup?.visible) {
@@ -324,10 +326,11 @@ const TableFiles: React.FC<Props> = ({
         } : undefined} />
     </DndProvider>
     <ContextMenu />
-    <Modal title={<>Details <Icon type={showDetails?.type} /> {showDetails?.name}</>}
+    <Modal title={<><Icon type={showDetails?.type} /> {showDetails?.name}</>}
       visible={Boolean(showDetails)}
       onCancel={() => setShowDetails(undefined)}
-      onOk={() => setShowDetails(undefined)}>
+      okText="View"
+      onOk={() => onRowClick(showDetails)}>
       <Descriptions column={1}>
         <Descriptions.Item label="Size">{showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}</Descriptions.Item>
         <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('llll')}</Descriptions.Item>
