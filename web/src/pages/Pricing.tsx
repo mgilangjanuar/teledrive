@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, QuestionCircleOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Divider, Form, Input, Layout, notification, Row, Switch, Tooltip, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
