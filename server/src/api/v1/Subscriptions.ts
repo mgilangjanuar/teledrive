@@ -25,6 +25,9 @@ export class Subscriptions {
       }
 
       req.user.midtrans_id = `premium-${uuid()}`
+      if (req.body.email) {
+        req.user.email = req.body.email
+      }
       await req.user.save()
       const result = await new Midtrans().getPaymentLink(req.user, 144_000)
       return res.send({ link: result.redirect_url })
