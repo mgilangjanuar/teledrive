@@ -1,5 +1,5 @@
-import { ArrowRightOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Divider, Layout, Row, Switch, Typography } from 'antd'
+import { ArrowRightOutlined, QuestionCircleOutlined } from '@ant-design/icons'
+import { Button, Card, Col, Divider, Form, Input, Layout, notification, Row, Switch, Tooltip, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
@@ -12,16 +12,20 @@ const Pricing: React.FC = () => {
   const history = useHistory()
   const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [loading, setLoading] = useState<boolean>()
+  const [email, setEmail] = useState<string>()
   const [isIDR, setIsIDR] = useState<boolean>(false)
 
-  const select = (plan: 'free' | 'premium' | 'professional' | 'donation', provider?: string) => {
+  const select = (plan: 'free' | 'premium' | 'professional' | 'donation', provider?: string, emailVal?: string) => {
     if (plan === 'free' || me?.user.plan === plan) {
       return history.push('/login')
     }
     if (plan === 'premium') {
       if (me) {
+        if (isIDR && !email && !emailVal) {
+          return notification.error({ message: 'Please fill your email' })
+        }
         setLoading(true)
-        return req.post('/subscriptions', {}, provider ? { params: { provider } } : {})
+        return req.post('/subscriptions', { email: emailVal || email }, provider ? { params: { provider } } : {})
           .then(({ data }) => window.location.replace(data.link))
           .catch(() => setLoading(false))
       }
@@ -44,7 +48,16 @@ const Pricing: React.FC = () => {
     </ul>
   </Card>
 
-  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[<Button block loading={loading} type="text" size="large">{isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined /></Button>]} onClick={() => isIDR ? select('premium', 'midtrans') : select('premium')}>
+  const Premium = () => <Card color="warning" hoverable title="Premium" style={{ fontSize: '1rem' }} actions={[
+    <>
+      {isIDR && <Form.Item style={{ margin: '15px 20px' }} label={<>Email &nbsp; <Tooltip placement="topLeft" title="This is required for sending the invoice to your email"><QuestionCircleOutlined /></Tooltip></>}>
+        <Input.Search type="email" size="large" placeholder="Type your email here..." required defaultValue={email} onBlur={({ target }) => setEmail(target.value)} enterButton={<ArrowRightOutlined />} onSearch={val => select('premium', 'midtrans', val)} />
+      </Form.Item>}
+      <Button block loading={loading} type="text" size="large" onClick={() => isIDR ? select('premium', 'midtrans') : select('premium')}>
+        {isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined />
+      </Button>
+    </>
+  ]}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
       {isIDR ? <>
         <Typography.Text style={{ fontSize: '0.35em' }}>Rp</Typography.Text>144k
