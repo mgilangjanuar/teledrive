@@ -35,7 +35,7 @@ const Pricing: React.FC = () => {
     return window.open('https://www.buymeacoffee.com/mgilangjanuar', '_blank')
   }
 
-  const Free = () => <Card color="warning" hoverable title="FREE" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select <ArrowRightOutlined /></Button>]} onClick={() => select('free')}>
+  const Free = () => <Card color="warning" hoverable title="FREE" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large" onClick={() => select('free')}>Select <ArrowRightOutlined /></Button>]}>
     <Typography.Title style={{ textAlign: 'center', fontSize: '4.8em', fontWeight: 300 }}>
       <Typography.Text style={{ fontSize: '0.35em' }}>{isIDR ? 'Rp' : '$'}</Typography.Text>
       0

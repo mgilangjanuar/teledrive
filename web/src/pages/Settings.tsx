@@ -1,6 +1,7 @@
-import { CrownOutlined, DeleteOutlined, LogoutOutlined, WarningOutlined } from '@ant-design/icons'
+import { CrownOutlined, DeleteOutlined, LogoutOutlined, WarningOutlined, ReloadOutlined } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
+import { readFileSync } from 'fs'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
@@ -69,17 +70,19 @@ const Settings: React.FC = () => {
                   save({ expandable_rows: val })
                 }} checked={expandableRows} defaultChecked={expandableRows} />
               </Form.Item>
+              <Form.Item label="Check Updates">
+                <Button shape="round" icon={<ReloadOutlined />} onClick={() => window.location.reload()}>Reload</Button>
+              </Form.Item>
               <Form.Item label={<Typography.Text type="danger">Delete Account</Typography.Text>}>
                 <Button shape="round" danger type="primary" icon={<DeleteOutlined />} onClick={() => setRemoveConfirmation(true)}>Permanently Removed</Button>
               </Form.Item>
             </Form>
-            <Row>
-              <Col span={24} md={{ span: 12, offset: 12 }} lg={{ span: 12, offset: 12 }}>
-                <Button icon={<LogoutOutlined />} danger shape="round" onClick={() => setLogoutConfirmation(true)}>
-                  Logout
-                </Button>
-              </Col>
-            </Row>
+            <Divider />
+            <Typography.Paragraph style={{ textAlign: 'center' }}>
+              <Button icon={<LogoutOutlined />} danger shape="round" onClick={() => setLogoutConfirmation(true)}>
+                Logout
+              </Button>
+            </Typography.Paragraph>
           </Card>
         </Col>
       </Row>
