@@ -15,7 +15,7 @@ import {
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Button, Descriptions, Menu, Modal, Table } from 'antd'
+import { Descriptions, Menu, Modal, Table } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
