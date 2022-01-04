@@ -10,7 +10,7 @@ const Faq: React.FC = () => {
   const { data: contributors } = useSWRImmutable('/github/contributors', fetcher)
 
   return <>
-    <Navbar user={me} page="faq" />
+    <Navbar user={me?.user} page="faq" />
     <Layout.Content className="container">
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>

@@ -1,4 +1,4 @@
-import { CrownOutlined, DeleteOutlined, LogoutOutlined, WarningOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import React, { useEffect, useState } from 'react'
@@ -14,6 +14,7 @@ const Settings: React.FC = () => {
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
   const [formRemoval] = useForm()
+  const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
   const { data: me, mutate, error } = useSWRImmutable('/users/me', fetcher, {
     onError: () => history.push('/login')
   })
@@ -50,7 +51,7 @@ const Settings: React.FC = () => {
   }
 
   return <>
-    <Navbar page="settings" user={me} />
+    <Navbar page="settings" user={me?.user} />
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
@@ -69,15 +70,31 @@ const Settings: React.FC = () => {
                   save({ expandable_rows: val })
                 }} checked={expandableRows} defaultChecked={expandableRows} />
               </Form.Item>
+              <Form.Item label="Check Updates">
+                <Button shape="round" icon={<ReloadOutlined />} onClick={() => window.location.reload()}>Reload</Button>
+              </Form.Item>
               <Form.Item label={<Typography.Text type="danger">Delete Account</Typography.Text>}>
-                <Button shape="round" danger type="primary" icon={<DeleteOutlined />} onClick={() => setRemoveConfirmation(true)}>Permanently Removed</Button>
+                <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>
               </Form.Item>
             </Form>
+            <Divider />
             <Row>
-              <Col span={24} md={{ span: 12, offset: 12 }} lg={{ span: 12, offset: 12 }}>
-                <Button icon={<LogoutOutlined />} danger shape="round" onClick={() => setLogoutConfirmation(true)}>
-                  Logout
-                </Button>
+              <Col span={22} offset={1} md={{ span: 12, offset: 6 }}>
+                <Typography.Paragraph style={{ textAlign: 'center' }}>
+                  <Button block icon={<LogoutOutlined />} danger shape="round"
+                    onClick={() => setLogoutConfirmation(true)}>
+                    Logout
+                  </Button>
+                </Typography.Paragraph>
+                <Typography.Paragraph style={{ textAlign: 'center' }}>
+                  <Button block icon={<ArrowLeftOutlined />} type="link"
+                    onClick={() => history.push('/dashboard')}>
+                    Back to Dashboard
+                  </Button>
+                </Typography.Paragraph>
+                <Typography.Paragraph style={{ textAlign: 'center' }} type="secondary">
+                  v{respVersion?.version}
+                </Typography.Paragraph>
               </Col>
             </Row>
           </Card>

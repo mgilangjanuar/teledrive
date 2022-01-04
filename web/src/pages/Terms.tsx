@@ -12,7 +12,7 @@ const Terms: React.FC = () => {
   const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   return <>
-    <Navbar page="terms" user={me} />
+    <Navbar page="terms" user={me?.user} />
     <Layout.Content className="container">
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
