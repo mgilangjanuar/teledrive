@@ -7,9 +7,12 @@ import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Terms: React.FC = () => {
+interface Props {
+  me?: any
+}
+
+const Terms: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/documents/tos', fetcher)
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   return <>
     <Navbar page="terms" user={me?.user} />

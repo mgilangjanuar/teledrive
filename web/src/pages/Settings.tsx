@@ -8,16 +8,22 @@ import { apiUrl, fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Settings: React.FC = () => {
+interface Props {
+  me?: any,
+  mutate?: any,
+  error?: any
+}
+
+const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const history = useHistory()
   const [expandableRows, setExpandableRows] = useState<boolean>()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
   const [formRemoval] = useForm()
   const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
-  const { data: me, mutate, error } = useSWRImmutable('/users/me', fetcher, {
-    onError: () => history.push('/login')
-  })
+  // const { data: me, mutate, error } = useSWRImmutable('/users/me', fetcher, {
+  //   onError: () => history.push('/login')
+  // })
 
   const save = (settings: any) => {
     req.patch('/users/me/settings', { settings })
@@ -34,6 +40,12 @@ const Settings: React.FC = () => {
       setExpandableRows(me.user?.settings?.expandable_rows)
     }
   }, [me])
+
+  useEffect(() => {
+    if (error) {
+      return history.push('/login')
+    }
+  }, [error])
 
   const logout = async () => {
     await req.post('/auth/logout')

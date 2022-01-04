@@ -12,7 +12,11 @@ import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Login: React.FC = () => {
+interface Props {
+  me?: any
+}
+
+const Login: React.FC<Props> = ({ me }) => {
   const history = useHistory()
   const [formLogin] = useForm()
   const [dc, setDc] = useState<string>()
@@ -24,7 +28,6 @@ const Login: React.FC = () => {
   const [countdown, setCountdown] = useState<number>()
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
 
   useEffect(() => {

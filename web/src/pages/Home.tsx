@@ -1,6 +1,6 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
@@ -9,9 +9,13 @@ import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Home: React.FC = () => {
+interface Props {
+  me?: any
+}
+
+const Home: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
+  // const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
 
   useEffect(() => {
