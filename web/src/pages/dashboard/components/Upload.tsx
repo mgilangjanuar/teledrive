@@ -22,7 +22,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       description: 'Please don\'t close/reload this browser'
     })
     // const maxSize = 1024 * 1024 * 1024 * 2
-    const maxSize = 2_000_000
+    const maxSize = 2_000_000_000
     const chunkSize = 512 * 1024
 
     const fileParts = Math.ceil(file.size / maxSize)
