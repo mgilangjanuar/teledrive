@@ -15,7 +15,7 @@ import {
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Descriptions, Menu, Modal, Table } from 'antd'
+import { Button, Descriptions, Menu, Modal, Table } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -206,9 +206,9 @@ const TableFiles: React.FC<Props> = ({
           type = <TeamOutlined />
         }
 
-        return <>
+        return <Button type="link" style={{ color: '#000', paddingLeft: 0, paddingRight: 0 }}>
           {row.link_id ? <BranchesOutlined /> : '' } {type} <Icon type={row.type} /> {row.name}
-        </>
+        </Button>
       }
     },
     {

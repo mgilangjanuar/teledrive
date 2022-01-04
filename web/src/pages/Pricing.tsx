@@ -3,16 +3,14 @@ import { Button, Card, Col, Divider, Form, Input, Layout, notification, Row, Swi
 import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
-import { req } from '../utils/Fetcher'
+import useSWRImmutable from 'swr/immutable'
+import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-interface Props {
-  me?: any
-}
-
-const Pricing: React.FC<Props> = ({ me }) => {
+const Pricing: React.FC = () => {
   const history = useHistory()
+  const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [loading, setLoading] = useState<boolean>()
   const [email, setEmail] = useState<string>()
   const [isIDR, setIsIDR] = useState<boolean>(false)

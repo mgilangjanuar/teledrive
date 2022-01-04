@@ -2,21 +2,17 @@ import { SendOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Form, Input, Layout, notification, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
-import { req } from '../utils/Fetcher'
+import useSWR from 'swr'
+import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-interface Props {
-  me?: any
-}
-
-const Contact: React.FC<Props> = ({ me }) => {
+const Contact: React.FC = () => {
   const [form] = useForm()
   const [loading, setLoading] = useState<boolean>()
-
-  useEffect(() => {
-    form.setFieldsValue({ from: me?.user.username })
-  }, [me])
+  const { data: me } = useSWR('/users/me', fetcher, {
+    onSuccess: ({ user }) => form.setFieldsValue({ from: user.username })
+  })
 
   useEffect(() => {
     const intent = new URLSearchParams(location.search).get('intent')

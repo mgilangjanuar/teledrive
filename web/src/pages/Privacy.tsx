@@ -7,12 +7,9 @@ import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-interface Props {
-  me?: any
-}
-
-const Privacy: React.FC<Props> = ({ me }) => {
+const Privacy: React.FC = () => {
   const { data } = useSWRImmutable('/documents/privacy', fetcher)
+  const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   return <>
     <Navbar page="privacy" user={me?.user} />

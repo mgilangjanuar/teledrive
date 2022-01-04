@@ -24,6 +24,10 @@ html, body {
   padding: 0 30px;
 }
 
+.ant-layout, footer, .ant-layout-footer {
+  background: #fff;
+}
+
 .container {
   min-height: 79vh;
   padding: 24px 12px;
@@ -90,5 +94,5 @@ html, body {
 }
 
 .ant-popover-inner-content {
-  padding: 0 !important;
+  padding: 0;
 }

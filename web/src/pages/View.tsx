@@ -48,10 +48,11 @@ interface PageProps extends RouteComponentProps<{
   id: string
 }> {}
 
-const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, errorMe }) => {
+const View: React.FC<PageProps> = ({ match }) => {
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
   const { data, error, mutate } = useSWR(`/files/${match.params.id}`, fetcher)
+  const { data: me, error: errorMe } = useSWRImmutable('/users/me', fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
