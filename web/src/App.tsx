@@ -5,7 +5,7 @@ import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
 import { fetcher } from './utils/Fetcher'
 
-import './App.less'
+import './App.dark.less'
 import 'antd-country-phone-input/dist/index.css'
 
 const Dashboard = lazy(
