@@ -41,17 +41,19 @@ const NotFound = lazy(
 )
 
 function App(): React.ReactElement {
-
-  if (localStorage.getItem('theme') === 'dark') {
-    require('./App.dark.less')
-  } else {
-    require('./App.less')
-  }
-  require('antd-country-phone-input/dist/index.css')
-
   const { pathname } = useLocation()
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
   const { data } = useSWR('/utils/maintenance', fetcher)
+  const { data: me } = useSWR('/users/me', fetcher)
+
+  useEffect(() => {
+    if (me?.user.plan === 'premium' && localStorage.getItem('theme') === 'dark') {
+      require('./App.dark.less')
+    } else {
+      require('./App.less')
+    }
+    require('antd-country-phone-input/dist/index.css')
+  }, [me])
 
   return (
     <Layout className="App">
