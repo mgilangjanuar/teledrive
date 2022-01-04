@@ -5,8 +5,11 @@ import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Faq: React.FC = () => {
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
+interface Props {
+  me?: any
+}
+
+const Faq: React.FC<Props> = ({ me }) => {
   const { data: contributors } = useSWRImmutable('/github/contributors', fetcher)
 
   return <>

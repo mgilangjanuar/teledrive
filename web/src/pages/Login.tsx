@@ -12,7 +12,11 @@ import { fetcher, req } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Login: React.FC = () => {
+interface Props {
+  me?: any
+}
+
+const Login: React.FC<Props> = ({ me }) => {
   const history = useHistory()
   const [formLogin] = useForm()
   const [dc, setDc] = useState<string>()
@@ -24,7 +28,6 @@ const Login: React.FC = () => {
   const [countdown, setCountdown] = useState<number>()
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
 
   useEffect(() => {
@@ -233,6 +236,7 @@ const Login: React.FC = () => {
                     margin: '0 0.3rem 1rem 0',
                     borderRadius: '4px',
                     fontSize: '1.2rem',
+                    background: localStorage.getItem('theme') === 'dark' ? 'rgba(255, 255, 255, 0.04)' : undefined,
                     border: '1px solid rgba(0, 0, 0, 0.3)' }} />
                   {countdown ? <Typography.Paragraph type="secondary">Re-send in {countdown}s...</Typography.Paragraph> : <Typography.Paragraph>
                     <Button type="link" onClick={() => sendCode()}>Re-send code</Button>

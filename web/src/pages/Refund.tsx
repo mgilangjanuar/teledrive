@@ -7,9 +7,12 @@ import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Refund: React.FC = () => {
+interface Props {
+  me?: any
+}
+
+const Refund: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/documents/refund', fetcher)
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
 
   return <>
     <Navbar page="refund" user={me?.user} />

@@ -1,17 +1,21 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
 import { Avatar, Button, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import GitHubButton from 'react-github-btn'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
-import { ReactComponent as UploadingAnimate } from '../svg/Uploading-amico.svg'
+import { ReactComponent as UploadingAnimate } from '../svg/Uploading-amico-new.svg'
 import { fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 
-const Home: React.FC = () => {
+interface Props {
+  me?: any
+}
+
+const Home: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
-  const { data: me } = useSWRImmutable('/users/me', fetcher)
+  // const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
 
   useEffect(() => {
@@ -173,7 +177,7 @@ const Home: React.FC = () => {
                 <Space wrap size={30}>
                   <Tooltip placement="bottom" title="Bahasa.ai - Chatbot Which Serves Customers Fully" key="bahasa-ai">
                     <a href="https://bahasa.ai" target="_blank">
-                      <img style={{ width: '100%', maxWidth: '212px' }} src="https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png" />
+                      <img style={{ width: '100%', maxWidth: '212px' }} src={localStorage.getItem('theme') === 'dark' ? 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5fefb0768f76054a6f40c1e5_Bahasa-ai%20white%20(logo).svg' : 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png'} />
                     </a>
                   </Tooltip>
                   <Tooltip  placement="bottom" title="DigitalOcean – The developer cloud" key="digitalocean">
