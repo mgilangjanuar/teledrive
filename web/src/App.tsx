@@ -3,6 +3,7 @@ import { Button, Layout, Result } from 'antd'
 import React, { lazy, Suspense, useEffect } from 'react'
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
+import useSWRImmutable from 'swr/immutable'
 import { fetcher } from './utils/Fetcher'
 
 const Dashboard = lazy(
@@ -44,7 +45,7 @@ function App(): React.ReactElement {
   const { pathname } = useLocation()
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
   const { data } = useSWR('/utils/maintenance', fetcher)
-  const { data: me, error: errorMe, mutate: mutateMe } = useSWR('/users/me', fetcher)
+  const { data: me, error: errorMe, mutate: mutateMe } = useSWRImmutable('/users/me', fetcher)
 
   useEffect(() => {
     if (me?.user.plan === 'premium' && localStorage.getItem('theme') === 'dark') {
