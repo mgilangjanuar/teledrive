@@ -1,5 +1,5 @@
-import { DeleteOutlined, LogoutOutlined, WarningOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, Modal, notification, Row, Switch, Typography } from 'antd'
+import { CrownOutlined, DeleteOutlined, LogoutOutlined, WarningOutlined } from '@ant-design/icons'
+import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
@@ -58,7 +58,9 @@ const Settings: React.FC = () => {
             Settings
           </Typography.Title>
           <Card loading={!me && !error}>
-            <Card.Meta avatar={<Avatar size="large" src={`${apiUrl}/users/me/photo`} />} title={me?.user.name} description={me?.user.username} />
+            <Card.Meta avatar={<Avatar size="large" src={`${apiUrl}/users/me/photo`} />} title={<>{me?.user.name} {me?.user?.plan === 'premium' && <Popover placement="top" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
+              <CrownOutlined />
+            </Popover>}</>} description={me?.user.username} />
             <Divider />
             <Form layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
               <Form.Item label="Expandable Rows" name="expandable_rows">

@@ -22,19 +22,21 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       description: 'Please don\'t close/reload this browser'
     })
     // const maxSize = 1024 * 1024 * 1024 * 2
-    const maxSize = 2_000_000_000
+    const maxSize = 2_000_000
+    const chunkSize = 512 * 1024
+
     const fileParts = Math.ceil(file.size / maxSize)
     let deleted = false
 
     try {
       let firstResponse: any
-      let totalParts: number = 1
+      let totalParts: number = 0
+
+      const totalAllParts = Math.ceil(file.size % maxSize / chunkSize) + (fileParts - 1) * Math.ceil(maxSize / chunkSize)
 
       for (let j = 0; j < fileParts; j++) {
         const fileBlob = file.slice(j * maxSize, Math.min(j * maxSize + maxSize, file.size))
-        const chunkSize = 512 * 1024
         const parts = Math.ceil(fileBlob.size / chunkSize)
-        const partName = `.part${j + 1}`
 
         for (let i = 0; i < parts; i++) {
           if (firstResponse?.file && cancelUploading.current && file.uid === cancelUploading.current) {
@@ -50,7 +52,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const { data: response } = await req.post(`/files/upload${i > 0 && firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
             params: {
               ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
-              name: `${file.name}${fileParts > 1 ? partName : ''}`,
+              name: `${file.name}${fileParts > 1 ? `.part${j + 1}` : ''}`,
               size: fileBlob.size,
               mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
               part: i,
@@ -59,9 +61,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           })
           firstResponse = response
 
-          const percent = ((totalParts / (parts * fileParts)) * 100).toFixed(1) // eslint-disable-line
+          const percent = (++totalParts / totalAllParts * 100).toFixed(1)
           onProgress({ percent }, file)
-          totalParts += 1
         }
       }
       // notification.close(`upload-${file.uid}`)
