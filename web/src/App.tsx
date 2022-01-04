@@ -5,9 +5,6 @@ import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
 import { fetcher } from './utils/Fetcher'
 
-import './App.dark.less'
-import 'antd-country-phone-input/dist/index.css'
-
 const Dashboard = lazy(
   () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
 )
@@ -44,6 +41,14 @@ const NotFound = lazy(
 )
 
 function App(): React.ReactElement {
+
+  if (localStorage.getItem('theme') === 'dark') {
+    require('./App.dark.less')
+  } else {
+    require('./App.less')
+  }
+  require('antd-country-phone-input/dist/index.css')
+
   const { pathname } = useLocation()
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
   const { data } = useSWR('/utils/maintenance', fetcher)

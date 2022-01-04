@@ -151,7 +151,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             type: 'file',
             title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
             onTitleClick: () => user?.username ? window.open(`https://t.me/${user?.username}`, '_blank') : undefined,
-            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            // titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             text: `${fileTitle.slice(0, 20)}${fileTitle.length > 20 ? '...' : ''}`,
             message: `${fileTitle.slice(0, 20)}${fileTitle.length > 20 ? '...' : ''}`,
             status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
@@ -190,11 +190,11 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             message: msg.message,
             fwdFrom: msg.fwdFrom,
             date: msg.date * 1000,
-            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            // titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             user,
             reply: replyMsg ? {
               title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
-              titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
+              // titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
               message: replyMsg.message || 'Unknown message'
             } : undefined
           } : null
@@ -217,7 +217,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           message: msg.message,
           fwdFrom: msg.fwdFrom,
           date: new Date().getTime(),
-          titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+          // titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
           user
         }
       }) || []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])

@@ -70,6 +70,12 @@ const Settings: React.FC = () => {
                   save({ expandable_rows: val })
                 }} checked={expandableRows} defaultChecked={expandableRows} />
               </Form.Item>
+              <Form.Item label="Dark Mode" name="expandable_rows">
+                <Switch onChange={val => {
+                  localStorage.setItem('theme', val ? 'dark' : 'light')
+                  window.location.reload()
+                }} checked={localStorage.getItem('theme') === 'dark'} defaultChecked={localStorage.getItem('theme') === 'dark'} />
+              </Form.Item>
               <Form.Item label="Check Updates">
                 <Button shape="round" icon={<ReloadOutlined />} onClick={() => window.location.reload()}>Reload</Button>
               </Form.Item>
