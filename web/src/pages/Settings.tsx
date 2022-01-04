@@ -72,8 +72,14 @@ const Settings: React.FC = () => {
               </Form.Item>
               <Form.Item label="Dark Mode" name="expandable_rows">
                 <Switch onChange={val => {
+                  if (me?.user.plan !== 'premium') {
+                    return notification.error({
+                      message: 'Premium Feature',
+                      description: 'Please upgrade your plan for using this feature'
+                    })
+                  }
                   localStorage.setItem('theme', val ? 'dark' : 'light')
-                  window.location.reload()
+                  return window.location.reload()
                 }} checked={localStorage.getItem('theme') === 'dark'} defaultChecked={localStorage.getItem('theme') === 'dark'} />
               </Form.Item>
               <Form.Item label="Check Updates">
