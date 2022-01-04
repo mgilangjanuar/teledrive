@@ -151,7 +151,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             type: 'file',
             title: user ? user.title || `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
             onTitleClick: () => user?.username ? window.open(`https://t.me/${user?.username}`, '_blank') : undefined,
-            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            // titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             text: `${fileTitle.slice(0, 20)}${fileTitle.length > 20 ? '...' : ''}`,
             message: `${fileTitle.slice(0, 20)}${fileTitle.length > 20 ? '...' : ''}`,
             status: me?.user.tg_id == user?.id ? msg.id <= dialog?.dialog?.readOutboxMaxId ? 'read' : 'received' : undefined,
@@ -190,11 +190,11 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
             message: msg.message,
             fwdFrom: msg.fwdFrom,
             date: msg.date * 1000,
-            titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+            // titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
             user,
             reply: replyMsg ? {
               title: replyUser ? replyUser.title || `${replyUser.firstName || ''} ${replyUser.lastName || ''}`.trim() : 'Unknown',
-              titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
+              // titleColor: `#${`${replyUser?.id.toString(16)}000000`.slice(0, 6)}`,
               message: replyMsg.message || 'Unknown message'
             } : undefined
           } : null
@@ -217,7 +217,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
           message: msg.message,
           fwdFrom: msg.fwdFrom,
           date: new Date().getTime(),
-          titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
+          // titleColor: `#${`${user?.id.toString(16)}000000`.slice(0, 6)}`,
           user
         }
       }) || []).filter(Boolean).sort((a: any, b: any) => a.date - b.date)  || [])
@@ -287,7 +287,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
     if (chat === 'open') {
       setTimeout(() => {
-        const base = document.querySelector('.ant-layout-sider.ant-layout-sider-light.messaging')
+        const base = document.querySelector('.ant-layout-sider.messaging')
         if (base) {
           setWidth(base.clientWidth)
         }
@@ -437,14 +437,24 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }
 
   return <Layout.Sider
-    theme="light"
+    theme={localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'}
     className="messaging"
     trigger={null}
     collapsedWidth={0}
     collapsed={collapsed}
     onCollapse={setCollapsed}
-    style={{ overflowX: 'hidden', boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)', background: 'rgb(240, 242, 245) none repeat scroll 0% 0%', position: 'absolute', right: 0, width: '100%', height: '100%', overflowY: 'auto', zIndex: 1, marginBottom: 0 }}>
-    <Layout.Header style={{ background: '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: width || '100%' }}>
+    style={{
+      overflowX: 'hidden',
+      boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)',
+      background: localStorage.getItem('theme') === 'dark' ? undefined : 'rgb(240, 242, 245) none repeat scroll 0% 0%',
+      position: 'absolute',
+      right: 0,
+      width: '100%',
+      height: '100%',
+      overflowY: 'auto',
+      zIndex: 1,
+      marginBottom: 0 }}>
+    <Layout.Header style={{ background: localStorage.getItem('theme') === 'dark' ? '#1f1f1f' : '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: width || '100%' }}>
       <div key="logo" className="logo" style={{ display: 'inline', width: '100%' }}>
         <div style={{ float: 'left' }}>
           <Button icon={<ArrowLeftOutlined />} size="large" type="link" style={{ color: '#fff' }} onClick={back} />
@@ -484,21 +494,6 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         }}>
           <MessageBox {...item} />
         </List.Item>} />
-        {/* <AutoSizer>{({ width, height }) => <VList
-          ref={messageList}
-          scrollToIndex={10}
-          isScrolling
-          width={width}
-          height={height}
-          deferredMeasurementCache={cacheVList}
-          rowCount={messagesParsed.length}
-          rowHeight={cacheVList.rowHeight}
-          rowRenderer={({ index, key, style, parent }) => <CellMeasurer cache={cacheVList} columnIndex={0} key={key} parent={parent} rowIndex={index}>
-            {({ measure }) => <div style={style} key={key} onLoad={measure}>
-              <MessageBox {...messagesParsed[index]} style={style} key={key} />
-            </div>}
-          </CellMeasurer>}
-        />}</AutoSizer> */}
         <ContextMenu />
       </> : <>
         <Typography.Paragraph>

@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Paragraph>
                 <Button type="link" href="/" style={{ fontSize: '20px', fontWeight: 'bolder' }}
-                  icon={<img src="/teledrive-logo/logoteledrive.png" style={{ height: '24px' }} />}>
+                  icon={<img src={localStorage.getItem('theme') === 'dark' ? '/teledrive-logo/logoteledrive-white.png' : '/teledrive-logo/logoteledrive.png'} style={{ height: '24px' }} />}>
                 </Button>
               </Typography.Paragraph>
               <Typography.Paragraph type="secondary">
