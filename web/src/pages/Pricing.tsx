@@ -36,7 +36,7 @@ const Pricing: React.FC = () => {
   }
 
   const Free = () => <Card color="warning" hoverable title="FREE" style={{ fontSize: '1rem' }} actions={[<Button block type="text" size="large">Select <ArrowRightOutlined /></Button>]} onClick={() => select('free')}>
-    <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
+    <Typography.Title style={{ textAlign: 'center', fontSize: '4.8em', fontWeight: 300 }}>
       <Typography.Text style={{ fontSize: '0.35em' }}>{isIDR ? 'Rp' : '$'}</Typography.Text>
       0
     </Typography.Title>
@@ -63,7 +63,7 @@ const Pricing: React.FC = () => {
       </Button>
     </>
   ]}>
-    <Typography.Title style={{ textAlign: 'center', fontSize: '5em', fontWeight: 300 }}>
+    <Typography.Title style={{ textAlign: 'center', fontSize: '4.8em', fontWeight: 300 }}>
       {isIDR ? <>
         <Typography.Text style={{ fontSize: '0.35em' }}>Rp</Typography.Text>144k
       </> : <>
@@ -101,18 +101,18 @@ const Pricing: React.FC = () => {
   </div>
 
   return <>
-    <Navbar user={me} page="pricing" />
+    <Navbar user={me?.user} page="pricing" />
     <Layout.Content className="container" style={{ marginTop: '80px' }}>
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Title level={4} style={{ textAlign: 'center', marginBottom: '70px' }}>
             USD 🇺🇸 &nbsp; <Switch onChange={e => setIsIDR(e)} /> &nbsp; IDR 🇮🇩
           </Typography.Title>
-          <Row gutter={48} align="middle">
-            <Col lg={{ span: 8, offset: 4 }} span={24} style={{ marginBottom: '35px' }}>
+          <Row gutter={24} align="middle">
+            <Col lg={{ span: 10, offset: 2 }} span={24} style={{ marginBottom: '35px' }}>
               <Free />
             </Col>
-            <Col lg={{ span: 8 }} span={24} style={{ marginBottom: '35px' }}>
+            <Col lg={{ span: 10 }} span={24} style={{ marginBottom: '35px' }}>
               <Premium />
             </Col>
           </Row>

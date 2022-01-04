@@ -50,7 +50,7 @@ const Settings: React.FC = () => {
   }
 
   return <>
-    <Navbar page="settings" user={me} />
+    <Navbar page="settings" user={me?.user} />
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
