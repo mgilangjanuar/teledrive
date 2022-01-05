@@ -58,7 +58,6 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
   const [selectShare, setSelectShare] = useState<any>()
   const [fileRename, setFileRename] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
-  const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
 
   useEffect(() => {
     if (data?.file) {
