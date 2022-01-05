@@ -5,8 +5,6 @@ import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
-import Footer from './components/Footer'
-import Navbar from './components/Navbar'
 
 interface Props {
   me?: any,
@@ -21,26 +19,21 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
   const [formRemoval] = useForm()
   const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
-  // const { data: me, mutate, error } = useSWRImmutable('/users/me', fetcher, {
-  //   onError: () => history.push('/login')
-  // })
 
-  const save = (settings: any) => {
-    return req.patch('/users/me/settings', { settings })
-      .then(() => {
-        notification.success({  message: 'Settings saved' })
-        // setExpandableRows(!expandableRows)
-        mutate()
-      })
-      .catch(({ response }) => {
-        if (response.status === 402) {
-          return notification.error({
-            message: 'Premium Feature',
-            description: 'Please upgrade your plan for using this feature'
-          })
-        }
-        return notification.error({ message: 'Something error. Please try again.' })
-      })
+  const save = async (settings: any): Promise<void> => {
+    try {
+      await req.patch('/users/me/settings', { settings })
+      notification.success({ message: 'Settings saved' })
+      mutate()
+    } catch ({ response }) {
+      if ((response as any).status === 402) {
+        return notification.error({
+          message: 'Premium Feature',
+          description: 'Please upgrade your plan for using this feature'
+        })
+      }
+      return notification.error({ message: 'Something error. Please try again.' })
+    }
   }
 
   useEffect(() => {
@@ -71,11 +64,10 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   }
 
   return <>
-    <Navbar page="settings" user={me?.user} />
     <Layout.Content className="container">
-      <Row style={{ marginTop: '30px' }}>
+      <Row style={{ marginTop: '80px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
-          <Typography.Title level={2}>
+          <Typography.Title>
             Settings
           </Typography.Title>
           <Card loading={!me && !error}>
@@ -96,7 +88,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 }} checked={me?.user.settings?.theme === 'dark'} defaultChecked={me?.user.settings?.theme === 'dark'} />
               </Form.Item>
               <Form.Item label="Check Updates">
-                <Button shape="round" icon={<ReloadOutlined />} onClick={() => window.location.reload()}>Reload</Button>
+                <Button shape="round" icon={<ReloadOutlined />} onClick={() => (window.location as any).reload(true)}>Reload</Button>
               </Form.Item>
               <Form.Item label={<Typography.Text type="danger">Delete Account</Typography.Text>}>
                 <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>
@@ -155,8 +147,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
         </Form.Item>
       </Form>
     </Modal>
-
-    <Footer me={me} />
   </>
 }
 

@@ -9,8 +9,6 @@ import { useHistory } from 'react-router'
 import useSWRImmutable from 'swr/immutable'
 import en from 'world_countries_lists/data/en/world.json'
 import { fetcher, req } from '../utils/Fetcher'
-import Footer from './components/Footer'
-import Navbar from './components/Navbar'
 
 interface Props {
   me?: any
@@ -133,7 +131,6 @@ const Login: React.FC<Props> = ({ me }) => {
   }, [countdown])
 
   return <>
-    <Navbar />
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
@@ -270,7 +267,6 @@ const Login: React.FC<Props> = ({ me }) => {
         </Col>
       </Row>
     </Layout.Content>
-    <Footer me={me} />
   </>
 }
 

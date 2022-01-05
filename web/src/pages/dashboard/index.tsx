@@ -27,8 +27,6 @@ import { RouteComponentProps, useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 import { fetcher, req } from '../../utils/Fetcher'
-import Footer from '../components/Footer'
-import Navbar from '../components/Navbar'
 import AddFolder from './components/AddFolder'
 import Breadcrumb from './components/Breadcrumb'
 import Messaging from './components/Messaging'
@@ -42,12 +40,12 @@ interface PageProps extends RouteComponentProps<{
   type?: string
 }> {}
 
-const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, errorMe }) => {
+const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match }) => {
   const PAGE_SIZE = 10
 
   const history = useHistory()
   const [parent, setParent] = useState<Record<string, any> | null>()
-  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /> Home</> }])
+  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /></> }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{
     pagination?: TablePaginationConfig,
@@ -69,6 +67,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
   const [syncConfirmation, setSyncConfirmation] = useState<boolean>()
   const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
 
+  const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
     ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
     refreshInterval: 5000
@@ -298,7 +297,6 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
           history.push(`${window.location.pathname}?${searchParams.toString()}`)
         }
       }}>
-        <Navbar user={me?.user} />
         <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '0 12px' }}>
           <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
             <Typography.Paragraph>
@@ -343,9 +341,9 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
                   </Menu>}>
                     <Button shape="circle" icon={<FolderAddOutlined />} />
                   </Dropdown>
+                  <Button shape="circle" onClick={() => setSyncConfirmation(true)} icon={<SyncOutlined />} />
                 </> : ''}
-                <Button shape="circle" onClick={() => setSyncConfirmation(true)} icon={<SyncOutlined />} />
-                <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
+                <Input.Search style={{ width: '210px' }} className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
               </Space>
             </Typography.Paragraph>
             <TableFiles
@@ -456,7 +454,6 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
         </Typography.Paragraph>
       </Modal>
     </Layout>
-    <Footer me={me} />
   </Layout>
 }
 

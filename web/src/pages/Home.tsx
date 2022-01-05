@@ -7,8 +7,6 @@ import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
 import { ReactComponent as UploadingAnimate } from '../svg/Uploading-amico-new.svg'
 import { fetcher } from '../utils/Fetcher'
-import Footer from './components/Footer'
-import Navbar from './components/Navbar'
 
 interface Props {
   me?: any
@@ -16,7 +14,6 @@ interface Props {
 
 const Home: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
-  // const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
   const history = useHistory()
 
@@ -30,7 +27,6 @@ const Home: React.FC<Props> = ({ me }) => {
   }, [])
 
   return <div id="top">
-    <Navbar user={me?.user} page="home" />
     <Layout.Content style={{ fontSize: '1.125rem' }}>
       <Row align="middle" style={{ marginTop: '50px' }}>
         <Col lg={{ span: 10, offset: 2 }} md={{ span: 20, offset: 2 }} span={22} offset={1}>
@@ -206,8 +202,6 @@ const Home: React.FC<Props> = ({ me }) => {
       </Row>
 
     </Layout.Content>
-    <Footer me={me} />
-    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="mgilangjanuar" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FFDD00" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
   </div>
 }
 

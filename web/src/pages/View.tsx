@@ -39,7 +39,6 @@ import { useDebounce } from 'use-debounce/lib'
 import { apiUrl, fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
-import Messaging from './dashboard/components/Messaging'
 import Remove from './dashboard/components/Remove'
 import Rename from './dashboard/components/Rename'
 import Share from './dashboard/components/Share'
@@ -59,13 +58,12 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
   const [selectShare, setSelectShare] = useState<any>()
   const [fileRename, setFileRename] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
-  const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
 
   useEffect(() => {
     if (data?.file) {
       setLinks({
-        raw: `${apiUrl}/files/${match.params.id}?raw=1`,
-        download: `${apiUrl}/files/${match.params.id}?raw=1&dl=1`,
+        raw: `${apiUrl || `${window.location.origin}/api/v1`}/files/${match.params.id}?raw=1`,
+        download: `${apiUrl || `${window.location.origin}/api/v1`}/files/${match.params.id}?raw=1&dl=1`,
         share: `${window.location.origin}/view/${match.params.id}`
       })
     }
@@ -230,8 +228,6 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
       me={me}
       dataSelect={[selectShare, setSelectShare]}
       onFinish={mutate} />
-
-    {me && <Messaging me={me} collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />}
   </>
 }
 

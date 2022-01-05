@@ -7,6 +7,9 @@ import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { fetcher } from './utils/Fetcher'
 
+import Navbar from './pages/components/Navbar'
+import Footer from './pages/components/Footer'
+
 import 'antd-country-phone-input/dist/index.css'
 
 const Dashboard = lazy(
@@ -39,7 +42,9 @@ const Pricing = lazy(
 const Contact = lazy(
   () => import(/* webpackChunkName: 'ContactPage'  */ './pages/Contact')
 )
-const Faq = lazy(() => import(/* webpackChunkName: 'FaqPage' */ './pages/Faq'))
+const Faq = lazy(
+  () => import(/* webpackChunkName: 'FaqPage' */ './pages/Faq')
+)
 const NotFound = lazy(
   () => import(/* webpackChunkName: 'NotFoundPage' */ './pages/errors/NotFound')
 )
@@ -52,6 +57,7 @@ function App(): React.ReactElement {
 
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
 
+
   useEffect(() => {
     if (me?.user.settings?.theme === 'dark') {
       switcher({ theme: 'dark' })
@@ -63,6 +69,7 @@ function App(): React.ReactElement {
 
   return (
     <Layout className="App">
+      {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
       {data?.maintenance ? <Result
         status="warning"
         title="This site is under maintenance"
@@ -74,24 +81,25 @@ function App(): React.ReactElement {
         }
       /> : <Suspense fallback={<></>}>
         <Switch>
-          <Route path="/dashboard/:type?" exact component={(props: any) => <Dashboard {...props} me={me} errorMe={errorMe} />} />
+          <Route path="/dashboard/:type?" exact component={Dashboard} />
           <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
           <Route path="/view/:id" exact component={(props: any) => <View {...props} me={me} errorMe={errorMe} />} />
           <Route path="/login" exact>
             {me?.user ? <Redirect to="/dashboard" /> : <Login me={me} />}
           </Route>
-          <Route path="/terms" exact component={() => <Terms me={me} />} />
-          <Route path="/refund" exact component={() => <Refund me={me} />} />
-          <Route path="/privacy" exact component={() => <Privacy me={me} />} />
+          <Route path="/terms" exact component={Terms} />
+          <Route path="/refund" exact component={Refund} />
+          <Route path="/privacy" exact component={Privacy} />
           <Route path="/pricing" exact component={() => <Pricing me={me} />} />
           <Route path="/contact" exact component={() => <Contact me={me} />} />
-          <Route path="/faq" exact component={() => <Faq me={me} />} />
+          <Route path="/faq" exact component={Faq} />
           <Route path="/" exact>
             {new URLSearchParams(window.location.search).get('source') === 'pwa' ? <Redirect to="/dashboard" /> : <Home me={me} />}
           </Route>
           <Route component={NotFound} />
         </Switch>
       </Suspense>}
+      {!/^\/view\/.*/gi.test(window.location.pathname) && <Footer me={me} />}
     </Layout>
   )
 }
