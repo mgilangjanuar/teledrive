@@ -24,7 +24,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
   }
 
   return <>
-    <Layout.Header style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC' }}>
+    <Layout.Header style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 30px' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/" style={{ color: '#fff' }}>
           <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> {user?.plan === 'premium' && <Popover placement="bottom" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>

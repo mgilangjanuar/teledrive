@@ -20,10 +20,6 @@ html, body {
   min-height: 100vh;
 }
 
-.ant-layout-header {
-  padding: 0 30px !important;
-}
-
 .container {
   min-height: 79vh;
   padding: 24px 12px;
