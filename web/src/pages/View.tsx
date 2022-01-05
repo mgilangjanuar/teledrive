@@ -64,8 +64,8 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
   useEffect(() => {
     if (data?.file) {
       setLinks({
-        raw: `${apiUrl}/files/${match.params.id}?raw=1`,
-        download: `${apiUrl}/files/${match.params.id}?raw=1&dl=1`,
+        raw: `${apiUrl || `${window.location.origin}/api/v1`}/files/${match.params.id}?raw=1`,
+        download: `${apiUrl || `${window.location.origin}/api/v1`}/files/${match.params.id}?raw=1&dl=1`,
         share: `${window.location.origin}/view/${match.params.id}`
       })
     }
