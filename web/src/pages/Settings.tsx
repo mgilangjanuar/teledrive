@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
+import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
 
 interface Props {
   me?: any,
@@ -88,7 +89,10 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 }} checked={me?.user.settings?.theme === 'dark'} defaultChecked={me?.user.settings?.theme === 'dark'} />
               </Form.Item>
               <Form.Item label="Check Updates">
-                <Button shape="round" icon={<ReloadOutlined />} onClick={() => (window.location as any).reload(true)}>Reload</Button>
+                <Button shape="round" icon={<ReloadOutlined />} onClick={() => {
+                  serviceWorkerRegistration.unregister();
+                  (window.location as any).reload(true)
+                }}>Reload</Button>
               </Form.Item>
               <Form.Item label={<Typography.Text type="danger">Delete Account</Typography.Text>}>
                 <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>
