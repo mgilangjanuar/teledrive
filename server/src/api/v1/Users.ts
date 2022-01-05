@@ -140,7 +140,10 @@ export class Users {
     if (settings.theme === 'dark' && (!req.user.plan || req.user.plan === 'free')) {
       throw { status: 402, body: { error: 'You need to upgrade your plan to use dark theme' } }
     }
-    req.user.settings = settings
+    req.user.settings = {
+      ...req.user.settings || {},
+      ...settings
+    }
     await req.user.save()
     return res.send({ settings: req.user?.settings })
   }
