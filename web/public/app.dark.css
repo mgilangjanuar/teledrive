@@ -16,7 +16,7 @@
   fill: rgba(255, 255, 255, 0.04) !important;
 }
 
-.rce-mbox-time {
+.rce-mbox-time, .rce-citem-body--top-time {
   color: rgba(255, 255, 255, 0.45) !important;
 }
 
