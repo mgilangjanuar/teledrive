@@ -112,7 +112,7 @@ const Faq: React.FC<Props> = ({ me }) => {
         </Col>
       </Row>
     </Layout.Content>
-    <Footer />
+    <Footer me={me} />
   </>
 }
 

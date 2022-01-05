@@ -1,0 +1,5 @@
+@import '/antd.css';
+
+.ant-layout, footer, .ant-layout-footer {
+  background: #fff !important;
+}

@@ -2207,6 +2207,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/less@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@types/less/-/less-3.0.3.tgz#f9451dbb9548d25391107d65d6401a0cfb15db92"
+  integrity sha512-1YXyYH83h6We1djyoUEqTlVyQtCfJAFXELSKW2ZRtjHD4hQ82CC4lvrv5D0l0FLcKBaiPbXyi3MpMsI9ZRgKsw==
+
 "@types/mdast@^3.0.0", "@types/mdast@^3.0.3":
   version "3.0.10"
   resolved "https://registry.yarnpkg.com/@types/mdast/-/mdast-3.0.10.tgz#4724244a82a4598884cbbe9bcfd73dff927ee8af"
@@ -8877,7 +8882,7 @@ less-vars-to-js@^1.3.0:
   dependencies:
     strip-json-comments "^2.0.1"
 
-less@^3.11.1, less@^3.11.3:
+less@^3.11.1, less@^3.11.3, less@^3.9.0:
   version "3.13.1"
   resolved "https://registry.yarnpkg.com/less/-/less-3.13.1.tgz#0ebc91d2a0e9c0c6735b83d496b0ab0583077909"
   integrity sha512-SwA1aQXGUvp+P5XdZslUOhhLnClSLIjWvJhmd+Vgib5BFIr9lMNlQwmwUNOjXThF/A0x+MCYYPeWEfeWiLRnTw==
@@ -8893,7 +8898,7 @@ less@^3.11.1, less@^3.11.3:
     native-request "^1.0.5"
     source-map "~0.6.0"
 
-less@^4.1.1:
+less@^4.1.1, less@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/less/-/less-4.1.2.tgz#6099ee584999750c2624b65f80145f8674e4b4b0"
   integrity sha512-EoQp/Et7OSOVu0aJknJOtlXZsnr8XE8KwuzTHOLeVSEx8pVWUICc8Q0VYRHgzyjX78nMEyC/oztWFbgyhtNfDA==
@@ -8909,6 +8914,13 @@ less@^4.1.1:
     mime "^1.4.1"
     needle "^2.5.2"
     source-map "~0.6.0"
+
+lessc@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/lessc/-/lessc-1.0.2.tgz#b9bedd7f1953f142bbe70ffc00a2378d19a5152a"
+  integrity sha512-cv7EXQRiD3Cu2Vsy3S9C89G01kOv0TrLQMoWHxscCgkMYdhEvknhaINeQkZbPmUlJ87AEzjPm0y/14Cg9j7/ug==
+  dependencies:
+    less "^3.9.0"
 
 leven@^3.1.0:
   version "3.1.0"
@@ -12398,6 +12410,11 @@ react-chat-elements@^10.16.0:
     react-progress-bar.js "^0.2.3"
     react-spinkit "^3.0.0"
     timeago.js "^4.0.0-beta.2"
+
+react-css-theme-switcher@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/react-css-theme-switcher/-/react-css-theme-switcher-0.3.0.tgz#a527f52c378474cb74ee4d83867aa6face424400"
+  integrity sha512-RV+fJ6mSbtsLOgIgeL4Q8MEH4Hyl72tQvGpCFBbk3ia6ie3KzXO1gfbKTV2q1ryP3hBpmyy1qrX+6E1f937A1A==
 
 react-dev-utils@^11.0.3:
   version "11.0.4"

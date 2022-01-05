@@ -34,6 +34,7 @@ export class Users extends BaseModelWithID {
 
   @Column('jsonb', { default: null })
   settings?: {
-    expandable_rows?: boolean
+    expandable_rows?: boolean,
+    theme?: 'light' | 'dark'
   }
 }

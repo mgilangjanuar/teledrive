@@ -137,6 +137,9 @@ export class Users {
   @Endpoint.PATCH('/me/settings', { middlewares: [Auth] })
   public async settings(req: Request, res: Response): Promise<any> {
     const { settings } = req.body
+    if (settings.theme === 'dark' && (!req.user.plan || req.user.plan === 'free')) {
+      throw { status: 402, body: { error: 'You need to upgrade your plan to use dark theme' } }
+    }
     req.user.settings = settings
     await req.user.save()
     return res.send({ settings: req.user?.settings })

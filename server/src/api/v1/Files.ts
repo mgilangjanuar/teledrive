@@ -481,7 +481,7 @@ export class Files {
       await usage.save()
     }
 
-    const totalFileSize = files.reduce((res, file) => res.add(file.size), bigInt(0))
+    const totalFileSize = files.reduce((res, file) => res.add(file.size || 0), bigInt(0))
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
       if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {

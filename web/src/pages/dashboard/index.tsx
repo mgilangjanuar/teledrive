@@ -456,7 +456,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
         </Typography.Paragraph>
       </Modal>
     </Layout>
-    <Footer />
+    <Footer me={me} />
   </Layout>
 }
 

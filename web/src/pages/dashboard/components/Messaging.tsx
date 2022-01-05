@@ -437,7 +437,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }
 
   return <Layout.Sider
-    theme={localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'}
+    theme={me?.user.settings?.theme === 'dark' ? 'dark' : 'light'}
     className="messaging"
     trigger={null}
     collapsedWidth={0}
@@ -446,7 +446,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     style={{
       overflowX: 'hidden',
       boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05)',
-      background: localStorage.getItem('theme') === 'dark' ? undefined : 'rgb(240, 242, 245) none repeat scroll 0% 0%',
+      background: me?.user.settings?.theme === 'dark' ? undefined : 'rgb(240, 242, 245) none repeat scroll 0% 0%',
       position: 'absolute',
       right: 0,
       width: '100%',
@@ -454,7 +454,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       overflowY: 'auto',
       zIndex: 1,
       marginBottom: 0 }}>
-    <Layout.Header style={{ background: localStorage.getItem('theme') === 'dark' ? '#1f1f1f' : '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: width || '100%' }}>
+    <Layout.Header style={{ background: me?.user.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'fixed', zIndex: 2, padding: '0 15px', width: width || '100%' }}>
       <div key="logo" className="logo" style={{ display: 'inline', width: '100%' }}>
         <div style={{ float: 'left' }}>
           <Button icon={<ArrowLeftOutlined />} size="large" type="link" style={{ color: '#fff' }} onClick={back} />

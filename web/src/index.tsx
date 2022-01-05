@@ -1,16 +1,19 @@
 import React from 'react'
+import { ThemeSwitcherProvider } from 'react-css-theme-switcher'
 import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
+import App from './App'
+import './index.css'
 import reportWebVitals from './reportWebVitals'
 import * as serviceWorkerRegistration from './serviceWorkerRegistration'
 
-import App from './App'
-import './index.css'
 
 ReactDOM.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>,
+  <ThemeSwitcherProvider defaultTheme="light" themeMap={{ light: '/app.css', dark: '/app.dark.css' }}>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </ThemeSwitcherProvider>,
   document.getElementById('root')
 )
 

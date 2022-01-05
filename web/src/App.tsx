@@ -1,10 +1,13 @@
 import { TwitterOutlined } from '@ant-design/icons'
 import { Button, Layout, Result } from 'antd'
 import React, { lazy, Suspense, useEffect } from 'react'
+import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { fetcher } from './utils/Fetcher'
+
+import 'antd-country-phone-input/dist/index.css'
 
 const Dashboard = lazy(
   () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
@@ -43,17 +46,19 @@ const NotFound = lazy(
 
 function App(): React.ReactElement {
   const { pathname } = useLocation()
-  useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
+  const { switcher } = useThemeSwitcher()
   const { data } = useSWR('/utils/maintenance', fetcher)
   const { data: me, error: errorMe, mutate: mutateMe } = useSWRImmutable('/users/me', fetcher)
 
+  useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
+
   useEffect(() => {
-    if (me?.user.plan === 'premium' && localStorage.getItem('theme') === 'dark') {
-      require('./App.dark.less')
+    if (me?.user.settings?.theme === 'dark') {
+      switcher({ theme: 'dark' })
     } else {
-      require('./App.less')
+      switcher({ theme: 'light' })
     }
-    require('antd-country-phone-input/dist/index.css')
+
   }, [me])
 
   return (

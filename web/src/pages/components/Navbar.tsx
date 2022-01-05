@@ -25,7 +25,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
   }
 
   return <>
-    <Layout.Header style={{ background: localStorage.getItem('theme') === 'dark' ? '#1f1f1f' : '#0088CC' }}>
+    <Layout.Header style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/" style={{ color: '#fff' }}>
           <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> {user?.plan === 'premium' && <Popover placement="bottom" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
@@ -43,7 +43,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
         <Popover placement="bottomRight" trigger={['click']} content={<div>
           <div style={{ padding: '10px' }}>
             Bandwidth usage: { }
-            {(user?.user?.plan || user?.plan) === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - Number(usage?.usage.usage)))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
+            {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - Number(usage?.usage.usage)))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
               <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
           </div>
@@ -56,7 +56,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
           <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
         </Popover> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
-      <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: localStorage.getItem('theme') === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
+      <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>

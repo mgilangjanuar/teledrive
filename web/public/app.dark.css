@@ -1,4 +1,4 @@
-@import '~antd/dist/antd.dark.less';
+@import '/antd.dark.css';
 
 .ant-row, .ant-layout, footer, .ant-layout-footer {
   background: #141414 !important;

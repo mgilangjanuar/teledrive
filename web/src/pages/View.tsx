@@ -138,7 +138,7 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
           </Col>
         </Row>
       </Layout.Content>
-      <Footer />
+      <Footer me={me} />
     </>
   }
 

@@ -32,7 +32,15 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
         // setExpandableRows(!expandableRows)
         mutate()
       })
-      .catch(() => notification.error({ message: 'Something error. Please try again.' }))
+      .catch(({ response }) => {
+        if (response.status === 402) {
+          return notification.error({
+            message: 'Premium Feature',
+            description: 'Please upgrade your plan for using this feature'
+          })
+        }
+        return notification.error({ message: 'Something error. Please try again.' })
+      })
   }
 
   useEffect(() => {
@@ -84,15 +92,9 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
               </Form.Item>
               <Form.Item label="Dark Mode" name="expandable_rows">
                 <Switch onChange={val => {
-                  if (me?.user.plan !== 'premium') {
-                    return notification.error({
-                      message: 'Premium Feature',
-                      description: 'Please upgrade your plan for using this feature'
-                    })
-                  }
-                  localStorage.setItem('theme', val ? 'dark' : 'light')
+                  save({ theme: val ? 'dark' : 'light' })
                   return window.location.reload()
-                }} checked={localStorage.getItem('theme') === 'dark'} defaultChecked={localStorage.getItem('theme') === 'dark'} />
+                }} checked={me?.user.settings?.theme === 'dark'} defaultChecked={me?.user.settings?.theme === 'dark'} />
               </Form.Item>
               <Form.Item label="Check Updates">
                 <Button shape="round" icon={<ReloadOutlined />} onClick={() => window.location.reload()}>Reload</Button>
@@ -155,7 +157,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       </Form>
     </Modal>
 
-    <Footer />
+    <Footer me={me} />
   </>
 }
 

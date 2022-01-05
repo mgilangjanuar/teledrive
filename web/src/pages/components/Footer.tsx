@@ -3,7 +3,11 @@ import { Button, Col, Divider, Layout, Row, Space, Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-const Footer: React.FC = () => {
+interface Props {
+  me?: any
+}
+
+const Footer: React.FC<Props> = ({ me }) => {
   return <>
     <Layout.Footer style={{ background: '#f0f2f5', paddingTop: '50px' }}>
       <Row>
@@ -12,7 +16,7 @@ const Footer: React.FC = () => {
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Paragraph>
                 <Button type="link" href="/" style={{ fontSize: '20px', fontWeight: 'bolder' }}
-                  icon={<img src={localStorage.getItem('theme') === 'dark' ? '/teledrive-logo/logoteledrive-white.png' : '/teledrive-logo/logoteledrive.png'} style={{ height: '24px' }} />}>
+                  icon={<img src={me?.user.settings?.theme === 'dark' ? '/teledrive-logo/logoteledrive-white.png' : '/teledrive-logo/logoteledrive.png'} style={{ height: '24px' }} />}>
                 </Button>
               </Typography.Paragraph>
               <Typography.Paragraph type="secondary">

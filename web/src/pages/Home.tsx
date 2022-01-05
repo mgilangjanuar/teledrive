@@ -177,7 +177,7 @@ const Home: React.FC<Props> = ({ me }) => {
                 <Space wrap size={30}>
                   <Tooltip placement="bottom" title="Bahasa.ai - Chatbot Which Serves Customers Fully" key="bahasa-ai">
                     <a href="https://bahasa.ai" target="_blank">
-                      <img style={{ width: '100%', maxWidth: '212px' }} src={localStorage.getItem('theme') === 'dark' ? 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5fefb0768f76054a6f40c1e5_Bahasa-ai%20white%20(logo).svg' : 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png'} />
+                      <img style={{ width: '100%', maxWidth: '212px' }} src={me?.user.settings?.theme === 'dark' ? 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5fefb0768f76054a6f40c1e5_Bahasa-ai%20white%20(logo).svg' : 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png'} />
                     </a>
                   </Tooltip>
                   <Tooltip  placement="bottom" title="DigitalOcean – The developer cloud" key="digitalocean">
@@ -204,7 +204,7 @@ const Home: React.FC<Props> = ({ me }) => {
       </Row>
 
     </Layout.Content>
-    <Footer />
+    <Footer me={me} />
     <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="mgilangjanuar" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FFDD00" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
   </div>
 }
