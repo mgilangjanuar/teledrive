@@ -47,7 +47,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
 
   const history = useHistory()
   const [parent, setParent] = useState<Record<string, any> | null>()
-  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /> Home</> }])
+  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /></> }])
   const [data, setData] = useState<any[]>([])
   const [dataChanges, setDataChanges] = useState<{
     pagination?: TablePaginationConfig,
@@ -343,9 +343,9 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
                   </Menu>}>
                     <Button shape="circle" icon={<FolderAddOutlined />} />
                   </Dropdown>
+                  <Button shape="circle" onClick={() => setSyncConfirmation(true)} icon={<SyncOutlined />} />
                 </> : ''}
-                <Button shape="circle" onClick={() => setSyncConfirmation(true)} icon={<SyncOutlined />} />
-                <Input.Search className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
+                <Input.Search style={{ width: '210px' }} className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
               </Space>
             </Typography.Paragraph>
             <TableFiles

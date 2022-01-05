@@ -16,7 +16,6 @@ interface Props {
 
 const Home: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
-  // const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
   const history = useHistory()
 

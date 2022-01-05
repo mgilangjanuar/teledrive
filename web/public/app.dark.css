@@ -31,3 +31,7 @@
 .rce-citem-body--bottom-title {
   color: rgba(255, 255, 255, 0.45) !important;
 }
+
+.ant-modal-body .ant-form-item-label {
+  background: #1f1f1f !important;
+}
