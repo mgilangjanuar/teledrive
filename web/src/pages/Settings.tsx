@@ -26,7 +26,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   // })
 
   const save = (settings: any) => {
-    req.patch('/users/me/settings', { settings })
+    return req.patch('/users/me/settings', { settings })
       .then(() => {
         notification.success({  message: 'Settings saved' })
         // setExpandableRows(!expandableRows)
@@ -92,8 +92,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
               </Form.Item>
               <Form.Item label="Dark Mode" name="expandable_rows">
                 <Switch onChange={val => {
-                  save({ theme: val ? 'dark' : 'light' })
-                  return window.location.reload()
+                  return save({ theme: val ? 'dark' : 'light' }).then(window.location.reload)
                 }} checked={me?.user.settings?.theme === 'dark'} defaultChecked={me?.user.settings?.theme === 'dark'} />
               </Form.Item>
               <Form.Item label="Check Updates">
