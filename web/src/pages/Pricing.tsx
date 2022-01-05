@@ -4,8 +4,6 @@ import React, { useState } from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 import { req } from '../utils/Fetcher'
-import Footer from './components/Footer'
-import Navbar from './components/Navbar'
 
 interface Props {
   me?: any
@@ -103,7 +101,6 @@ const Pricing: React.FC<Props> = ({ me }) => {
   </div>
 
   return <>
-    <Navbar user={me?.user} page="pricing" />
     <Layout.Content className="container" style={{ marginTop: '80px' }}>
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
@@ -130,7 +127,6 @@ const Pricing: React.FC<Props> = ({ me }) => {
         </Col>
       </Row>
     </Layout.Content>
-    <Footer me={me} />
   </>
 }
 

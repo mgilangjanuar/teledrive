@@ -27,8 +27,6 @@ import { RouteComponentProps, useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 import { fetcher, req } from '../../utils/Fetcher'
-import Footer from '../components/Footer'
-import Navbar from '../components/Navbar'
 import AddFolder from './components/AddFolder'
 import Breadcrumb from './components/Breadcrumb'
 import Messaging from './components/Messaging'
@@ -299,7 +297,6 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
           history.push(`${window.location.pathname}?${searchParams.toString()}`)
         }
       }}>
-        <Navbar user={me?.user} />
         <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '0 12px' }}>
           <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
             <Typography.Paragraph>
@@ -457,7 +454,6 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
         </Typography.Paragraph>
       </Modal>
     </Layout>
-    <Footer me={me} />
   </Layout>
 }
 

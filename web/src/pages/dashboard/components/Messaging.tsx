@@ -449,6 +449,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       background: me?.user.settings?.theme === 'dark' ? undefined : 'rgb(240, 242, 245) none repeat scroll 0% 0%',
       position: 'absolute',
       right: 0,
+      top: 0,
       width: '100%',
       height: '100%',
       overflowY: 'auto',

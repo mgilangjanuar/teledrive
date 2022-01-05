@@ -9,12 +9,11 @@ import useSWR from 'swr'
 import { fetcher, req } from '../../utils/Fetcher'
 
 interface Props {
-  user?: any,
-  page?: string
+  user?: any
 }
 
 
-const Navbar: React.FC<Props> = ({ user, page }) => {
+const Navbar: React.FC<Props> = ({ user }) => {
   const history = useHistory()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const { data: usage } = useSWR('/users/me/usage', fetcher)
@@ -47,7 +46,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
               <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
           </div>
-          <Menu>
+          <Menu triggerSubMenuAction="click">
             <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
             <Menu.Item key="settings" icon={<SettingOutlined />} onClick={() => history.push('/settings')}>Settings</Menu.Item>
             <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
@@ -56,7 +55,8 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
           <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
         </Popover> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
-      <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme={user?.settings?.theme === 'dark' ? 'light' : 'dark'} style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
+      <Menu selectable={false} overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" theme={user?.settings?.theme === 'dark' ? 'light' : 'dark'}
+        style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>

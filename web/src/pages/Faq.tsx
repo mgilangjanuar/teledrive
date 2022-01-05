@@ -2,18 +2,11 @@ import { Col, Divider, Layout, Row, Typography } from 'antd'
 import React from 'react'
 import useSWRImmutable from 'swr/immutable'
 import { fetcher } from '../utils/Fetcher'
-import Footer from './components/Footer'
-import Navbar from './components/Navbar'
 
-interface Props {
-  me?: any
-}
-
-const Faq: React.FC<Props> = ({ me }) => {
+const Faq: React.FC = () => {
   const { data: contributors } = useSWRImmutable('/github/contributors', fetcher)
 
   return <>
-    <Navbar user={me?.user} page="faq" />
     <Layout.Content className="container">
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
@@ -112,7 +105,6 @@ const Faq: React.FC<Props> = ({ me }) => {
         </Col>
       </Row>
     </Layout.Content>
-    <Footer me={me} />
   </>
 }
 

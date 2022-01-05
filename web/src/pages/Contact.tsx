@@ -3,8 +3,6 @@ import { Button, Card, Col, Form, Input, Layout, notification, Row, Typography }
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
 import { req } from '../utils/Fetcher'
-import Footer from './components/Footer'
-import Navbar from './components/Navbar'
 
 interface Props {
   me?: any
@@ -51,7 +49,6 @@ const Contact: React.FC<Props> = ({ me }) => {
   }
 
   return <>
-    <Navbar user={me?.user} page="contact" />
     <Layout.Content className="container">
       <Row style={{ marginTop: '80px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
@@ -77,7 +74,6 @@ const Contact: React.FC<Props> = ({ me }) => {
         </Col>
       </Row>
     </Layout.Content>
-    <Footer me={me} />
   </>
 }
 
