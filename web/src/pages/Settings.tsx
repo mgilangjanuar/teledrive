@@ -66,7 +66,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
   return <>
     <Layout.Content className="container">
-      <Row style={{ marginTop: '80px' }}>
+      <Row style={{ marginTop: '50px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
           <Typography.Title>
             Settings
