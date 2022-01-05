@@ -42,7 +42,7 @@ interface PageProps extends RouteComponentProps<{
   type?: string
 }> {}
 
-const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, errorMe }) => {
+const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match }) => {
   const PAGE_SIZE = 10
 
   const history = useHistory()
@@ -69,6 +69,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, m
   const [syncConfirmation, setSyncConfirmation] = useState<boolean>()
   const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
 
+  const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
     ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
     refreshInterval: 5000

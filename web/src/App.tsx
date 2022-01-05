@@ -74,7 +74,7 @@ function App(): React.ReactElement {
         }
       /> : <Suspense fallback={<></>}>
         <Switch>
-          <Route path="/dashboard/:type?" exact component={(props: any) => <Dashboard {...props} me={me} errorMe={errorMe} />} />
+          <Route path="/dashboard/:type?" exact component={Dashboard} />
           <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
           <Route path="/view/:id" exact component={(props: any) => <View {...props} me={me} errorMe={errorMe} />} />
           <Route path="/login" exact>

@@ -35,3 +35,7 @@
 .ant-modal-body .ant-form-item-label {
   background: #1f1f1f !important;
 }
+
+.ant-menu.ant-menu-sub.ant-menu-vertical {
+  background: #141414 !important;
+}

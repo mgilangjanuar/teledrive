@@ -56,7 +56,7 @@ const Navbar: React.FC<Props> = ({ user, page }) => {
           <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
         </Popover> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
-      <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme="dark" style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
+      <Menu overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" defaultSelectedKeys={page ? [page] : undefined} theme={user?.settings?.theme === 'dark' ? 'light' : 'dark'} style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>
