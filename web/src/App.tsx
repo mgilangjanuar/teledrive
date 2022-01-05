@@ -1,6 +1,6 @@
 import { TwitterOutlined } from '@ant-design/icons'
 import { Button, Layout, Result } from 'antd'
-import React, { lazy, Suspense, useEffect, useState } from 'react'
+import React, { lazy, Suspense, useEffect } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
