@@ -39,7 +39,6 @@ import { useDebounce } from 'use-debounce/lib'
 import { apiUrl, fetcher } from '../utils/Fetcher'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
-import Messaging from './dashboard/components/Messaging'
 import Remove from './dashboard/components/Remove'
 import Rename from './dashboard/components/Rename'
 import Share from './dashboard/components/Share'
@@ -230,8 +229,6 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
       me={me}
       dataSelect={[selectShare, setSelectShare]}
       onFinish={mutate} />
-
-    {me && <Messaging me={me} collapsed={collapsedMessaging} setCollapsed={setCollapsedMessaging} />}
   </>
 }
 
