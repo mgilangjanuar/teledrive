@@ -2,6 +2,7 @@ import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOu
 import { Avatar, Button, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import GitHubButton from 'react-github-btn'
+import { useHistory } from 'react-router-dom'
 import { Follow, Tweet } from 'react-twitter-widgets'
 import useSWRImmutable from 'swr/immutable'
 import { ReactComponent as UploadingAnimate } from '../svg/Uploading-amico-new.svg'
@@ -17,6 +18,7 @@ const Home: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
   // const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
+  const history = useHistory()
 
   useEffect(() => {
     if (localStorage.getItem('dc') === 'ge' && window.location.host !== 'ge.teledriveapp.com' && /teledriveapp\.com$/gi.test(window.location.host)) {
@@ -55,9 +57,9 @@ const Home: React.FC<Props> = ({ me }) => {
               </Space>
             </Typography.Paragraph>
             <Layout.Content style={{ marginTop: '40px' }}>
-              {me ? <Button shape="round" size="large" type="primary" href="/dashboard">
+              {me ? <Button shape="round" size="large" type="primary" onClick={() => history.push('/dashboard')}>
                 Go to Dashboard <ArrowRightOutlined />
-              </Button> : <Button shape="round" size="large" type="primary" href="/login">
+              </Button> : <Button shape="round" size="large" type="primary" onClick={() => history.push('/login')}>
                 Register Now <ArrowRightOutlined />
               </Button>}
             </Layout.Content>
