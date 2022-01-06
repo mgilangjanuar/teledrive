@@ -166,7 +166,7 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
         }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> }
 
       </Layout.Content>
-      <Layout.Sider width={340} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
+      <Layout.Sider width={320} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
         <Layout.Content className="container" style={{ ...contentStyle || {}, color: '#fff', margin: '70px 10px' }}>
           <Descriptions
             title={<Typography.Text style={{ color: '#fff' }}><Icon type={data?.file.type} /> &nbsp; {data?.file.name}</Typography.Text>}
@@ -174,7 +174,7 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
             labelStyle={{ color: '#fff' }} column={1}>
 
             <Descriptions.Item label="Size">{data?.file?.size && prettyBytes(Number(data?.file?.size))}</Descriptions.Item>
-            <Descriptions.Item label="Uploaded At">{moment(data?.file.uploaded_at).local().format('llll')}</Descriptions.Item>
+            <Descriptions.Item label="Uploaded At">{moment(data?.file.uploaded_at).local().format('lll')}</Descriptions.Item>
             {user?.user && <Descriptions.Item label="Uploaded By">
               <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>
             </Descriptions.Item>}
