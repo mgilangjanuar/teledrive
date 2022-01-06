@@ -8,7 +8,7 @@ import { sign, verify } from 'jsonwebtoken'
 import { getRepository } from 'typeorm'
 import { Users } from '../../model//entities/Users'
 import { Files } from '../../model/entities/Files'
-import { COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
+import { CONNECTION_RETRIES, COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
 import { TGClient } from '../middlewares/TGClient'
 import { TGSessionAuth } from '../middlewares/TGSessionAuth'
@@ -153,7 +153,7 @@ export class Auth {
   }
 
   /**
-   * Experimental
+   * Initialize export login token to be a param for URL tg://login?token={{token}}
    * @param req
    * @param res
    * @returns
@@ -165,26 +165,169 @@ export class Auth {
       ...TG_CREDS,
       exceptIds: []
     }))
-    return res.cookie('authorization', `Bearer ${req.tg.session.save()}`).send({ token: Buffer.from(data['token']).toString('base64') })
+
+    const session = req.tg.session.save()
+    const auth = {
+      accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+      expiredAfter: Date.now() + COOKIE_AGE
+    }
+    return res
+      .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+      .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
+      .send({ loginToken: Buffer.from(data['token'], 'utf8').toString('base64url'), accessToken: auth.accessToken })
   }
 
   /**
-   * Experimental
+   * Sign in process with QR Code https://core.telegram.org/api/qr-login
    * @param req
    * @param res
    * @returns
    */
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
   public async qrCodeSignIn(req: Request, res: Response): Promise<any> {
-    const { token } = req.body
-    if (!token) {
-      throw { status: 400, body: { error: 'Token is required' } }
+    const { password, session: sessionString } = req.body
+
+    // handle the 2fa password in the second call
+    if (password && sessionString) {
+      req.tg = new TelegramClient(new StringSession(sessionString), TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
+      await req.tg.connect()
+
+      const passwordData = await req.tg.invoke(new Api.account.GetPassword())
+
+      passwordData.newAlgo['salt1'] = Buffer.concat([passwordData.newAlgo['salt1'], generateRandomBytes(32)])
+      const signIn = await req.tg.invoke(new Api.auth.CheckPassword({
+        password: await computeCheck(passwordData, password)
+      }))
+      const userAuth = signIn['user']
+      if (!userAuth) {
+        throw { status: 400, body: { error: 'User not found/authorized' } }
+      }
+
+      let user = await Users.findOne({ tg_id: userAuth.id.toString() })
+      if (!user) {
+        const username = userAuth.username || userAuth.phone
+        user = await getRepository<Users>(Users).save({
+          username,
+          name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
+          tg_id: userAuth.id.toString()
+        }, { reload: true })
+      }
+
+      const session = req.tg.session.save()
+      const auth = {
+        accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+        refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
+        expiredAfter: Date.now() + COOKIE_AGE
+      }
+
+      res
+        .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+        .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
+        .send({ user, ...auth })
+
+      // sync all shared files in background, if any
+      Files.createQueryBuilder('files')
+        .where('user_id = :user_id and signed_key is not null', { user_id: user.id })
+        .getMany()
+        .then(files => files?.map(file => {
+          const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+          Files.update(file.id, { signed_key: signedKey })
+        }))
+      return
     }
+
+    // handle the second call for export login token, result case: success, need to migrate to other dc, or 2fa
     await req.tg.connect()
-    const data = await req.tg.invoke(new Api.auth.AcceptLoginToken({
-      token: Buffer.from(token, 'base64')
-    }))
-    return res.cookie('authorization', `Bearer ${req.tg.session.save()}`).send({ data })
+    try {
+      const data = await req.tg.invoke(new Api.auth.ExportLoginToken({
+        ...TG_CREDS,
+        exceptIds: []
+      }))
+
+      const session = req.tg.session.save()
+      const auth = {
+        accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+        refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
+        expiredAfter: Date.now() + COOKIE_AGE
+      }
+
+      // build response with user data and auth data
+      const buildResponse = (data: Record<string, any> & { user?: { id: string } })=> {
+        res
+          .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+          .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
+          .send(data)
+
+        if (data.user?.id) {
+          // sync all shared files in background, if any
+          Files.createQueryBuilder('files')
+            .where('user_id = :user_id and signed_key is not null', { user_id: data.user.id })
+            .getMany()
+            .then(files => files?.map(file => {
+              const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+              Files.update(file.id, { signed_key: signedKey })
+            }))
+        }
+        return
+      }
+
+      // handle to switch dc
+      if (data instanceof Api.auth.LoginTokenMigrateTo) {
+        await req.tg._switchDC(data.dcId)
+        const result = await req.tg.invoke(new Api.auth.ImportLoginToken({
+          token: data.token
+        }))
+
+        // result import login token success
+        if (result instanceof Api.auth.LoginTokenSuccess && result.authorization instanceof Api.auth.Authorization) {
+          const userAuth = result.authorization.user
+          let user = await Users.findOne({ tg_id: userAuth.id.toString() })
+          if (!user) {
+            const username = userAuth['username'] || userAuth['phone']
+            user = await getRepository<Users>(Users).save({
+              username,
+              name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
+              tg_id: userAuth.id.toString()
+            }, { reload: true })
+          }
+
+          const session = req.tg.session.save()
+          const auth = {
+            accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+            refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+            expiredAfter: Date.now() + COOKIE_AGE
+          }
+
+          return buildResponse({ user, ...auth })
+        }
+
+        return buildResponse({ data, result })
+
+        // handle if success
+      } else if (data instanceof Api.auth.LoginTokenSuccess && data.authorization instanceof Api.auth.Authorization) {
+        const userAuth = data.authorization.user
+        let user = await Users.findOne({ tg_id: userAuth.id.toString() })
+        if (!user) {
+          const username = userAuth['username'] || userAuth['phone']
+          user = await getRepository<Users>(Users).save({
+            username,
+            name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
+            tg_id: userAuth.id.toString()
+          }, { reload: true })
+        }
+        return buildResponse({ user, ...auth })
+      }
+
+      // data instanceof auth.LoginToken
+      return buildResponse({ loginToken: Buffer.from(data['token'], 'utf8').toString('base64url'), accessToken: auth.accessToken })
+    } catch (error) {
+      // handle if need 2fa password
+      if (error.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+        error.session = req.tg.session.save()
+      }
+      throw error
+    }
   }
 
   @Endpoint.GET({ middlewares: [TGSessionAuth] })
