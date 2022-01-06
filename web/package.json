@@ -25,7 +25,7 @@
     "react-markdown": "^7.0.1",
     "react-otp-input": "^2.4.0",
     "react-paypal-button-v2": "^2.6.3",
-    "react-qr-code": "^2.0.2",
+    "react-qr-code": "^2.0.3",
     "react-router-dom": "^5.3.0",
     "react-scripts": "^4.0.3",
     "react-twitter-widgets": "^1.10.0",
