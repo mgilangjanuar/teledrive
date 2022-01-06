@@ -245,19 +245,18 @@ export class Auth {
         exceptIds: []
       }))
 
-      const session = req.tg.session.save()
-      const auth = {
-        accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-        refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
-        expiredAfter: Date.now() + COOKIE_AGE
-      }
-
       // build response with user data and auth data
       const buildResponse = (data: Record<string, any> & { user?: { id: string } })=> {
+        const session = req.tg.session.save()
+        const auth = {
+          accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+          refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
+          expiredAfter: Date.now() + COOKIE_AGE
+        }
         res
           .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
           .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
-          .send(data)
+          .send({ ...data, ...auth })
 
         if (data.user?.id) {
           // sync all shared files in background, if any
@@ -291,17 +290,8 @@ export class Auth {
               tg_id: userAuth.id.toString()
             }, { reload: true })
           }
-
-          const session = req.tg.session.save()
-          const auth = {
-            accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-            refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
-            expiredAfter: Date.now() + COOKIE_AGE
-          }
-
-          return buildResponse({ user, ...auth })
+          return buildResponse({ user })
         }
-
         return buildResponse({ data, result })
 
         // handle if success
@@ -316,11 +306,13 @@ export class Auth {
             tg_id: userAuth.id.toString()
           }, { reload: true })
         }
-        return buildResponse({ user, ...auth })
+        return buildResponse({ user })
       }
 
       // data instanceof auth.LoginToken
-      return buildResponse({ loginToken: Buffer.from(data['token'], 'utf8').toString('base64url'), accessToken: auth.accessToken })
+      return buildResponse({
+        loginToken: Buffer.from(data['token'], 'utf8').toString('base64url')
+      })
     } catch (error) {
       // handle if need 2fa password
       if (error.errorMessage === 'SESSION_PASSWORD_NEEDED') {
