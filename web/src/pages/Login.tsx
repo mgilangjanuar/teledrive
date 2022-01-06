@@ -1,10 +1,11 @@
 import { ArrowRightOutlined, CheckCircleTwoTone, LoginOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Steps, Typography } from 'antd'
+import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
 import JSCookie from 'js-cookie'
 import React, { useEffect, useState } from 'react'
 import OtpInput from 'react-otp-input'
+import QRCode from 'react-qr-code'
 import { useHistory } from 'react-router'
 import useSWRImmutable from 'swr/immutable'
 import en from 'world_countries_lists/data/en/world.json'
@@ -17,6 +18,7 @@ interface Props {
 const Login: React.FC<Props> = ({ me }) => {
   const history = useHistory()
   const [formLogin] = useForm()
+  const [formLoginQRCode] = useForm()
   const [dc, setDc] = useState<string>()
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [phoneData, setPhoneData] = useState<{ phone?: string, code?: number, short?: string }>({})
@@ -26,7 +28,9 @@ const Login: React.FC<Props> = ({ me }) => {
   const [countdown, setCountdown] = useState<number>()
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
+  const [method, setMethod] = useState<'phoneNumber' | 'qrCode'>('phoneNumber')
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
+  const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken: string, session?: string }>()
 
   useEffect(() => {
     if (window.location.host === 'ge.teledriveapp.com') {
@@ -90,13 +94,9 @@ const Login: React.FC<Props> = ({ me }) => {
       setLoadingLogin(false)
       notification.success({
         message: 'Success',
-        description: `Welcome back, ${data.user.username}!`
+        description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
       })
-      history.replace('/dashboard')
-      return notification.info({
-        message: 'Info',
-        description: 'Please wait a moment...'
-      })
+      return history.replace('/dashboard')
     } catch (error: any) {
       setLoadingLogin(false)
       const { data } = error?.response
@@ -111,6 +111,26 @@ const Login: React.FC<Props> = ({ me }) => {
       return notification.error({
         message: 'Error',
         description: data?.error || 'Something error'
+      })
+    }
+  }
+
+  const loginByQrCode = async () => {
+    try {
+      const { password } = formLoginQRCode.getFieldsValue()
+      setLoadingLogin(true)
+      const { data } = await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session })
+      notification.success({
+        message: 'Success',
+        description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
+      })
+      setLoadingLogin(false)
+      return history.replace('/dashboard')
+    } catch (error: any) {
+      setLoadingLogin(false)
+      return notification.error({
+        message: 'Error',
+        description: error.response?.data?.error || 'Something error'
       })
     }
   }
@@ -130,10 +150,58 @@ const Login: React.FC<Props> = ({ me }) => {
     }
   }, [countdown])
 
+  useEffect(() => {
+    if (method === 'qrCode') {
+      if (!qrCode?.loginToken) {
+        req.get('/auth/qrCode').then(({ data }) => {
+          setQrCode(data)
+        })
+      }
+    } else {
+      setQrCode(undefined)
+    }
+  }, [method])
+
+  useEffect(() => {
+    if (qrCode && method === 'qrCode' && !needPassword) {
+      setTimeout(() => {
+        if (method === 'qrCode' && !needPassword && qrCode?.loginToken && qrCode?.accessToken) {
+          req.post('/auth/qrCodeSignIn', {}, { headers: {
+            'Authorization': `Bearer ${qrCode.accessToken}`
+          } }).then(({ data }) => {
+            if (data?.user) {
+              notification.success({
+                message: 'Success',
+                description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
+              })
+              history.replace('/dashboard')
+            } else {
+              setQrCode(data)
+            }
+          }).catch(({ response }: any) => {
+            if (response?.data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+              notification.info({
+                message: 'Info',
+                description: 'Please input your 2FA password'
+              })
+              setQrCode({ ...qrCode, session: response.data.details.session })
+              setNeedPassword(true)
+            } else {
+              notification.error({
+                message: 'Error',
+                description: response?.data?.error || 'Something error'
+              })
+            }
+          })
+        }
+      }, 3000)
+    }
+  }, [qrCode, method])
+
   return <>
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
-        <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
+        <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={22} offset={1}>
           <Collapse>
             <Collapse.Panel key="1" header="Data center region">
               <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
@@ -203,66 +271,100 @@ const Login: React.FC<Props> = ({ me }) => {
             Please download <a href="https://telegram.org/" target="_blank">Telegram</a> app and login with your account.
           </Typography.Paragraph>
           <Card>
-            <Steps current={currentStep} style={{ marginBottom: '35px' }} responsive>
-              <Steps.Step key="inputPhoneNumber" title="Phone Number" />
-              <Steps.Step key="inputCode" title="Code" />
-              {needPassword && <Steps.Step key="inputPassword" title="Password 2FA" />}
-            </Steps>
-            <Form layout="vertical" form={formLogin} onFinish={login}>
+            {method === 'phoneNumber' && <>
+              <Steps current={currentStep} style={{ marginBottom: '35px' }} responsive>
+                <Steps.Step key="inputPhoneNumber" title="Phone Number" />
+                <Steps.Step key="inputCode" title="Code" />
+                {needPassword && <Steps.Step key="inputPassword" title="Password 2FA" />}
+              </Steps>
+              <Form layout="vertical" form={formLogin} onFinish={login}>
 
-              {currentStep === 0 && <>
-                <Form.Item>
-                  <ConfigProvider locale={en}>
-                    <CountryPhoneInput value={phoneData} type="tel" onChange={e => setPhoneData(e)} />
-                  </ConfigProvider>
-                  {/* <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} /> */}
-                </Form.Item>
-                <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
-                  <Button disabled={!phoneData?.phone} type="primary" size="large" htmlType="submit" icon={<ArrowRightOutlined />} shape="round" loading={loadingSendCode}>{phoneCodeHash ? 'Re-send code' : 'Send code'}</Button>
-                </Form.Item>
-              </>}
-
-              {currentStep === 1 && <>
-                <Form.Item style={{ textAlign: 'center' }}>
-                  <Typography.Paragraph type="secondary">
-                    Authentication code sent to <b>+{phoneData.code}&bull;&bull;&bull;&bull;&bull;&bull;&bull;{phoneData.phone?.substring(phoneData.phone.length - 4)}</b>
+                {currentStep === 0 && <>
+                  <Form.Item>
+                    <ConfigProvider locale={en}>
+                      <CountryPhoneInput value={phoneData} type="tel" onChange={e => setPhoneData(e)} />
+                    </ConfigProvider>
+                    {/* <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} /> */}
+                  </Form.Item>
+                  <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
+                    <Button disabled={!phoneData?.phone} type="primary" size="large" htmlType="submit" icon={<ArrowRightOutlined />} shape="round" loading={loadingSendCode}>{phoneCodeHash ? 'Re-send code' : 'Send code'}</Button>
+                  </Form.Item>
+                  <Typography.Paragraph style={{ textAlign: 'center' }}>
+                    <Button type="link" onClick={() => setMethod('qrCode')}>Log in by QR Code</Button>
                   </Typography.Paragraph>
-                  <OtpInput numInputs={5} value={otp} onChange={setOtp} isInputNum containerStyle={{ justifyContent: 'center' }} inputStyle={{
-                    width: '2.7rem',
-                    height: '2.7rem',
-                    margin: '0 0.3rem 1rem 0',
-                    borderRadius: '4px',
-                    fontSize: '1.2rem',
-                    background: me?.user.settings?.theme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : undefined,
-                    border: '1px solid rgba(0, 0, 0, 0.3)' }} />
-                  {countdown ? <Typography.Paragraph type="secondary">Re-send in {countdown}s...</Typography.Paragraph> : <Typography.Paragraph>
-                    <Button type="link" onClick={() => sendCode()}>Re-send code</Button>
-                  </Typography.Paragraph>}
-                </Form.Item>
-                <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
-                  <Typography.Paragraph>
-                    <Button disabled={otp?.length !== 5} shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
-                  </Typography.Paragraph>
-                  <Typography.Paragraph>
-                    <Button type="link" onClick={() => {
-                      setPhoneCodeHash(undefined)
-                      setCurrentStep(currentStep - 1)
-                    }}>Or, change phone number</Button>
-                  </Typography.Paragraph>
-                </Form.Item>
-              </>}
+                </>}
 
-              {currentStep === 2 && <>
-                <Form.Item name="password" hidden={!needPassword}>
-                  <Input.Password size="large" />
-                </Form.Item>
-                <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
-                  <Button disabled={!formLogin.getFieldValue('password')} shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
-                </Form.Item>
-              </>}
+                {currentStep === 1 && <>
+                  <Form.Item style={{ textAlign: 'center' }}>
+                    <Typography.Paragraph type="secondary">
+                      Authentication code sent to <b>+{phoneData.code}&bull;&bull;&bull;&bull;&bull;&bull;&bull;{phoneData.phone?.substring(phoneData.phone.length - 4)}</b>
+                    </Typography.Paragraph>
+                    <OtpInput numInputs={5} value={otp} onChange={setOtp} isInputNum containerStyle={{ justifyContent: 'center' }} inputStyle={{
+                      width: '2.7rem',
+                      height: '2.7rem',
+                      margin: '0 0.3rem 1rem 0',
+                      borderRadius: '4px',
+                      fontSize: '1.2rem',
+                      background: me?.user.settings?.theme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : undefined,
+                      border: '1px solid rgba(0, 0, 0, 0.3)' }} />
+                    {countdown ? <Typography.Paragraph type="secondary">Re-send in {countdown}s...</Typography.Paragraph> : <Typography.Paragraph>
+                      <Button type="link" onClick={() => sendCode()}>Re-send code</Button>
+                    </Typography.Paragraph>}
+                  </Form.Item>
+                  <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
+                    <Typography.Paragraph>
+                      <Button disabled={otp?.length !== 5} shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
+                    </Typography.Paragraph>
+                    <Typography.Paragraph>
+                      <Button type="link" onClick={() => {
+                        setPhoneCodeHash(undefined)
+                        setCurrentStep(currentStep - 1)
+                      }}>Or, change phone number</Button>
+                    </Typography.Paragraph>
+                  </Form.Item>
+                </>}
 
-
-            </Form>
+                {currentStep === 2 && <>
+                  <Form.Item name="password" hidden={!needPassword}>
+                    <Input.Password size="large" placeholder="password" />
+                  </Form.Item>
+                  <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
+                    <Button shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
+                  </Form.Item>
+                </>}
+              </Form>
+            </>}
+            {method === 'qrCode' && <>
+              <Layout>
+                <Layout.Content>
+                  {!needPassword ? <>
+                    <Typography.Paragraph style={{ textAlign: 'center' }}>
+                      {qrCode?.loginToken ? <QRCode size={190} value={`tg://login?token=${qrCode?.loginToken}`} /> : <Spin />}
+                    </Typography.Paragraph>
+                    <Typography.Title level={5} style={{ textAlign: 'center' }}>
+                      Log in to Telegram by QR Code
+                    </Typography.Title>
+                    <ol>
+                      <li>Open Telegram on your phone</li>
+                      <li>Go to <strong>Settings &gt; Devices &gt; Link Desktop Device</strong></li>
+                      <li>Point your phone at this screen to confirm login</li>
+                    </ol>
+                    <Typography.Paragraph style={{ textAlign: 'center' }}>
+                      <Button type="link" onClick={() => setMethod('phoneNumber')}>Log in by Phone Number</Button>
+                    </Typography.Paragraph>
+                  </> : <>
+                    <Form form={formLoginQRCode} onFinish={loginByQrCode} layout="horizontal">
+                      <Form.Item label="Password 2FA" name="password" hidden={!needPassword}>
+                        <Input.Password placeholder="password" size="large" />
+                      </Form.Item>
+                      <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
+                        <Button shape="round" size="large" type="primary" htmlType="submit" loading={loadingLogin} icon={<LoginOutlined />}>Login</Button>
+                      </Form.Item>
+                    </Form>
+                  </>}
+                </Layout.Content>
+              </Layout>
+            </>}
           </Card>
         </Col>
       </Row>
