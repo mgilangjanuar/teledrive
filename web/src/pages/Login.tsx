@@ -290,7 +290,7 @@ const Login: React.FC<Props> = ({ me }) => {
                     <Button disabled={!phoneData?.phone} type="primary" size="large" htmlType="submit" icon={<ArrowRightOutlined />} shape="round" loading={loadingSendCode}>{phoneCodeHash ? 'Re-send code' : 'Send code'}</Button>
                   </Form.Item>
                   <Typography.Paragraph style={{ textAlign: 'center' }}>
-                    <Button type="link" onClick={() => setMethod('qrCode')}>Log in by QR Code</Button>
+                    <Button type="link" onClick={() => setMethod('qrCode')}>Login by QR Code</Button>
                   </Typography.Paragraph>
                 </>}
 
@@ -338,20 +338,36 @@ const Login: React.FC<Props> = ({ me }) => {
               <Layout>
                 <Layout.Content>
                   {!needPassword ? <>
-                    <Typography.Paragraph style={{ textAlign: 'center' }}>
-                      {qrCode?.loginToken ? <QRCode size={190} value={`tg://login?token=${qrCode?.loginToken}`} /> : <Spin />}
-                    </Typography.Paragraph>
-                    <Typography.Title level={5} style={{ textAlign: 'center' }}>
-                      Log in to Telegram by QR Code
-                    </Typography.Title>
-                    <ol>
-                      <li>Open Telegram on your phone</li>
-                      <li>Go to <strong>Settings &gt; Devices &gt; Link Desktop Device</strong></li>
-                      <li>Point your phone at this screen to confirm login</li>
-                    </ol>
-                    <Typography.Paragraph style={{ textAlign: 'center' }}>
-                      <Button type="link" onClick={() => setMethod('phoneNumber')}>Log in by Phone Number</Button>
-                    </Typography.Paragraph>
+                    <Row align="middle" gutter={24}>
+                      <Col span={24} lg={12}>
+                        <Typography.Paragraph style={{ textAlign: 'center', marginBottom: '20px' }}>
+                          {qrCode?.loginToken ? <QRCode size={165} value={`tg://login?token=${qrCode?.loginToken}`} /> : <Spin />}
+                        </Typography.Paragraph>
+                      </Col>
+                      <Col span={24} lg={12}>
+                        <Typography.Title level={5}>
+                          Login to Telegram by QR Code
+                        </Typography.Title>
+                        <Typography.Paragraph>
+                          <ol>
+                            <li>Open Telegram on your phone</li>
+                            <li>Go to <strong>Settings &gt; Devices &gt; Link Desktop Device</strong></li>
+                            <li>Point your phone at this screen to confirm login</li>
+                          </ol>
+                          {/* <Collapse>
+                            <Collapse.Panel key="1" header="How to log in">
+                            </Collapse.Panel>
+                          </Collapse> */}
+                        </Typography.Paragraph>
+                        <Typography.Paragraph style={{ textAlign: 'center' }}>
+                          <Button type="link" onClick={() => setMethod('phoneNumber')}>Login by Phone Number</Button>
+                        </Typography.Paragraph>
+                      </Col>
+                    </Row>
+                    {/* <Row>
+                      <Col lg={{ span: 14, offset: 5 }} md={{ span: 18, offset: 3 }} sm={{ span: 20, offset: 2 }} span={24}>
+                      </Col>
+                    </Row> */}
                   </> : <>
                     <Form form={formLoginQRCode} onFinish={loginByQrCode} layout="horizontal">
                       <Form.Item label="Password 2FA" name="password" hidden={!needPassword}>
