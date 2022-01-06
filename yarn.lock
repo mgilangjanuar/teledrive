@@ -1549,10 +1549,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@mgilangjanuar/telegram@2.2.1":
-  version "2.2.1"
-  resolved "https://npm.pkg.github.com/download/@mgilangjanuar/telegram/2.2.1/fc45763251ef5d04d8433d20579c74a086458e83d4cfed8259ea3d127a3999b7#c8365bc67fcfde05f08d4136bd9e9c67ab0df8e6"
-  integrity sha512-24JkwvwNrq/NlXa5bdqk1RdNrI6XVla1xanxvvW/N17S+no90eoiXpgEXXvNuvgt2KHf3zOPODbFc83m0fKLkw==
+"@mgilangjanuar/telegram@2.2.3-var1":
+  version "2.2.3-var1"
+  resolved "https://npm.pkg.github.com/download/@mgilangjanuar/telegram/2.2.3-var1/1ddfdfae1fa3e107abfb493231c2c8354714215d7ec646fbde535cf184088b96#414b71751e911b587681c40a987a93ee5fedce48"
+  integrity sha512-P5eopPpvTQ+ZAUzvjfcgVgXjz6LZw8TsrdSUBeLksx25FqwYxRTQnfCOkfBHN04jNjsAgc7LLb/IxHeBxs3g8w==
   dependencies:
     "@cryptography/aes" "^0.1.1"
     async-mutex "^0.3.0"
@@ -12566,10 +12566,10 @@ react-progress-bar.js@^0.2.3:
     lodash.isequal "^4.1.4"
     progressbar.js "^1.0.1"
 
-react-qr-code@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.2.tgz#64107c869079aceb897c97496d163720ab2820e8"
-  integrity sha512-73VGe81MgeE5FJNFgdY42ez/wPPJTHuooU3iE4CX+6F8M88O1Gg4zNA0L4bKEpoySQ0QjqreJgyXjFrG/QfsdA==
+react-qr-code@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.3.tgz#cc80785e08f817d1ab066ca4035262f77d049648"
+  integrity sha512-6GDH0l53lksf2JgZwwcoS0D60a1OAal/GQRyNFkMBW19HjSqvtD5S20scmSQsKl+BgWM85Wd5DCcUYoHd+PZnQ==
   dependencies:
     prop-types "^15.7.2"
     qr.js "0.0.0"
