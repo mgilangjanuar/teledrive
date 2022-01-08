@@ -49,7 +49,7 @@ const Breadcrumb: React.FC<Props> = ({
           setParent(data.file)
           req.get(`/files/breadcrumbs/${data.file.id}`)
             .then(({ data }) => {
-              setBreadcrumbs([breadcrumbs[0], ...data.breadcrumbs])
+              setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs?.filter((br: any) => !breadcrumbs?.find(exist => exist.id === br.id))])
             })
         })
       }

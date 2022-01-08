@@ -148,7 +148,7 @@ export class Files {
       .addSelect('files.signed_key')
       .getOne() : null
     if (!file || file.user_id !== req.user?.id && !file.sharing_options?.includes('*') && !file.sharing_options?.includes(req.user?.username)) {
-      if (!parent?.sharing_options?.includes(req.user?.username)) {
+      if (!parent?.sharing_options?.includes(req.user?.username) && !parent?.sharing_options?.includes('*')) {
         throw { status: 404, body: { error: 'File not found' } }
       }
     }
@@ -157,7 +157,7 @@ export class Files {
     let files = [file]
     if (/.*\.part1$/gi.test(file?.name)) {
       if (req.user?.plan !== 'premium') {
-        throw { status: 402, body: { error: 'Payment required' } }
+        throw { status: 402, body: { error: 'Please upgrade your plan for view this file' } }
       }
       files = await Model.createQueryBuilder('files')
         .where(`(id = :id or name like '${file.name.replace(/\.part1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
@@ -376,12 +376,17 @@ export class Files {
     return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
 
-  @Endpoint.GET('/breadcrumbs/:id', { middlewares: [Auth] })
+  @Endpoint.GET('/breadcrumbs/:id', { middlewares: [AuthMaybe] })
   public async breadcrumbs(req: Request, res: Response): Promise<any> {
     const { id } = req.params
     let folder = await Model.findOne(id)
     if (!folder) {
       throw { status: 404, body: { error: 'File not found' } }
+    }
+    if (req.user?.id !== folder.user_id) {
+      if (!folder.sharing_options?.includes('*') && !folder.sharing_options?.includes(req.user?.username)) {
+        throw { status: 404, body: { error: 'File not found' } }
+      }
     }
 
     const breadcrumbs = [folder]
@@ -487,7 +492,7 @@ export class Files {
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
       if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {
-        throw { status: 402, body: { error: 'Payment required' } }
+        throw { status: 402, body: { error: 'You just hit the daily bandwidth limit' } }
       }
     }
 
