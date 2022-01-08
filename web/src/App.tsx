@@ -83,7 +83,7 @@ function App(): React.ReactElement {
         <Switch>
           <Route path="/dashboard/:type?" exact component={Dashboard} />
           <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
-          <Route path="/view/:id" exact component={(props: any) => <View {...props} me={me} errorMe={errorMe} />} />
+          <Route path="/view/:id" exact component={View} />
           <Route path="/login" exact>
             {me?.user ? <Redirect to="/dashboard" /> : <Login me={me} />}
           </Route>
