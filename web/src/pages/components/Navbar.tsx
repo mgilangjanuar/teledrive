@@ -47,7 +47,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
               <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
           </div>
-          <Menu triggerSubMenuAction="click" onClick={({ key }) => {
+          <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
             if (key === 'dashboard') {
               history.push('/dashboard')
             } else if (key === 'settings') {
