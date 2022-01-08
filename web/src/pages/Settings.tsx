@@ -129,7 +129,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     visible={logoutConfirmation}
     onCancel={() => setLogoutConfirmation(false)}
     onOk={logout}
-    okButtonProps={{ danger: true, type: 'primary' }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Typography.Paragraph>
         All the files you share will not be able to download once you sign out. Continue?
       </Typography.Paragraph>
@@ -141,7 +142,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     visible={removeConfirmation}
     onCancel={() => setRemoveConfirmation(false)}
     onOk={remove}
-    okButtonProps={{ danger: true, type: 'primary' }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Form form={formRemoval} onFinish={remove} layout="vertical">
         <Form.Item name="reason" label="Reason" rules={[{ required: true, message: 'Please input your reason' }]}>
           <Input.TextArea />

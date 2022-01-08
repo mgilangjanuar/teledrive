@@ -35,7 +35,8 @@ const Remove: React.FC<Props> = ({
     onCancel={() => setSelectDeleted([])}
     onOk={() => remove(selectDeleted.map((data: any) => data.id))}
     okText="Remove"
-    okButtonProps={{ danger: true, type: 'primary', loading: loadingRemove }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', loading: loadingRemove, shape: 'round' }}>
     <Typography.Paragraph>
       Are you sure to delete {selectDeleted?.length > 1 ? `${selectDeleted?.length} objects` : selectDeleted?.[0]?.name }?
     </Typography.Paragraph>

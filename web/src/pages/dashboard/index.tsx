@@ -448,7 +448,9 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
       </Typography.Text>}
       visible={syncConfirmation}
       onCancel={() => setSyncConfirmation(false)}
-      onOk={sync}>
+      onOk={sync}
+      cancelButtonProps={{ shape: 'round' }}
+      okButtonProps={{ shape: 'round' }}>
         <Typography.Paragraph>
           Are you sure to sync up to 50 files from your Saved Messages to the <code>{typeof parent?.name === 'string' ? parent.name : 'root'}</code> directory?
         </Typography.Paragraph>

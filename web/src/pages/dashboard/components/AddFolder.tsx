@@ -47,7 +47,8 @@ const AddFolder: React.FC<Props> = ({
     okText="Add"
     title="Add Folder"
     onOk={() => formAddFolder.submit()}
-    okButtonProps={{ loading: loadingAddFolder }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ loading: loadingAddFolder, shape: 'round' }}>
     <Form form={formAddFolder} layout="horizontal" onFinish={createFolder}>
       <Form.Item name="name" label="Name">
         <Input placeholder="New Folder" />

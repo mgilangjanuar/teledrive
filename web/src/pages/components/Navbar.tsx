@@ -73,7 +73,8 @@ const Navbar: React.FC<Props> = ({ user }) => {
     visible={logoutConfirmation}
     onCancel={() => setLogoutConfirmation(false)}
     onOk={logout}
-    okButtonProps={{ danger: true, type: 'primary' }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Typography.Paragraph>
         All the files you share will not be able to download once you sign out. Continue?
       </Typography.Paragraph>
