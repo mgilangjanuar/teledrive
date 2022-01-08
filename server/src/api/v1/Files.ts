@@ -217,7 +217,7 @@ export class Files {
       .addSelect('files.signed_key')
       .getOne() : null
 
-    let key: string = currentFile.signed_key || parent?.signed_key
+    let key: string = currentFile.signed_key || null
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
     }
@@ -231,7 +231,7 @@ export class Files {
         ...file.name ? { name: file.name } : {},
         ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
         ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
-        ...parent ? {
+        ...parent && currentFile.type === 'folder' ? {
           sharing_options: parent.sharing_options
         } : {},
         signed_key: key
