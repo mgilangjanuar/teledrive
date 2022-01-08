@@ -33,7 +33,6 @@ const Breadcrumb: React.FC<Props> = ({
     }
 
     history.push(`${location.pathname}?${searchParams.toString()}`)
-
   }
 
   useEffect(() => {
@@ -49,15 +48,15 @@ const Breadcrumb: React.FC<Props> = ({
           setParent(data.file)
           req.get(`/files/breadcrumbs/${data.file.id}`)
             .then(({ data }) => {
-              setBreadcrumbs([breadcrumbs[0], ...data.breadcrumbs])
+              setBreadcrumbs([...breadcrumbs, ...data.breadcrumbs?.filter((br: any) => !breadcrumbs?.find(exist => exist.id === br.id))])
             })
         })
       }
     } else {
-      setParent(breadcrumbs[0])
-      setBreadcrumbs([breadcrumbs[0]])
+      setParent(parent?.id ? parent : breadcrumbs[0])
+      setBreadcrumbs([parent?.id ? parent : breadcrumbs[0]])
     }
-  }, [searchParams])
+  }, [searchParams, parent])
 
   const Name = ({ crumb }: any) => <>{crumb.link_id ? <BranchesOutlined /> : ''} {crumb?.id ? <FolderOpenOutlined /> : ''} {crumb.name}</>
 
