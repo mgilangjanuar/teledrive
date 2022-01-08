@@ -114,7 +114,7 @@ const Share: React.FC<Props> = ({
   return <Modal visible={selectShare?.row}
     onCancel={() => setSelectShare(undefined)}
     footer={null}
-    title={`${selectShare?.action === 'share' ? 'Share' : 'Send'} ${selectShare?.row.name}`}>
+    title={<Typography.Text ellipsis>{selectShare?.action === 'share' ? 'Share' : 'Send'} {selectShare?.row.name}</Typography.Text>}>
     <Form form={formShare} layout="horizontal" onFinish={share}>
       <Form.Item name="id" hidden>
         <Input />

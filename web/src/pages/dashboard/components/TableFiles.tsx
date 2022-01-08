@@ -15,7 +15,7 @@ import {
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Descriptions, Menu, Modal, Table } from 'antd'
+import { Descriptions, Menu, Modal, Table, Typography } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -326,7 +326,7 @@ const TableFiles: React.FC<Props> = ({
         } : undefined} />
     </DndProvider>
     <ContextMenu />
-    <Modal title={<><Icon type={showDetails?.type} /> {showDetails?.name}</>}
+    <Modal title={<Typography.Text ellipsis><Icon type={showDetails?.type} /> {showDetails?.name}</Typography.Text>}
       visible={Boolean(showDetails)}
       onCancel={() => setShowDetails(undefined)}
       okText="View"
@@ -335,7 +335,7 @@ const TableFiles: React.FC<Props> = ({
       okButtonProps={{ shape: 'round' }}>
       <Descriptions column={1}>
         <Descriptions.Item label="Size">{showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}</Descriptions.Item>
-        <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('llll')}</Descriptions.Item>
+        <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('lll')}</Descriptions.Item>
         <Descriptions.Item label="Uploaded By">
           <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>
         </Descriptions.Item>
