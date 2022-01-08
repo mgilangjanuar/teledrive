@@ -49,7 +49,7 @@ const Share: React.FC<Props> = ({
         message: 'Hey, please check this out! 👆',
         public: isPublic,
         sharing_options: selectShare.row.sharing_options?.length ? selectShare.row.sharing_options.filter((opt: string) => opt !== '*') : [''],
-        link: selectShare.row.type === 'folder' ? `${window.location.origin}/dashboard/shared?parent=${selectShare.row.id}` : `${window.location.origin}/view/${selectShare.row.id}`,
+        link: `${window.location.origin}/view/${selectShare.row.id}`,
         username: null
       })
     } else {
@@ -116,7 +116,7 @@ const Share: React.FC<Props> = ({
       <Form.Item name="id" hidden>
         <Input />
       </Form.Item>
-      {selectShare?.row.type !== 'folder' && selectShare?.action === 'share' ? <Form.Item name="public" label="Make public">
+      {selectShare?.action === 'share' ? <Form.Item name="public" label="Make public">
         <Switch checked={isPublic} onClick={val => {
           setIsPublic(val)
           share()

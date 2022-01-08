@@ -16,17 +16,23 @@ import { Auth, AuthMaybe } from '../middlewares/Auth'
 @Endpoint.API()
 export class Files {
 
-  @Endpoint.GET('/', { middlewares: [Auth] })
+  @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, shared, t: _t, ...filters } = req.query
     const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
     if (filters?.parent_id && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
+    if (!req.user && !parent?.sharing_options?.includes('*')) {
+      throw { status: 404, body: { error: 'Parent not found' } }
+    }
 
     const [files, length] = await Model.createQueryBuilder('files')
-      .where(shared && parent?.sharing_options?.includes(req.user.username) ? 'true' : shared ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))' : 'files.user_id = :user', {
-        user: shared ? req.user.username : req.user.id  })
+      .where(shared && (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*'))
+        ? 'true' : shared
+          ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
+          : 'files.user_id = :user', {
+        user: shared ? req.user?.username : req.user?.id  })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
       .leftJoin('files.parent', 'parent')
       .skip(Number(offset) || undefined)
@@ -132,12 +138,6 @@ export class Files {
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-
-    // const file = await Model.createQueryBuilder('files')
-    //   .where(`id = :id and (\'*\' = any(sharing_options) or ${req.user ? ':username = any(sharing_options) or user_id = :user_id' : 'false'})`, {
-    //     id, username: req.user?.username, user_id: req.user?.id })
-    //   .addSelect('files.signed_key')
-    //   .getOne()
     const file = await Model.createQueryBuilder('files')
       .where('id = :id', { id })
       .addSelect('files.signed_key')
@@ -148,7 +148,7 @@ export class Files {
       .addSelect('files.signed_key')
       .getOne() : null
     if (!file || file.user_id !== req.user?.id && !file.sharing_options?.includes('*') && !file.sharing_options?.includes(req.user?.username)) {
-      if (!parent?.sharing_options?.includes(req.user?.username)) {
+      if (!parent?.sharing_options?.includes(req.user?.username) && !parent?.sharing_options?.includes('*')) {
         throw { status: 404, body: { error: 'File not found' } }
       }
     }
@@ -157,7 +157,7 @@ export class Files {
     let files = [file]
     if (/.*\.part1$/gi.test(file?.name)) {
       if (req.user?.plan !== 'premium') {
-        throw { status: 402, body: { error: 'Payment required' } }
+        throw { status: 402, body: { error: 'Please upgrade your plan for view this file' } }
       }
       files = await Model.createQueryBuilder('files')
         .where(`(id = :id or name like '${file.name.replace(/\.part1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
@@ -212,12 +212,17 @@ export class Files {
       }
     }
 
-    let key: string = currentFile.signed_key
+    const parent = file.parent_id ? await Model.createQueryBuilder('files')
+      .where('id = :id', { id: file.parent_id })
+      .addSelect('files.signed_key')
+      .getOne() : null
+
+    let key: string = currentFile.signed_key || null
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
     }
 
-    if (!file.sharing_options?.length && !currentFile.sharing_options?.length) {
+    if (!file.sharing_options?.length && !currentFile.sharing_options?.length && !parent?.sharing_options?.length) {
       key = null
     }
 
@@ -226,6 +231,9 @@ export class Files {
         ...file.name ? { name: file.name } : {},
         ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
         ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
+        ...parent && currentFile.type === 'folder' ? {
+          sharing_options: parent.sharing_options
+        } : {},
         signed_key: key
       })
       .where({ id, user_id: req.user.id })
@@ -376,12 +384,17 @@ export class Files {
     return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
 
-  @Endpoint.GET('/breadcrumbs/:id', { middlewares: [Auth] })
+  @Endpoint.GET('/breadcrumbs/:id', { middlewares: [AuthMaybe] })
   public async breadcrumbs(req: Request, res: Response): Promise<any> {
     const { id } = req.params
     let folder = await Model.findOne(id)
     if (!folder) {
       throw { status: 404, body: { error: 'File not found' } }
+    }
+    if (req.user?.id !== folder.user_id) {
+      if (!folder.sharing_options?.includes('*') && !folder.sharing_options?.includes(req.user?.username)) {
+        throw { status: 404, body: { error: 'File not found' } }
+      }
     }
 
     const breadcrumbs = [folder]
@@ -487,7 +500,7 @@ export class Files {
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
       if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {
-        throw { status: 402, body: { error: 'Payment required' } }
+        throw { status: 402, body: { error: 'You just hit the daily bandwidth limit' } }
       }
     }
 

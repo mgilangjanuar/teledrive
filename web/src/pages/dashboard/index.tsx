@@ -174,7 +174,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       limit: PAGE_SIZE,
       // skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
-      offset: pagination?.current === 1 || actions?.action || keyword ? 0 : data?.length,
+      offset: pagination?.current === 1 || actions?.action || keyword && params?.offset ? 0 : data?.length,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         if (!filters) return res
         if (key === 'type' && filters[key]?.length) {
