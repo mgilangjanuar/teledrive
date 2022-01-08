@@ -16,9 +16,9 @@ import {
   LinkOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  ProfileOutlined,
   ShareAltOutlined,
   TeamOutlined,
-  ProfileOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
 import {
@@ -59,7 +59,8 @@ interface PageProps extends RouteComponentProps<{
   id: string
 }> {}
 
-const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) => {
+const View: React.FC<PageProps> = ({ match }) => {
+  const { data: me } = useSWRImmutable('/users/me', fetcher)
   const [collapsed, setCollapsed] = useState<boolean>()
   const history = useHistory()
   const { data, error, mutate } = useSWR(`/files/${match.params.id}`, fetcher)
@@ -76,13 +77,13 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
     filters?: Record<string, FilterValue | null>,
     sorter?: SorterResult<any> | SorterResult<any>[]
   }>()
-  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /></>, ...data?.file || {} }])
+  const [parent, setParent] = useState<Record<string, any> | null>()
+  const [breadcrumbs, setBreadcrumbs] = useState<any[]>([data?.file || { id: null, name: <><HomeOutlined /></> }])
   const [scrollTop, setScrollTop] = useState<number>(0)
   const [keyword, setKeyword] = useState<string>()
   const [filesData, setFilesData] = useState<any>()
   const [params, setParams] = useState<any>()
   const [loading, setLoading] = useState<boolean>(false)
-  const [parent, setParent] = useState<Record<string, any> | null>()
   const [showDetails, setShowDetails] = useState<any>()
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
   const { data: files, mutate: _refetch } = useSWR(data?.file.type === 'folder' && data?.file.sharing_options?.includes('*') && params ? `/files?${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
@@ -104,7 +105,6 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
     }
   } })
 
-
   useEffect(() => {
     if (data?.file.type === 'folder') {
       if (me?.user) {
@@ -113,6 +113,12 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
         } else if (data.file.shared_options?.includes(me.user.id)) {
           return history.replace(`/dashboard/shared?parent=${data.file.id}`)
         }
+      } else if (data.file.sharing_options?.includes('*')) {
+        setParent(data.file)
+        // setBreadcrumbs([...breadcrumbs, data.file])
+        // const searchParams = new URLSearchParams(window.location.search)
+        // searchParams.set('parent', data.file.id)
+        // return history.replace(`${location.pathname}?${searchParams.toString()}`)
       }
     }
   }, [data, me])
@@ -158,7 +164,6 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
     // if (errorMe) {
     //   return history.push('/login')
     // }
-
     return history.goBack()
   }
 
@@ -178,7 +183,7 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
     }
   }
 
-  const PAGE_SIZE = 2
+  const PAGE_SIZE = 10
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
     setLoading(true)
@@ -189,7 +194,7 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
       shared: 1,
       'parent_id.is': undefined,
       limit: PAGE_SIZE,
-      offset: pagination?.current === 1 || actions?.action || keyword ? 0 : filesData?.length,
+      offset: pagination?.current === 1 || actions?.action || keyword && params?.offset ? 0 : filesData?.length,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         if (!filters) return res
         if (key === 'type' && filters[key]?.length) {
@@ -216,9 +221,9 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
 
       const searchParams = new URLSearchParams(window.location.search)
       searchParams.set('parent', row.id)
-      history.push(`${location.pathname}?${searchParams.toString()}`)
+      return history.push(`${location.pathname}?${searchParams.toString()}`)
     } else {
-      history.push(`/view/${row.id}`)
+      return history.push(`/view/${row.id}`)
     }
   }
 
@@ -274,7 +279,7 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me }) 
   </> : data?.file.type === 'folder' && data?.file.sharing_options?.includes('*') ? <Layout>
     <Layout.Content>
       <Navbar user={me?.user} />
-      <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '50px 12px 0' }}>
+      <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '20px 12px 0' }}>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Paragraph style={{ float: 'left' }}>
             <Breadcrumb dataSource={[breadcrumbs, setBreadcrumbs]} dataParent={[parent, setParent]} />
