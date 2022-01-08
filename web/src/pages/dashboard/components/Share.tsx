@@ -61,10 +61,13 @@ const Share: React.FC<Props> = ({
     setLoadingShare(true)
     const { id, public: isPublic, sharing_options: sharingOpts, username } = formShare.getFieldsValue()
 
-    const sharing = sharingOpts?.length ? [
-      ...new Set([...sharingOpts === undefined ? sharingOptions : sharingOpts, isPublic ? '*' : null]
-        .filter(sh => isPublic ? sh : sh !== '*').filter(Boolean)) as any
+    const sharing = (sharingOpts || sharingOptions)?.length || isPublic ? [
+      ...new Set([
+        ...sharingOpts === undefined ? sharingOptions : sharingOpts,
+        isPublic ? '*' : null
+      ].filter(sh => isPublic ? sh : sh !== '*').filter(Boolean)) as any
     ] : []
+    console.log(isPublic, sharing, sharingOptions, sharingOpts)
     setSharingOptions(sharing)
 
     try {
