@@ -33,7 +33,6 @@ const AddFolder: React.FC<Props> = ({
       setAddFolder(false)
       setLoadingAddFolder(false)
     } catch (error: any) {
-      console.error(error)
       setLoadingAddFolder(false)
       return notification.error({
         message: 'Error',

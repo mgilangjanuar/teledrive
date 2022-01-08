@@ -330,16 +330,16 @@ const View: React.FC<PageProps> = ({ match }) => {
                   onClick: () => onRowClick(row)
                 }),
                 render: (_: any, row: any) => {
-                  let type
+                  let type: any
                   if (row.sharing_options?.includes('*')) {
                     type = <GlobalOutlined />
                   } else if (row.sharing_options?.length) {
                     type = <TeamOutlined />
                   }
 
-                  return <>
+                  return <Button type="text" block style={{ textAlign: 'left', padding: 0 }}>
                     {row.link_id ? <BranchesOutlined /> : '' } {type} <Icon type={row.type} /> {row.name}
-                  </>
+                  </Button>
                 }
               },
               {
@@ -396,7 +396,7 @@ const View: React.FC<PageProps> = ({ match }) => {
     </Layout.Content>
     <Footer me={me} />
     <ContextMenu />
-    <Modal title={<><Icon type={showDetails?.type} /> {showDetails?.name}</>}
+    <Modal title={<Typography.Text ellipsis><Icon type={showDetails?.type} /> {showDetails?.name}</Typography.Text>}
       visible={Boolean(showDetails)}
       onCancel={() => setShowDetails(undefined)}
       okText="View"
@@ -405,7 +405,7 @@ const View: React.FC<PageProps> = ({ match }) => {
       okButtonProps={{ shape: 'round' }}>
       <Descriptions column={1}>
         <Descriptions.Item label="Size">{showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}</Descriptions.Item>
-        <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('llll')}</Descriptions.Item>
+        <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('lll')}</Descriptions.Item>
       </Descriptions>
     </Modal>
   </Layout> : <>

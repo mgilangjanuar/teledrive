@@ -1,4 +1,4 @@
-import { Modal, Form, Input, notification } from 'antd'
+import { Modal, Form, Input, notification, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useState, useEffect } from 'react'
 import { req } from '../../../utils/Fetcher'
@@ -51,7 +51,7 @@ const Rename: React.FC<Props> = ({
   return <Modal visible={fileRename}
     onCancel={() => setFileRename(undefined)}
     okText="Add"
-    title={`Rename ${fileRename?.name}`}
+    title={<Typography.Text ellipsis>Rename {fileRename?.name}</Typography.Text>}
     onOk={() => formRename.submit()}
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ loading: loadingRename, shape: 'round' }}>
