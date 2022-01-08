@@ -212,12 +212,17 @@ export class Files {
       }
     }
 
-    let key: string = currentFile.signed_key
+    const parent = file.parent_id ? await Model.createQueryBuilder('files')
+      .where('id = :id', { id: file.parent_id })
+      .addSelect('files.signed_key')
+      .getOne() : null
+
+    let key: string = currentFile.signed_key || parent?.signed_key
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
     }
 
-    if (!file.sharing_options?.length && !currentFile.sharing_options?.length) {
+    if (!file.sharing_options?.length && !currentFile.sharing_options?.length && !parent?.sharing_options?.length) {
       key = null
     }
 
@@ -226,6 +231,9 @@ export class Files {
         ...file.name ? { name: file.name } : {},
         ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
         ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
+        ...parent ? {
+          sharing_options: parent.sharing_options
+        } : {},
         signed_key: key
       })
       .where({ id, user_id: req.user.id })
