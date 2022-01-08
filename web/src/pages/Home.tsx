@@ -1,5 +1,6 @@
 import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOutlined } from '@ant-design/icons'
-import { Avatar, Button, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
+import { Avatar, Button, Card, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
+import millify from 'millify'
 import React, { useEffect, useState } from 'react'
 import GitHubButton from 'react-github-btn'
 import { useHistory } from 'react-router-dom'
@@ -14,6 +15,7 @@ interface Props {
 
 const Home: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
+  const { data: dataAnalytics } = useSWRImmutable('/utils/simpleAnalytics', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
   const history = useHistory()
 
@@ -190,14 +192,38 @@ const Home: React.FC<Props> = ({ me }) => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: '50px', padding: '100px 0 150px', textAlign: 'center' }}>
-        <Col lg={{ span: 6, offset: 9 }} md={{ span: 10, offset: 7 }} span={20} offset={2}>
-          <Typography.Paragraph>
+
+      <Row gutter={24} style={{ margin: '50px 20px 0', padding: '100px 0 0', textAlign: 'center' }}>
+        <Col lg={{ span: 8, offset: 8 }} md={{ span: 10, offset: 7 }} span={20} offset={2}>
+          <Typography.Title level={2}>
             Join now! 🚀
-          </Typography.Paragraph>
-          <Button shape="round" block href="#top" size="large" type="primary">
-            Getting Started
+          </Typography.Title>
+          <Button shape="round" block size="large" type="primary" onClick={() => history.push('/login')}>
+            Getting Started <ArrowRightOutlined />
           </Button>
+        </Col>
+      </Row>
+      <Row gutter={24} style={{ margin: '50px 20px 0', padding: '0 0 150px', textAlign: 'center' }}>
+        <Col lg={8} span={24} style={{ marginBottom: '20px' }}>
+          <Card title="Total Users" style={{ fontSize: '1rem' }}>
+            <Typography.Title style={{ textAlign: 'center', fontSize: '3em', fontWeight: 300 }}>
+              {millify(dataAnalytics?.analytics?.users || 0)}
+            </Typography.Title>
+          </Card>
+        </Col>
+        <Col lg={8} span={24} style={{ marginBottom: '20px' }}>
+          <Card title="Total Files" style={{ fontSize: '1rem' }}>
+            <Typography.Title ellipsis style={{ textAlign: 'center', fontSize: '3em', fontWeight: 300 }}>
+              {millify(dataAnalytics?.analytics?.files || 0)}
+            </Typography.Title>
+          </Card>
+        </Col>
+        <Col lg={8} span={24} style={{ marginBottom: '20px' }}>
+          <Card title="Total Premium Users" style={{ fontSize: '1rem' }}>
+            <Typography.Title style={{ textAlign: 'center', fontSize: '3em', fontWeight: 300 }}>
+              {millify(dataAnalytics?.analytics?.premiumUsers || 0)}
+            </Typography.Title>
+          </Card>
         </Col>
       </Row>
 
