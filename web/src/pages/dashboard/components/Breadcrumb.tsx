@@ -53,10 +53,10 @@ const Breadcrumb: React.FC<Props> = ({
         })
       }
     } else {
-      setParent(parent?.id ? parent : breadcrumbs[0])
-      setBreadcrumbs([parent?.id ? parent : breadcrumbs[0]])
+      setParent(breadcrumbs[0])
+      setBreadcrumbs([breadcrumbs[0]])
     }
-  }, [searchParams, parent])
+  }, [searchParams])
 
   const Name = ({ crumb }: any) => <>{crumb.link_id ? <BranchesOutlined /> : ''} {crumb?.id ? <FolderOpenOutlined /> : ''} {crumb.name}</>
 

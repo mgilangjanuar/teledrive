@@ -114,8 +114,8 @@ const View: React.FC<PageProps> = ({ match }) => {
           return history.replace(`/dashboard/shared?parent=${data.file.id}`)
         }
       } else if (data.file.sharing_options?.includes('*')) {
-        setParent(data.file)
-        // setBreadcrumbs([...breadcrumbs, data.file])
+        // setParent(data.file)
+        // setBreadcrumbs([data.file])
         // const searchParams = new URLSearchParams(window.location.search)
         // searchParams.set('parent', data.file.id)
         // return history.replace(`${location.pathname}?${searchParams.toString()}`)
