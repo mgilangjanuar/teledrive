@@ -59,6 +59,20 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
   const [fileRename, setFileRename] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
 
+
+  useEffect(() => {
+    if (me?.user && data?.file.type === 'folder') {
+      if (data.file.user_id === me.user.id) {
+        return history.replace(`/dashboard?parent=${data.file.id}`)
+      } else if (data.file.shared_options?.includes(me.user.id)) {
+        return history.replace(`/dashboard/shared?parent=${data.file.id}`)
+      }
+      if (data.file.sharing_options?.includes('*')) {
+        // todo
+      }
+    }
+  }, [data, me])
+
   useEffect(() => {
     if (data?.file) {
       setLinks({
@@ -147,19 +161,6 @@ const View: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match, me, er
           try {
             e.target.contentWindow.document.body.style.margin = 0
             e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
-
-            // e.target.contentWindow.document.img.style.textAlign = 'center'
-            // e.target.contentWindow.document.img.style.position = 'absolute'
-            // e.target.contentWindow.document.img.style.margin = 'auto'
-            // e.target.contentWindow.document.img.style.top = 0
-            // e.target.contentWindow.document.img.style.right = 0
-            // e.target.contentWindow.document.img.style.bottom = 0
-            // e.target.contentWindow.document.img.style.left = 0
-
-            // e.target.contentWindow.document.body.style.height = '100%'
-            // e.target.contentWindow.document.body.style.display = 'flex'
-            // e.target.contentWindow.document.body.style.justifyContent = 'center'
-            // e.target.contentWindow.document.body.style.alignItems = 'center'
           } catch (error) {
             // ignore
           }

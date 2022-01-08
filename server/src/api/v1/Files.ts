@@ -16,17 +16,23 @@ import { Auth, AuthMaybe } from '../middlewares/Auth'
 @Endpoint.API()
 export class Files {
 
-  @Endpoint.GET('/', { middlewares: [Auth] })
+  @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, shared, t: _t, ...filters } = req.query
     const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
     if (filters?.parent_id && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
+    if (!req.user && !parent?.sharing_options?.includes('*')) {
+      throw { status: 404, body: { error: 'Parent not found' } }
+    }
 
     const [files, length] = await Model.createQueryBuilder('files')
-      .where(shared && parent?.sharing_options?.includes(req.user.username) ? 'true' : shared ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))' : 'files.user_id = :user', {
-        user: shared ? req.user.username : req.user.id  })
+      .where(shared && (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*'))
+        ? 'true' : shared
+          ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
+          : 'files.user_id = :user', {
+        user: shared ? req.user?.username : req.user?.id  })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
       .leftJoin('files.parent', 'parent')
       .skip(Number(offset) || undefined)
@@ -132,12 +138,6 @@ export class Files {
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-
-    // const file = await Model.createQueryBuilder('files')
-    //   .where(`id = :id and (\'*\' = any(sharing_options) or ${req.user ? ':username = any(sharing_options) or user_id = :user_id' : 'false'})`, {
-    //     id, username: req.user?.username, user_id: req.user?.id })
-    //   .addSelect('files.signed_key')
-    //   .getOne()
     const file = await Model.createQueryBuilder('files')
       .where('id = :id', { id })
       .addSelect('files.signed_key')
