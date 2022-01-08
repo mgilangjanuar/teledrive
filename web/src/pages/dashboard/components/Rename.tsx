@@ -53,7 +53,8 @@ const Rename: React.FC<Props> = ({
     okText="Add"
     title={`Rename ${fileRename?.name}`}
     onOk={() => formRename.submit()}
-    okButtonProps={{ loading: loadingRename }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ loading: loadingRename, shape: 'round' }}>
     <Form form={formRename} layout="horizontal" onFinish={renameFile}>
       <Form.Item name="name" label="Name">
         <Input />

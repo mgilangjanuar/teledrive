@@ -16,6 +16,7 @@ interface Props {
 const Navbar: React.FC<Props> = ({ user }) => {
   const history = useHistory()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
+  const [popoverVisibility, setPopoverVisibility] = useState<boolean>(false)
   const { data: usage } = useSWR('/users/me/usage', fetcher)
 
   const logout = async () => {
@@ -39,17 +40,26 @@ const Navbar: React.FC<Props> = ({ user }) => {
         </span>
       </div>
       {user ?
-        <Popover placement="bottomRight" trigger={['click']} content={<div>
+        <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
           <div style={{ padding: '10px' }}>
             Bandwidth usage: { }
             {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - Number(usage?.usage.usage) || 0))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
               <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
           </div>
-          <Menu triggerSubMenuAction="click">
-            <Menu.Item key="dashboard" icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>Dashboard</Menu.Item>
-            <Menu.Item key="settings" icon={<SettingOutlined />} onClick={() => history.push('/settings')}>Settings</Menu.Item>
-            <Menu.Item danger key="logout" icon={<LogoutOutlined />} onClick={() => setLogoutConfirmation(true)}>Logout</Menu.Item>
+          <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
+            if (key === 'dashboard') {
+              history.push('/dashboard')
+            } else if (key === 'settings') {
+              history.push('/settings')
+            } else if (key === 'logout') {
+              setLogoutConfirmation(true)
+            }
+            setPopoverVisibility(false)
+          }}>
+            <Menu.Item key="dashboard" icon={<DashboardOutlined />}>Dashboard</Menu.Item>
+            <Menu.Item key="settings" icon={<SettingOutlined />}>Settings</Menu.Item>
+            <Menu.Item danger key="logout" icon={<LogoutOutlined />}>Logout</Menu.Item>
           </Menu>
         </div>}>
           <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
@@ -73,7 +83,8 @@ const Navbar: React.FC<Props> = ({ user }) => {
     visible={logoutConfirmation}
     onCancel={() => setLogoutConfirmation(false)}
     onOk={logout}
-    okButtonProps={{ danger: true, type: 'primary' }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Typography.Paragraph>
         All the files you share will not be able to download once you sign out. Continue?
       </Typography.Paragraph>

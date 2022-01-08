@@ -160,7 +160,9 @@ export class Files {
         throw { status: 402, body: { error: 'Payment required' } }
       }
       files = await Model.createQueryBuilder('files')
-        .where(`id = :id or name like '${file.name.replace(/\.part1$/gi, '')}%'`, { id })
+        .where(`(id = :id or name like '${file.name.replace(/\.part1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
+          id, user_id: file.user_id, parent_id: file.parent_id
+        })
         .addSelect('files.signed_key')
         .orderBy('created_at')
         .getMany()

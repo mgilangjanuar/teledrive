@@ -21,6 +21,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       message: 'Warning',
       description: 'Please don\'t close/reload this browser'
     })
+    window.onbeforeunload = () => {
+      return 'Are you sure you want to leave?'
+    }
     // const maxSize = 1024 * 1024 * 1024 * 2
     const maxSize = 2_000_000_000
     const chunkSize = 512 * 1024
@@ -38,11 +41,17 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         const fileBlob = file.slice(j * maxSize, Math.min(j * maxSize + maxSize, file.size))
         const parts = Math.ceil(fileBlob.size / chunkSize)
 
+        if (deleted) {
+          window.onbeforeunload = undefined as any
+          break
+        }
+
         for (let i = 0; i < parts; i++) {
           if (firstResponse?.file && cancelUploading.current && file.uid === cancelUploading.current) {
             await req.delete(`/files/${firstResponse?.file.id}`)
             cancelUploading.current = null
             deleted = true
+            window.onbeforeunload = undefined as any
             break
           }
           const blobPart = fileBlob.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
@@ -67,6 +76,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       }
       // notification.close(`upload-${file.uid}`)
       if (!deleted) {
+        window.onbeforeunload = undefined as any
         notification.success({
           message: 'Success',
           description: `File ${file.name} uploaded successfully`

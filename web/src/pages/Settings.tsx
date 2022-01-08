@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
+import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
@@ -65,9 +65,9 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   }
 
   return <>
-    <Layout.Content className="container">
-      <Row style={{ marginTop: '50px' }}>
-        <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
+    <Layout.Content>
+      <Row style={{ margin: '50px 12px 100px' }}>
+        <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={24}>
           <Typography.Title>
             Settings
           </Typography.Title>
@@ -77,26 +77,38 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
             </Popover>}</>} description={me?.user.username} />
             <Divider />
             <Form layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
-              <Form.Item label="Expandable Rows" name="expandable_rows">
-                <Switch onChange={val => {
-                  setExpandableRows(val)
-                  save({ expandable_rows: val })
-                }} checked={expandableRows} defaultChecked={expandableRows} />
-              </Form.Item>
-              <Form.Item label="Dark Mode" name="expandable_rows">
-                <Switch onChange={val => {
-                  return save({ theme: val ? 'dark' : 'light' }).then(window.location.reload)
-                }} checked={me?.user.settings?.theme === 'dark'} defaultChecked={me?.user.settings?.theme === 'dark'} />
-              </Form.Item>
-              <Form.Item label="Check Updates">
-                <Button shape="round" icon={<ReloadOutlined />} onClick={() => {
-                  serviceWorkerRegistration.unregister();
-                  (window.location as any).reload(true)
-                }}>Reload</Button>
-              </Form.Item>
-              <Form.Item label={<Typography.Text type="danger">Delete Account</Typography.Text>}>
-                <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>
-              </Form.Item>
+              <List>
+                <List.Item key="expandable-rows" actions={[<Form.Item name="expandable_rows">
+                  <Switch onChange={val => {
+                    setExpandableRows(val)
+                    save({ expandable_rows: val })
+                  }} checked={expandableRows} defaultChecked={expandableRows} />
+                </Form.Item>]}>
+                  <List.Item.Meta title="Expandable Rows" description="Show file details in row table" />
+                </List.Item>
+
+                <List.Item key="dark-mode" actions={[<Form.Item name="dark_mode">
+                  <Switch onChange={(val: boolean) => save({ theme: val ? 'dark' : 'light' }).then(window.location.reload)} checked={me?.user.settings?.theme === 'dark'} defaultChecked={me?.user.settings?.theme === 'dark'} />
+                </Form.Item>]}>
+                  <List.Item.Meta title="Dark Mode" description="Join the dark side" />
+                </List.Item>
+
+                <List.Item key="check-for-updates" actions={[<Form.Item>
+                  <Button shape="round" icon={<ReloadOutlined />} onClick={() => {
+                    serviceWorkerRegistration.unregister();
+                    (window.location as any).reload(true)
+                  }}>Reload</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title="Check Updates" description="Reload to checking for updates" />
+                </List.Item>
+
+                <List.Item key="delete-account" actions={[<Form.Item>
+                  <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Typography.Text type="danger">Delete Account</Typography.Text>} description="Delete your account permanently" />
+                </List.Item>
+              </List>
+
             </Form>
             <Divider />
             <Row>
@@ -129,7 +141,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     visible={logoutConfirmation}
     onCancel={() => setLogoutConfirmation(false)}
     onOk={logout}
-    okButtonProps={{ danger: true, type: 'primary' }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Typography.Paragraph>
         All the files you share will not be able to download once you sign out. Continue?
       </Typography.Paragraph>
@@ -141,7 +154,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     visible={removeConfirmation}
     onCancel={() => setRemoveConfirmation(false)}
     onOk={remove}
-    okButtonProps={{ danger: true, type: 'primary' }}>
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Form form={formRemoval} onFinish={remove} layout="vertical">
         <Form.Item name="reason" label="Reason" rules={[{ required: true, message: 'Please input your reason' }]}>
           <Input.TextArea />

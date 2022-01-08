@@ -330,7 +330,9 @@ const TableFiles: React.FC<Props> = ({
       visible={Boolean(showDetails)}
       onCancel={() => setShowDetails(undefined)}
       okText="View"
-      onOk={() => onRowClick(showDetails)}>
+      onOk={() => onRowClick(showDetails)}
+      cancelButtonProps={{ shape: 'round' }}
+      okButtonProps={{ shape: 'round' }}>
       <Descriptions column={1}>
         <Descriptions.Item label="Size">{showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}</Descriptions.Item>
         <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('llll')}</Descriptions.Item>
