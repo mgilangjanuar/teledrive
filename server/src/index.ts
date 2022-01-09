@@ -22,6 +22,7 @@ import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
 import { API } from './api'
 import { runDB } from './model'
+import { Redis } from './service/Cache'
 
 // import bigInt from 'json-bigint'
 // const parse = JSON.parse
@@ -49,6 +50,7 @@ import { runDB } from './model'
 // }
 
 
+Redis.connect()
 runDB()
 
 const app = express()

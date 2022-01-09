@@ -1,11 +1,11 @@
 import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
+import { Avatar, Button, Card, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
-import { apiUrl, fetcher, req } from '../utils/Fetcher'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
+import { apiUrl, fetcher, req } from '../utils/Fetcher'
 
 interface Props {
   me?: any,
@@ -71,11 +71,27 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
           <Typography.Title>
             Settings
           </Typography.Title>
-          <Card loading={!me && !error}>
-            <Card.Meta avatar={<Avatar size="large" src={`${apiUrl}/users/me/photo`} />} title={<>{me?.user.name} {me?.user?.plan === 'premium' && <Popover placement="top" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
-              <CrownOutlined />
-            </Popover>}</>} description={me?.user.username} />
-            <Divider />
+          <Card loading={!me && !error} title={<Card.Meta avatar={<Avatar size="large" src={`${apiUrl}/users/me/photo`} />} title={<>{me?.user.name} {me?.user?.plan === 'premium' && <Popover placement="top" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
+            <CrownOutlined />
+          </Popover>}</>} description={me?.user.username} />} actions={[<Row style={{ marginTop: '15px' }}>
+            <Col span={22} offset={1} md={{ span: 12, offset: 6 }}>
+              <Typography.Paragraph style={{ textAlign: 'center' }}>
+                <Button block icon={<LogoutOutlined />} danger shape="round"
+                  onClick={() => setLogoutConfirmation(true)}>
+                  Logout
+                </Button>
+              </Typography.Paragraph>
+              <Typography.Paragraph style={{ textAlign: 'center' }}>
+                <Button block icon={<ArrowLeftOutlined />} type="link"
+                  onClick={() => history.push('/dashboard')}>
+                  Back to Dashboard
+                </Button>
+              </Typography.Paragraph>
+              <Typography.Paragraph style={{ textAlign: 'center' }} type="secondary">
+                v{respVersion?.version}
+              </Typography.Paragraph>
+            </Col>
+          </Row>]}>
             <Form layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
               <List>
                 <List.Item key="expandable-rows" actions={[<Form.Item name="expandable_rows">
@@ -110,26 +126,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
               </List>
 
             </Form>
-            <Divider />
-            <Row>
-              <Col span={22} offset={1} md={{ span: 12, offset: 6 }}>
-                <Typography.Paragraph style={{ textAlign: 'center' }}>
-                  <Button block icon={<LogoutOutlined />} danger shape="round"
-                    onClick={() => setLogoutConfirmation(true)}>
-                    Logout
-                  </Button>
-                </Typography.Paragraph>
-                <Typography.Paragraph style={{ textAlign: 'center' }}>
-                  <Button block icon={<ArrowLeftOutlined />} type="link"
-                    onClick={() => history.push('/dashboard')}>
-                    Back to Dashboard
-                  </Button>
-                </Typography.Paragraph>
-                <Typography.Paragraph style={{ textAlign: 'center' }} type="secondary">
-                  v{respVersion?.version}
-                </Typography.Paragraph>
-              </Col>
-            </Row>
           </Card>
         </Col>
       </Row>
