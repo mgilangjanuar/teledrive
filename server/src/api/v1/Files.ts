@@ -218,7 +218,7 @@ export class Files {
       .addSelect('files.signed_key')
       .getOne() : null
 
-    let key: string = currentFile.signed_key || parent.signed_key
+    let key: string = currentFile.signed_key || parent?.signed_key
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
     }

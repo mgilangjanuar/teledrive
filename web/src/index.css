@@ -33,7 +33,7 @@ html, body {
   font-size: 1.2em;
 }
 
-.input-search-round input::before, .input-search-round .ant-input-affix-wrapper {
+.input-search-round input::before, .input-search-round .ant-input-affix-wrapper, .input-search-round .ant-input-group > .ant-input:first-child {
   border-radius: 32px 0 0 32px !important;
   padding: 4px 16px;
 }
