@@ -166,6 +166,7 @@ export class Files {
         .addSelect('files.signed_key')
         .orderBy('created_at')
         .getMany()
+      files[0].signed_key = file.signed_key = file.signed_key || parent?.signed_key
     }
 
     if (!req.user || file.user_id !== req.user?.id) {
@@ -217,7 +218,7 @@ export class Files {
       .addSelect('files.signed_key')
       .getOne() : null
 
-    let key: string = currentFile.signed_key || null
+    let key: string = currentFile.signed_key || parent.signed_key
     if (file.sharing_options?.length && !key) {
       key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
     }
@@ -590,6 +591,7 @@ export class Files {
     try {
       data = JSON.parse(AES.decrypt(files[0].signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
     } catch (error) {
+      console.error(error)
       throw { status: 401, body: { error: 'Invalid token' } }
     }
 
