@@ -3,7 +3,6 @@ import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
 import { Users } from '../../model/entities/Users'
-import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {

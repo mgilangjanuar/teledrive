@@ -1,11 +1,11 @@
 import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Divider, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
+import { Avatar, Button, Card, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
-import { apiUrl, fetcher, req } from '../utils/Fetcher'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
+import { apiUrl, fetcher, req } from '../utils/Fetcher'
 
 interface Props {
   me?: any,
