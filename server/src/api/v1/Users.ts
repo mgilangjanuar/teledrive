@@ -5,6 +5,7 @@ import moment from 'moment'
 import { Files } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
 import { Users as Model } from '../../model/entities/Users'
+import { Redis } from '../../service/Cache'
 import { Midtrans, TransactionDetails } from '../../service/Midtrans'
 import { PayPal, SubscriptionDetails } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
@@ -64,10 +65,12 @@ export class Users {
 
     if (username === 'me' || username === req.user.username) {
       const username = req.userAuth.username || req.userAuth.phone
-      let paymentDetails: SubscriptionDetails | TransactionDetails = null
+
+      let paymentDetails: SubscriptionDetails = null, midtransPaymentDetails: TransactionDetails = null
+
       if (req.user.subscription_id) {
         try {
-          paymentDetails = await new PayPal().getSubscription(req.user.subscription_id)
+          paymentDetails = await Redis.connect().getFromCacheFirst(`paypal:subscription:${req.user.subscription_id}`, async () => await new PayPal().getSubscription(req.user.subscription_id))
         } catch (error) {
           // ignore
         }
@@ -75,9 +78,9 @@ export class Users {
 
       if (req.user.midtrans_id) {
         try {
-          paymentDetails = await new Midtrans().getTransactionStatus(req.user.midtrans_id)
-          if (!paymentDetails?.transaction_status) {
-            paymentDetails = null
+          midtransPaymentDetails = await Redis.connect().getFromCacheFirst(`midtrans:transaction:${req.user.midtrans_id}`, async () => await new Midtrans().getTransactionStatus(req.user.midtrans_id))
+          if (!midtransPaymentDetails?.transaction_status) {
+            midtransPaymentDetails = null
           }
         } catch (error) {
           // ignore
@@ -86,17 +89,17 @@ export class Users {
 
       let plan: 'free' | 'premium' = 'free'
 
-      if (paymentDetails) {
-        if (req.user.subscription_id && (paymentDetails as SubscriptionDetails).plan_id === process.env.PAYPAL_PLAN_PREMIUM_ID) {
-          const isExpired = new Date().getTime() - new Date((paymentDetails as SubscriptionDetails).billing_info?.last_payment.time).getTime() > 3.154e+10
-          if ((paymentDetails as SubscriptionDetails).billing_info?.last_payment && !isExpired || ['APPROVED', 'ACTIVE'].includes((paymentDetails as SubscriptionDetails).status)) {
-            plan = 'premium'
-          }
-        } else if (req.user.midtrans_id && ((paymentDetails as TransactionDetails).settlement_time || (paymentDetails as TransactionDetails).transaction_time)) {
-          const isExpired = new Date().getTime() - new Date((paymentDetails as TransactionDetails).settlement_time || (paymentDetails as TransactionDetails).transaction_time).getTime() > 3.154e+10
-          if (['settlement', 'capture'].includes((paymentDetails as TransactionDetails).transaction_status) && !isExpired) {
-            plan = 'premium'
-          }
+      if (paymentDetails && paymentDetails.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ID) {
+        const isExpired = new Date().getTime() - new Date(paymentDetails.billing_info?.last_payment.time).getTime() > 3.154e+10
+        if (paymentDetails.billing_info?.last_payment && !isExpired || ['APPROVED', 'ACTIVE'].includes(paymentDetails.status)) {
+          plan = 'premium'
+        }
+      }
+
+      if (midtransPaymentDetails && (midtransPaymentDetails.settlement_time || midtransPaymentDetails.transaction_time)) {
+        const isExpired = new Date().getTime() - new Date(midtransPaymentDetails.settlement_time || midtransPaymentDetails.transaction_time).getTime() > 3.154e+10
+        if (['settlement', 'capture'].includes(midtransPaymentDetails.transaction_status) && !isExpired) {
+          plan = 'premium'
         }
       }
 
