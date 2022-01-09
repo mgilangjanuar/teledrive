@@ -166,14 +166,14 @@ const Share: React.FC<Props> = ({
       <Divider />
       <Spin spinning={loadingShare}>
         {selectShare?.action === 'share' ? <>
+          {sharingOptions?.[0] ? <Form.Item label={<><LinkOutlined /> &nbsp;Share URL</>} name="link">
+            <Input.Search readOnly className="input-search-round" contentEditable={false} enterButton={<CopyOutlined />} onSearch={copy} />
+          </Form.Item> : ''}
           <Typography.Paragraph type="secondary">
             <InfoCircleOutlined /> You are shared {isPublic ? 'with anyone.' :
               `with ${formShare.getFieldValue('sharing_options')?.[0] || 'no one'}
                 ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length > 1 ? ` and ${formShare.getFieldValue('sharing_options')?.filter(Boolean).length - 1} people` : ''}`}
           </Typography.Paragraph>
-          {sharingOptions?.[0] ? <Form.Item label={<><LinkOutlined /> &nbsp;Share URL</>} name="link">
-            <Input.Search readOnly contentEditable={false} enterButton={<CopyOutlined />} onSearch={copy} />
-          </Form.Item> : ''}
         </> : <Typography.Paragraph type="secondary">
           <InfoCircleOutlined /> You will send this file to the user directly
         </Typography.Paragraph>}

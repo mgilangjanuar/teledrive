@@ -438,13 +438,13 @@ const View: React.FC<PageProps> = ({ match }) => {
           <Descriptions colon={false} layout="vertical"
             labelStyle={{ color: '#fff' }} column={1}>
             <Descriptions.Item label={<><LinkOutlined /> &nbsp; Raw URL</>}>
-              <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.raw} onSearch={copy} />
+              <Input.Search className="input-search-round" readOnly enterButton={<CopyOutlined />} value={links?.raw} onSearch={copy} />
             </Descriptions.Item>
             <Descriptions.Item label={<><DownloadOutlined /> &nbsp; Download URL</>}>
-              <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.download} onSearch={copy} />
+              <Input.Search className="input-search-round" readOnly enterButton={<CopyOutlined />} value={links?.download} onSearch={copy} />
             </Descriptions.Item>
             {data?.file.sharing_options?.length && <Descriptions.Item label={<><ShareAltOutlined /> &nbsp; Share URL</>}>
-              <Input.Search readOnly enterButton={<CopyOutlined />} value={links?.share} onSearch={copy} />
+              <Input.Search className="input-search-round" readOnly enterButton={<CopyOutlined />} value={links?.share} onSearch={copy} />
             </Descriptions.Item>}
           </Descriptions>
         </Layout.Content>
