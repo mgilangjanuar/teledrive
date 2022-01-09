@@ -28,7 +28,7 @@ export class Messages {
         accessHash: bigInt(accessHash as string) })
     }
 
-    const result = await Redis.connect().getFromCacheFirst(`history:${JSON.stringify(req.params)}:${JSON.stringify(req.query)}`, async () => {
+    const result = await Redis.connect().getFromCacheFirst(`history:${req.user.id}:${JSON.stringify(req.params)}:${JSON.stringify(req.query)}`, async () => {
       const messages = await req.tg.invoke(new Api.messages.GetHistory({
         peer: peer,
         limit: Number(limit) || 0,
