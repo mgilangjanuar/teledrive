@@ -1,5 +1,6 @@
 import {
   ArrowLeftOutlined,
+  ArrowRightOutlined,
   AudioOutlined,
   BranchesOutlined,
   CopyOutlined,
@@ -454,7 +455,8 @@ const View: React.FC<PageProps> = ({ match }) => {
           {!showContent && <Button shape="circle" icon={<ArrowLeftOutlined />} onClick={back} />}
           {!showContent && me?.user.id === data?.file.user_id ? <Dropdown placement="bottomCenter" trigger={['click']} overlay={<Menu>
             <Menu.Item key="rename" onClick={() => setFileRename(data?.file)} icon={<EditOutlined />}>Rename</Menu.Item>
-            <Menu.Item key="share" onClick={() => setSelectShare(data?.file)} icon={<ShareAltOutlined />}>Share</Menu.Item>
+            <Menu.Item key="share" onClick={() => setSelectShare({ action: 'share', row: data?.file })} icon={<ShareAltOutlined />}>Share</Menu.Item>
+            <Menu.Item key="send" onClick={() => setSelectShare({ action: 'forward', row: data?.file })} icon={<ArrowRightOutlined />}>Send to</Menu.Item>
             <Menu.Item key="download" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />}>Download</Menu.Item>
             <Menu.Item key="remove" danger onClick={() => setSelectDeleted([data?.file])} icon={<DeleteOutlined />}>Delete</Menu.Item>
           </Menu>}>
