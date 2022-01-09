@@ -3,6 +3,7 @@ import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
 import { Users } from '../../model/entities/Users'
+import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {
@@ -31,17 +32,17 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
     userAuth = await req.tg.getMe()
   } catch (error) {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       await req.tg.connect()
       userAuth = await req.tg.getMe()
     } catch (error) {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       await req.tg.connect()
       userAuth = await req.tg.getMe()
     }
   }
 
-  const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+  const user = await Redis.connect().getFromCacheFirst(`user:${userAuth.id}`, async () => await Users.findOne({ tg_id: userAuth['id'].toString() }), 600)
   if (!user) {
     throw { status: 401, body: { error: 'User not found' } }
   }
@@ -69,9 +70,23 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
     }
 
     await req.tg.connect()
-    const userAuth = await req.tg.getMe()
+    let userAuth: any
+    try {
+      await req.tg.connect()
+      userAuth = await req.tg.getMe()
+    } catch (error) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        await req.tg.connect()
+        userAuth = await req.tg.getMe()
+      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        await req.tg.connect()
+        userAuth = await req.tg.getMe()
+      }
+    }
 
-    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+    const user = await Redis.connect().getFromCacheFirst(`user:${userAuth.id}`, async () => await Users.findOne({ tg_id: userAuth['id'].toString() }), 600)
     if (!user) {
       throw { status: 401, body: { error: 'User not found' } }
     }
