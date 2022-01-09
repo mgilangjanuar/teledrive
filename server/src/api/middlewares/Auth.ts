@@ -42,7 +42,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
     }
   }
 
-  const user = await Redis.connect().getFromCacheFirst(`user:${userAuth.id}`, async () => await Users.findOne({ tg_id: userAuth['id'].toString() }), 600)
+  const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
   if (!user) {
     throw { status: 401, body: { error: 'User not found' } }
   }
@@ -86,7 +86,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
       }
     }
 
-    const user = await Redis.connect().getFromCacheFirst(`user:${userAuth.id}`, async () => await Users.findOne({ tg_id: userAuth['id'].toString() }), 600)
+    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
     if (!user) {
       throw { status: 401, body: { error: 'User not found' } }
     }

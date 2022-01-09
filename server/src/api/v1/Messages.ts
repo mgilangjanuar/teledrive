@@ -1,6 +1,7 @@
 import { Api } from '@mgilangjanuar/telegram'
 import bigInt from 'big-integer'
 import { Request, Response } from 'express'
+import { Redis } from '../../service/Cache'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
 
@@ -27,13 +28,16 @@ export class Messages {
         accessHash: bigInt(accessHash as string) })
     }
 
-    const messages = await req.tg.invoke(new Api.messages.GetHistory({
-      peer: peer,
-      limit: Number(limit) || 0,
-      offsetId: Number(offset) || 0,
-    }))
-    const result = JSON.parse(JSON.stringify(messages))
-    result.messages = result.messages?.map((msg, i) => ({ ...msg, action: { ...msg.action, className: messages['messages'][i]?.action?.className } }))
+    const result = await Redis.connect().getFromCacheFirst(`history:${JSON.stringify(req.params)}:${JSON.stringify(req.query)}`, async () => {
+      const messages = await req.tg.invoke(new Api.messages.GetHistory({
+        peer: peer,
+        limit: Number(limit) || 0,
+        offsetId: Number(offset) || 0,
+      }))
+      const result = JSON.parse(JSON.stringify(messages))
+      result.messages = result.messages?.map((msg, i) => ({ ...msg, action: { ...msg.action, className: messages['messages'][i]?.action?.className } }))
+      return result
+    }, 2)
     return res.send({ messages: result })
   }
 
