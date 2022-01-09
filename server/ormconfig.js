@@ -29,5 +29,11 @@ module.exports = {
   cli: {
     'migrationsDir': 'src/migrations'
   },
-  namingStrategy: new SnakeNamingStrategy()
+  namingStrategy: new SnakeNamingStrategy(),
+  // ...process.env.REDIS_URI ? {
+  //   cache: {
+  //     type: 'redis',
+  //     options: process.env.REDIS_URI
+  //   }
+  // } : {}
 }

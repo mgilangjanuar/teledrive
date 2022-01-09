@@ -56,12 +56,12 @@ export const runDB = async (): Promise<void> => {
       'migrationsDir': 'src/migrations'
     },
     namingStrategy: new SnakeNamingStrategy(),
-    ...process.env.REDIS_URI ? {
-      cache: {
-        type: 'redis',
-        options: process.env.REDIS_URI
-      }
-    } : {}
+    // ...process.env.REDIS_URI ? {
+    //   cache: {
+    //     type: 'redis',
+    //     options: process.env.REDIS_URI
+    //   }
+    // } : {}
   }, BaseModel).build()
 }
 
