@@ -1,6 +1,7 @@
 import { Api } from '@mgilangjanuar/telegram'
 import bigInt from 'big-integer'
 import { Request, Response } from 'express'
+import { Redis } from '../../service/Cache'
 import { objectParser } from '../../utils/ObjectParser'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from '../middlewares/Auth'
@@ -11,12 +12,14 @@ export class Dialogs {
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
     const { offset, limit } = req.query
-    const dialogs = await req.tg.getDialogs({
-      limit: Number(limit) || 0,
-      offsetDate: Number(offset) || undefined,
-      ignorePinned: false
-    })
-    return res.send({ dialogs: objectParser(dialogs) })
+    const dialogs = await Redis.connect().getFromCacheFirst(`dialogs:${req.user.id}:${JSON.stringify(req.query)}`, async () => {
+      return objectParser(await req.tg.getDialogs({
+        limit: Number(limit) || 0,
+        offsetDate: Number(offset) || undefined,
+        ignorePinned: false
+      }))
+    }, 2)
+    return res.send({ dialogs })
   }
 
   @Endpoint.GET('/:type/:id', { middlewares: [Auth] })

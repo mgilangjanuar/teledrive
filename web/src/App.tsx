@@ -79,26 +79,28 @@ function App(): React.ReactElement {
             Follow us for updates
           </Button>
         }
-      /> : <Suspense fallback={<></>}>
-        <Switch>
-          <Route path="/dashboard/:type?" exact component={Dashboard} />
-          <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
-          <Route path="/view/:id" exact component={View} />
-          <Route path="/login" exact>
-            {me?.user ? <Redirect to="/dashboard" /> : <Login me={me} />}
-          </Route>
-          <Route path="/terms" exact component={Terms} />
-          <Route path="/refund" exact component={Refund} />
-          <Route path="/privacy" exact component={Privacy} />
-          <Route path="/pricing" exact component={() => <Pricing me={me} />} />
-          <Route path="/contact" exact component={() => <Contact me={me} />} />
-          <Route path="/faq" exact component={Faq} />
-          <Route path="/" exact>
-            {new URLSearchParams(window.location.search).get('source') === 'pwa' ? <Redirect to="/dashboard" /> : <Home me={me} />}
-          </Route>
-          <Route component={NotFound} />
-        </Switch>
-      </Suspense>}
+      /> : <div style={{ minHeight: '88vh' }}>
+        <Suspense fallback={<></>}>
+          <Switch>
+            <Route path="/dashboard/:type?" exact component={Dashboard} />
+            <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
+            <Route path="/view/:id" exact component={View} />
+            <Route path="/login" exact>
+              {me?.user ? <Redirect to="/dashboard" /> : <Login me={me} />}
+            </Route>
+            <Route path="/terms" exact component={Terms} />
+            <Route path="/refund" exact component={Refund} />
+            <Route path="/privacy" exact component={Privacy} />
+            <Route path="/pricing" exact component={() => <Pricing me={me} />} />
+            <Route path="/contact" exact component={() => <Contact me={me} />} />
+            <Route path="/faq" exact component={Faq} />
+            <Route path="/" exact>
+              {new URLSearchParams(window.location.search).get('source') === 'pwa' ? <Redirect to="/dashboard" /> : <Home me={me} />}
+            </Route>
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
+      </div>}
       {!/^\/view\/.*/gi.test(window.location.pathname) && <Footer me={me} />}
     </Layout>
   )

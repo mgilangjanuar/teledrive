@@ -3,6 +3,7 @@ import { readFileSync } from 'fs'
 import { lookup } from 'geoip-lite'
 import { Files } from '../../model/entities/Files'
 import { Users } from '../../model/entities/Users'
+import { Redis } from '../../service/Cache'
 import { Endpoint } from '../base/Endpoint'
 
 @Endpoint.API()
@@ -25,12 +26,13 @@ export class Utils {
 
   @Endpoint.GET()
   public async simpleAnalytics(_: Request, res: Response): Promise<any> {
-    return res.send({
-      analytics: {
+    const analytics = await Redis.connect().getFromCacheFirst('simpleAnalytics', async () => {
+      return {
         users: await Users.count(),
         files: await Files.count(),
         premiumUsers: await Users.count({ where: { plan: 'premium' } }),
       }
-    })
+    }, 3600)
+    return res.send({ analytics })
   }
 }
