@@ -15,20 +15,24 @@ export const fetcher = async (url: string, authorization?: string): Promise<any>
     return data
   }
 
-  try {
-    return await fetch()
-  } catch ({ response }) {
-    if ((response as any)?.status === 401) {
-      try {
-        await req.post('/auth/refreshToken')
-        return await fetch()
-      } catch (error) {
-        throw response
-      }
-    } else if ((response as any)?.status === 429) {
-      await new Promise(res => setTimeout(res, 1500))
+  const execute = async () => {
+    try {
       return await fetch()
+    } catch ({ response }) {
+      if ((response as any)?.status === 401) {
+        try {
+          await req.post('/auth/refreshToken')
+          return await fetch()
+        } catch (error) {
+          throw response
+        }
+      } else if ((response as any)?.status === 429) {
+        await new Promise(res => setTimeout(res, (response as any).headers['retry-after']))
+        // return await fetch()
+        return await execute()
+      }
+      throw response
     }
-    throw response
   }
+  return await execute()
 }

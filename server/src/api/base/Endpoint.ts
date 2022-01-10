@@ -64,13 +64,22 @@ export const Endpoint = {
   },
   RequestWrapper: (target: RequestHandler): RequestHandler => {
     return async function (req: Request, res: Response, next: NextFunction) {
-      try {
-        await target(req, res, next)
-      } catch (error) {
-        console.error('RequestWrapper', error)
-        req.tg?.disconnect()
-        return next(error.code ? { status: error.code, body: { error: error.message, details: serializeError(error) } } : error)
+      let trial = 0
+      const execute = async () => {
+        try {
+          return await target(req, res, next)
+        } catch (error) {
+          if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial++ < 5) {
+            await new Promise(res => setTimeout(res, 1000))
+            req.tg?.connect()
+            return await execute()
+          }
+          console.error('RequestWrapper', error)
+          req.tg?.disconnect()
+          return next(error.code ? { status: error.code, body: { error: error.message, details: serializeError(error) } } : error)
+        }
       }
+      return await execute()
     }
   },
   _buildRouteHandler: function (method: string, route: string, descriptor: PropertyDescriptor, ...args: [(string | RouteOptions)?, RouteOptions?]): Route {
@@ -100,17 +109,27 @@ export const Endpoint = {
       basepath: null,
       path,
       handler: async function (req: Request, res: Response, next: NextFunction) {
-        try {
-          await descriptor.value(req, res, next)
-          req.tg?.disconnect()
-        } catch (error) {
-          console.error('handler', error)
-          req.tg?.disconnect()
-          const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
-          return next(error.code ? {
-            status: isValidCode ? error.code : 500, body: { error: error.message, ...isValidCode ? { details: serializeError(error) } : {} }
-          } : error)
+        let trial = 0
+        const execute = async () => {
+          try {
+            await descriptor.value(req, res, next)
+            req.tg?.disconnect()
+          } catch (error) {
+            if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial++ < 5) {
+              await new Promise(res => setTimeout(res, 1000))
+              req.tg?.connect()
+              return await execute()
+            }
+            console.error('handler', error.message)
+            // process.exit(1)
+            req.tg?.disconnect()
+            const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
+            return next(error.code ? {
+              status: isValidCode ? error.code : 500, body: { error: error.message, ...isValidCode ? { details: serializeError(error) } : {} }
+            } : error)
+          }
         }
+        return await execute()
       }
     }
   }
