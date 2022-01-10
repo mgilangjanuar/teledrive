@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "private": true,
   "dependencies": {
     "@craco/craco": "^6.3.0",
