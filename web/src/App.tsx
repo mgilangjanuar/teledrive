@@ -1,14 +1,15 @@
-import { TwitterOutlined } from '@ant-design/icons'
-import { Button, Layout, Result } from 'antd'
+import { MobileOutlined, TwitterOutlined } from '@ant-design/icons'
+import { Button, Layout, notification, Result, Typography } from 'antd'
+import pwaInstallHandler from 'pwa-install-handler'
 import React, { lazy, Suspense, useEffect } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
+import { Helmet } from 'react-helmet'
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
-import { fetcher } from './utils/Fetcher'
-
-import Navbar from './pages/components/Navbar'
 import Footer from './pages/components/Footer'
+import Navbar from './pages/components/Navbar'
+import { fetcher } from './utils/Fetcher'
 
 import 'antd-country-phone-input/dist/index.css'
 
@@ -57,18 +58,48 @@ function App(): React.ReactElement {
 
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
 
-
   useEffect(() => {
     if (me?.user.settings?.theme === 'dark') {
       switcher({ theme: 'dark' })
     } else {
       switcher({ theme: 'light' })
     }
-
   }, [me])
+
+  useEffect(() => {
+    pwaInstallHandler.addListener(canInstall => {
+      const askToInstall = !localStorage.getItem('install') || localStorage.getItem('install') !== 'true' && new Date().getTime() - Number(localStorage.getItem('install')) > 8.64e+7
+      if (canInstall && askToInstall) {
+        notification.info({
+          duration: null,
+          message: 'Install App',
+          description: <>
+            <Typography.Paragraph>
+              You can install the app on your device for better experience.
+            </Typography.Paragraph>
+            <Typography.Paragraph style={{ textAlign: 'right' }}>
+              <Button type="primary" onClick={async () => {
+                if (await pwaInstallHandler.install()) {
+                  localStorage.setItem('install', 'true')
+                } else {
+                  localStorage.setItem('install', new Date().getTime().toString())
+                }
+              }} icon={<MobileOutlined />} shape="round">
+                Install Now
+              </Button>
+            </Typography.Paragraph>
+          </>,
+          onClose: () => localStorage.setItem('install', new Date().getTime().toString())
+        })
+      }
+    })
+  }, [])
 
   return (
     <Layout className="App">
+      <Helmet>
+        <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#000000' : '#0088CC'} />
+      </Helmet>
       {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
       {data?.maintenance ? <Result
         status="warning"
