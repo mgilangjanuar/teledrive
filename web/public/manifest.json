@@ -20,6 +20,5 @@
   ],
   "start_url": "/?source=pwa",
   "display": "standalone",
-  "theme_color": "#0088CC",
   "background_color": "#229EDA"
 }
