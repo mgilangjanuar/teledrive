@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "private": true,
   "dependencies": {
     "@craco/craco": "^6.3.0",
@@ -16,6 +16,7 @@
     "millify": "^4.0.0",
     "mime-types": "^2.1.32",
     "pretty-bytes": "^5.6.0",
+    "pwa-install-handler": "^2.1.6",
     "qs": "^6.10.1",
     "react": "^17.0.2",
     "react-chat-elements": "^10.16.0",
@@ -23,6 +24,7 @@
     "react-dnd": "^14.0.4",
     "react-dom": "^17.0.2",
     "react-github-btn": "^1.2.1",
+    "react-helmet": "^6.1.0",
     "react-markdown": "^7.0.1",
     "react-otp-input": "^2.4.0",
     "react-paypal-button-v2": "^2.6.3",
@@ -81,6 +83,7 @@
     "@types/react-dnd": "^3.0.2",
     "@types/react-dnd-html5-backend": "^3.0.2",
     "@types/react-dom": "^16.9.8",
+    "@types/react-helmet": "^6.1.5",
     "@types/react-otp-input": "^2.0.1",
     "@types/react-router-dom": "^5.1.8",
     "@types/react-virtualized": "^9.21.13",
