@@ -58,9 +58,33 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const data = new FormData()
           data.append('upload', blobPart)
 
+          let parentId = parent?.id
+          if (file.webkitRelativePath) {
+            const paths = file.webkitRelativePath.split('/').slice(0, -1) || []
+            for (const path of paths) {
+              const { data: findFolder } = await req.get('/files', { params: {
+                type: 'folder',
+                name: path,
+                ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
+              } })
+              if (!findFolder?.length) {
+                const { data: newFolder } = await req.post('/files/addFolder', {
+                  file: {
+                    name: path,
+                    ...parentId ? { parent_id: parentId } : {},
+                  }
+                })
+                parentId = newFolder.file.id
+              } else {
+                parentId = findFolder.files[0].id
+              }
+            }
+          }
+
           const { data: response } = await req.post(`/files/upload${i > 0 && firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
             params: {
-              ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
+              // ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
+              ...parentId ? { parent_id: parentId } : {},
               name: `${file.name}${fileParts > 1 ? `.part${j + 1}` : ''}`,
               size: fileBlob.size,
               mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',

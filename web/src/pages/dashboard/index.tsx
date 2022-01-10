@@ -151,7 +151,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   useEffect(() => {
     if (filesUpload?.files) {
       const list = fileList?.map(file => {
-        if (!file.response?.file.id) return file
+        if (!file.response?.file?.id) return file
         const found = filesUpload.files.find((f: any) => f.id === file.response?.file.id)
         if (!found) return null
         return {
@@ -160,9 +160,14 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
         }
       }).filter(file => file && file.status !== 'success')
       setFileList(list)
-      setData([...filesUpload.files?.map((file: any) => ({ ...file, key: file.id })), ...data].reduce((res, row) => [
-        ...res, !res.filter(Boolean).find((r: any) => r.id === row.id) ? row : null
-      ], []).filter(Boolean))
+      // setData([...filesUpload.files?.map((file: any) => ({ ...file, key: file.id })), ...data].reduce((res, row) => [
+      //   ...res, !res.filter(Boolean).find((r: any) => r.id === row.id) ? row : null
+      // ], []).filter(Boolean))
+      if ((dataChanges?.pagination?.current || 0) > 1) {
+        change({ ...dataChanges?.pagination, current: 1 }, dataChanges?.filters, dataChanges?.sorter)
+      } else {
+        refetch()
+      }
     }
   }, [filesUpload])
 
@@ -173,7 +178,6 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
       ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       limit: PAGE_SIZE,
-      // skip: ((pagination?.current || 1) - 1) * PAGE_SIZE,
       offset: pagination?.current === 1 || actions?.action || keyword && params?.offset ? 0 : data?.length,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
         if (!filters) return res
