@@ -31,24 +31,25 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
 
   - Server variables
 
-    | env                    | required | description                            |
-    | ---------------------- | -------- | -------------------------------------- |
-    | RPS                    | no       | Rate limit API per second, default: 20 |
-    | TG_API_ID              | yes      | Application ID from your Telegram App  |
-    | TG_API_HASH            | yes      | Application hash from Telegram App     |
-    | TG_BOT_TOKEN           | yes      | Telegram bot token                     |
-    | TG_BOT_OWNER_ID        | yes      | Chat ID for sending messages to you    |
-    | DB_HOST                | no       | Database host URI, default: localhost  |
-    | DB_NAME                | yes      | Database name                          |
-    | DB_PORT                | no       | Database port, default: 5432           |
-    | DB_USERNAME            | yes      | Database username                      |
-    | DB_PASSWORD            | yes      | Database password                      |
-    | GITHUB_TOKEN           | yes      | GitHub token for getting contributors  |
-    | API_JWT_SECRET         | yes      | Random string for hashing auth token   |
-    | FILES_JWT_SECRET       | yes      | Random string for encrypt public files |
-    | PAYPAL_CLIENT_ID       | yes      | Client ID for PayPal subscription      |
-    | PAYPAL_CLIENT_SECRET   | yes      | Client secret for PayPal subscription  |
-    | PAYPAL_PLAN_PREMIUM_ID | yes      | Product ID for premium plan            |
+    | env                    | required | description                                 |
+    | ---------------------- | -------- | ------------------------------------------- |
+    | RPS                    | no       | Rate limit API per second, default: 20      |
+    | TG_API_ID              | yes      | Application ID from your Telegram App       |
+    | TG_API_HASH            | yes      | Application hash from Telegram App          |
+    | TG_BOT_TOKEN           | yes      | Telegram bot token                          |
+    | TG_BOT_OWNER_ID        | yes      | Chat ID for sending messages to you         |
+    | DB_HOST                | no       | Database host URI, default: localhost       |
+    | DB_NAME                | yes      | Database name                               |
+    | DB_PORT                | no       | Database port, default: 5432                |
+    | DB_USERNAME            | yes      | Database username                           |
+    | DB_PASSWORD            | yes      | Database password                           |
+    | GITHUB_TOKEN           | yes      | GitHub token for getting contributors       |
+    | API_JWT_SECRET         | yes      | Random string for hashing auth token        |
+    | FILES_JWT_SECRET       | yes      | Random string for encrypt public files      |
+    | PAYPAL_CLIENT_ID       | yes      | Client ID for PayPal subscription           |
+    | PAYPAL_CLIENT_SECRET   | yes      | Client secret for PayPal subscription       |
+    | PAYPAL_PLAN_PREMIUM_ID | yes      | Product ID for premium plan                 |
+    | REDIS_URI              | yes      | Cache some responses from external services |
 
   - Web variables
 
