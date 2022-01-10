@@ -102,6 +102,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       if (!deleted) {
         window.onbeforeunload = undefined as any
         notification.success({
+          key: 'fileUploaded',
           message: 'Success',
           description: `File ${file.name} uploaded successfully`
         })
@@ -111,6 +112,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       console.error(error)
       notification.close(`upload-${file.uid}`)
       notification.error({
+        key: 'fileUploadError',
         message: error?.response?.status || 'Something error',
         ...error?.response?.data ? { description: error.response.data.error } : {}
       })
