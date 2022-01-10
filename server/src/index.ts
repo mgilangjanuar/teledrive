@@ -116,7 +116,7 @@ app.get('/security.txt', (_, res) => {
 app.use('/api', (req, res, next) => {
   rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {
     if (error.msBeforeNext) {
-      return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests' })
+      return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests', retryAfter: error.msBeforeNext })
     }
     throw error
   })

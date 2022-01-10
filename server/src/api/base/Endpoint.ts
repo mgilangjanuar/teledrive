@@ -121,9 +121,11 @@ export const Endpoint = {
               return await execute()
             }
             console.error('handler', error.message)
-            // process.exit(1)
             req.tg?.disconnect()
             const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
+            // if (!isValidCode) {
+            //   process.exit(1)
+            // }
             return next(error.code ? {
               status: isValidCode ? error.code : 500, body: { error: error.message, ...isValidCode ? { details: serializeError(error) } : {} }
             } : error)
