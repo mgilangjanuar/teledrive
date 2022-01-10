@@ -68,30 +68,6 @@ function App(): React.ReactElement {
 
   useEffect(() => {
     pwaInstallHandler.addListener(canInstall => {
-      // const askToInstall = !localStorage.getItem('install') || localStorage.getItem('install') !== 'true' && new Date().getTime() - Number(localStorage.getItem('install')) > 8.64e+7
-      // if (canInstall && askToInstall) {
-      //   notification.info({
-      //     duration: null,
-      //     message: 'Install App',
-      //     description: <>
-      //       <Typography.Paragraph>
-      //         You can install the app on your device for a better experience.
-      //       </Typography.Paragraph>
-      //       <Typography.Paragraph style={{ textAlign: 'right' }}>
-      //         <Button type="primary" onClick={async () => {
-      //           if (await pwaInstallHandler.install()) {
-      //             localStorage.setItem('install', 'true')
-      //           } else {
-      //             localStorage.setItem('install', new Date().getTime().toString())
-      //           }
-      //         }} icon={<MobileOutlined />} shape="round">
-      //           Install Now
-      //         </Button>
-      //       </Typography.Paragraph>
-      //     </>,
-      //     onClose: () => localStorage.setItem('install', new Date().getTime().toString())
-      //   })
-      // }
       if (canInstall) {
         notification.info({
           duration: null,
@@ -115,7 +91,7 @@ function App(): React.ReactElement {
   return (
     <Layout className="App">
       <Helmet>
-        <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#000000' : '#0088CC'} />
+        <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#1F1F1F' : '#0088CC'} />
       </Helmet>
       {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
       {data?.maintenance ? <Result
