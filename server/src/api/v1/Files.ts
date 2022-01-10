@@ -268,6 +268,7 @@ export class Files {
   @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer().single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
     const { name, size, mime_type: mimetype, parent_id: parentId, total_part: totalPart, part } = req.query as Record<string, string>
+
     if (!name || !size || !mimetype || !part || !totalPart) {
       throw { status: 400, body: { error: 'Name, size, mimetype, part, and total part are required' } }
     }
