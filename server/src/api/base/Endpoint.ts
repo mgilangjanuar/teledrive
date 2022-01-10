@@ -76,7 +76,12 @@ export const Endpoint = {
           }
           console.error('RequestWrapper', error)
           req.tg?.disconnect()
-          return next(error.code ? { status: error.code, body: { error: error.message, details: serializeError(error) } } : error)
+          const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
+          return next(error.code ? {
+            status: isValidCode ? error.code : 500, body: {
+              error: error.message, details: serializeError(error)
+            }
+          } : error)
         }
       }
       return await execute()
@@ -127,7 +132,9 @@ export const Endpoint = {
             //   process.exit(1)
             // }
             return next(error.code ? {
-              status: isValidCode ? error.code : 500, body: { error: error.message, ...isValidCode ? { details: serializeError(error) } : {} }
+              status: isValidCode ? error.code : 500, body: {
+                error: error.message, details: serializeError(error)
+              }
             } : error)
           }
         }
