@@ -27,7 +27,7 @@ export const fetcher = async (url: string, authorization?: string): Promise<any>
           throw response
         }
       } else if ((response as any)?.status === 429) {
-        await new Promise(res => setTimeout(res, (response as any).headers['retry-after']))
+        await new Promise(res => setTimeout(res, (response as any).headers?.['retry-after'] || 1000))
         // return await fetch()
         return await execute()
       }
