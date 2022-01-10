@@ -18,6 +18,7 @@ import morgan from 'morgan'
 import path from 'path'
 import { Pool } from 'pg'
 import { RateLimiterPostgres } from 'rate-limiter-flexible'
+import { serializeError } from 'serialize-error'
 import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
 import { API } from './api'
@@ -126,7 +127,7 @@ app.use('/api', (req, res, next) => {
 app.use(Sentry.Handlers.errorHandler())
 app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
   console.error(err)
-  return res.status(err.status || 500).send(err.body || { error: 'Something error' })
+  return res.status(err.status || 500).send(err.body || { error: 'Something error', details: serializeError(err) })
 })
 
 // serve web
