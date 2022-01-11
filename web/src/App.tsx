@@ -94,16 +94,18 @@ function App(): React.ReactElement {
         <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#1F1F1F' : '#0088CC'} />
       </Helmet>
       {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
-      {data?.maintenance ? <Result
-        status="warning"
-        title="This site is under maintenance"
-        subTitle="We're preparing to serve you better."
-        extra={
-          <Button shape="round" type="primary" icon={<TwitterOutlined />} href="https://twitter.com/teledriveapp">
-            Follow us for updates
-          </Button>
-        }
-      /> : <div style={{ minHeight: '88vh' }}>
+      {data?.maintenance ? <div style={{ minHeight: '88vh', paddingTop: '20vh' }}>
+        <Result
+          status="warning"
+          title="This site is under maintenance"
+          subTitle="We're preparing to serve you better."
+          extra={
+            <Button shape="round" type="primary" icon={<TwitterOutlined />} href="https://twitter.com/teledriveapp">
+              Follow us for updates
+            </Button>
+          }
+        />
+      </div> : <div style={{ minHeight: '88vh' }}>
         <Suspense fallback={<></>}>
           <Switch>
             <Route path="/dashboard/:type?" exact component={Dashboard} />
