@@ -32,7 +32,7 @@ export class Utils {
         files: await Files.count(),
         premiumUsers: await Users.count({ where: { plan: 'premium' } }),
       }
-    }, 3600)
+    }, 86400)
     return res.send({ analytics })
   }
 }

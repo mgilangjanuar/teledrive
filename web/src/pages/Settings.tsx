@@ -1,6 +1,7 @@
-import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, MobileOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
+import pwaInstallHandler from 'pwa-install-handler'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
@@ -18,6 +19,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [expandableRows, setExpandableRows] = useState<boolean>()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
+  const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [formRemoval] = useForm()
   const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
 
@@ -48,6 +50,12 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       return history.push('/login')
     }
   }, [error])
+
+  useEffect(() => {
+    pwaInstallHandler.addListener(canInstall => {
+      setPwa({ canInstall, install: pwaInstallHandler.install })
+    })
+  }, [])
 
   const logout = async () => {
     await req.post('/auth/logout')
@@ -117,6 +125,12 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </Form.Item>]}>
                   <List.Item.Meta title="Check Updates" description="Reload to checking for updates" />
                 </List.Item>
+
+                {pwa?.canInstall && <List.Item key="install" actions={[<Form.Item>
+                  <Button shape="round" icon={<MobileOutlined />} onClick={pwa?.install}>Install</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title="Install App" description="Install TeleDrive to your device" />
+                </List.Item>}
 
                 <List.Item key="delete-account" actions={[<Form.Item>
                   <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>

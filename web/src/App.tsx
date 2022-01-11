@@ -68,7 +68,7 @@ function App(): React.ReactElement {
 
   useEffect(() => {
     pwaInstallHandler.addListener(canInstall => {
-      if (canInstall) {
+      if (canInstall && !sessionStorage.getItem('install')) {
         notification.info({
           duration: null,
           message: 'Install App',
@@ -82,7 +82,7 @@ function App(): React.ReactElement {
               </Button>
             </Typography.Paragraph>
           </>,
-          onClose: () => localStorage.setItem('install', new Date().getTime().toString())
+          onClose: () => sessionStorage.setItem('install', new Date().getTime().toString())
         })
       }
     })
@@ -93,39 +93,43 @@ function App(): React.ReactElement {
       <Helmet>
         <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#1F1F1F' : '#0088CC'} />
       </Helmet>
-      {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
-      {data?.maintenance ? <Result
-        status="warning"
-        title="This site is under maintenance"
-        subTitle="We're preparing to serve you better."
-        extra={
-          <Button shape="round" type="primary" icon={<TwitterOutlined />} href="https://twitter.com/teledriveapp">
-            Follow us for updates
-          </Button>
-        }
-      /> : <div style={{ minHeight: '88vh' }}>
-        <Suspense fallback={<></>}>
-          <Switch>
-            <Route path="/dashboard/:type?" exact component={Dashboard} />
-            <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
-            <Route path="/view/:id" exact component={View} />
-            <Route path="/login" exact>
-              {me?.user ? <Redirect to="/dashboard" /> : <Login me={me} />}
-            </Route>
-            <Route path="/terms" exact component={Terms} />
-            <Route path="/refund" exact component={Refund} />
-            <Route path="/privacy" exact component={Privacy} />
-            <Route path="/pricing" exact component={() => <Pricing me={me} />} />
-            <Route path="/contact" exact component={() => <Contact me={me} />} />
-            <Route path="/faq" exact component={Faq} />
-            <Route path="/" exact>
-              {new URLSearchParams(window.location.search).get('source') === 'pwa' ? <Redirect to="/dashboard" /> : <Home me={me} />}
-            </Route>
-            <Route component={NotFound} />
-          </Switch>
-        </Suspense>
-      </div>}
-      {!/^\/view\/.*/gi.test(window.location.pathname) && <Footer me={me} />}
+      {data?.maintenance ? <div style={{ minHeight: '88vh', paddingTop: '20vh' }}>
+        <Result
+          status="warning"
+          title="This site is under maintenance"
+          subTitle="We're preparing to serve you better."
+          extra={
+            <Button shape="round" type="primary" icon={<TwitterOutlined />} href="https://twitter.com/teledriveapp">
+              Follow us for updates
+            </Button>
+          }
+        />
+      </div> : <>
+        {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
+        <div style={{ minHeight: '88vh' }}>
+          <Suspense fallback={<></>}>
+            <Switch>
+              <Route path="/dashboard/:type?" exact component={Dashboard} />
+              <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
+              <Route path="/view/:id" exact component={View} />
+              <Route path="/login" exact>
+                {me?.user ? <Redirect to="/dashboard" /> : <Login me={me} />}
+              </Route>
+              <Route path="/terms" exact component={Terms} />
+              <Route path="/refund" exact component={Refund} />
+              <Route path="/privacy" exact component={Privacy} />
+              <Route path="/pricing" exact component={() => <Pricing me={me} />} />
+              <Route path="/contact" exact component={() => <Contact me={me} />} />
+              <Route path="/faq" exact component={Faq} />
+              <Route path="/" exact>
+                {new URLSearchParams(window.location.search).get('source') === 'pwa' ? <Redirect to="/dashboard" /> : <Home me={me} />}
+              </Route>
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </div>
+        {!/^\/view\/.*/gi.test(window.location.pathname) && <Footer me={me} />}
+      </>}
     </Layout>
   )
 }
