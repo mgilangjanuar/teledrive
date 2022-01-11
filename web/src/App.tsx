@@ -68,7 +68,7 @@ function App(): React.ReactElement {
 
   useEffect(() => {
     pwaInstallHandler.addListener(canInstall => {
-      if (canInstall) {
+      if (canInstall && !sessionStorage.getItem('install')) {
         notification.info({
           duration: null,
           message: 'Install App',
@@ -82,7 +82,7 @@ function App(): React.ReactElement {
               </Button>
             </Typography.Paragraph>
           </>,
-          onClose: () => localStorage.setItem('install', new Date().getTime().toString())
+          onClose: () => sessionStorage.setItem('install', new Date().getTime().toString())
         })
       }
     })
