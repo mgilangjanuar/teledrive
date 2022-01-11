@@ -34,7 +34,7 @@ export class Files {
           : 'files.user_id = :user', {
         user: shared ? req.user?.username : req.user?.id  })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
-      // .leftJoin('files.parent', 'parent')
+      .leftJoin('files.parent', 'parent')
       .skip(Number(offset) || undefined)
       .take(Number(limit) || undefined)
       .orderBy(buildSort(sort as string, 'files.'))
