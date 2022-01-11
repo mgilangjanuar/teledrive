@@ -93,7 +93,7 @@ function App(): React.ReactElement {
       <Helmet>
         <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#1F1F1F' : '#0088CC'} />
       </Helmet>
-      {data?.maintenance ? <div style={{ minHeight: '88vh', paddingTop: '20vh' }}>
+      {data?.maintenance ? <div style={{ minHeight: '100vh', paddingTop: '20vh' }}>
         <Result
           status="warning"
           title="This site is under maintenance"
