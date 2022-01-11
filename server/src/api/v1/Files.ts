@@ -402,7 +402,9 @@ export class Files {
     const breadcrumbs = [folder]
     while (folder.parent_id) {
       folder = await Model.findOne(folder.parent_id)
-      breadcrumbs.push(folder)
+      if (!req.user && folder.sharing_options?.includes('*') || folder.sharing_options?.includes(req.user?.username) || folder.user_id === req.user?.id) {
+        breadcrumbs.push(folder)
+      }
     }
 
     return res.send({ breadcrumbs: breadcrumbs.reverse() })
