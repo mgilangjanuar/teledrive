@@ -8,4 +8,4 @@ keys
 lab/
 sessions/
 *.crt
-dump.rdb
+dump\.rdb
