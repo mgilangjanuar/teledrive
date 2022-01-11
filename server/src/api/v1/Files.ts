@@ -343,14 +343,9 @@ export class Files {
       }
     }
 
-    const { affected } = await Model.update(model.id, {
-      size: bigInt(model.size).add(file.buffer.length).toString(),
-      upload_progress: (Number(part) + 1) / Number(totalPart)
-    }, { reload: true })
-    if (!affected) {
-      await Model.delete(model.id)
-      throw { status: 404, body: { error: 'File not found' } }
-    }
+    model.size = bigInt(model.size).add(file.buffer.length).toString()
+    model.upload_progress = (Number(part) + 1) / Number(totalPart)
+    await model.save()
 
     if (Number(part) < Number(totalPart) - 1) {
       return res.status(202).send({ accepted: true, file: { id: model.id }, uploadPartStatus })
@@ -371,18 +366,17 @@ export class Files {
       workers: 1
     })
 
-    let data: any
+    let data: Api.Message
     try {
       data = await sendData(false)
     } catch (error) {
       data = await sendData(true)
     }
 
-    await Model.update(model.id, {
-      message_id: data.id,
-      uploaded_at: data.date ? new Date(data.date * 1000) : null,
-      upload_progress: null
-    })
+    model.message_id = data.id?.toString()
+    model.uploaded_at = data.date ? new Date(data.date * 1000) : null
+    model.upload_progress = null
+    await model.save()
     return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
 

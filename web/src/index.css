@@ -35,10 +35,10 @@ html, body {
 
 .input-search-round input::before, .input-search-round .ant-input-affix-wrapper, .input-search-round .ant-input-group > .ant-input:first-child {
   border-radius: 32px 0 0 32px !important;
-  padding: 4px 16px;
+  padding: 4px 10px;
 }
 
-.input-search-round button.ant-btn.ant-btn-primary.ant-input-search-button {
+.input-search-round button.ant-btn.ant-btn-primary.ant-input-search-button, .input-search-round .ant-input-group-addon:last-child {
   border-radius: 0 32px 32px 0 !important;
   padding: 4px 12px;
 }

@@ -266,12 +266,12 @@ const View: React.FC<PageProps> = ({ match }) => {
     return <></>
   }
 
-  return <>{!data && !error ? <Layout style={{ marginTop: '45vh' }}><Spin /></Layout> : error && [403, 404, 500].includes(error?.status) || data && data.file.upload_progress !== null ? <>
+  return <>{!data && !error ? <Layout style={{ marginTop: '45vh' }}><Spin /></Layout> : error || data && data.file.upload_progress !== null ? <>
     <Navbar user={me?.user} />
     <Layout.Content className="container">
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
-          {error ? <Result status={error?.status || 500} title={error?.data.error || 'Something error'} extra={<Button type="primary" href="/">Home</Button>} />
+          {error ? <Result status={[403, 404, 500].includes(error?.status) ? error?.status : 500} title={error?.data?.error || 'Something error'} extra={<Button type="primary" href="/">Home</Button>} />
             : <Result status={404} title="File not found" extra={<Button type="primary" href="/">Home</Button>} />}
         </Col>
       </Row>
