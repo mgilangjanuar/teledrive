@@ -26,26 +26,10 @@ export const fetcher = async (url: string, authorization?: string): Promise<any>
       withCredentials: true })
     return data
   }
-  return await fetch()
 
-  // const execute = async () => {
-  //   try {
-  //     return await fetch()
-  //   } catch ({ response }) {
-  //     if ((response as any)?.status === 401) {
-  //       try {
-  //         await req.post('/auth/refreshToken')
-  //         return await fetch()
-  //       } catch (error) {
-  //         throw response
-  //       }
-  //     } else if ((response as any)?.status === 429) {
-  //       await new Promise(res => setTimeout(res, (response as any).headers?.['retry-after'] || 1000))
-  //       // return await fetch()
-  //       return await execute()
-  //     }
-  //     throw response
-  //   }
-  // }
-  // return await execute()
+  try {
+    return await fetch()
+  } catch ({ response }) {
+    throw response
+  }
 }
