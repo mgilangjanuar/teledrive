@@ -8,6 +8,7 @@ import moment from 'moment'
 import multer from 'multer'
 import { Files as Model } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
+import { Redis } from '../../service/Cache'
 import { TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
@@ -27,7 +28,7 @@ export class Files {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
 
-    const [files, length] = await Model.createQueryBuilder('files')
+    const [files, length] = await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query || {})}`, async () => await Model.createQueryBuilder('files')
       .where(shared && (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*'))
         ? 'true' : shared
           ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
@@ -38,7 +39,7 @@ export class Files {
       .skip(Number(offset) || undefined)
       .take(Number(limit) || undefined)
       .orderBy(buildSort(sort as string, 'files.'))
-      .getManyAndCount()
+      .getManyAndCount(), 1)
     return res.send({ files, length })
   }
 
