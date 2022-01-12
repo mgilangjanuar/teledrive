@@ -266,7 +266,7 @@ const View: React.FC<PageProps> = ({ match }) => {
     return <></>
   }
 
-  return <>{!data && !error ? <Layout style={{ marginTop: '45vh' }}><Spin /></Layout> : error || data && data.file.upload_progress !== null ? <>
+  return <>{!data && !error ? <Layout style={{ paddingTop: '45vh', minHeight: '100vh' }}><Spin /></Layout> : error || data && data.file.upload_progress !== null ? <>
     <Navbar user={me?.user} />
     <Layout.Content className="container">
       <Row>
