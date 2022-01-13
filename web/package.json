@@ -3,13 +3,11 @@
   "version": "1.6.4",
   "private": true,
   "dependencies": {
-    "@craco/craco": "^6.3.0",
     "@ideasio/add-to-homescreen-react": "^1.0.10",
-    "antd": "^4.16.13",
+    "antd": "4.18.3",
     "antd-country-phone-input": "^4.2.1",
     "axios": "^0.21.4",
     "clipboardy": "^2.3.0",
-    "craco-antd": "^1.19.0",
     "js-cookie": "^3.0.1",
     "less": "^4.1.2",
     "lessc": "^1.0.2",
@@ -42,10 +40,10 @@
     "world_countries_lists": "^2.3.0"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build && sw-precache-cra --config sw-config.js",
-    "test": "craco test",
-    "eject": "craco eject"
+    "start": "react-scripts start",
+    "build": "react-scripts build && sw-precache-cra --config sw-config.js",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -89,7 +87,6 @@
     "@types/react-virtualized": "^9.21.13",
     "@typescript-eslint/eslint-plugin": "^4.31.0",
     "@typescript-eslint/parser": "^4.31.0",
-    "craco-less": "^1.20.0",
     "eslint": "^7.32.0",
     "workbox-background-sync": "^5.1.3",
     "workbox-broadcast-update": "^5.1.3",
