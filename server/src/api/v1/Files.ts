@@ -36,8 +36,8 @@ export class Files {
         user: shared ? req.user?.username : req.user?.id  })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
       .leftJoin('files.parent', 'parent')
-      .skip(Number(offset) || undefined)
-      .take(Number(limit) || undefined)
+      .skip(Number(offset) || 0)
+      .take(Number(limit) || 10)
       .orderBy(buildSort(sort as string, 'files.'))
       .getManyAndCount(), 1)
     return res.send({ files, length })
@@ -115,7 +115,12 @@ export class Files {
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
-    const count = data?.name ? null : await Model.count({ type: 'folder', user_id: req.user.id, ...data?.parent_id ? { parent_id: data?.parent_id } : {} })
+    const count = data?.name ? null : await Model.createQueryBuilder('files').where(
+      `type = :type and user_id = :userId and name like 'New Folder%' and parent_id ${data?.parent_id ? '= :parentId' : 'is null'}`, {
+        type: 'folder',
+        userId: req.user.id,
+        parentId: data?.parent_id
+      }).getCount()
     const parent = data?.parent_id ? await Model.createQueryBuilder('files')
       .where('id = :id', { id: data.parent_id })
       .addSelect('files.signed_key')

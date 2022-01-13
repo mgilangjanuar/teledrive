@@ -68,7 +68,7 @@ function App(): React.ReactElement {
 
   useEffect(() => {
     pwaInstallHandler.addListener(canInstall => {
-      if (canInstall && !sessionStorage.getItem('install')) {
+      if (canInstall && (!localStorage.getItem('install') || new Date().getTime() - Number(localStorage.getItem('install')) > 5 * 8.64e+7)) {
         notification.info({
           duration: null,
           message: 'Install App',
@@ -82,7 +82,7 @@ function App(): React.ReactElement {
               </Button>
             </Typography.Paragraph>
           </>,
-          onClose: () => sessionStorage.setItem('install', new Date().getTime().toString())
+          onClose: () => localStorage.setItem('install', new Date().getTime().toString())
         })
       }
     })

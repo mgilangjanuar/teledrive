@@ -347,7 +347,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
                   </Dropdown>
                   <Button shape="circle" onClick={() => setSyncConfirmation(true)} icon={<SyncOutlined />} />
                 </> : ''}
-                <Input.Search style={{ width: '210px' }} className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
+                <Input.Search style={{ width: '210px' }} className="input-search-round" placeholder="Search..." enterButton value={keyword} onSearch={setKeyword} allowClear />
               </Space>
             </Typography.Paragraph>
             <TableFiles

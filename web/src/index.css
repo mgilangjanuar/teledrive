@@ -35,7 +35,7 @@ html, body {
 
 .input-search-round input::before, .input-search-round .ant-input-affix-wrapper, .input-search-round .ant-input-group > .ant-input:first-child {
   border-radius: 32px 0 0 32px !important;
-  padding: 4px 10px;
+  padding: 4px 10px 4px 15px;
 }
 
 .input-search-round button.ant-btn.ant-btn-primary.ant-input-search-button, .input-search-round .ant-input-group-addon:last-child {
