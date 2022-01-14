@@ -101,7 +101,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           await uploadPart(0)
           const others = Array.from(Array(parts).keys()).slice(1, parts - 1)
           await Promise.all(others.map(async i => await uploadPart(i)))
-          await uploadPart(parts - 1)
+          if (parts - 1 > 0) {
+            await uploadPart(parts - 1)
+          }
         }
 
       }))
