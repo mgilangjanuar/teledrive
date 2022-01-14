@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, CheckCircleTwoTone, LoginOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, CheckCircleTwoTone, LoginOutlined, GlobalOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
@@ -203,7 +203,9 @@ const Login: React.FC<Props> = ({ me }) => {
       <Row style={{ marginTop: '30px' }}>
         <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={22} offset={1}>
           <Collapse>
-            <Collapse.Panel key="1" header="Data center region">
+            <Collapse.Panel key="1" showArrow={false} header={<Typography.Text>
+              <GlobalOutlined /> Data center region
+            </Typography.Text>}>
               <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
                 This will affect your upload and download speed, choose the nearest datacenter region to you.
               </Typography.Paragraph>
