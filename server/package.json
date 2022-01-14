@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "1.6.5",
+  "version": "1.7.0",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
