@@ -32,19 +32,19 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     let deleted = false
 
     try {
-      let firstResponse: any
+      const responses: any[] = []
       let totalParts: number = 0
-
       const totalAllParts = Math.ceil(file.size % maxSize / chunkSize) + (fileParts - 1) * Math.ceil(maxSize / chunkSize)
 
       await Promise.all(Array.from(Array(10).keys()).map(async j => {
         const fileBlob = file.slice(j * maxSize, Math.min(j * maxSize + maxSize, file.size))
         const parts = Math.ceil(fileBlob.size / chunkSize)
+        // let firstResponse: any
 
         if (!deleted) {
           for (let i = 0; i < parts; i++) {
-            if (firstResponse?.file && cancelUploading.current && file.uid === cancelUploading.current) {
-              await req.delete(`/files/${firstResponse?.file.id}`)
+            if (responses[j]?.file && cancelUploading.current && file.uid === cancelUploading.current) {
+              await req.delete(`/files/${responses[j]?.file.id}`)
               cancelUploading.current = null
               deleted = true
               window.onbeforeunload = undefined as any
@@ -77,7 +77,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               }
             }
 
-            const { data: response } = await req.post(`/files/upload${i > 0 && firstResponse?.file?.id ? `/${firstResponse?.file.id}` : ''}`, data, {
+            const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
               params: {
                 // ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
                 ...parentId ? { parent_id: parentId } : {},
@@ -88,7 +88,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                 total_part: parts,
               },
             })
-            firstResponse = response
+            responses[j] = response
 
             const percent = (++totalParts / totalAllParts * 100).toFixed(1)
             onProgress({ percent }, file)
@@ -106,7 +106,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           description: `File ${file.name} uploaded successfully`
         })
       }
-      return onSuccess(firstResponse, file)
+      return onSuccess(responses[0], file)
     } catch (error: any) {
       console.error(error)
       notification.close(`upload-${file.uid}`)
