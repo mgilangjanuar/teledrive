@@ -185,13 +185,27 @@ export class Files {
   @Endpoint.DELETE('/:id', { middlewares: [Auth] })
   public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const { affected } = await Model.createQueryBuilder('files')
+    const { deleteMessage } = req.query
+    const { affected, raw } = await Model.createQueryBuilder('files')
       .delete()
       .where({ id, user_id: req.user.id })
       .returning('*')
       .execute()
     if (!affected) {
       throw { status: 404, body: { error: 'File not found' } }
+    }
+
+    const file = raw[0]
+    if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
+      try {
+        await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
+      } catch (error) {
+        try {
+          await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: 'me' }))
+        } catch (error) {
+          // ignore
+        }
+      }
     }
     return res.send({ file: { id } })
   }
