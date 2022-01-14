@@ -5,6 +5,7 @@ import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { AES } from 'crypto-js'
 import { Request, Response } from 'express'
 import { sign, verify } from 'jsonwebtoken'
+import { serializeError } from 'serialize-error'
 import { getRepository } from 'typeorm'
 import { Users } from '../../model//entities/Users'
 import { Files } from '../../model/entities/Files'
@@ -123,33 +124,37 @@ export class Auth {
     try {
       data = verify(refreshToken, process.env.API_JWT_SECRET) as { session: string }
     } catch (error) {
-      throw { status: 401, body: { error: 'Refresh token is invalid' } }
+      throw { status: 400, body: { error: 'Refresh token is invalid' } }
     }
 
     try {
       const session = new StringSession(data.session)
       req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
     } catch (error) {
-      throw { status: 401, body: { error: 'Invalid key' } }
+      throw { status: 400, body: { error: 'Invalid key' } }
     }
 
-    await req.tg.connect()
-    const userAuth = await req.tg.getMe()
-    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
-    if (!user) {
-      throw { status: 401, body: { error: 'User not found' } }
-    }
+    try {
+      await req.tg.connect()
+      const userAuth = await req.tg.getMe()
+      const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+      if (!user) {
+        throw { status: 404, body: { error: 'User not found' } }
+      }
 
-    const session = req.tg.session.save()
-    const auth = {
-      accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
-      expiredAfter: Date.now() + COOKIE_AGE
+      const session = req.tg.session.save()
+      const auth = {
+        accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
+        refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+        expiredAfter: Date.now() + COOKIE_AGE
+      }
+      return res
+        .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
+        .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
+        .send({ user, ...auth })
+    } catch (error) {
+      throw { status: 500, body: { error: error.message || 'Something error', details: serializeError(error) } }
     }
-    return res
-      .cookie('authorization', `Bearer ${auth.accessToken}`, { maxAge: COOKIE_AGE, expires: new Date(auth.expiredAfter) })
-      .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
-      .send({ user, ...auth })
   }
 
   /**

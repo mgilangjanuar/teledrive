@@ -53,7 +53,7 @@ export const runDB = async (): Promise<void> => {
       `${__dirname}/migrations/*.js`
     ],
     cli: {
-      'migrationsDir': 'src/migrations'
+      'migrationsDir': 'src/model/migrations'
     },
     namingStrategy: new SnakeNamingStrategy(),
     // ...process.env.REDIS_URI ? {

@@ -48,6 +48,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
             </Tooltip>}
           </div>
           <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
+            setPopoverVisibility(false)
             if (key === 'dashboard') {
               history.push('/dashboard')
             } else if (key === 'settings') {
@@ -55,7 +56,6 @@ const Navbar: React.FC<Props> = ({ user }) => {
             } else if (key === 'logout') {
               setLogoutConfirmation(true)
             }
-            setPopoverVisibility(false)
           }}>
             <Menu.Item key="dashboard" icon={<DashboardOutlined />}>Dashboard</Menu.Item>
             <Menu.Item key="settings" icon={<SettingOutlined />}>Settings</Menu.Item>
