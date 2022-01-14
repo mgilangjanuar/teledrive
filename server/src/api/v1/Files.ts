@@ -160,16 +160,16 @@ export class Files {
     file.signed_key = file.signed_key || parent?.signed_key
 
     let files = [file]
-    if (/.*\.part1$/gi.test(file?.name)) {
+    if (/.*\.part0*1$/gi.test(file?.name)) {
       if (req.user?.plan !== 'premium') {
         throw { status: 402, body: { error: 'Please upgrade your plan for view this file' } }
       }
       files = await Model.createQueryBuilder('files')
-        .where(`(id = :id or name like '${file.name.replace(/\.part1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
+        .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
           id, user_id: file.user_id, parent_id: file.parent_id
         })
         .addSelect('files.signed_key')
-        .orderBy('created_at')
+        .orderBy('name')
         .getMany()
       files[0].signed_key = file.signed_key = file.signed_key || parent?.signed_key
     }
@@ -528,7 +528,7 @@ export class Files {
 
     let cancel = false
     req.on('close', () => cancel = true)
-    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part1$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
+    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
 
