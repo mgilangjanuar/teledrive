@@ -330,7 +330,8 @@ export class Files {
       model = new Model()
       model.name = name,
       model.mime_type = mimetype
-      model.size = '0'
+      // model.size = '0'
+      model.size = size
       model.user_id = req.user.id
       model.type = type
       model.parent_id = parentId as string || null
@@ -362,7 +363,7 @@ export class Files {
       }
     }
 
-    model.size = bigInt(model.size).add(file.buffer.length).toString()
+    // model.size = bigInt(model.size).add(file.buffer.length).toString()
     model.upload_progress = (Number(part) + 1) / Number(totalPart)
     await model.save()
 

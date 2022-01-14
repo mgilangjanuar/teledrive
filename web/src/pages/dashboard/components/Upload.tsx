@@ -36,13 +36,12 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       let totalParts: number = 0
       const totalAllParts = Math.ceil(file.size % maxSize / chunkSize) + (fileParts - 1) * Math.ceil(maxSize / chunkSize)
 
-      await Promise.all(Array.from(Array(10).keys()).map(async j => {
+      await Promise.all(Array.from(Array(fileParts).keys()).map(async j => {
         const fileBlob = file.slice(j * maxSize, Math.min(j * maxSize + maxSize, file.size))
         const parts = Math.ceil(fileBlob.size / chunkSize)
-        // let firstResponse: any
 
         if (!deleted) {
-          for (let i = 0; i < parts; i++) {
+          const uploadPart = async (i: number) => {
             if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
               await Promise.all(responses.map(async response => {
                 try {
@@ -54,51 +53,55 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               cancelUploading.current = null
               deleted = true
               window.onbeforeunload = undefined as any
-              break
-            }
-            const blobPart = fileBlob.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
-            const data = new FormData()
-            data.append('upload', blobPart)
+            } else {
+              const blobPart = fileBlob.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
+              const data = new FormData()
+              data.append('upload', blobPart)
 
-            let parentId = parent?.id
-            if (file.webkitRelativePath) {
-              const paths = file.webkitRelativePath.split('/').slice(0, -1) || []
-              for (const path of paths) {
-                const { data: findFolder } = await req.get('/files', { params: {
-                  type: 'folder',
-                  name: path,
-                  ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
-                } })
-                if (!findFolder?.length) {
-                  const { data: newFolder } = await req.post('/files/addFolder', {
-                    file: {
-                      name: path,
-                      ...parentId ? { parent_id: parentId } : {},
-                    }
-                  })
-                  parentId = newFolder.file.id
-                } else {
-                  parentId = findFolder.files[0].id
+              let parentId = parent?.id
+              if (file.webkitRelativePath) {
+                const paths = file.webkitRelativePath.split('/').slice(0, -1) || []
+                for (const path of paths) {
+                  const { data: findFolder } = await req.get('/files', { params: {
+                    type: 'folder',
+                    name: path,
+                    ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
+                  } })
+                  if (!findFolder?.length) {
+                    const { data: newFolder } = await req.post('/files/addFolder', {
+                      file: {
+                        name: path,
+                        ...parentId ? { parent_id: parentId } : {},
+                      }
+                    })
+                    parentId = newFolder.file.id
+                  } else {
+                    parentId = findFolder.files[0].id
+                  }
                 }
               }
+
+              const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                params: {
+                  // ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
+                  ...parentId ? { parent_id: parentId } : {},
+                  name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                  size: fileBlob.size,
+                  mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                  part: i,
+                  total_part: parts,
+                },
+              })
+              responses[j] = response
+
+              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+              onProgress({ percent }, file)
             }
-
-            const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-              params: {
-                // ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
-                ...parentId ? { parent_id: parentId } : {},
-                name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                size: fileBlob.size,
-                mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                part: i,
-                total_part: parts,
-              },
-            })
-            responses[j] = response
-
-            const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-            onProgress({ percent }, file)
           }
+          await uploadPart(0)
+          const others = Array.from(Array(parts).keys()).slice(1, parts - 1)
+          await Promise.all(others.map(async i => await uploadPart(i)))
+          await uploadPart(parts - 1)
         }
 
       }))
