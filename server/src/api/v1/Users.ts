@@ -70,7 +70,7 @@ export class Users {
 
       if (req.user.subscription_id) {
         try {
-          paymentDetails = await Redis.connect().getFromCacheFirst(`paypal:subscription:${req.user.subscription_id}`, async () => await new PayPal().getSubscription(req.user.subscription_id), 21600)
+          paymentDetails = await Redis.connect().getFromCacheFirst(`paypal:subscription:${req.user.subscription_id}`, async () => await new PayPal().getSubscription(req.user.subscription_id), 3)
         } catch (error) {
           // ignore
         }
@@ -78,7 +78,7 @@ export class Users {
 
       if (req.user.midtrans_id) {
         try {
-          midtransPaymentDetails = await Redis.connect().getFromCacheFirst(`midtrans:transaction:${req.user.midtrans_id}`, async () => await new Midtrans().getTransactionStatus(req.user.midtrans_id), 21600)
+          midtransPaymentDetails = await Redis.connect().getFromCacheFirst(`midtrans:transaction:${req.user.midtrans_id}`, async () => await new Midtrans().getTransactionStatus(req.user.midtrans_id), 3)
           if (!midtransPaymentDetails?.transaction_status) {
             midtransPaymentDetails = null
           }
