@@ -134,14 +134,14 @@ export class Auth {
       throw { status: 400, body: { error: 'Invalid key' } }
     }
 
-    await req.tg.connect()
-    const userAuth = await req.tg.getMe()
-    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
-    if (!user) {
-      throw { status: 404, body: { error: 'User not found' } }
-    }
-
     try {
+      await req.tg.connect()
+      const userAuth = await req.tg.getMe()
+      const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+      if (!user) {
+        throw { status: 404, body: { error: 'User not found' } }
+      }
+
       const session = req.tg.session.save()
       const auth = {
         accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
