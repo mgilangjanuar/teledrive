@@ -98,9 +98,13 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               onProgress({ percent }, file)
             }
           }
+
+          const group = 5
           await uploadPart(0)
-          const others = Array.from(Array(parts).keys()).slice(1, parts - 1)
-          await Promise.all(others.map(async i => await uploadPart(i)))
+          for (let i = 1; i < parts - 1; i += group) {
+            const others = Array.from(Array(i + group).keys()).slice(i, Math.min(parts - 1, i + group))
+            await Promise.all(others.map(async j => await uploadPart(j)))
+          }
           if (parts - 1 > 0) {
             await uploadPart(parts - 1)
           }
