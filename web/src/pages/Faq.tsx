@@ -97,7 +97,7 @@ const Faq: React.FC = () => {
             Q: How can I contribute to TeleDrive?
           </Typography.Title>
           <Typography.Paragraph>
-            A: You can become a sponsor for this project by leaving a message to this link: <a href="https://teledriveapp.com/contact?intent=sponsor" target="_blank">https://teledriveapp.com/contact?intent=sponsor</a> or via <a href="https://www.buymeacoffee.com/mgilangjanuar" target="_blank">Buy me a coffee</a>. Of course, we’ll add you to the sponsor list on the homepage. If you’re a developer, you can contribute to our <a href="https://github.com/mgilangjanuar/teledrive" target="_blank">source code</a> on GitHub <em>(Note. The creator can make the repository private at any time)</em>, send us a pull request, issue, or simply give a star to the repository.
+            A: You can become a sponsor for this project by leaving a message to this link: <a href="https://teledriveapp.com/contact?intent=sponsor" target="_blank">https://teledriveapp.com/contact?intent=sponsor</a> or via <a href="https://opencollective.com/teledrive/contribute" target="_blank">Open Collective</a>. Of course, we’ll add you to the sponsor list on the homepage. If you’re a developer, you can contribute to our <a href="https://github.com/mgilangjanuar/teledrive" target="_blank">source code</a> on GitHub <em>(Note. The creator can make the repository private at any time)</em>, send us a pull request, issue, or simply give a star to the repository.
           </Typography.Paragraph>
           <Typography.Paragraph>
             Contact us anytime if you would like to help us in other ways.
