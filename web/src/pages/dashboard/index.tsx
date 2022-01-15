@@ -198,7 +198,9 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
     setBreadcrumbs(breadcrumbs.slice(0, 1))
     history.replace(`/dashboard${key === 'shared' ? '/shared' : ''}`)
 
-    if (parent) {
+    if (keyword) {
+      setKeyword(undefined)
+    } else if (parent) {
       setParent(null)
     } else {
       setScrollTop(0)
@@ -347,7 +349,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
                   </Dropdown>
                   <Button shape="circle" onClick={() => setSyncConfirmation(true)} icon={<SyncOutlined />} />
                 </> : ''}
-                <Input.Search style={{ width: '210px' }} className="input-search-round" placeholder="Search..." enterButton value={keyword} onSearch={setKeyword} allowClear />
+                <Input.Search style={{ width: '210px' }} className="input-search-round" placeholder="Search..." enterButton onSearch={setKeyword} allowClear />
               </Space>
             </Typography.Paragraph>
             <TableFiles
