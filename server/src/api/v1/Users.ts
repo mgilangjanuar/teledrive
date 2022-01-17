@@ -11,6 +11,7 @@ import { PayPal, SubscriptionDetails } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
+import { AuthKey } from '../middlewares/Key'
 
 @Endpoint.API()
 export class Users {
@@ -46,6 +47,112 @@ export class Users {
     }
 
     return res.send({ usage })
+  }
+
+  @Endpoint.GET('/', { middlewares: [Auth] })
+  public async find(req: Request, res: Response): Promise<any> {
+    const { sort, offset, limit, ...filters } = req.query
+    const [users, length] = await Model.createQueryBuilder('users')
+      .select('users.username')
+      .where(buildWhereQuery(filters) || 'true')
+      .skip(Number(offset) || undefined)
+      .take(Number(limit) || undefined)
+      .orderBy(buildSort(sort as string))
+      .getManyAndCount()
+    return res.send({ users, length })
+  }
+
+  @Endpoint.PATCH('/me/settings', { middlewares: [Auth] })
+  public async settings(req: Request, res: Response): Promise<any> {
+    const { settings } = req.body
+    if (settings.theme === 'dark' && (!req.user.plan || req.user.plan === 'free')) {
+      throw { status: 402, body: { error: 'You need to upgrade your plan to use dark theme' } }
+    }
+    req.user.settings = {
+      ...req.user.settings || {},
+      ...settings
+    }
+    await req.user.save()
+    return res.send({ settings: req.user?.settings })
+  }
+
+  @Endpoint.POST('/me/delete', { middlewares: [Auth] })
+  public async remove(req: Request, res: Response): Promise<any> {
+    const { reason, agreement } = req.body
+    if (agreement !== 'permanently removed') {
+      throw { status: 400, body: { error: 'Invalid agreement' } }
+    }
+    if (reason) {
+      await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+        chat_id: process.env.TG_BOT_OWNER_ID,
+        text: `😭 ${req.user.name} (@${req.user.username}) removed their account.\n\nReason: ${reason}`
+      })
+    }
+    await Files.delete({ user_id: req.user.id })
+    await req.user.remove()
+    const success = await req.tg.invoke(new Api.auth.LogOut())
+    return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
+  }
+
+  @Endpoint.POST('/me/paymentSync', { middlewares: [Auth] })
+  public async paymentSync(req: Request, res: Response): Promise<any> {
+    type Payment = { subscription_id?: string, midtrans_id?: string, plan?: string }
+    let result: Payment = null
+    try {
+      const { data } = await axios.get<{ payment: Payment }>(`https://teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+        headers: { token: process.env.UTILS_API_KEY }
+      })
+      if (data.payment.plan && data.payment.plan !== 'free') {
+        result = data.payment
+      }
+    } catch (error) {
+      // ignore
+    }
+    if (!result) {
+      try {
+        const { data } = await axios.get<{ payment: Payment }>(`https://us.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+          headers: { token: process.env.UTILS_API_KEY }
+        })
+        if (data.payment.plan && data.payment.plan !== 'free') {
+          result = data.payment
+        }
+      } catch (error) {
+        // ignore
+      }
+    }
+    if (!result) {
+      try {
+        const { data } = await axios.get<{ payment: Payment }>(`https://ge.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+          headers: { token: process.env.UTILS_API_KEY }
+        })
+        if (data.payment.plan && data.payment.plan !== 'free') {
+          result = data.payment
+        }
+      } catch (error) {
+        // ignore
+      }
+    }
+    if (result) {
+      req.user.subscription_id = result?.subscription_id
+      req.user.midtrans_id = result?.midtrans_id
+      req.user.plan = result?.plan as any
+      await req.user.save()
+    }
+    return res.status(202).send({ accepted: true })
+  }
+
+  @Endpoint.GET('/:tgId/payment', { middlewares: [AuthKey] })
+  public async payment(req: Request, res: Response): Promise<any> {
+    const { tgId } = req.params
+    const user = await Model.findOne({ where: { tg_id: tgId } })
+    if (!user) {
+      throw { status: 404, body: { error: 'User not found' } }
+    }
+    return res.send({ payment: {
+      subscription_id: user.subscription_id,
+      midtrans_id: user.midtrans_id,
+      plan: user.plan
+    } })
   }
 
   @Endpoint.GET('/:username/:param?', { middlewares: [Auth] })
@@ -122,51 +229,6 @@ export class Users {
     }
 
     return res.send({ user })
-  }
-
-  @Endpoint.GET('/', { middlewares: [Auth] })
-  public async find(req: Request, res: Response): Promise<any> {
-    const { sort, offset, limit, ...filters } = req.query
-    const [users, length] = await Model.createQueryBuilder('users')
-      .select('users.username')
-      .where(buildWhereQuery(filters) || 'true')
-      .skip(Number(offset) || undefined)
-      .take(Number(limit) || undefined)
-      .orderBy(buildSort(sort as string))
-      .getManyAndCount()
-    return res.send({ users, length })
-  }
-
-  @Endpoint.PATCH('/me/settings', { middlewares: [Auth] })
-  public async settings(req: Request, res: Response): Promise<any> {
-    const { settings } = req.body
-    if (settings.theme === 'dark' && (!req.user.plan || req.user.plan === 'free')) {
-      throw { status: 402, body: { error: 'You need to upgrade your plan to use dark theme' } }
-    }
-    req.user.settings = {
-      ...req.user.settings || {},
-      ...settings
-    }
-    await req.user.save()
-    return res.send({ settings: req.user?.settings })
-  }
-
-  @Endpoint.POST('/me/delete', { middlewares: [Auth] })
-  public async remove(req: Request, res: Response): Promise<any> {
-    const { reason, agreement } = req.body
-    if (agreement !== 'permanently removed') {
-      throw { status: 400, body: { error: 'Invalid agreement' } }
-    }
-    if (reason) {
-      await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
-        chat_id: process.env.TG_BOT_OWNER_ID,
-        text: `😭 ${req.user.name} (@${req.user.username}) removed their account.\n\nReason: ${reason}`
-      })
-    }
-    await Files.delete({ user_id: req.user.id })
-    await req.user.remove()
-    const success = await req.tg.invoke(new Api.auth.LogOut())
-    return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
   }
 
   // @Endpoint.USE('/upgradePlans', { middlewares: [Auth] })
