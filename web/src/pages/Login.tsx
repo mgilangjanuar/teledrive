@@ -92,7 +92,7 @@ const Login: React.FC<Props> = ({ me }) => {
     try {
       const { data } = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
       try {
-        req.post('/me/paymentSync')
+        req.post('/users/me/paymentSync')
       } catch (error) {
         // ignore
       }
@@ -126,7 +126,7 @@ const Login: React.FC<Props> = ({ me }) => {
       setLoadingLogin(true)
       const { data } = await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session })
       try {
-        req.post('/me/paymentSync')
+        req.post('/users/me/paymentSync')
       } catch (error) {
         // ignore
       }
@@ -181,7 +181,7 @@ const Login: React.FC<Props> = ({ me }) => {
           } }).then(({ data }) => {
             if (data?.user) {
               try {
-                req.post('/me/paymentSync')
+                req.post('/users/me/paymentSync')
               } catch (error) {
                 // ignore
               }
