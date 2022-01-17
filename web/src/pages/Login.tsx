@@ -91,6 +91,11 @@ const Login: React.FC<Props> = ({ me }) => {
     const { password } = formLogin.getFieldsValue()
     try {
       const { data } = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
+      try {
+        req.post('/me/paymentSync')
+      } catch (error) {
+        // ignore
+      }
       setLoadingLogin(false)
       notification.success({
         message: 'Success',
@@ -120,6 +125,11 @@ const Login: React.FC<Props> = ({ me }) => {
       const { password } = formLoginQRCode.getFieldsValue()
       setLoadingLogin(true)
       const { data } = await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session })
+      try {
+        req.post('/me/paymentSync')
+      } catch (error) {
+        // ignore
+      }
       notification.success({
         message: 'Success',
         description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
@@ -170,6 +180,11 @@ const Login: React.FC<Props> = ({ me }) => {
             'Authorization': `Bearer ${qrCode.accessToken}`
           } }).then(({ data }) => {
             if (data?.user) {
+              try {
+                req.post('/me/paymentSync')
+              } catch (error) {
+                // ignore
+              }
               notification.success({
                 message: 'Success',
                 description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
