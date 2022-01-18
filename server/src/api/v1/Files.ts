@@ -217,12 +217,26 @@ export class Files {
     }
 
     if (/.*\.part0*1$/gi.test(file?.name)) {
-      await Model.createQueryBuilder('files')
+      const { raw: files } = await Model.createQueryBuilder('files')
+        .delete()
         .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
           id, user_id: file.user_id, parent_id: file.parent_id
         })
-        .delete()
+        .returning('*')
         .execute()
+      files.map(async (file: any) => {
+        if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
+          try {
+            await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
+          } catch (error) {
+            try {
+              await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: 'me' }))
+            } catch (error) {
+              // ignore
+            }
+          }
+        }
+      })
     }
     return res.send({ file })
   }
