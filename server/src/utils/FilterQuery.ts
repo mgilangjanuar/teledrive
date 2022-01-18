@@ -42,6 +42,14 @@ export function buildWhereQuery(data: Record<string, any>, prefix: string = ''):
     } else if (op === 'between') {
       const [from, to] = data[key].trim().split('_')
       item = `${prefix}${column} between '${from.trim()}' and '${to.trim()}'`
+    } else if (op === 'match') {
+      item = `${prefix}${column} ~ '${data[key].trim()}'`
+    } else if (op === 'notmatch') {
+      item = `${prefix}${column} !~ '${data[key].trim()}'`
+    } else if (op === 'like') {
+      item = `${prefix}${column} like '${data[key].trim()}'`
+    } else if (op === 'ilike') {
+      item = `${prefix}${column} ilike '${data[key].trim()}'`
     } else {
       item = `${prefix}${column} ${op} ${data[key].trim()}`
     }

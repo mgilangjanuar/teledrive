@@ -105,7 +105,7 @@ const Pricing: React.FC<Props> = ({ me }) => {
       <Row>
         <Col md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Title level={4} style={{ textAlign: 'center', marginBottom: '70px' }}>
-            USD 🇺🇸 &nbsp; <Switch onChange={e => setIsIDR(e)} /> &nbsp; IDR 🇮🇩
+            USD &#127482;&#127480; &nbsp; <Switch onChange={e => setIsIDR(e)} /> &nbsp; IDR &#127470;&#127465;
           </Typography.Title>
           <Row gutter={24} align="middle">
             <Col lg={{ span: 10, offset: 2 }} span={24} style={{ marginBottom: '35px' }}>

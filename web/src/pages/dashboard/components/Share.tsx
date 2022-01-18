@@ -114,7 +114,7 @@ const Share: React.FC<Props> = ({
   return <Modal visible={selectShare?.row}
     onCancel={() => setSelectShare(undefined)}
     footer={null}
-    title={<Typography.Text ellipsis>{selectShare?.action === 'share' ? 'Share' : 'Send'} {selectShare?.row.name}</Typography.Text>}>
+    title={<Typography.Text ellipsis>{selectShare?.action === 'share' ? 'Share' : 'Send'} {selectShare?.row.name.replace(/\.part0*\d+$/, '')}</Typography.Text>}>
     <Form form={formShare} layout="horizontal" onFinish={share}>
       <Form.Item name="id" hidden>
         <Input />
