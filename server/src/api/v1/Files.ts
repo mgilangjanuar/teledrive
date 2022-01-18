@@ -215,7 +215,16 @@ export class Files {
         }
       }
     }
-    return res.send({ file: { id } })
+
+    if (/.*\.part0*1$/gi.test(file?.name)) {
+      await Model.createQueryBuilder('files')
+        .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
+          id, user_id: file.user_id, parent_id: file.parent_id
+        })
+        .delete()
+        .execute()
+    }
+    return res.send({ file })
   }
 
   @Endpoint.PATCH('/:id', { middlewares: [Auth] })
