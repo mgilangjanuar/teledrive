@@ -175,7 +175,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
     setLoading(true)
     setParams({
       ...parent?.id ? { parent_id: parent.link_id || parent.id } : { 'parent_id.is': 'null' },
-      ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
+      ...keyword ? { 'name.ilike': `%${keyword}%` } : {},
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       limit: PAGE_SIZE,
       offset: pagination?.current === 1 || actions?.action || keyword && params?.offset ? 0 : data?.length,
