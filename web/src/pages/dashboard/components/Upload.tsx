@@ -1,7 +1,7 @@
 import { CloudUploadOutlined } from '@ant-design/icons'
 import { notification, Upload as BaseUpload } from 'antd'
 import mime from 'mime-types'
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { req } from '../../../utils/Fetcher'
 
 interface Props {
@@ -14,8 +14,18 @@ interface Props {
 
 const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent, isDirectory, me, onCancel }) => {
   const cancelUploading = useRef<string | null>(null)
+  const parentPath = useRef<Record<string, string> | null>(null)
+  const filesWantToUpload = useRef<any[]>([])
+
+  useEffect(() => {
+    if (!fileList?.length) {
+      parentPath.current = null
+      filesWantToUpload.current = []
+    }
+  }, [fileList])
 
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
+    filesWantToUpload.current.push(file)
     notification.warn({
       key: 'preparingUpload',
       message: 'Warning',
@@ -24,6 +34,10 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     window.onbeforeunload = () => {
       return 'Are you sure you want to leave?'
     }
+    if (isDirectory) {
+      await new Promise(res => setTimeout(res, 5000))
+    }
+
     // const maxSize = 1024 * 1024 * 1024 * 2
     const maxSize = 2_000_000_000
     const chunkSize = 512 * 1024
@@ -32,6 +46,43 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     let deleted = false
 
     try {
+      let parentId = parent?.id
+      if (file.webkitRelativePath) {
+        if (isDirectory) {
+          await new Promise(res => setTimeout(res, 1000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid) + 1))
+        }
+        const paths = file.webkitRelativePath.split('/').slice(0, -1) || []
+        if (parentPath.current?.[paths.join('/')]) {
+          parentId = parentPath.current[paths.join('/')]
+        } else {
+          for (const i in paths) {
+            const path = paths[i]
+            if (parentPath.current?.[paths.slice(0, i + 1).join('/')]) {
+              parentId = parentPath.current[paths.slice(0, i + 1).join('/')]
+            } else {
+              const { data: findFolder } = await req.get('/files', { params: {
+                type: 'folder',
+                name: path,
+                ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
+              } })
+              if (findFolder?.length) {
+                parentId = findFolder.files[0].id
+                parentPath.current = { ...parentPath.current || {}, [paths.slice(0, i + 1).join('/')]: parentId }
+              } else {
+                const { data: newFolder } = await req.post('/files/addFolder', {
+                  file: {
+                    name: path,
+                    ...parentId ? { parent_id: parentId } : {},
+                  }
+                })
+                parentId = newFolder.file.id
+                parentPath.current = { ...parentPath.current || {}, [paths.slice(0, i + 1).join('/')]: parentId }
+              }
+            }
+          }
+        }
+      }
+
       const responses: any[] = []
       let totalParts: number = 0
       const totalAllParts = Math.ceil(file.size % maxSize / chunkSize) + (fileParts - 1) * Math.ceil(maxSize / chunkSize)
@@ -57,29 +108,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               const blobPart = fileBlob.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
               const data = new FormData()
               data.append('upload', blobPart)
-
-              let parentId = parent?.id
-              if (file.webkitRelativePath) {
-                const paths = file.webkitRelativePath.split('/').slice(0, -1) || []
-                for (const path of paths) {
-                  const { data: findFolder } = await req.get('/files', { params: {
-                    type: 'folder',
-                    name: path,
-                    ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
-                  } })
-                  if (!findFolder?.length) {
-                    const { data: newFolder } = await req.post('/files/addFolder', {
-                      file: {
-                        name: path,
-                        ...parentId ? { parent_id: parentId } : {},
-                      }
-                    })
-                    parentId = newFolder.file.id
-                  } else {
-                    parentId = findFolder.files[0].id
-                  }
-                }
-              }
 
               const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
                 params: {

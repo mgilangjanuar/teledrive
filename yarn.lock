@@ -1555,10 +1555,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@mgilangjanuar/telegram@2.4.1":
-  version "2.4.1"
-  resolved "https://npm.pkg.github.com/download/@mgilangjanuar/telegram/2.4.1/7e04b3999e0b36adca864dcb57c6554a2a76072c5512baa194e94aba99fe1c8d#959bae06326644ebf63b2f416174f3f4de353e18"
-  integrity sha512-PTrnS4Hf4yroJe/OmpMV8x19njlkCAjl8xK8aqvP1gk7KUcu+7aSUdTpnXVuyYLsbX06tZ+///AaOAc85OOmmg==
+"@mgilangjanuar/telegram@2.4.3":
+  version "2.4.3"
+  resolved "https://npm.pkg.github.com/download/@mgilangjanuar/telegram/2.4.3/75a07a17dfbfb2ee1a42e315ce383e635675a9829b339e18717e1f89d98fe716#445456cc6ef4bf8f84d628dfa142e1d7e6b86239"
+  integrity sha512-ArWhKLzEdE3oGE0/biTvOOkpALnndPk7LROx4utxCDDnz+0uhp5wriHrv6jdB2ZG0Jblz1V5wanjiewENiP0Vg==
   dependencies:
     "@cryptography/aes" "^0.1.1"
     async-mutex "^0.3.0"

@@ -1,3 +1,5 @@
+import { unescape } from 'querystring'
+
 export async function filterQuery<T = any>(base: Record<string, any>, query: Record<string, any>): Promise<T> {
   const { page, size, ...filters } = query
 
@@ -29,21 +31,35 @@ export function buildWhereQuery(data: Record<string, any>, prefix: string = ''):
     let item = ''
 
     const [column, op] = key.split(/(.+)\./).filter(Boolean)
+    let value = data[key]
+    try {
+      value = value ? unescape(value) : value
+    } catch (error) {
+      // ignore
+    }
     if (!op) {
-      item = `${prefix}${column} = '${data[key].trim()}'`
+      item = `${prefix}${column} = '${value.trim()}'`
     } else if (op === 'lt') {
-      item = `${prefix}${column} < '${data[key].trim()}'`
+      item = `${prefix}${column} < '${value.trim()}'`
     } else if (op === 'lte') {
-      item = `${prefix}${column} <= '${data[key].trim()}'`
+      item = `${prefix}${column} <= '${value.trim()}'`
     } else if (op === 'gt') {
-      item = `${prefix}${column} > '${data[key].trim()}'`
+      item = `${prefix}${column} > '${value.trim()}'`
     } else if (op === 'gte') {
-      item = `${prefix}${column} >= '${data[key].trim()}'`
+      item = `${prefix}${column} >= '${value.trim()}'`
     } else if (op === 'between') {
-      const [from, to] = data[key].trim().split('_')
+      const [from, to] = value.trim().split('_')
       item = `${prefix}${column} between '${from.trim()}' and '${to.trim()}'`
+    } else if (op === 'match') {
+      item = `${prefix}${column} ~ '${value.trim()}'`
+    } else if (op === 'notmatch') {
+      item = `${prefix}${column} !~ '${value.trim()}'`
+    } else if (op === 'like') {
+      item = `${prefix}${column} like '${value.trim()}'`
+    } else if (op === 'ilike') {
+      item = `${prefix}${column} ilike '${value.trim()}'`
     } else {
-      item = `${prefix}${column} ${op} ${data[key].trim()}`
+      item = `${prefix}${column} ${op} ${value.trim()}`
     }
     return [...res, item]
   }, []).join(' and ')
