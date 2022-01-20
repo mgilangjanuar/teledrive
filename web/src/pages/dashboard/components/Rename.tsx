@@ -19,7 +19,7 @@ const Rename: React.FC<Props> = ({
 
   useEffect(() => {
     if (fileRename) {
-      formRename.setFieldsValue({ name: fileRename.name })
+      formRename.setFieldsValue({ name: fileRename.name.replace(/\.part0*\d+$/, '') })
     }
   }, [fileRename])
 
@@ -51,7 +51,7 @@ const Rename: React.FC<Props> = ({
   return <Modal visible={fileRename}
     onCancel={() => setFileRename(undefined)}
     okText="Add"
-    title={<Typography.Text ellipsis>Rename {fileRename?.name}</Typography.Text>}
+    title={<Typography.Text ellipsis>Rename {fileRename?.name.replace(/\.part0*\d+$/, '')}</Typography.Text>}
     onOk={() => formRename.submit()}
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ loading: loadingRename, shape: 'round' }}>

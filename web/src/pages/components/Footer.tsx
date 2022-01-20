@@ -23,7 +23,7 @@ const Footer: React.FC<Props> = ({ me }) => {
                 Your free unlimited cloud storage service using the Telegram API.
               </Typography.Paragraph>
               <Typography.Paragraph type="secondary">
-                Made with &hearts; from Indonesia 🇮🇩
+                Made with &hearts; from Indonesia &#127470;&#127465;
               </Typography.Paragraph>
             </Col>
             <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>

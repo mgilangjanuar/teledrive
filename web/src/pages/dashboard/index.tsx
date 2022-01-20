@@ -69,10 +69,10 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
-    ? `/files?sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
+    ? `/files?name.notmatch=${encodeURIComponent('\.part0*[2-9]+$')}&sort=created_at:desc&id.in=(${fileList?.filter(file => file.response?.file).map(file => `'${file.response.file.id}'`).join(',')})` : null, fetcher, {
     refreshInterval: 5000
   })
-  const { data: files, mutate: refetch } = useSWR(params ? `/files?${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
+  const { data: files, mutate: refetch } = useSWR(params ? `/files?name.notmatch=${encodeURIComponent('\.part0*[2-9]+$')}&${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
     setLoading(false)
     if (files?.files) {
       let newData: any[] = []
