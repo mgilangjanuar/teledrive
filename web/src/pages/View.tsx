@@ -66,6 +66,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const history = useHistory()
   const { data, error, mutate } = useSWR(`/files/${match.params.id}`, fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
+  const { data: filesParts } = useSWR(data?.file.name && /\.part0*\d+$/.test(data.file.name) ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${data.file.name.replace(/\.part0*\d+$/, '')}%` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
   const [contentStyle, setContentStyle] = useState<{ display: string } | undefined>()
@@ -87,7 +88,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const [loading, setLoading] = useState<boolean>(false)
   const [showDetails, setShowDetails] = useState<any>()
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
-  const { data: files, mutate: _refetch } = useSWR(data?.file.type === 'folder' && data?.file.sharing_options?.includes('*') && params ? `/files?${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
+  const { data: files, mutate: _refetch } = useSWR(data?.file.type === 'folder' && data?.file.sharing_options?.includes('*') && params ? `/files?name.notmatch=${encodeURIComponent('\.part0*[2-9]+$')}&${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
     setLoading(false)
     if (files?.files) {
       let newData: any[] = []
@@ -352,7 +353,12 @@ const View: React.FC<PageProps> = ({ match }) => {
                 responsive: ['md'],
                 width: 100,
                 align: 'center',
-                render: (value: any) => value ? prettyBytes(Number(value)) : '-'
+                render: (value: any) => {
+                  if (Number(value) === 2_000_000_000) {
+                    return '> 2 GB'
+                  }
+                  return value ? prettyBytes(Number(value)) : '-'
+                }
               },
               {
                 title: 'Uploaded At',

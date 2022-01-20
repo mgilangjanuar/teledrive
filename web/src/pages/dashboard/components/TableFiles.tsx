@@ -67,7 +67,7 @@ const TableFiles: React.FC<Props> = ({
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
   const [showDetails, setShowDetails] = useState<any>()
   const { data: user } = useSWR(showDetails ? `/users/${showDetails.user_id}` : null, fetcher)
-  const { data: filesParts } = useSWR(showDetails ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}%` : null, fetcher)
+  const { data: filesParts } = useSWR(showDetails && user ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}%&user_id=${user.user.id}&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '.is=null'}` : null, fetcher)
   const pasteEnabled = useRef<boolean | null>(null)
 
   useEffect(() => {
