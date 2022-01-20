@@ -41,7 +41,7 @@ const Remove: React.FC<Props> = ({
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ danger: true, type: 'primary', loading: loadingRemove, shape: 'round' }}>
     <Typography.Paragraph>
-      Are you sure to delete {selectDeleted?.length > 1 ? `${selectDeleted?.length} objects` : selectDeleted?.[0]?.name }?
+      Are you sure to delete {selectDeleted?.length > 1 ? `${selectDeleted?.length} objects` : selectDeleted?.[0]?.name.replace(/\.part0*\d+$/, '') }?
     </Typography.Paragraph>
     <Form.Item>
       <Checkbox checked={deleteMessage} onChange={({ target }) => setDeleteMessage(target.checked)}>

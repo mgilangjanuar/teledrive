@@ -67,6 +67,7 @@ const TableFiles: React.FC<Props> = ({
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
   const [showDetails, setShowDetails] = useState<any>()
   const { data: user } = useSWR(showDetails ? `/users/${showDetails.user_id}` : null, fetcher)
+  const { data: filesParts } = useSWR(showDetails ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}%&user_id=${showDetails.user_id}&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '.is=null'}${tab === 'shared' ? '&shared=1' : ''}` : null, fetcher)
   const pasteEnabled = useRef<boolean | null>(null)
 
   useEffect(() => {
@@ -199,7 +200,7 @@ const TableFiles: React.FC<Props> = ({
         onClick: () => onRowClick(row)
       }),
       render: (_: any, row: any) => {
-        let type
+        let type: any
         if (row.sharing_options?.includes('*')) {
           type = <GlobalOutlined />
         } else if (row.sharing_options?.length) {
@@ -207,7 +208,7 @@ const TableFiles: React.FC<Props> = ({
         }
 
         return <>
-          {row.link_id ? <BranchesOutlined /> : '' } {type} <Icon type={row.type} /> {row.name}
+          {row.link_id ? <BranchesOutlined /> : '' } {type} <Icon type={row.type} /> {row.name?.replace(/\.part0*\d+$/, '')}
         </>
       }
     },
@@ -220,7 +221,12 @@ const TableFiles: React.FC<Props> = ({
       responsive: ['md'],
       width: 100,
       align: 'center',
-      render: (value: any) => value ? prettyBytes(Number(value)) : '-'
+      render: (value: any) => {
+        if (Number(value) === 2_000_000_000) {
+          return '> 2 GB'
+        }
+        return value ? prettyBytes(Number(value)) : '-'
+      }
     },
     {
       title: 'Uploaded At',
@@ -326,7 +332,7 @@ const TableFiles: React.FC<Props> = ({
         } : undefined} />
     </DndProvider>
     <ContextMenu />
-    <Modal title={<Typography.Text ellipsis><Icon type={showDetails?.type} /> {showDetails?.name}</Typography.Text>}
+    <Modal title={<Typography.Text ellipsis><Icon type={showDetails?.type} /> {showDetails?.name.replace(/\.part0*\d+$/, '')}</Typography.Text>}
       visible={Boolean(showDetails)}
       onCancel={() => setShowDetails(undefined)}
       okText="View"
@@ -334,7 +340,9 @@ const TableFiles: React.FC<Props> = ({
       cancelButtonProps={{ shape: 'round' }}
       okButtonProps={{ shape: 'round' }}>
       <Descriptions column={1}>
-        <Descriptions.Item label="Size">{showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}</Descriptions.Item>
+        <Descriptions.Item label="Size">
+          {filesParts?.length ? prettyBytes(filesParts?.files.reduce((res: number, file: any) => res + Number(file.size), 0)) + ` (${filesParts?.length} parts)` : showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}
+        </Descriptions.Item>
         <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('lll')}</Descriptions.Item>
         <Descriptions.Item label="Uploaded By">
           <a href={`https://t.me/${user?.user.username}`} target="_blank">@{user?.user.username}</a>

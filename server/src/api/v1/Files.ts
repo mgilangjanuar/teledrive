@@ -27,14 +27,22 @@ export class Files {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
 
-    const [files, length] = await Model.createQueryBuilder('files')
-      .where(shared && (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*'))
-        ? 'true' : shared
-          ? ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
-          : 'files.user_id = :user', {
+    let where = 'files.user_id = :user'
+    if (shared) {
+      if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
+        where = 'true'
+      } else {
+        where = ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
+      }
+    }
+    let query = Model.createQueryBuilder('files')
+      .where(where, {
         user: shared ? req.user?.username : req.user?.id  })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
-      .leftJoin('files.parent', 'parent')
+    if (shared && where !== 'true') {
+      query = query.leftJoin('files.parent', 'parent')
+    }
+    const [files, length] = await query
       .skip(Number(offset) || 0)
       .take(Number(limit) || 10)
       .orderBy(buildSort(sort as string, 'files.'))
@@ -207,7 +215,30 @@ export class Files {
         }
       }
     }
-    return res.send({ file: { id } })
+
+    if (/.*\.part0*1$/gi.test(file?.name)) {
+      const { raw: files } = await Model.createQueryBuilder('files')
+        .delete()
+        .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
+          id, user_id: file.user_id, parent_id: file.parent_id
+        })
+        .returning('*')
+        .execute()
+      files.map(async (file: any) => {
+        if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
+          try {
+            await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
+          } catch (error) {
+            try {
+              await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: 'me' }))
+            } catch (error) {
+              // ignore
+            }
+          }
+        }
+      })
+    }
+    return res.send({ file })
   }
 
   @Endpoint.PATCH('/:id', { middlewares: [Auth] })
@@ -246,19 +277,39 @@ export class Files {
       key = null
     }
 
-    const { affected } = await Model.createQueryBuilder('files')
-      .update({
-        ...file.name ? { name: file.name } : {},
-        ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
-        ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
-        ...parent && currentFile.type === 'folder' ? {
-          sharing_options: parent.sharing_options
-        } : {},
-        signed_key: key
-      })
-      .where({ id, user_id: req.user.id })
-      .returning('*')
-      .execute()
+    if (/.*\.part0*1$/gi.test(currentFile?.name)) {
+      const files = await Model.createQueryBuilder('files')
+        .where(`(id = :id or name like '${currentFile.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${currentFile.parent_id ? '= :parent_id' : 'is null'}`, {
+          id, user_id: currentFile.user_id, parent_id: currentFile.parent_id
+        })
+        .addSelect('files.signed_key')
+        .getMany()
+      await Promise.all(files.map(async current => await Model.createQueryBuilder('files')
+        .update({
+          ...file.name ? { name: current.name.replace(current.name.replace(/\.part0*\d+$/gi, ''), file.name) } : {},
+          ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
+          ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
+          ...parent && current.type === 'folder' ? {
+            sharing_options: parent.sharing_options
+          } : {},
+          signed_key: key
+        })
+        .where({ id: current.id })
+        .execute()))
+    } else {
+      await Model.createQueryBuilder('files')
+        .update({
+          ...file.name ? { name: currentFile.name.replace(currentFile.name.replace(/\.part0*1$/gi, ''), file.name) } : {},
+          ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
+          ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
+          ...parent && currentFile.type === 'folder' ? {
+            sharing_options: parent.sharing_options
+          } : {},
+          signed_key: key
+        })
+        .where({ id, user_id: req.user.id })
+        .execute()
+    }
 
     if (file.sharing_options !== undefined && currentFile.type === 'folder') {
       const updateSharingOptions = async (currentFile: Model) => {
@@ -275,10 +326,6 @@ export class Files {
         }
       }
       await updateSharingOptions(currentFile)
-    }
-
-    if (!affected) {
-      throw { status: 404, body: { error: 'File not found' } }
     }
 
     return res.send({ file: { id } })
