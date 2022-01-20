@@ -66,7 +66,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const history = useHistory()
   const { data, error, mutate } = useSWR(`/files/${match.params.id}`, fetcher)
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
-  const { data: datafilesParts } = useSWR(data?.file.name && /\.part0*\d+$/.test(data.file.name) ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${data.file.name.replace(/\.part0*\d+$/, '')}%&user_id=${data.file.user_id}&shared=1&parent_id${data.file.parent_id ? `=${data.file.parent_id}` : '.is=null'}` : null, fetcher)
+  const { data: datafilesParts } = useSWR(data?.file.name && /\.part0*\d+$/.test(data.file.name) ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${data.file.name.replace(/\.part0*\d+$/, '')}%&user_id=${data.file.user_id}${me?.user.id !== data.file.user_id ? '&shared=1' : ''}&parent_id${data.file.parent_id ? `=${data.file.parent_id}` : '.is=null'}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
   const [contentStyle, setContentStyle] = useState<{ display: string } | undefined>()
@@ -87,7 +87,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const [params, setParams] = useState<any>()
   const [loading, setLoading] = useState<boolean>(false)
   const [showDetails, setShowDetails] = useState<any>()
-  const { data: filesParts } = useSWR(showDetails ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}%&user_id=${showDetails.user_id}&shared=1&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '.is=null'}` : null, fetcher)
+  const { data: filesParts } = useSWR(showDetails ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}%&user_id=${showDetails.user_id}${me?.user.id !== showDetails.user_id ? '&shared=1' : ''}&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '.is=null'}` : null, fetcher)
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
   const { data: files, mutate: _refetch } = useSWR(data?.file.type === 'folder' && data?.file.sharing_options?.includes('*') && params ? `/files?name.notmatch=${encodeURIComponent('\.part0*[2-9]+$')}&${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
     setLoading(false)
@@ -434,7 +434,7 @@ const View: React.FC<PageProps> = ({ match }) => {
       <Layout.Sider width={320} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
         <Layout.Content className="container" style={{ ...contentStyle || {}, color: '#fff', margin: '70px 10px' }}>
           <Descriptions
-            title={<Typography.Text style={{ color: '#fff' }}><Icon type={data?.file.type} /> &nbsp; {data?.file.name}</Typography.Text>}
+            title={<Typography.Text style={{ color: '#fff' }}><Icon type={data?.file.type} /> &nbsp; {data?.file.name.replace(/\.part0*\d+$/, '')}</Typography.Text>}
             contentStyle={{ color: '#fff' }}
             labelStyle={{ color: '#fff' }} column={1}>
 
