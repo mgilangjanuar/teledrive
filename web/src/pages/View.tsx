@@ -193,7 +193,7 @@ const View: React.FC<PageProps> = ({ match }) => {
     setParams({
       // ...parent?.id ? { parent_id: parent.link_id || parent.id } : { 'parent_id.is': 'null' },
       parent_id: parent?.link_id || parent?.id || data?.file.id,
-      ...keyword ? { 'name.ilike': `'%${keyword}%'` } : {},
+      ...keyword ? { 'name.ilike': `%${keyword}%` } : {},
       shared: 1,
       'parent_id.is': undefined,
       limit: PAGE_SIZE,
