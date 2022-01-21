@@ -62,8 +62,10 @@ function App(): React.ReactElement {
   useEffect(() => {
     if (me?.user.settings?.theme === 'dark' && (moment().format('l') === '2/2/2022' || me?.user.plan && me?.user.plan !== 'free')) {
       switcher({ theme: 'dark' })
-    } else {
+    } else if (me?.user.settings?.theme === 'light') {
       switcher({ theme: 'light' })
+    } else {
+      switcher({ theme: moment().format('l') === '2/2/2022' ? 'dark' : 'light' })
     }
   }, [me])
 
