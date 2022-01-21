@@ -24,7 +24,7 @@ const Home = lazy(
   () => import(/* webpackChunkName: 'HomePage' */ './pages/Home')
 )
 const View = lazy(
-  () => import(/* webpackChunkName: 'ViewPage' */ './pages/View')
+  () => import(/* webpackChunkName: 'ViewPage' */ './pages/view/index')
 )
 const Login = lazy(
   () => import(/* webpackChunkName: 'LoginPage' */ './pages/Login')
