@@ -109,18 +109,30 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               const data = new FormData()
               data.append('upload', blobPart)
 
-              const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-                params: {
-                  // ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
-                  ...parentId ? { parent_id: parentId } : {},
-                  name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                  size: fileBlob.size,
-                  mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                  part: i,
-                  total_part: parts,
-                },
-              })
-              responses[j] = response
+              const beginUpload = async () => {
+                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                  params: {
+                    ...parentId ? { parent_id: parentId } : {},
+                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                    size: fileBlob.size,
+                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                    part: i,
+                    total_part: parts,
+                  },
+                })
+                return response
+              }
+
+              let trial = 0
+              while (trial < 10) {
+                try {
+                  responses[j] = await beginUpload()
+                  trial = 10
+                } catch (error) {
+                  await new Promise(res => setTimeout(res, 1500))
+                  trial++
+                }
+              }
 
               const percent = (++totalParts / totalAllParts * 100).toFixed(1)
               onProgress({ percent }, file)
