@@ -89,7 +89,7 @@ const View: React.FC<PageProps> = ({ match }) => {
   const [showDetails, setShowDetails] = useState<any>()
   const { data: filesParts } = useSWR(showDetails ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}%&user_id=${showDetails.user_id}${me?.user.id !== showDetails.user_id ? '&shared=1' : ''}&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '.is=null'}` : null, fetcher)
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
-  const { data: files, mutate: _refetch } = useSWR(data?.file.type === 'folder' && data?.file.sharing_options?.includes('*') && params ? `/files?name.notmatch=${encodeURIComponent('\.part0*[2-9]+$')}&${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
+  const { data: files, mutate: _refetch } = useSWR(data?.file.type === 'folder' && data?.file.sharing_options?.includes('*') && params ? `/files?exclude_parts=1&${qs.stringify(params)}` : null, fetcher, { onSuccess: files => {
     setLoading(false)
     if (files?.files) {
       let newData: any[] = []
