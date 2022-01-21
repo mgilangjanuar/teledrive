@@ -2,6 +2,7 @@ import { CloudUploadOutlined } from '@ant-design/icons'
 import { notification, Upload as BaseUpload } from 'antd'
 import mime from 'mime-types'
 import React, { useEffect, useRef } from 'react'
+import { CHUNK_SIZE, MAX_UPLOAD_SIZE } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 
 interface Props {
@@ -38,11 +39,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       await new Promise(res => setTimeout(res, 3000))
     }
 
-    // const maxSize = 1024 * 1024 * 1024 * 2
-    const maxSize = 2_000_000_000
-    const chunkSize = 512 * 1024
-
-    const fileParts = Math.ceil(file.size / maxSize)
+    const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
     let deleted = false
 
     try {
@@ -85,11 +82,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
       const responses: any[] = []
       let totalParts: number = 0
-      const totalAllParts = Math.ceil(file.size % maxSize / chunkSize) + (fileParts - 1) * Math.ceil(maxSize / chunkSize)
+      const totalAllParts = Math.ceil(file.size % MAX_UPLOAD_SIZE / CHUNK_SIZE) + (fileParts - 1) * Math.ceil(MAX_UPLOAD_SIZE / CHUNK_SIZE)
 
       await Promise.all(Array.from(Array(fileParts).keys()).map(async j => {
-        const fileBlob = file.slice(j * maxSize, Math.min(j * maxSize + maxSize, file.size))
-        const parts = Math.ceil(fileBlob.size / chunkSize)
+        const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+        const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
         if (!deleted) {
           const uploadPart = async (i: number) => {
@@ -105,22 +102,34 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               deleted = true
               window.onbeforeunload = undefined as any
             } else {
-              const blobPart = fileBlob.slice(i * chunkSize, Math.min(i * chunkSize + chunkSize, file.size))
+              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
               const data = new FormData()
               data.append('upload', blobPart)
 
-              const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-                params: {
-                  // ...parent?.id ? { parent_id: parent.link_id || parent.id || undefined } : {},
-                  ...parentId ? { parent_id: parentId } : {},
-                  name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                  size: fileBlob.size,
-                  mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                  part: i,
-                  total_part: parts,
-                },
-              })
-              responses[j] = response
+              const beginUpload = async () => {
+                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                  params: {
+                    ...parentId ? { parent_id: parentId } : {},
+                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                    size: fileBlob.size,
+                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                    part: i,
+                    total_part: parts,
+                  },
+                })
+                return response
+              }
+
+              let trial = 0
+              while (trial < 10) {
+                try {
+                  responses[j] = await beginUpload()
+                  trial = 10
+                } catch (error) {
+                  await new Promise(res => setTimeout(res, 1500))
+                  trial++
+                }
+              }
 
               const percent = (++totalParts / totalAllParts * 100).toFixed(1)
               onProgress({ percent }, file)

@@ -18,7 +18,7 @@ export class Files {
 
   @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, offset, limit, shared, t: _t, ...filters } = req.query
+    const { sort, offset, limit, shared, exclude_parts: excludeParts, t: _t, ...filters } = req.query
     const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
     if (filters?.parent_id && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
@@ -39,6 +39,9 @@ export class Files {
       .where(where, {
         user: shared ? req.user?.username : req.user?.id  })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+    if (excludeParts === 'true' || excludeParts === '1') {
+      query = query.andWhere('(files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')')
+    }
     if (shared && where !== 'true') {
       query = query.leftJoin('files.parent', 'parent')
     }

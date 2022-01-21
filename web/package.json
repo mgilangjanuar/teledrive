@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "1.8.0",
+  "version": "1.8.3",
   "private": true,
   "dependencies": {
     "@ideasio/add-to-homescreen-react": "^1.0.10",

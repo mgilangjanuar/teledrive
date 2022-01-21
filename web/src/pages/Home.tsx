@@ -2,6 +2,7 @@ import { ArrowRightOutlined, CloudOutlined, DollarCircleOutlined, SecurityScanOu
 import { Avatar, Button, Card, Carousel, Col, Image, Layout, Row, Space, Tooltip, Typography } from 'antd'
 import millify from 'millify'
 import React, { useEffect, useState } from 'react'
+import { useThemeSwitcher } from 'react-css-theme-switcher'
 import GitHubButton from 'react-github-btn'
 import { useHistory } from 'react-router-dom'
 import { Follow, Tweet } from 'react-twitter-widgets'
@@ -17,6 +18,7 @@ const Home: React.FC<Props> = ({ me }) => {
   const { data } = useSWRImmutable('/github/contributors', fetcher)
   const { data: dataAnalytics } = useSWRImmutable('/utils/simpleAnalytics', fetcher)
   const [visiblePreview, setVisiblePreview] = useState<boolean>()
+  const { currentTheme } = useThemeSwitcher()
   const history = useHistory()
 
   useEffect(() => {
@@ -177,7 +179,7 @@ const Home: React.FC<Props> = ({ me }) => {
                 <Space wrap size={30}>
                   <Tooltip placement="bottom" title="Bahasa.ai - Chatbot Which Serves Customers Fully" key="bahasa-ai">
                     <a href="https://bahasa.ai" target="_blank">
-                      <img style={{ width: '100%', maxWidth: '212px' }} src={me?.user.settings?.theme === 'dark' ? 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5fefb0768f76054a6f40c1e5_Bahasa-ai%20white%20(logo).svg' : 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png'} />
+                      <img style={{ width: '100%', maxWidth: '212px' }} src={currentTheme === 'dark' ? 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5fefb0768f76054a6f40c1e5_Bahasa-ai%20white%20(logo).svg' : 'https://uploads-ssl.webflow.com/5fb8f118741e70818f103554/5feefbc08ef40333bbd2f92e_bahasa-ai-logo-blue%20(2021)%404x-p-500.png'} />
                     </a>
                   </Tooltip>
                   <Tooltip  placement="bottom" title="DigitalOcean – The developer cloud" key="digitalocean">
