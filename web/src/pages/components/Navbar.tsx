@@ -3,6 +3,7 @@ import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typograph
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import React, { useState } from 'react'
+import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWR from 'swr'
@@ -15,6 +16,7 @@ interface Props {
 
 const Navbar: React.FC<Props> = ({ user }) => {
   const history = useHistory()
+  const { currentTheme } = useThemeSwitcher()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [popoverVisibility, setPopoverVisibility] = useState<boolean>(false)
   const { data: usage } = useSWR('/users/me/usage', fetcher)
@@ -25,7 +27,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
   }
 
   return <>
-    <Layout.Header style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 30px' }}>
+    <Layout.Header style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 30px' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/" style={{ color: '#fff' }}>
           <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> {user?.plan === 'premium' && <Popover placement="bottom" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
@@ -65,8 +67,8 @@ const Navbar: React.FC<Props> = ({ user }) => {
           <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
         </Popover> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
-      <Menu selectable={false} overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" theme={user?.settings?.theme === 'dark' ? 'light' : 'dark'}
-        style={{ background: user?.settings?.theme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
+      <Menu selectable={false} overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" theme={currentTheme === 'dark' ? 'light' : 'dark'}
+        style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>

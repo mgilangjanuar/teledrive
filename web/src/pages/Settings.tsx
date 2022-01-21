@@ -3,6 +3,7 @@ import { Avatar, Button, Card, Col, Form, Input, Layout, List, Modal, notificati
 import { useForm } from 'antd/es/form/Form'
 import pwaInstallHandler from 'pwa-install-handler'
 import React, { useEffect, useState } from 'react'
+import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router-dom'
 import useSWRImmutable from 'swr/immutable'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
@@ -22,6 +23,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [formRemoval] = useForm()
   const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
+  const { currentTheme } = useThemeSwitcher()
 
   const save = async (settings: any): Promise<void> => {
     try {
@@ -112,7 +114,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </List.Item>
 
                 <List.Item key="dark-mode" actions={[<Form.Item name="dark_mode">
-                  <Switch onChange={(val: boolean) => save({ theme: val ? 'dark' : 'light' }).then(window.location.reload)} checked={me?.user.settings?.theme === 'dark'} defaultChecked={me?.user.settings?.theme === 'dark'} />
+                  <Switch onChange={(val: boolean) => save({ theme: val ? 'dark' : 'light' }).then(window.location.reload)} checked={currentTheme === 'dark'} defaultChecked={currentTheme === 'dark'} />
                 </Form.Item>]}>
                   <List.Item.Meta title="Dark Mode" description="Join the dark side" />
                 </List.Item>

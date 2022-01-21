@@ -12,6 +12,7 @@ import Navbar from './pages/components/Navbar'
 import { fetcher } from './utils/Fetcher'
 
 import 'antd-country-phone-input/dist/index.css'
+import moment from 'moment'
 
 const Dashboard = lazy(
   () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
@@ -59,7 +60,7 @@ function App(): React.ReactElement {
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
 
   useEffect(() => {
-    if (me?.user.settings?.theme === 'dark') {
+    if (me?.user.settings?.theme === 'dark' && (moment().format('l') === '2/2/2022' || me?.user.plan && me?.user.plan !== 'free')) {
       switcher({ theme: 'dark' })
     } else {
       switcher({ theme: 'light' })

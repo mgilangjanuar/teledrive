@@ -1,9 +1,10 @@
-import { ArrowRightOutlined, CheckCircleTwoTone, LoginOutlined, GlobalOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, CheckCircleTwoTone, GlobalOutlined, LoginOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
 import JSCookie from 'js-cookie'
 import React, { useEffect, useState } from 'react'
+import { useThemeSwitcher } from 'react-css-theme-switcher'
 import OtpInput from 'react-otp-input'
 import QRCode from 'react-qr-code'
 import { useHistory } from 'react-router'
@@ -31,6 +32,7 @@ const Login: React.FC<Props> = ({ me }) => {
   const [method, setMethod] = useState<'phoneNumber' | 'qrCode'>('phoneNumber')
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
   const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken: string, session?: string }>()
+  const { currentTheme } = useThemeSwitcher()
 
   useEffect(() => {
     if (window.location.host === 'ge.teledriveapp.com') {
@@ -322,7 +324,7 @@ const Login: React.FC<Props> = ({ me }) => {
                       margin: '0 0.3rem 1rem 0',
                       borderRadius: '4px',
                       fontSize: '1.2rem',
-                      background: me?.user.settings?.theme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : undefined,
+                      background: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : undefined,
                       border: '1px solid rgba(0, 0, 0, 0.3)' }} />
                     {countdown ? <Typography.Paragraph type="secondary">Re-send in {countdown}s...</Typography.Paragraph> : <Typography.Paragraph>
                       <Button type="link" onClick={() => sendCode()}>Re-send code</Button>
