@@ -35,7 +35,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return 'Are you sure you want to leave?'
     }
     if (isDirectory) {
-      await new Promise(res => setTimeout(res, 5000))
+      await new Promise(res => setTimeout(res, 3000))
     }
 
     // const maxSize = 1024 * 1024 * 1024 * 2
@@ -127,7 +127,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             }
           }
 
-          const group = 5
+          const group = 1
           await uploadPart(0)
           for (let i = 1; i < parts - 1; i += group) {
             const others = Array.from(Array(i + group).keys()).slice(i, Math.min(parts - 1, i + group))
