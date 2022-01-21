@@ -8,7 +8,7 @@ interface Props {
   me?: any
 }
 
-const Footer: React.FC<Props> = ({ me }) => {
+const Footer: React.FC<Props> = () => {
   const { currentTheme } = useThemeSwitcher()
   return <>
     <Layout.Footer style={{ background: '#f0f2f5', paddingTop: '50px' }}>
