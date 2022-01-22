@@ -37,11 +37,11 @@ const Home: React.FC<Props> = ({ me }) => {
           <Layout.Content>
             <Typography.Title level={1}>
               <Typography.Text style={{ fontWeight: 'lighter' }}>
-                The Free Unlimited
+                Your Free Unlimited
               </Typography.Text>
               <br style={{ 'lineHeight': 1.5 }} />
               <Typography.Text style={{ background: '#0088CC', color: '#fff' }}>
-                &nbsp; Cloud Storage &nbsp;
+                Cloud Storage
               </Typography.Text>
             </Typography.Title>
             <Typography.Paragraph style={{ marginTop: '30px' }}>

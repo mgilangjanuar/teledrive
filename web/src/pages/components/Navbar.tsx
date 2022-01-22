@@ -1,13 +1,14 @@
-import { CrownOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
+import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
+import Avatar from 'antd/lib/avatar/avatar'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import React, { useState } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
-import { fetcher, req } from '../../utils/Fetcher'
+import { apiUrl, fetcher, req } from '../../utils/Fetcher'
 
 interface Props {
   user?: any
@@ -16,6 +17,7 @@ interface Props {
 
 const Navbar: React.FC<Props> = ({ user }) => {
   const history = useHistory()
+  const { pathname } = useLocation()
   const { currentTheme } = useThemeSwitcher()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [popoverVisibility, setPopoverVisibility] = useState<boolean>(false)
@@ -27,7 +29,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
   }
 
   return <>
-    <Layout.Header style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 30px' }}>
+    <Layout.Header style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 20px' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/" style={{ color: '#fff' }}>
           <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> {user?.plan === 'premium' && <Popover placement="bottom" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
@@ -41,10 +43,10 @@ const Navbar: React.FC<Props> = ({ user }) => {
               ? <Tag color="blue">Staging</Tag> : !/^(\w*\.)?teledriveapp\.com$/.test(location.host) && <Tag color="red">Unofficial</Tag>}
         </span>
       </div>
-      {user ? <>
+      {user ? <>{/\/dashboard/.test(pathname) ? <>
         <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
           <div style={{ padding: '10px' }}>
-            Bandwidth usage: { }
+            Bandwidth: { }
             {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - Number(usage?.usage.usage) || 0))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
               <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
@@ -61,13 +63,12 @@ const Navbar: React.FC<Props> = ({ user }) => {
             <Menu.Item danger key="logout" icon={<LogoutOutlined />}>Logout</Menu.Item>
           </Menu>
         </div>}>
-          <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<UserOutlined />} />
+          <Button type="link" style={{ color: '#ffff', float: 'right', top: '12px' }} icon={<Avatar src={`${apiUrl}/users/me/photo`} icon={<UserOutlined />} />} />
         </Popover>
-      </> :
+      </> : <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>{window.innerWidth > 359 && 'Dashboard'}</Button>}</> :
         <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
       <Menu selectable={false} overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" theme={currentTheme === 'dark' ? 'light' : 'dark'}
         style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
-        {user && <Menu.Item onClick={() => history.push('/dashboard')} key="dashboard">Dashboard</Menu.Item>}
         <Menu.Item onClick={() => history.push('/pricing')} key="pricing">Pricing</Menu.Item>
         <Menu.Item onClick={() => history.push('/faq')} key="faq">FAQ</Menu.Item>
         <Menu.Item onClick={() => history.push('/contact')} key="contact">Contact Us</Menu.Item>
@@ -75,6 +76,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
         <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item>
         <Menu.Item onClick={() => history.push('/refund')} key="refund">Refund Policy</Menu.Item>
         <Menu.Item onClick={() => window.open('https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8', '_blank')} key="blog">Blog</Menu.Item>
+        <Menu.Item onClick={() => window.open('https://analytics.teledriveapp.com/share/I4NhU6ih/TeleDrive', '_blank')} key="analytics">Analytics</Menu.Item>
       </Menu>
     </Layout.Header>
 
