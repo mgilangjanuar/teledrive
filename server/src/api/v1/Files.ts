@@ -622,25 +622,20 @@ export class Files {
             return updateProgess
           })()
         })
-        try {
-          data = await getData()
-          res.write(data)
-        } catch (error) {
+
+        let trial = 0
+        while (trial < 10) {
           try {
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            await req.tg?.connect()
-            const data = await getData()
+            data = await getData()
             res.write(data)
+            trial = 10
           } catch (error) {
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            await new Promise(resolve => setTimeout(resolve, 1500))
             await req.tg?.connect()
-            const data = await getData()
-            res.write(data)
+            trial++
           }
         }
-        // if (!req.user?.plan || req.user?.plan === 'free') {
-        //   await new Promise(res => setTimeout(res, 1000 - (Date.now() - startDate))) // bandwidth 512 kbsp
-        // }
+        res.flush()
       }
       usage.usage = bigInt(file.size).add(bigInt(usage.usage)).toString()
       await usage.save()
