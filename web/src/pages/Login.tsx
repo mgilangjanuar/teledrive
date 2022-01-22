@@ -218,7 +218,7 @@ const Login: React.FC<Props> = ({ me }) => {
   return <>
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
-        <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={22} offset={1}>
+        <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 8, offset: 8 }} lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={22} offset={1}>
           <Collapse>
             <Collapse.Panel key="1" showArrow={false} header={<Typography.Text>
               <GlobalOutlined /> Data center region

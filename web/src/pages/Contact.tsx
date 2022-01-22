@@ -51,7 +51,7 @@ const Contact: React.FC<Props> = ({ me }) => {
   return <>
     <Layout.Content className="container">
       <Row style={{ marginTop: '80px' }}>
-        <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
+        <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 8, offset: 8 }} lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={20} offset={2}>
           <Typography.Title>
             Contact Us
           </Typography.Title>

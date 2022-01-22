@@ -77,7 +77,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   return <>
     <Layout.Content>
       <Row style={{ margin: '50px 12px 100px' }}>
-        <Col lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={24}>
+        <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 8, offset: 8 }} lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={24}>
           <Typography.Title>
             Settings
           </Typography.Title>
