@@ -50,6 +50,7 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
     | PAYPAL_CLIENT_SECRET   | yes      | Client secret for PayPal subscription       |
     | PAYPAL_PLAN_PREMIUM_ID | yes      | Product ID for premium plan                 |
     | REDIS_URI              | yes      | Cache some responses from external services |
+    | UTILS_API_KEY          | yes      | Token key for make all servers communicate  |
 
   - Web variables
 
