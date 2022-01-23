@@ -5,9 +5,6 @@ export class Redis {
   private redis: IOredis
 
   private constructor() {
-    if (!process.env.REDIS_URI) {
-      throw new Error('REDIS_URI is not defined')
-    }
     this.redis = new IORedis(process.env.REDIS_URI)
   }
 
