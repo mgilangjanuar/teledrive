@@ -74,7 +74,7 @@ const Pricing: React.FC<Props> = ({ me }) => {
     <ul style={{ textAlign: 'center', listStyleType: 'none' }}>
       <li><strong>Unlimited</strong> total files</li>
       <li><strong>Unlimited</strong> total files size</li>
-      <li><strong>Unlimited</strong> bandwidth usage</li>
+      <li><strong>Unlimited</strong> bandwidth</li>
       <li><strong>Unlimited</strong> upload &amp; download</li>
       <li><strong>All features</strong></li>
     </ul>
@@ -103,7 +103,7 @@ const Pricing: React.FC<Props> = ({ me }) => {
   return <>
     <Layout.Content className="container" style={{ marginTop: '80px' }}>
       <Row>
-        <Col md={{ span: 20, offset: 2 }} span={24}>
+        <Col xxl={{ span: 14, offset: 5 }} xl={{ span: 16, offset: 4 }} lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
           <Typography.Title level={4} style={{ textAlign: 'center', marginBottom: '70px' }}>
             USD &#127482;&#127480; &nbsp; <Switch onChange={e => setIsIDR(e)} /> &nbsp; IDR &#127470;&#127465;
           </Typography.Title>
