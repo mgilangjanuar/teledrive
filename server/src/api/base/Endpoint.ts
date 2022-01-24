@@ -167,11 +167,11 @@ export const Endpoint = {
       method,
       basepath: null,
       path,
-      handler: async function (
+      handler: async (
         req: Request,
         res: Response,
         next: NextFunction
-      ) {
+      ) => {
         let trial = 0
         const execute = async () => {
           try {
@@ -186,6 +186,7 @@ export const Endpoint = {
               req.tg?.connect()
               return await execute()
             }
+
             console.error('handler', error.message)
             req.tg?.disconnect()
 
@@ -193,12 +194,16 @@ export const Endpoint = {
               Number(error.code) > 99 &&
               Number(error.code) < 599
 
-            return next(error.code ? {
-              status: isValidCode ? error.code : 500, body: {
-                error: error.message,
-                details: serializeError(error)
-              }
-            } : error)
+            return next(
+              error.code ?
+                {
+                  status: isValidCode ? error.code : 500, body: {
+                    error: error.message,
+                    details: serializeError(error)
+                  }
+                } :
+                error
+            )
           }
         }
         return await execute()
