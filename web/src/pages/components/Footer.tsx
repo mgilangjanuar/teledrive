@@ -55,7 +55,7 @@ const Footer: React.FC<Props> = () => {
                     <Link to="/faq">FAQ</Link>
                     <Link to="/privacy">Privacy Policy</Link>
                     <Link to="/refund">Refund Policy</Link>
-                    <Link target="_blank" to={{ pathname: 'https://analytics.teledriveapp.com/share/I4NhU6ih/TeleDrive' }}>Analytics</Link>
+                    <Link target="_blank" to={{ pathname: 'https://analytics.teledriveapp.com/share/4RhiPDRP/TeleDrive' }}>Analytics</Link>
                   </Space>
                 </Col>
               </Row>

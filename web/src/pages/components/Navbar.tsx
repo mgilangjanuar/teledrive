@@ -76,7 +76,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
         <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item>
         <Menu.Item onClick={() => history.push('/refund')} key="refund">Refund Policy</Menu.Item>
         <Menu.Item onClick={() => window.open('https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8', '_blank')} key="blog">Blog</Menu.Item>
-        <Menu.Item onClick={() => window.open('https://analytics.teledriveapp.com/share/I4NhU6ih/TeleDrive', '_blank')} key="analytics">Analytics</Menu.Item>
+        <Menu.Item onClick={() => window.open('https://analytics.teledriveapp.com/share/4RhiPDRP/TeleDrive', '_blank')} key="analytics">Analytics</Menu.Item>
       </Menu>
     </Layout.Header>
 
