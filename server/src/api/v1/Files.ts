@@ -18,38 +18,73 @@ export class Files {
 
   @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, offset, limit, shared, exclude_parts: excludeParts, t: _t, ...filters } = req.query
-    const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
+    const {
+      sort,
+      offset,
+      limit,
+      shared,
+      exclude_parts: excludeParts,
+      t: _t,
+      ...filters
+    } = req.query
+
+    const parent = filters?.parent_id ?
+      await Model.findOne(filters.parent_id as string)
+      : null
+
     if (filters?.parent_id && !parent) {
-      throw { status: 404, body: { error: 'Parent not found' } }
+      throw {
+        status: 404,
+        body: {
+          error: 'Parent not found'
+        }
+      }
     }
+
     if (!req.user && !parent?.sharing_options?.includes('*')) {
-      throw { status: 404, body: { error: 'Parent not found' } }
+      throw {
+        status: 404,
+        body: {
+          error: 'Parent not found'
+        }
+      }
     }
 
     let where = 'files.user_id = :user'
     if (shared) {
-      if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
+      if (
+        parent?.sharing_options?.includes(req.user?.username) ||
+        parent?.sharing_options?.includes('*')
+      ) {
         where = 'true'
       } else {
         where = ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
       }
     }
+
     let query = Model.createQueryBuilder('files')
-      .where(where, {
-        user: shared ? req.user?.username : req.user?.id  })
+      .where(
+        where,
+        { user: shared ? req.user?.username : req.user?.id  }
+      )
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+
     if (excludeParts === 'true' || excludeParts === '1') {
-      query = query.andWhere('(files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')')
+      query = query.andWhere(
+        '(files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')'
+      )
     }
+
     if (shared && where !== 'true') {
       query = query.leftJoin('files.parent', 'parent')
     }
+
     const [files, length] = await query
       .skip(Number(offset) || 0)
       .take(Number(limit) || 10)
       .orderBy(buildSort(sort as string, 'files.'))
       .getManyAndCount()
+
     return res.send({ files, length })
   }
 
@@ -57,50 +92,105 @@ export class Files {
   public async save(req: Request, res: Response): Promise<any> {
     const { messageId } = req.query
     const { file } = req.body
+
     if (!file) {
-      throw { status: 400, body: { error: 'File is required in body.' } }
+      throw {
+        status: 400,
+        body: {
+          error: 'File is required in body.'
+        }
+      }
     }
 
     let message: any = {}
     if (messageId) {
       if (!file.forward_info) {
-        throw { status: 400, body: { error: 'Forward info is required in body.' } }
+        throw {
+          status: 400,
+          body: {
+            error: 'Forward info is required in body.'
+          }
+        }
       }
 
       let chat: any
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, _id, accessHash] = file.forward_info.split('/')
+
         let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+
+        // TODO make this a switch-case statement
+
         if (type === 'channel') {
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(messageId) })]
-          }))
+          peer = new Api.InputPeerChannel(
+            {
+              channelId: bigInt(peerId),
+              accessHash: bigInt(accessHash as string)
+            }
+          )
+          chat = await req.tg.invoke(
+            new Api.channels.GetMessages(
+              {
+                channel: peer,
+                id: [new Api.InputMessageID({ id: Number(messageId) })]
+              }
+            )
+          )
         }
       } else {
-        chat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(messageId) })]
-        })) as any
+        chat = await req.tg.invoke(
+          new Api.messages.GetMessages(
+            {
+              id: [new Api.InputMessageID({ id: Number(messageId) })]
+            }
+          )
+        ) as any
       }
 
       if (!chat?.['messages']?.[0]) {
-        throw { status: 404, body: { error: 'Message not found' } }
+        throw {
+          status: 404,
+          body: {
+            error: 'Message not found'
+          }
+        }
       }
 
-      const mimeType = chat['messages'][0].media.photo ? 'image/jpeg' : chat['messages'][0].media.document.mimeType || 'unknown'
-      const name = chat['messages'][0].media.photo ? `${chat['messages'][0].media.photo.id}.jpg` : chat['messages'][0].media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${chat['messages'][0].media?.document.id}.${mimeType.split('/').pop()}`
+      const mimeType = chat['messages'][0].media.photo ?
+        'image/jpeg' :
+        chat['messages'][0].media.document.mimeType || 'unknown'
 
-      const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
-      const size = chat['messages'][0].media.photo ? getSizes(chat['messages'][0].media.photo.sizes.pop()) : chat['messages'][0].media.document?.size
+      const name = chat['messages'][0].media.photo ?
+        `${chat['messages'][0].media.photo.id}.jpg` :
+        chat['messages'][0].media.document.attributes?.find((atr: any) => atr.fileName)?.fileName ||
+          `${chat['messages'][0].media?.document.id}.${mimeType.split('/').pop()}`
+
+      const size = chat['messages'][0].media.photo ?
+        chat['messages'][0].media.photo.sizes.pop() :
+        chat['messages'][0].media.document?.size
+
+      // oh my god
       let type = chat['messages'][0].media.photo || mimeType.match(/^image/gi) ? 'image' : null
-      if (chat['messages'][0].media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
+      if (
+        chat['messages'][0].media.document?.mimeType.match(/^video/gi) ||
+        name.match(/\.mp4$/gi) ||
+        name.match(/\.mkv$/gi) ||
+        name.match(/\.mov$/gi)
+      ) {
         type = 'video'
-      } else if (chat['messages'][0].media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
+      } else if (
+        chat['messages'][0].media.document?.mimeType.match(/pdf$/gi) ||
+        name.match(/\.doc$/gi) ||
+        name.match(/\.docx$/gi) ||
+        name.match(/\.xls$/gi) ||
+        name.match(/\.xlsx$/gi)
+      ) {
         type = 'document'
-      } else if (chat['messages'][0].media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+      } else if (
+        chat['messages'][0].media.document?.mimeType.match(/audio$/gi) ||
+        name.match(/\.mp3$/gi) ||
+        name.match(/\.ogg$/gi)
+      ) {
         type = 'audio'
       }
 
@@ -115,59 +205,110 @@ export class Files {
       }
     }
 
-    const { raw } = await Model.createQueryBuilder('files').insert().values({
-      ...file,
-      ...message
-    }).returning('*').execute()
+    const { raw } = await Model.createQueryBuilder('files')
+      .insert()
+      .values(
+        {
+          ...file,
+          ...message
+        }
+      )
+      .returning('*')
+      .execute()
+
     return res.send({ file: raw[0] })
   }
 
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
-    const count = data?.name ? null : await Model.createQueryBuilder('files').where(
-      `type = :type and user_id = :userId and name like 'New Folder%' and parent_id ${data?.parent_id ? '= :parentId' : 'is null'}`, {
-        type: 'folder',
-        userId: req.user.id,
-        parentId: data?.parent_id
-      }).getCount()
-    const parent = data?.parent_id ? await Model.createQueryBuilder('files')
-      .where('id = :id', { id: data.parent_id })
-      .addSelect('files.signed_key')
-      .getOne() : null
 
-    const { raw } = await Model.createQueryBuilder('files').insert().values({
-      name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
-      mime_type: 'teledrive/folder',
-      user_id: req.user.id,
-      type: 'folder',
-      uploaded_at: new Date(),
-      ...parent ? {
-        parent_id: parent.id,
-        sharing_options: parent.sharing_options,
-        signed_key: parent.signed_key
-      } : {}
-    }).returning('*').execute()
+    const count = data?.name ?
+      null :
+      await Model.createQueryBuilder('files').where(
+        `type = :type and user_id = :userId and name like 'New Folder%' and parent_id ${data?.parent_id ? '= :parentId' : 'is null'}`,
+        {
+          type: 'folder',
+          userId: req.user.id,
+          parentId: data?.parent_id
+        }
+      ).getCount()
+
+    const parent = data?.parent_id ?
+      await Model.createQueryBuilder('files')
+        .where(
+          'id = :id',
+          { id: data.parent_id }
+        )
+        .addSelect('files.signed_key')
+        .getOne() :
+      null
+
+    const { raw } = await Model.createQueryBuilder('files')
+      .insert()
+      .values(
+        {
+          name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
+          mime_type: 'teledrive/folder',
+          user_id: req.user.id,
+          type: 'folder',
+          uploaded_at: new Date(),
+          ...parent ?
+            {
+              parent_id: parent.id,
+              sharing_options: parent.sharing_options,
+              signed_key: parent.signed_key
+            } :
+            {}
+        }
+      )
+      .returning('*')
+      .execute()
+
     return res.send({ file: raw[0] })
   }
 
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
+
     const file = await Model.createQueryBuilder('files')
-      .where('id = :id', { id })
+      .where(
+        'id = :id',
+        { id }
+      )
       .addSelect('files.signed_key')
       .getOne()
 
-    const parent = file?.parent_id ? await Model.createQueryBuilder('files')
-      .where('id = :id', { id: file.parent_id })
-      .addSelect('files.signed_key')
-      .getOne() : null
-    if (!file || file.user_id !== req.user?.id && !file.sharing_options?.includes('*') && !file.sharing_options?.includes(req.user?.username)) {
-      if (!parent?.sharing_options?.includes(req.user?.username) && !parent?.sharing_options?.includes('*')) {
-        throw { status: 404, body: { error: 'File not found' } }
+    const parent = file?.parent_id ?
+      await Model.createQueryBuilder('files')
+        .where(
+          'id = :id',
+          { id: file.parent_id }
+        )
+        .addSelect('files.signed_key')
+        .getOne() :
+      null
+
+    if (
+      !file ||
+      file.user_id !== req.user?.id &&
+      !file.sharing_options?.includes('*') &&
+      !file.sharing_options?.includes(req.user?.username)
+    ) {
+      if (
+        !parent?.sharing_options?.includes(req.user?.username) &&
+        !parent?.sharing_options?.includes('*')
+      ) {
+        throw {
+          status: 404,
+          body: {
+            error: 'File not found'
+          }
+        }
       }
     }
+
     file.signed_key = file.signed_key || parent?.signed_key
 
     let files = [file]
@@ -175,14 +316,23 @@ export class Files {
       if (req.user?.plan !== 'premium') {
         throw { status: 402, body: { error: 'Please upgrade your plan for view this file' } }
       }
+
       files = await Model.createQueryBuilder('files')
-        .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
-          id, user_id: file.user_id, parent_id: file.parent_id
-        })
+        .where(
+          // isn't that like injectable?
+          `(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`,
+          {
+            id,
+            user_id: file.user_id,
+            parent_id: file.parent_id
+          }
+        )
         .addSelect('files.signed_key')
         .orderBy('name')
         .getMany()
-      files[0].signed_key = file.signed_key = file.signed_key || parent?.signed_key
+
+      files[0].signed_key =
+        file.signed_key = file.signed_key || parent?.signed_key
     }
 
     if (!req.user || file.user_id !== req.user?.id) {
@@ -196,25 +346,56 @@ export class Files {
   @Endpoint.DELETE('/:id', { middlewares: [Auth] })
   public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
+
     const { deleteMessage } = req.query
+
     const { affected, raw } = await Model.createQueryBuilder('files')
       .delete()
-      .where({ id, user_id: req.user.id })
+      .where(
+        {
+          id,
+          user_id: req.user.id
+        }
+      )
       .returning('*')
       .execute()
+
     if (!affected) {
-      throw { status: 404, body: { error: 'File not found' } }
+      throw {
+        status: 404,
+        body: {
+          error: 'File not found'
+        }
+      }
     }
 
     const file = raw[0]
-    if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
+
+    if (deleteMessage &&
+      ['true', '1'].includes(deleteMessage as string) &&  // odd way
+      !file?.forward_info
+    ) {
       try {
-        await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
+        await req.tg.invoke(
+          new Api.messages.DeleteMessages(
+            {
+              id: [Number(file.message_id)],
+              revoke: true
+            }
+          )
+        )
       } catch (error) {
         try {
-          await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: 'me' }))
-        } catch (error) {
-          // ignore
+          await req.tg.invoke(
+            new Api.channels.DeleteMessages(
+              {
+                id: [Number(file.message_id)],
+                channel: 'me'
+              }
+            )
+          )
+        } catch (ignored) {
+          //
         }
       }
     }
@@ -222,20 +403,44 @@ export class Files {
     if (/.*\.part0*1$/gi.test(file?.name)) {
       const { raw: files } = await Model.createQueryBuilder('files')
         .delete()
-        .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
-          id, user_id: file.user_id, parent_id: file.parent_id
-        })
+        .where(
+          `(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`,
+          {
+            id,
+            user_id: file.user_id,
+            parent_id: file.parent_id
+          }
+        )
         .returning('*')
         .execute()
+
       files.map(async (file: any) => {
-        if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
+        if (
+          deleteMessage &&
+          ['true', '1'].includes(deleteMessage as string) &&
+          !file?.forward_info
+        ) {
           try {
-            await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
+            await req.tg.invoke(
+              new Api.messages.DeleteMessages(
+                {
+                  id: [Number(file.message_id)],
+                  revoke: true
+                }
+              )
+            )
           } catch (error) {
             try {
-              await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: 'me' }))
-            } catch (error) {
-              // ignore
+              await req.tg.invoke(
+                new Api.channels.DeleteMessages(
+                  {
+                    id: [Number(file.message_id)],
+                    channel: 'me'
+                  }
+                )
+              )
+            } catch (ignored) {
+              //
             }
           }
         }
@@ -247,111 +452,246 @@ export class Files {
   @Endpoint.PATCH('/:id', { middlewares: [Auth] })
   public async update(req: Request, res: Response): Promise<any> {
     const { id } = req.params
+
     const { file } = req.body
     if (!file) {
-      throw { status: 400, body: { error: 'File is required in body' } }
-    }
-
-    const currentFile = await Model.createQueryBuilder('files')
-      .where({ id, user_id: req.user.id })
-      .addSelect('files.signed_key')
-      .getOne()
-    if (!currentFile) {
-      throw { status: 404, body: { error: 'File not found' } }
-    }
-
-    if (file.sharing_options?.length && currentFile.type === 'folder') {
-      if (req.user.plan === 'free' || !req.user.plan) {
-        throw { status: 402, body: { error: 'Payment required' } }
+      throw {
+        status: 400,
+        body: {
+          error: 'File is required in body'
+        }
       }
     }
 
-    const parent = file.parent_id ? await Model.createQueryBuilder('files')
-      .where('id = :id', { id: file.parent_id })
+    const currentFile = await Model.createQueryBuilder('files')
+      .where(
+        {
+          id,
+          user_id: req.user.id
+        }
+      )
       .addSelect('files.signed_key')
-      .getOne() : null
-
-    let key: string = currentFile.signed_key || parent?.signed_key
-    if (file.sharing_options?.length && !key) {
-      key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+      .getOne()
+    if (!currentFile) {
+      throw {
+        status: 404,
+        body: {
+          error: 'File not found'
+        }
+      }
     }
 
-    if (!file.sharing_options?.length && !currentFile.sharing_options?.length && !parent?.sharing_options?.length) {
+    if (
+      file.sharing_options?.length &&
+      currentFile.type === 'folder'
+    ) {
+      if (
+        req.user.plan === 'free' ||
+        !req.user.plan
+      ) {
+        throw {
+          status: 402,
+          body: {
+            error: 'Payment required'
+          }
+        }
+      }
+    }
+
+    const parent = file.parent_id ?
+      await Model.createQueryBuilder('files')
+        .where(
+          'id = :id',
+          { id: file.parent_id }
+        )
+        .addSelect('files.signed_key')
+        .getOne() :
+      null
+
+    let key: string = currentFile.signed_key || parent?.signed_key
+    if (!key && file.sharing_options?.length) {
+      key = AES.encrypt(
+        JSON.stringify(
+          {
+            file: { id: file.id },
+            session: req.tg.session.save()
+          }
+        ),
+        process.env.FILES_JWT_SECRET
+      ).toString()
+    }
+
+    if (
+      !file.sharing_options?.length &&
+      !currentFile.sharing_options?.length &&
+      !parent?.sharing_options?.length
+    ) {
       key = null
     }
 
     if (/.*\.part0*1$/gi.test(currentFile?.name)) {
       const files = await Model.createQueryBuilder('files')
-        .where(`(id = :id or name like '${currentFile.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${currentFile.parent_id ? '= :parent_id' : 'is null'}`, {
-          id, user_id: currentFile.user_id, parent_id: currentFile.parent_id
-        })
+        .where(
+          `(id = :id or name like '${currentFile.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${currentFile.parent_id ? '= :parent_id' : 'is null'}`,
+          {
+            id,
+            user_id: currentFile.user_id,
+            parent_id: currentFile.parent_id
+          }
+        )
         .addSelect('files.signed_key')
         .getMany()
-      await Promise.all(files.map(async current => await Model.createQueryBuilder('files')
-        .update({
-          ...file.name ? { name: current.name.replace(current.name.replace(/\.part0*\d+$/gi, ''), file.name) } : {},
-          ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
-          ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
-          ...parent && current.type === 'folder' ? {
-            sharing_options: parent.sharing_options
-          } : {},
-          signed_key: key
-        })
-        .where({ id: current.id })
-        .execute()))
+
+      await Promise.all(
+        files.map(
+          async current => await Model.createQueryBuilder('files')
+            .update(
+              {
+                ...file.name ?
+                  { name: current.name.replace(current.name.replace(/\.part0*\d+$/gi, ''), file.name) } :
+                  {},
+
+                ...file.sharing_options !== undefined ?
+                  { sharing_options: file.sharing_options } :
+                  {},
+
+                ...file.parent_id !== undefined ?
+                  { parent_id: file.parent_id } :
+                  {},
+
+                ...parent && current.type === 'folder' ?
+                  { sharing_options: parent.sharing_options } :
+                  {},
+
+                signed_key: key
+              }
+            )
+            .where({ id: current.id })
+            .execute()
+        )
+      )
     } else {
       await Model.createQueryBuilder('files')
         .update({
-          ...file.name ? { name: currentFile.name.replace(currentFile.name.replace(/\.part0*1$/gi, ''), file.name) } : {},
-          ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
-          ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
-          ...parent && currentFile.type === 'folder' ? {
-            sharing_options: parent.sharing_options
-          } : {},
+          ...file.name ?
+            {
+              name: currentFile.name.replace(
+                currentFile.name.replace(/\.part0*1$/gi, ''),
+                file.name
+              )
+            } :
+            {},
+
+          ...file.sharing_options !== undefined ?
+            { sharing_options: file.sharing_options } :
+            {},
+
+          ...file.parent_id !== undefined ?
+            { parent_id: file.parent_id } :
+            {},
+
+          ...parent && currentFile.type === 'folder' ?
+            { sharing_options: parent.sharing_options } :
+            {},
+
           signed_key: key
         })
         .where({ id, user_id: req.user.id })
         .execute()
     }
 
-    if (file.sharing_options !== undefined && currentFile.type === 'folder') {
+    if (
+      file.sharing_options !== undefined &&
+      currentFile.type === 'folder'
+    ) {
       const updateSharingOptions = async (currentFile: Model) => {
         const children = await Model.createQueryBuilder('files')
-          .where('parent_id = :parent_id and type = \'folder\'', { parent_id: currentFile.id })
+          .where(
+            'parent_id = :parent_id and type = \'folder\'',
+            { parent_id: currentFile.id }
+          )
           .addSelect('files.signed_key')
           .getMany()
+
         for (const child of children) {
           await Model.createQueryBuilder('files')
-            .update({ sharing_options: file.sharing_options, signed_key: key || child.signed_key })
-            .where({ id: child.id, user_id: req.user.id })
+            .update(
+              {
+                sharing_options: file.sharing_options,
+                signed_key: key || child.signed_key
+              }
+            )
+            .where(
+              {
+                id: child.id,
+                user_id: req.user.id
+              }
+            )
             .execute()
+
           await updateSharingOptions(child)
         }
       }
+
       await updateSharingOptions(currentFile)
     }
 
-    return res.send({ file: { id } })
+    return res.send(
+      {
+        file: { id }
+      }
+    )
   }
 
   @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer().single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
-    const { name, size, mime_type: mimetype, parent_id: parentId, total_part: totalPart, part } = req.query as Record<string, string>
+    const {
+      name,
+      size,
+      mime_type: mimeType,
+      parent_id: parentId,
+      total_part: totalPart,
+      part
+    } = req.query as Record<string, string>
 
-    if (!name || !size || !mimetype || !part || !totalPart) {
-      throw { status: 400, body: { error: 'Name, size, mimetype, part, and total part are required' } }
+    if (!name || !size || !mimeType || !part || !totalPart) {
+      throw {
+        status: 400,
+        body: {
+          error: 'Name, size, mime_type, part, and total_part are required'
+        }
+      }
     }
+
     const file = req.file
     if (!file) {
-      throw { status: 400, body: { error: 'File upload is required' } }
+      throw {
+        status: 400,
+        body: {
+          error: 'File upload is required'
+        }
+      }
     }
 
     if (file.size > 512 * 1024) {
-      throw { status: 400, body: { error: 'Maximum file part size is 500kB' } }
+      throw {
+        status: 400,
+        body: {
+          error: 'Maximum file part size is 500kB'
+        }
+      }
     }
 
-    if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
-      throw { status: 402, body: { error: 'Payment required' } }
+    if (
+      (!req.user?.plan || req.user?.plan === 'free') &&
+      /\.part\d+$/gi.test(name)
+    ) {
+      throw {
+        status: 402,
+        body: {
+          error: 'Payment required'
+        }
+      }
     }
 
     let model: Model
@@ -365,13 +705,29 @@ export class Files {
       }
     } else {
       let type = null
-      if (mimetype.match(/^image/gi)) {
+
+      if (mimeType.match(/^image/gi)) {
         type = 'image'
-      } else if (mimetype.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
+      } else if (
+        mimeType.match(/^video/gi) ||
+        name.match(/\.mp4$/gi) ||
+        name.match(/\.mkv$/gi) ||
+        name.match(/\.mov$/gi)
+      ) {
         type = 'video'
-      } else if (mimetype.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
+      } else if (
+        mimeType.match(/pdf$/gi) ||
+        name.match(/\.doc$/gi) ||
+        name.match(/\.docx$/gi) ||
+        name.match(/\.xls$/gi) ||
+        name.match(/\.xlsx$/gi)
+      ) {
         type = 'document'
-      } else if (mimetype.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+      } else if (
+        mimeType.match(/audio$/gi) ||
+        name.match(/\.mp3$/gi) ||
+        name.match(/\.ogg$/gi)
+      ) {
         type = 'audio'
       } else {
         type = 'unknown'
@@ -379,7 +735,7 @@ export class Files {
 
       model = new Model()
       model.name = name,
-      model.mime_type = mimetype
+      model.mime_type = mimeType
       // model.size = '0'
       model.size = size
       model.user_id = req.user.id
@@ -387,17 +743,24 @@ export class Files {
       model.parent_id = parentId as string || null
       model.upload_progress = 0
       model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
+
       await model.save()
     }
 
     // upload per part
     let uploadPartStatus: boolean
-    const uploadPart = async () => await req.tg.invoke(new Api.upload.SaveBigFilePart({
-      fileId: bigInt(model.file_id),
-      filePart: Number(part),
-      fileTotalParts: Number(totalPart),
-      bytes: file.buffer
-    }))
+
+    const uploadPart = async () =>
+      await req.tg.invoke(
+        new Api.upload.SaveBigFilePart(
+          {
+            fileId: bigInt(model.file_id),
+            filePart: Number(part),
+            fileTotalParts: Number(totalPart),
+            bytes: file.buffer
+          }
+        )
+      )
 
     try {
       uploadPartStatus = await uploadPart()
@@ -418,23 +781,34 @@ export class Files {
     await model.save()
 
     if (Number(part) < Number(totalPart) - 1) {
-      return res.status(202).send({ accepted: true, file: { id: model.id }, uploadPartStatus })
+      return res.status(202).send(
+        {
+          accepted: true,
+          file: { id: model.id },
+          uploadPartStatus
+        }
+      )
     }
 
     // begin to send
-    const sendData = async (forceDocument: boolean) => await req.tg.sendFile('me', {
-      file: new Api.InputFileBig({
-        id: bigInt(model.file_id),
-        parts: Number(totalPart),
-        name: model.name
-      }),
-      forceDocument,
-      fileSize: Number(model.size),
-      attributes: forceDocument ? [
-        new Api.DocumentAttributeFilename({ fileName: model.name })
-      ] : undefined,
-      workers: 1
-    })
+    const sendData = async (forceDocument: boolean) =>
+      await req.tg.sendFile('me',
+        {
+          file: new Api.InputFileBig(
+            {
+              id: bigInt(model.file_id),
+              parts: Number(totalPart),
+              name: model.name
+            }
+          ),
+          forceDocument,
+          fileSize: Number(model.size),
+          attributes: forceDocument ?
+            [new Api.DocumentAttributeFilename({ fileName: model.name })] :
+            undefined,
+          workers: 1
+        }
+      )
 
     let data: Api.Message
     try {
@@ -447,31 +821,49 @@ export class Files {
     model.uploaded_at = data.date ? new Date(data.date * 1000) : null
     model.upload_progress = null
     await model.save()
-    return res.status(202).send({ accepted: true, file: { id: model.id } })
+
+    return res.status(202).send(
+      {
+        accepted: true,
+        file: { id: model.id }
+      }
+    )
   }
 
   @Endpoint.GET('/breadcrumbs/:id', { middlewares: [AuthMaybe] })
   public async breadcrumbs(req: Request, res: Response): Promise<any> {
     const { id } = req.params
     let folder = await Model.findOne(id)
-    if (!folder) {
-      throw { status: 404, body: { error: 'File not found' } }
-    }
-    if (req.user?.id !== folder.user_id) {
-      if (!folder.sharing_options?.includes('*') && !folder.sharing_options?.includes(req.user?.username)) {
-        throw { status: 404, body: { error: 'File not found' } }
+    if (
+      !folder ||
+      req.user?.id !== folder.user_id &&
+      (
+        !folder.sharing_options?.includes('*') &&
+        !folder.sharing_options?.includes(req.user?.username)
+      )
+    ) {
+      throw {
+        status: 404,
+        body: {
+          error: 'File not found'
+        }
       }
     }
 
     const breadcrumbs = [folder]
     while (folder.parent_id) {
       folder = await Model.findOne(folder.parent_id)
-      if (!req.user && folder.sharing_options?.includes('*') || folder.sharing_options?.includes(req.user?.username) || folder.user_id === req.user?.id) {
-        breadcrumbs.push(folder)
+      if (
+        !req.user &&
+        folder.sharing_options?.includes('*') ||
+        folder.sharing_options?.includes(req.user?.username) ||  // but the req.user HAD to be undefined 2 lines higher?
+        folder.user_id === req.user?.id
+      ) {
+        breadcrumbs.unshift(folder)
       }
     }
 
-    return res.send({ breadcrumbs: breadcrumbs.reverse() })
+    return res.send({ breadcrumbs })
   }
 
   @Endpoint.POST('/sync', { middlewares: [Auth] })
@@ -479,22 +871,36 @@ export class Files {
     const { parent_id: parentId, limit } = req.query
 
     if (req.user.plan === 'free' || !req.user.plan) {
-      throw { status: 402, body: { error: 'Payment required' } }
+      throw {
+        status: 402,
+        body: {
+          error: 'Payment required'
+        }
+      }
     }
 
     let files = []
     let found = true
     let offsetId: number
     while (files.length < (Number(limit) || 10) && found) {
-      const messages = await req.tg.invoke(new Api.messages.GetHistory({
-        peer: 'me',
-        limit: Number(limit) || 10,
-        offsetId: offsetId || 0,
-      }))
+      const messages = await req.tg.invoke(
+        new Api.messages.GetHistory(
+          {
+            peer: 'me',
+            limit: Number(limit) || 10,
+            offsetId: offsetId || 0,
+          }
+        )
+      )
 
       if (messages['messages']?.length) {
         offsetId = messages['messages'][messages['messages'].length - 1].id
-        files = [...files, ...messages['messages'].filter((msg: any) => msg?.media?.photo || msg?.media?.document)]
+        files = [
+          ...files,
+          ...messages['messages'].filter(
+            (msg: any) => msg?.media?.photo || msg?.media?.document
+          )
+        ]
       } else {
         found = false
       }
@@ -503,72 +909,136 @@ export class Files {
     files = files.slice(0, Number(limit) || 10)
 
     if (files?.length) {
-      const existFiles = await Model
-        .createQueryBuilder('files')
-        .where(`message_id IN (:...ids) AND parent_id ${parentId ? '= :parentId' : 'IS NULL'} and forward_info IS NULL`, {
-          ids: files.map(file => file.id),
-          parentId
-        })
+      const existFiles = await Model.createQueryBuilder('files')
+        .where(
+          `message_id IN (:...ids) AND parent_id ${parentId ? '= :parentId' : 'IS NULL'} and forward_info IS NULL`,
+          {
+            ids: files.map(file => file.id),
+            parentId
+          }
+        )
         .getMany()
+
       const filesWantToSave = files.filter(file => !existFiles.find(e => e.message_id == file.id))
+
       if (filesWantToSave?.length) {
         await Model.createQueryBuilder('files')
           .insert()
-          .values(filesWantToSave.map(file => {
-            const mimeType = file.media.photo ? 'image/jpeg' : file.media.document.mimeType || 'unknown'
-            const name = file.media.photo ? `${file.media.photo.id}.jpg` : file.media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${file.media?.document.id}.${mimeType.split('/').pop()}`
+          .values(
+            filesWantToSave.map(file => {
+              const mimeType = file.media.photo ?
+                'image/jpeg' :
+                file.media.document.mimeType || 'unknown'
 
-            const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
-            const size = file.media.photo ? getSizes(file.media.photo.sizes.pop()) : file.media.document?.size
-            let type = file.media.photo || mimeType.match(/^image/gi) ? 'image' : null
-            if (file.media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
-              type = 'video'
-            } else if (file.media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
-              type = 'document'
-            } else if (file.media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
-              type = 'audio'
-            }
+              const name = file.media.photo ?
+                `${file.media.photo.id}.jpg` :
+                file.media.document.attributes?.find(
+                  (attr: any) => attr.fileName
+                )?.fileName ||
+                `${file.media?.document.id}.${mimeType.split('/').pop()}`
 
-            return {
-              name,
-              message_id: file.id,
-              mime_type: mimeType,
-              size,
-              user_id: req.user.id,
-              uploaded_at: new Date(file.date * 1000),
-              type,
-              parent_id: parentId ? parentId.toString() : null
-            }
-          }))
+              const size = file.media.photo ?
+                file.media.photo.sizes.pop() :
+                file.media.document?.size
+
+              let type = file.media.photo || mimeType.match(/^image/gi) ?
+                'image' :
+                null
+              if (
+                file.media.document?.mimeType.match(/^video/gi) ||
+              name.match(/\.mp4$/gi) ||
+              name.match(/\.mkv$/gi) ||
+              name.match(/\.mov$/gi)
+              ) {
+                type = 'video'
+              } else if (
+                file.media.document?.mimeType.match(/pdf$/gi) ||
+              name.match(/\.doc$/gi) ||
+              name.match(/\.docx$/gi) ||
+              name.match(/\.xls$/gi) ||
+              name.match(/\.xlsx$/gi)
+              ) {
+                type = 'document'
+              } else if (
+                file.media.document?.mimeType.match(/audio$/gi) ||
+              name.match(/\.mp3$/gi) ||
+              name.match(/\.ogg$/gi)
+              ) {
+                type = 'audio'
+              }
+
+              return {
+                name,
+                message_id: file.id,
+                mime_type: mimeType,
+                size,
+                user_id: req.user.id,
+                uploaded_at: new Date(file.date * 1000),
+                type,
+                parent_id: parentId ? parentId.toString() : null
+              }
+            })
+          )
           .execute()
       }
     }
+
     return res.send({ files })
   }
 
-  public static async download(req: Request, res: Response, files: Model[]): Promise<any> {
+  public static async download(
+    req: Request,
+    res: Response,
+    files: Model[]
+  ): Promise<any> {
     const { raw, dl, thumb } = req.query
 
-    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
+    let usage = await Usages.findOne(
+      {
+        where: {
+          key: req.user ?
+            `u:${req.user.id}` :
+            `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
+        }
+      }
+    )
+
     if (!usage) {
       usage = new Usages()
-      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
+
+      usage.key = req.user ?
+        `u:${req.user.id}` :
+        `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
+
       usage.usage = '0'
       usage.expire = moment().add(1, 'day').toDate()
+
       await usage.save()
     }
 
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
       usage.expire = moment().add(1, 'day').toDate()
       usage.usage = '0'
+
       await usage.save()
     }
 
-    const totalFileSize = files.reduce((res, file) => res.add(file.size || 0), bigInt(0))
+    const totalFileSize = files.reduce(
+      (res, file) => res.add(file.size || 0), bigInt(0)
+    )
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
-      if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {
-        throw { status: 402, body: { error: 'You just hit the daily bandwidth limit' } }
+      if (
+        bigInt(usage.usage)
+          .add(bigInt(totalFileSize))
+          .greater(1_500_000_000)
+      ) {
+        throw {
+          status: 402,
+          body: {
+            error: 'Daily bandwidth limit exceeded'
+          }
+        }
       }
     }
 
@@ -579,28 +1049,56 @@ export class Files {
 
     let cancel = false
     req.on('close', () => cancel = true)
-    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
-    res.setHeader('Content-Type', files[0].mime_type)
-    res.setHeader('Content-Length', totalFileSize.toString())
+    res.setHeader(
+      'Content-Disposition',
+      contentDisposition(
+        files[0].name.replace(/\.part\d+$/gi, ''),
+        {
+          type: Number(dl) === 1 ?
+            'attachment' :
+            'inline'
+        }
+      )
+    )
+      .setHeader('Content-Type', files[0].mime_type)
+      .setHeader('Content-Length', totalFileSize.toString())
 
     for (const file of files) {
       let chat: any
-      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+      if (
+        file.forward_info &&
+        file.forward_info.match(/^channel\//gi)
+      ) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
         let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+
         if (type === 'channel') {
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
-          }))
+          peer = new Api.InputPeerChannel(
+            {
+              channelId: bigInt(peerId),
+              accessHash: bigInt(accessHash as string)
+            }
+          )
+
+          chat = await req.tg.invoke(
+            new Api.channels.GetMessages(
+              {
+                channel: peer,
+                id: [new Api.InputMessageID({ id: Number(id) })]
+              }
+            )
+          )
         }
       } else {
-        chat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-        }))
+        chat = await req.tg.invoke(
+          new Api.messages.GetMessages(
+            {
+              id: [
+                new Api.InputMessageID({ id: Number(file.message_id) })
+              ]
+            }
+          )
+        )
       }
 
       let data = null
@@ -608,20 +1106,30 @@ export class Files {
       const chunk = 512 * 1024
       let idx = 0
 
-      while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {
+      while (
+        !cancel &&
+        data === null ||
+        data.length && bigInt(file.size).greater(bigInt(idx * chunk))
+      ) {
         // const startDate = Date.now()
-        const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
-          ...thumb ? { sizeType: 'i' } : {},
-          start: idx++ * chunk,
-          end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
-          workers: 1,   // using 1 for stable
-          progressCallback: (() => {
-            const updateProgess: any = () => {
-              updateProgess.isCanceled = cancel
+        const getData = async () =>
+          await req.tg.downloadMedia(
+            chat['messages'][0].media,
+            {
+              ...thumb ?
+                { sizeType: 'i' } :
+                {},
+              start: idx++ * chunk,
+              end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
+              workers: 1,   // using 1 for stability
+              progressCallback: (() => {  // okay????
+                const updateProgress: any = () => {
+                  updateProgress.isCanceled = cancel
+                }
+                return updateProgress
+              })()
             }
-            return updateProgess
-          })()
-        })
+          )
 
         let trial = 0
         while (trial < 10) {
@@ -644,25 +1152,53 @@ export class Files {
     res.end()
   }
 
-  public static async initiateSessionTG(req: Request, files?: Model[]): Promise<Model[]> {
+  public static async initiateSessionTG(
+    req: Request,
+    files?: Model[]
+  ): Promise<Model[]> {
     if (!files?.length) {
-      throw { status: 404, body: { error: 'File not found' } }
+      throw {
+        status: 404,
+        body: {
+          error: 'File not found'
+        }
+      }
     }
 
     let data: { file: { id: string }, session: string }
     try {
-      data = JSON.parse(AES.decrypt(files[0].signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
+      data = JSON.parse(
+        AES.decrypt(
+          files[0].signed_key,
+          process.env.FILES_JWT_SECRET
+        ).toString(enc.Utf8)
+      )
     } catch (error) {
       console.error(error)
-      throw { status: 401, body: { error: 'Invalid token' } }
+      throw {
+        status: 401,
+        body: {
+          error: 'Invalid token'
+        }
+      }
     }
 
     try {
-      const session = new StringSession(data.session)
-      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
+      req.tg = new TelegramClient(
+        new StringSession(data.session),
+        TG_CREDS.apiId,
+        TG_CREDS.apiHash,
+        { connectionRetries: 5 }
+      )
     } catch (error) {
-      throw { status: 401, body: { error: 'Invalid key' } }
+      throw {
+        status: 401,
+        body: {
+          error: 'Invalid key'
+        }
+      }
     }
+
     return files
   }
 }

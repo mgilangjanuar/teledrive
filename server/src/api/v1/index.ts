@@ -5,7 +5,7 @@ import { Contact } from './Contact'
 import { Dialogs } from './Dialogs'
 import { Documents } from './Documents'
 import { Files } from './Files'
-import { Github } from './Github'
+import { GitHub } from './GitHub'
 import { Messages } from './Messages'
 import { Subscriptions } from './Subscriptions'
 import { Users } from './Users'
@@ -18,7 +18,7 @@ export const V1 = Router()
       Auth,
       Users,
       Waitings,
-      Github,
+      GitHub,
       Files,
       Dialogs,
       Messages,

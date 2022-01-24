@@ -16,70 +16,118 @@ interface Route {
 
 export const Endpoint = {
   _handlers: [],
+
   register: function (..._classes: any[]): Router {
     const router = Router()
-    for (const route of this._handlers?.filter((handler: Route) => !!handler.basepath)) {
-      router[route.method](`${route.basepath}${route.path}`,
-        ...(route.middlewares || []).map((middleware: RequestHandler) => this.RequestWrapper(middleware)), route.handler)
+
+    for (
+      const route of
+      this._handlers?.filter((route: Route)=> !!route.basepath)
+    ) {
+      router[route.method](
+        `${route.basepath}${route.path}`,
+        ...(route.middlewares || []).map(
+          (middleware: RequestHandler) =>
+            this.RequestWrapper(middleware)
+        ),
+        route.handler
+      )
     }
+
     return router
   },
+
   API: function (basepath?: string): any {
     return (cls: new () => any): void => {
       this._handlers = this._handlers.map((handler: Route) => ({
         ...handler,
-        basepath: handler.basepath || basepath || `/${cls.name[0].toLowerCase()}${cls.name.slice(1)}`
+        basepath:
+          handler.basepath ||
+          basepath ||
+          `/${cls.name[0].toLowerCase()}${cls.name.slice(1)}`
       }))
     }
   },
+
+  // TODO: Clean those functions up, as the content is exactly the same and
+  // only the method changes, which is just the name of the method but in
+  // lowercase...
+
   USE: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
-      this._handlers.push(this._buildRouteHandler('use', method, descriptor, ...args))
+      this._handlers.push(
+        this._buildRouteHandler('use', method, descriptor, ...args)
+      )
     }
   },
+
   GET: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
-      this._handlers.push(this._buildRouteHandler('get', method, descriptor, ...args))
+      this._handlers.push(
+        this._buildRouteHandler('get', method, descriptor, ...args)
+      )
     }
   },
+
   POST: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
-      this._handlers.push(this._buildRouteHandler('post', method, descriptor, ...args))
+      this._handlers.push(
+        this._buildRouteHandler('post', method, descriptor, ...args)
+      )
     }
   },
+
   PATCH: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
-      this._handlers.push(this._buildRouteHandler('patch', method, descriptor, ...args))
+      this._handlers.push(
+        this._buildRouteHandler('patch', method, descriptor, ...args)
+      )
     }
   },
+
   PUT: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
-      this._handlers.push(this._buildRouteHandler('put', method, descriptor, ...args))
+      this._handlers.push(
+        this._buildRouteHandler('put', method, descriptor, ...args)
+      )
     }
   },
+
   DELETE: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
-      this._handlers.push(this._buildRouteHandler('delete', method, descriptor, ...args))
+      this._handlers.push(
+        this._buildRouteHandler('delete', method, descriptor, ...args)
+      )
     }
   },
+
   RequestWrapper: (target: RequestHandler): RequestHandler => {
     return async function (req: Request, res: Response, next: NextFunction) {
       let trial = 0
       const execute = async () => {
         try {
-          return await target(req, res, next)
+          return target(req, res, next)
         } catch (error) {
-          if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial++ < 5) {
+          if (
+            /.*You need to call \.connect\(\)/gi.test(error.message) &&
+            trial++ < 5
+          ) {
             await new Promise(res => setTimeout(res, 1000))
             req.tg?.connect()
             return await execute()
           }
+
           console.error('RequestWrapper', error)
           req.tg?.disconnect()
-          const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
+
+          const isValidCode = error.code &&
+            Number(error.code) > 99 &&
+            Number(error.code) < 599
+
           return next(error.code ? {
             status: isValidCode ? error.code : 500, body: {
-              error: error.message, details: serializeError(error)
+              error: error.message,
+              details: serializeError(error)
             }
           } : error)
         }
@@ -87,7 +135,13 @@ export const Endpoint = {
       return await execute()
     }
   },
-  _buildRouteHandler: function (method: string, route: string, descriptor: PropertyDescriptor, ...args: [(string | RouteOptions)?, RouteOptions?]): Route {
+
+  _buildRouteHandler: function (
+    method: string,
+    route: string,
+    descriptor: PropertyDescriptor,
+    ...args: [(string | RouteOptions)?, RouteOptions?]
+  ): Route {
     // get path
     let path = `/${route[0].toLowerCase()}${route.slice(1)}`
     if (args[0]) {
@@ -113,27 +167,36 @@ export const Endpoint = {
       method,
       basepath: null,
       path,
-      handler: async function (req: Request, res: Response, next: NextFunction) {
+      handler: async function (
+        req: Request,
+        res: Response,
+        next: NextFunction
+      ) {
         let trial = 0
         const execute = async () => {
           try {
             await descriptor.value(req, res, next)
             req.tg?.disconnect()
           } catch (error) {
-            if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial++ < 5) {
+            if (
+              /.*You need to call \.connect\(\)/gi.test(error.message)
+              && trial++ < 5
+            ) {
               await new Promise(res => setTimeout(res, 1000))
               req.tg?.connect()
               return await execute()
             }
             console.error('handler', error.message)
             req.tg?.disconnect()
-            const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
-            // if (!isValidCode) {
-            //   process.exit(1)
-            // }
+
+            const isValidCode = error.code &&
+              Number(error.code) > 99 &&
+              Number(error.code) < 599
+
             return next(error.code ? {
               status: isValidCode ? error.code : 500, body: {
-                error: error.message, details: serializeError(error)
+                error: error.message,
+                details: serializeError(error)
               }
             } : error)
           }

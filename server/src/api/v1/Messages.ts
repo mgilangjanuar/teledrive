@@ -291,35 +291,51 @@ export class Messages {
   }
 
   @Endpoint.GET('/:type/:id/avatar.jpg', { middlewares: [Auth] })
-  public async avatar(req: Request, res: Response): Promise<any> {
+  public async avatar(req: Request, res: Response): Promise<void> {
     const { type, id } = req.params
+
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (type === 'channel') {
-      peer = new Api.InputPeerChannel({
-        channelId: bigInt(id),
-        accessHash: bigInt(req.query.accessHash as string) })
+      peer = new Api.InputPeerChannel(
+        {
+          channelId: bigInt(id),
+          accessHash: bigInt(req.query.accessHash as string)
+        }
+      )
     } else if (type === 'chat') {
-      peer = new Api.InputPeerChat({
-        chatId: bigInt(id)
-      })
+      peer = new Api.InputPeerChat(
+        {
+          chatId: bigInt(id)
+        }
+      )
     } else if (type === 'user') {
-      peer = new Api.InputPeerUser({
-        userId: bigInt(id),
-        accessHash: bigInt(req.query.accessHash as string) })
+      peer = new Api.InputPeerUser(
+        {
+          userId: bigInt(id),
+          accessHash: bigInt(req.query.accessHash as string)
+        }
+      )
     }
+
     try {
       const file = await req.tg.downloadProfilePhoto(peer)
       if (!file?.length) {
-        return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
+        return res.redirect(
+          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'
+        )
       }
+
       res.setHeader('Content-Disposition', `inline; filename=avatar-${id}.jpg`)
-      res.setHeader('Content-Type', 'image/jpeg')
-      res.setHeader('Content-Length', file.length)
-      res.write(file)
-      return res.end()
+        .setHeader('Content-Type', 'image/jpeg')
+        .setHeader('Content-Length', file.length)
+        .write(file)
+
+      res.end()
     } catch (error) {
       console.error(error)
-      return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
+      res.redirect(
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'
+      )
     }
   }
 }

@@ -4,9 +4,13 @@ import { Endpoint } from '../base/Endpoint'
 @Endpoint.API()
 export class Documents {
 
+  // TODO move these to some Markdown files
+
   @Endpoint.GET()
   public async privacy(_: Request, res: Response): Promise<any> {
-    return res.send({ document: `# PRIVACY POLICY
+    return res.send(
+      {
+        document: `# PRIVACY POLICY
 
 Your privacy is important to us, so TeleDrive, a Indonesia, has created the following Privacy Policy ("Policy") to let you know what information we collect when you visit our Site https://teledriveapp.com ("Site"), why we collect it and how we use it.
 
@@ -117,14 +121,16 @@ We assume that all Users of this Site have carefully read this document and agre
 
 
 ## 14. FURTHER INFORMATION
-If you have any further questions regarding the data we collect, or how we use it, then please feel free to contact us at the details as indicated above.
-
-` })
+If you have any further questions regarding the data we collect, or how we use it, then please feel free to contact us at the details as indicated above.`
+      }
+    )
   }
 
   @Endpoint.GET()
   public async tos(_: Request, res: Response): Promise<any> {
-    return res.send({ document: `# TERMS OF SERVICES
+    return res.send(
+      {
+        document: `# TERMS OF SERVICES
 
 PLEASE READ THIS TERMS OF SERVICE AGREEMENT CAREFULLY, AS IT CONTAINS IMPORTANT INFORMATION REGARDING YOUR LEGAL RIGHTS AND REMEDIES.
 
@@ -247,12 +253,16 @@ If you have any questions about this Agreement, please contact us by email or re
 TeleDrive
 South Jakarta, Indonesia
 Indonesia
-mgilangjanuar@gmail.com` })
+mgilangjanuar@gmail.com`
+      }
+    )
   }
 
   @Endpoint.GET()
   public async refund(_: Request, res: Response): Promise<any> {
-    return res.send({ document: `# REFUND POLICY
+    return res.send(
+      {
+        document: `# REFUND POLICY
 
 All our clients are very important to us, that's why TeleDrive ("Company"), has created the following Refund Policy to let You know how we handle the refunds for the goods ordered and bought on our website https://teledriveapp.com ("Website").
 The terms "You," "Your," and "Yours" refer to the entity/ person/ organization using our Website. When this Policy mentions "we", "us,", and "our" it refers to the Company and its subsidiaries or /and affiliates. The term "goods" refer to any product or item bought on our Website by You.
@@ -289,6 +299,8 @@ The goods must be returned in the original packaging (with instructions and/or w
 
 
 ## Further information
-This Policy was created with the help of the [TermsHub.io](https://termshub.io?utm_source=referral&utm_medium=generated_documents&utm_campaign=referral_documents&utm_content=pp_th_text) and the [Refund & Return Policy Generator](https://termshub.io/refund-policy) and applies only to the refunds for the goods and services sold by our Company. Our Policy does not apply to the refunds for the goods and services offered by other companies or individuals.` })
+This Policy was created with the help of the [TermsHub.io](https://termshub.io?utm_source=referral&utm_medium=generated_documents&utm_campaign=referral_documents&utm_content=pp_th_text) and the [Refund & Return Policy Generator](https://termshub.io/refund-policy) and applies only to the refunds for the goods and services sold by our Company. Our Policy does not apply to the refunds for the goods and services offered by other companies or individuals.`
+      }
+    )
   }
 }

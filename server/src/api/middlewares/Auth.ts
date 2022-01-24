@@ -6,7 +6,9 @@ import { Users } from '../../model/entities/Users'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {
-  const authkey = (req.headers.authorization || req.cookies.authorization)?.replace(/^Bearer\ /gi, '')
+  const authkey = (req.headers.authorization || req.cookies.authorization)
+    ?.replace(/^Bearer\ /gi, '')
+
   if (!authkey) {
     throw { status: 401, body: { error: 'Auth key is required' } }
   }
@@ -20,7 +22,15 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
 
   try {
     const session = new StringSession(data.session)
-    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
+    req.tg = new TelegramClient(
+      session,
+      TG_CREDS.apiId,
+      TG_CREDS.apiHash,
+      {
+        connectionRetries: CONNECTION_RETRIES,
+        useWSS: false
+      }
+    )
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }
   }
@@ -52,7 +62,9 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
 }
 
 export async function AuthMaybe(req: Request, _: Response, next: NextFunction): Promise<any> {
-  const authkey = (req.headers.authorization || req.cookies.authorization)?.replace(/^Bearer\ /gi, '')
+  const authkey = (req.headers.authorization || req.cookies.authorization)
+    ?.replace(/^Bearer\ /gi, '')
+
   if (authkey) {
     let data: { session: string }
     try {
@@ -63,7 +75,12 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
 
     try {
       const session = new StringSession(data.session)
-      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
+      req.tg = new TelegramClient(
+        session,
+        TG_CREDS.apiId,
+        TG_CREDS.apiHash,
+        { connectionRetries: CONNECTION_RETRIES, useWSS: false }
+      )
     } catch (error) {
       throw { status: 401, body: { error: 'Invalid key' } }
     }
