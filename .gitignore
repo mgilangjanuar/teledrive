@@ -1,11 +1,26 @@
-node_modules/
+# VSCode configuration files
 .vscode/
+
+# Node thingies
+.env
+.npmrc
+node_modules/
+
+# Build files
 dist/
 build/
-keys
-.env
+
+# Vercel environment file
 .vercel
+
+# Certificates
+*.crt
+
+# Log files, like yarn's `yarn-error.log`
+*.log
+
+# Undocumented(@mgilangjanuar?)
+keys
 lab/
 sessions/
-*.crt
 dump\.rdb
