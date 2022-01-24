@@ -268,7 +268,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }} && rm -rf node_modules && tar -xzf build-root.tar.gz && rm -rf build-root.tar.gz
-        host: ${{ env.DEV_SG_1 }}
+        host: ${{ env.DEV_HOST_SG_1 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
     - name: Extract build-web.tar.gz to sg_1
@@ -276,7 +276,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }}/web && rm -rf node_modules && rm -rf build && cd .. && tar -xzf build-web.tar.gz && rm -rf build-web.tar.gz
-        host: ${{ env.DEV_SG_1 }}
+        host: ${{ env.DEV_HOST_SG_1 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
     - name: Extract build-server.tar.gz to sg_1
@@ -284,7 +284,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
-        host: ${{ env.DEV_SG_1 }}
+        host: ${{ env.DEV_HOST_SG_1 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
@@ -293,7 +293,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }} && rm -rf node_modules && tar -xzf build-root.tar.gz && rm -rf build-root.tar.gz
-        host: ${{ env.DEV_SG_2 }}
+        host: ${{ env.DEV_HOST_SG_2 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
     - name: Extract build-web.tar.gz to sg_2
@@ -301,7 +301,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }}/web && rm -rf node_modules && rm -rf build && cd .. && tar -xzf build-web.tar.gz && rm -rf build-web.tar.gz
-        host: ${{ env.DEV_SG_2 }}
+        host: ${{ env.DEV_HOST_SG_2 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
     - name: Extract build-server.tar.gz to sg_2
@@ -309,7 +309,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
-        host: ${{ env.DEV_SG_2 }}
+        host: ${{ env.DEV_HOST_SG_2 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
