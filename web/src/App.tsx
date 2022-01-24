@@ -17,36 +17,47 @@ import moment from 'moment'
 const Dashboard = lazy(
   () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
 )
+
 const Settings = lazy(
   () => import(/* webpackChunkName: 'SettingsPage' */ './pages/Settings')
 )
+
 const Home = lazy(
   () => import(/* webpackChunkName: 'HomePage' */ './pages/Home')
 )
+
 const View = lazy(
   () => import(/* webpackChunkName: 'ViewPage' */ './pages/view/index')
 )
+
 const Login = lazy(
   () => import(/* webpackChunkName: 'LoginPage' */ './pages/Login')
 )
+
 const Terms = lazy(
   () => import(/* webpackChunkName: 'TermsPage' */ './pages/Terms')
 )
+
 const Refund = lazy(
   () => import(/* webpackChunkName: 'RefundPage' */ './pages/Refund')
 )
+
 const Privacy = lazy(
   () => import(/* webpackChunkName: 'PrivacyPage'  */ './pages/Privacy')
 )
+
 const Pricing = lazy(
   () => import(/* webpackChunkName: 'PricingPage'  */ './pages/Pricing')
 )
+
 const Contact = lazy(
   () => import(/* webpackChunkName: 'ContactPage'  */ './pages/Contact')
 )
+
 const Faq = lazy(
   () => import(/* webpackChunkName: 'FaqPage' */ './pages/Faq')
 )
+
 const NotFound = lazy(
   () => import(/* webpackChunkName: 'NotFoundPage' */ './pages/errors/NotFound')
 )
@@ -60,18 +71,34 @@ function App(): React.ReactElement {
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
 
   useEffect(() => {
-    if (me?.user.settings?.theme === 'dark' && (moment().format('l') === '2/2/2022' || me?.user.plan && me?.user.plan !== 'free')) {
+    if (
+      me?.user.settings?.theme === 'dark' &&
+      (
+        moment().format('l') === '2/2/2022' ||
+        me?.user.plan && me?.user.plan !== 'free'
+      )
+    ) {
       switcher({ theme: 'dark' })
     } else if (me?.user.settings?.theme === 'light') {
       switcher({ theme: 'light' })
     } else {
-      switcher({ theme: moment().format('l') === '2/2/2022' ? 'dark' : 'light' })
+      switcher(
+        { theme: moment().format('l') === '2/2/2022' ? 'dark' : 'light' }
+      )
     }
   }, [me])
 
   useEffect(() => {
     pwaInstallHandler.addListener(canInstall => {
-      if (canInstall && (!localStorage.getItem('install') || new Date().getTime() - Number(localStorage.getItem('install')) > 5 * 8.64e+7)) {
+      if (
+        canInstall &&
+        (
+          !localStorage.getItem('install') ||
+          new Date().getTime() - Number(
+            localStorage.getItem('install')
+          ) > 5 * 8.64e+7
+        )
+      ) {
         notification.info({
           duration: null,
           message: 'Install App',
