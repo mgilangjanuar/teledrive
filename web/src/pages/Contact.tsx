@@ -84,7 +84,7 @@ const Contact: React.FC<Props> = ({ me }) => {
       title={<><WarningOutlined /> Confirmation</>}
       onCancel={() => setConfirmation(undefined)}
       onOk={send}
-      okText="Send"
+      okText="Confirm"
       cancelButtonProps={{ shape: 'round' }}
       okButtonProps={{ type: 'primary', loading, shape: 'round' }}>
       <Typography.Paragraph>
