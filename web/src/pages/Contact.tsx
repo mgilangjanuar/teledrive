@@ -1,7 +1,8 @@
-import { SendOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Form, Input, Layout, notification, Row, Typography } from 'antd'
+import { SendOutlined, WarningOutlined } from '@ant-design/icons'
+import { Button, Card, Col, Form, Input, Layout, Modal, notification, Row, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { req } from '../utils/Fetcher'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 const Contact: React.FC<Props> = ({ me }) => {
   const [form] = useForm()
   const [loading, setLoading] = useState<boolean>()
+  const [confirmation, setConfirmation] = useState<boolean>()
 
   useEffect(() => {
     form.setFieldsValue({ from: me?.user.username })
@@ -38,6 +40,9 @@ const Contact: React.FC<Props> = ({ me }) => {
   }, [])
 
   const send = async () => {
+    if (!confirmation) {
+      return setConfirmation(true)
+    }
     setLoading(true)
     await req.post('/contact/send', form.getFieldsValue())
     form.setFieldsValue({ message: null })
@@ -45,6 +50,7 @@ const Contact: React.FC<Props> = ({ me }) => {
       message: 'Sent!',
       description: 'Your message sent successfully!'
     })
+    setConfirmation(undefined)
     setLoading(false)
   }
 
@@ -74,6 +80,17 @@ const Contact: React.FC<Props> = ({ me }) => {
         </Col>
       </Row>
     </Layout.Content>
+    <Modal visible={confirmation}
+      title={<><WarningOutlined /> Confirmation</>}
+      onCancel={() => setConfirmation(undefined)}
+      onOk={send}
+      okText="Send"
+      cancelButtonProps={{ shape: 'round' }}
+      okButtonProps={{ type: 'primary', loading, shape: 'round' }}>
+      <Typography.Paragraph>
+        Please double check your username (<Link target="_blank" to={{ pathname: `https://t.me/${form.getFieldValue('from')}` }}>@{form.getFieldValue('from')}</Link>) because we will reply your message to this Telegram account.
+      </Typography.Paragraph>
+    </Modal>
   </>
 }
 
