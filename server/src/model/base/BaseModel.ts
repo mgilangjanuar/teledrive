@@ -1,7 +1,6 @@
 import { BaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
 export class BaseModel extends BaseEntity {
-
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date
 
@@ -10,7 +9,6 @@ export class BaseModel extends BaseEntity {
 }
 
 export class BaseModelWithID extends BaseModel {
-
   @PrimaryGeneratedColumn('uuid')
   id: string
 }

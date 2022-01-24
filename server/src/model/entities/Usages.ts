@@ -3,7 +3,6 @@ import { BaseModel } from '../base/BaseModel'
 
 @Entity()
 export class Usages extends BaseModel {
-
   @PrimaryColumn()
   key: string
 

@@ -1,7 +1,9 @@
 import axios from 'axios'
 import { Users } from '../model/entities/Users'
 
-type Status = 'authorize' | 'partial_refund' | 'refund' | 'cancel' | 'expire' | 'pending' | 'settlement' | 'deny' | 'capture'
+type Status =
+  'authorize' | 'partial_refund' | 'refund' | 'cancel' | 'expire' | 'pending' |
+  'settlement' | 'deny' | 'capture'
 
 export type TransactionDetails = {
   status_code: string,
@@ -10,8 +12,8 @@ export type TransactionDetails = {
   settlement_time?: string,
   transaction_status: Status
 }
-export class Midtrans {
 
+export class Midtrans {
   public constructor(
     private req = axios.create({
       auth: {
@@ -25,26 +27,37 @@ export class Midtrans {
     }
   }
 
-  public async getPaymentLink(user: Users, amount: number): Promise<{ token: string, redirect_url: string }> {
+  public async getPaymentLink(
+    user: Users,
+    amount: number
+  ): Promise<{ token: string, redirect_url: string }> {  // TODO make those return types some real type aliases
     if (!user.midtrans_id) {
       throw new Error('Please generate order ID first')
     }
-    const { data } = await this.req.post<{ token: string, redirect_url: string }>('https://app.midtrans.com/snap/v1/transactions', {
-      transaction_details: {
-        order_id: user.midtrans_id,
-        gross_amount: amount
-      },
-      customer_details: {
-        first_name: user.name,
-        email: user.email,
-        phone: user.username
+
+    const { data } = await this.req.post<{ token: string, redirect_url: string }>(
+      'https://app.midtrans.com/snap/v1/transactions',
+      {
+        transaction_details: {
+          order_id: user.midtrans_id,
+          gross_amount: amount
+        },
+        customer_details: {
+          first_name: user.name,
+          email: user.email,
+          phone: user.username
+        }
       }
-    })
+    )
+
     return data
   }
 
   public async getTransactionStatus(orderId: string): Promise<TransactionDetails> {
-    const { data } = await this.req.get<TransactionDetails>(`https://api.midtrans.com/v2/${orderId}/status`)
-    return data
+    return (
+      await this.req.get<TransactionDetails>(
+        `https://api.midtrans.com/v2/${orderId}/status`
+      )
+    ).data
   }
 }

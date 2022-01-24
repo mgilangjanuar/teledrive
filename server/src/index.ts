@@ -50,11 +50,14 @@ import { Redis } from './service/Cache'
 //   }
 // }
 
+process.env.PORT = process.env.PORT || '4000'
+
 
 Redis.connect()
 runDB()
 
 const app = express()
+
 Sentry.init({
   dsn: 'https://9b19fe16a45741798b87cfd3833822b2@o1062116.ingest.sentry.io/6052883',
   integrations: [
@@ -74,75 +77,98 @@ Sentry.init({
 // transaction/span/breadcrumb is attached to its own Hub instance
 app.use(Sentry.Handlers.requestHandler())
 // TracingHandler creates a trace for every incoming request
-app.use(Sentry.Handlers.tracingHandler())
+  .use(Sentry.Handlers.tracingHandler())
 
-app.set('trust proxy', 1)
+  .set('trust proxy', 1)
 
-app.use(cors({
-  credentials: true,
-  origin: [
-    /.*/
-  ]
-}))
-app.use(compression())
-app.use(json())
-app.use(urlencoded({ extended: true }))
-app.use(raw())
-app.use(cookieParser())
-app.use(morgan('tiny'))
-// app.use((req, _, next) => {
+  .use(cors({
+    credentials: true,
+    origin: [
+      /.*/
+    ]
+  }))
+  .use(compression())
+  .use(json())
+  .use(urlencoded({ extended: true }))
+  .use(raw())
+  .use(cookieParser())
+  .use(morgan('tiny'))
+// .use((req, _, next) => {
 //   req['ip'] = req.headers['cf-connecting-ip'] as string || req.ip
 //   return next()
 // })
 
-const rateLimiter = new RateLimiterPostgres({
-  storeClient: new Pool({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD
-  }),
-  points: Number(process.env.RPS) || 20,
-  duration: 1,
-  tableName: 'rate_limits',
-  tableCreated: false
-})
+const rateLimiter = new RateLimiterPostgres(
+  {
+    storeClient: new Pool(
+      {
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT) || 5432,
+        database: process.env.DB_NAME || process.env.DB_USERNAME,
+        user: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD
+      }
+    ),
+    points: Number(process.env.RPS) || 20,
+    duration: 1,
+    tableName: 'rate_limits',
+    tableCreated: false
+  }
+)
 
-app.get('/ping', (_, res) => res.send({ pong: true }))
-app.get('/security.txt', (_, res) => {
-  res.setHeader('Content-Type', 'text/plain')
-  res.send('Contact: mgilangjanuar+tdsecurity@gmail.com\nPreferred-Languages: en, id')
-})
-app.use('/api', (req, res, next) => {
-  rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {
-    if (error.msBeforeNext) {
-      return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests', retryAfter: error.msBeforeNext })
+app
+  .get('/ping', (_, res) => res.send({ pong: true }))
+
+  .get(
+    '/security.txt',
+    (_, res) => {
+      res.setHeader('Content-Type', 'text/plain')
+      res.send('Contact: mgilangjanuar+tdsecurity@gmail.com\nPreferred-Languages: en, id')
     }
-    throw error
-  })
-}, API)
+  )
+
+  .use(
+    '/api',
+    (req, res, next) => {
+      rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {
+        if (error.msBeforeNext) {
+          return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests', retryAfter: error.msBeforeNext })
+        }
+        throw error
+      })
+    },
+    API
+  )
 
 // error handler
-app.use(Sentry.Handlers.errorHandler())
-app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
-  console.error(err)
-  return res.status(err.status || 500).send(err.body || { error: 'Something error', details: serializeError(err) })
-})
+  .use(Sentry.Handlers.errorHandler())
+
+  .use(
+    (
+      err: { status?: number, body?: Record<string, any> },
+      _req: Request,
+      res: Response,
+      _next: NextFunction
+    ) => {
+      console.error(err)
+      return res.status(err.status || 500).send(err.body || { error: 'Something error', details: serializeError(err) })
+    }
+  )
 
 // serve web
-app.use(serveStatic(path.join(__dirname, '..', '..', 'web', 'build')))
-app.use((req: Request, res: Response) => {
-  try {
-    if (req.headers['accept'] !== 'application/json') {
-      return res.sendFile(path.join(__dirname, '..', '..','web', 'build', 'index.html'))
-    }
-    return res.status(404).send({ error: 'Not found' })
-  } catch (error) {
-    return res.send({ empty: true })
-  }
-})
+  .use(serveStatic(path.join(__dirname, '..', '..', 'web', 'build')))
 
-app.listen(process.env.PORT || 4000, () => console.log(`Running at :${process.env.PORT || 4000}...`))
+  .use((req: Request, res: Response) => {
+    try {
+      if (req.headers['accept'] !== 'application/json') {
+        return res.sendFile(path.join(__dirname, '..', '..','web', 'build', 'index.html'))
+      }
+      return res.status(404).send({ error: 'Not found' })
+    } catch (error) {
+      return res.send({ empty: true })
+    }
+  })
+
+  .listen(process.env.PORT, () => console.log(`Running on port ${process.env.PORT}!`))
 
 console.log(listEndpoints(app))

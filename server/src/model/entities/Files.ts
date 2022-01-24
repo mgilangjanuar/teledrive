@@ -4,7 +4,6 @@ import { Users } from './Users'
 
 @Entity()
 export class Files extends BaseModelWithID {
-
   @Column()
   name: string
 
@@ -29,13 +28,21 @@ export class Files extends BaseModelWithID {
   @Column()
   user_id: string
 
-  @ManyToOne(() => Users, users => users.files, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => Users,
+    users => users.files,
+    { onUpdate: 'CASCADE', onDelete: 'CASCADE' }
+  )
   user?: Users
 
   @Column({ default: null })
   parent_id?: string
 
-  @ManyToOne(() => Files, file => file.children, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => Files,
+    file => file.children,
+    { onUpdate: 'CASCADE', onDelete: 'CASCADE' }
+  )
   parent?: Files
 
   @OneToMany(() => Files, file => file.parent)
@@ -56,7 +63,11 @@ export class Files extends BaseModelWithID {
   @Column({ default: null })
   link_id?: string
 
-  @ManyToOne(() => Files, file => file.links, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => Files,
+    file => file.links,
+    { onUpdate: 'CASCADE', onDelete: 'CASCADE' }
+  )
   link?: Files
 
   @OneToMany(() => Files, file => file.link)

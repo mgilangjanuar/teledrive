@@ -4,7 +4,6 @@ import { Files } from './Files'
 
 @Entity()
 export class Users extends BaseModelWithID {
-
   @Column()
   username: string
 
