@@ -213,6 +213,10 @@ export class Users {
       req.user.plan = plan
       req.user.username = username
       req.user.name = `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
+      if (plan === 'free') {
+        req.user.subscription_id = null
+        req.user.midtrans_id = null
+      }
       await req.user.save()
       // await Model.update(req.user.id, {
       //   plan,
