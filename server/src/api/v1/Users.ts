@@ -177,7 +177,7 @@ export class Users {
 
       if (req.user.subscription_id) {
         try {
-          paymentDetails = await Redis.connect().getFromCacheFirst(`paypal:subscription:${req.user.subscription_id}`, async () => await new PayPal().getSubscription(req.user.subscription_id), 86400)
+          paymentDetails = await Redis.connect().getFromCacheFirst(`paypal:subscription:${req.user.subscription_id}`, async () => await new PayPal().getSubscription(req.user.subscription_id), 600)
         } catch (error) {
           // ignore
         }
@@ -185,7 +185,7 @@ export class Users {
 
       if (req.user.midtrans_id) {
         try {
-          midtransPaymentDetails = await Redis.connect().getFromCacheFirst(`midtrans:transaction:${req.user.midtrans_id}`, async () => await new Midtrans().getTransactionStatus(req.user.midtrans_id), 86400)
+          midtransPaymentDetails = await Redis.connect().getFromCacheFirst(`midtrans:transaction:${req.user.midtrans_id}`, async () => await new Midtrans().getTransactionStatus(req.user.midtrans_id), 600)
           if (!midtransPaymentDetails?.transaction_status) {
             midtransPaymentDetails = null
           }
@@ -213,7 +213,7 @@ export class Users {
       req.user.plan = plan
       req.user.username = username
       req.user.name = `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
-      if (plan === 'free') {
+      if (plan === 'free' && new Date().getTime() - req.user.updated_at.getTime() > 2.592e+8) {
         req.user.subscription_id = null
         req.user.midtrans_id = null
       }
