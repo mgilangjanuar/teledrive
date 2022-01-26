@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { RETRY_COUNT } from './Constant'
 
 export const apiUrl = `${process.env.REACT_APP_API_URL || ''}/api/v1`
 
@@ -15,6 +16,15 @@ req.interceptors.response.use(response => response, async error => {
   } else if (status === 429) {
     await new Promise(res => setTimeout(res, data.retryAfter || 1000))
     return await req(config)
+  } else if (status >= 500) {
+    config.headers = {
+      ...config?.headers || {},
+      'x-retry-count': config.headers['x-retry-count'] || 0
+    }
+    if (config.headers['x-retry-count'] < RETRY_COUNT) {
+      await new Promise(res => setTimeout(res, ++config.headers['x-retry-count'] * 3000))
+      return await req(config)
+    }
   }
   throw error
 })
