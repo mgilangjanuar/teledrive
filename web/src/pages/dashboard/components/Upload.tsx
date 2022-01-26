@@ -2,7 +2,7 @@ import { CloudUploadOutlined } from '@ant-design/icons'
 import { notification, Upload as BaseUpload } from 'antd'
 import mime from 'mime-types'
 import React, { useEffect, useRef } from 'react'
-import { CHUNK_SIZE, MAX_UPLOAD_SIZE, UPLOAD_RETRY_COUNT } from '../../../utils/Constant'
+import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 
 interface Props {
@@ -121,13 +121,13 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               }
 
               let trial = 0
-              while (trial < UPLOAD_RETRY_COUNT) {
+              while (trial < RETRY_COUNT) {
                 try {
                   responses[j] = await beginUpload()
-                  trial = UPLOAD_RETRY_COUNT
+                  trial = RETRY_COUNT
                 } catch (error) {
                   await new Promise(res => setTimeout(res, ++trial * 3000))
-                  if (trial >= UPLOAD_RETRY_COUNT) {
+                  if (trial >= RETRY_COUNT) {
                     throw error
                   }
                 }
