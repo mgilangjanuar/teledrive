@@ -163,6 +163,8 @@ export class Users {
       if (!file?.length) {
         return res.redirect('https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png')
       }
+      res.setHeader('Cache-Control', 'public, max-age=604800')
+      res.setHeader('ETag', Buffer.from(file).toString('base64').slice(10, 50))
       res.setHeader('Content-Disposition', `inline; filename=${username === 'me' ? req.user.username : username}.jpg`)
       res.setHeader('Content-Type', 'image/jpeg')
       res.setHeader('Content-Length', file.length)

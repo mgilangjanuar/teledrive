@@ -16,7 +16,7 @@ req.interceptors.response.use(response => response, async error => {
   } else if (status === 429) {
     await new Promise(res => setTimeout(res, data.retryAfter || 1000))
     return await req(config)
-  } else if (status >= 500) {
+  } else if (status > 500) {
     config.headers = {
       ...config?.headers || {},
       'x-retry-count': config.headers['x-retry-count'] || 0
