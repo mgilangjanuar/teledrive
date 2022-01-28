@@ -7,15 +7,17 @@ import { fetcher } from '../../utils/Fetcher'
 import Error from './components/Error'
 import TableFiles from './components/TableFiles'
 import Viewer from './components/Viewer'
+import { useDebounce } from 'use-debounce/lib'
 
 interface PageProps extends RouteComponentProps<{
   id: string
 }> {}
 
-const View: React.FC<PageProps> = ({ match }) => {
+const View: React.FC<PageProps & { isInDrawer?: boolean, onCloseDrawer?: () => void }> = ({ match, isInDrawer, onCloseDrawer }) => {
   const history = useHistory()
+  const [paramId] = useDebounce(match.params.id, 250)
   const { data: me } = useSWRImmutable('/users/me', fetcher)
-  const { data, error, mutate } = useSWR(`/files/${match.params.id}`, fetcher)
+  const { data, error, mutate } = useSWR(paramId || match.params.id ? `/files/${paramId || match.params.id}` : null, fetcher)
 
   useEffect(() => {
     if (data?.file.type === 'folder') {
@@ -41,7 +43,7 @@ const View: React.FC<PageProps> = ({ match }) => {
       ? <Error error={error} me={me} />
       : data?.file.type === 'folder' && data?.file.sharing_options?.includes('*')
         ? <TableFiles me={me} data={data} />
-        : <Viewer me={me} data={data} error={error} mutate={mutate} pageParams={match.params} />}</>
+        : <Viewer isInDrawer={isInDrawer} onCloseDrawer={onCloseDrawer} me={me} data={data} error={error} mutate={mutate} pageParams={match.params} />}</>
 }
 
 export default View
