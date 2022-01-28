@@ -11,13 +11,11 @@ env:
   DEV_HOST_SG_1: 159.223.92.212
   DEV_HOST_SG_2: 157.245.151.235
   DEV_HOST_SG_3: 159.223.94.162
-  DEV_HOST_SG_4: 157.245.197.183
+  DEV_HOST_GE_DB: 104.248.23.115
   DEV_HOST_GE_1: 159.89.108.133
   DEV_HOST_GE_2: 165.227.157.185
-  DEV_HOST_GE_3: 134.209.247.90
+  DEV_HOST_US_DB: 143.198.121.121
   DEV_HOST_US_1: 143.198.114.6
-  DEV_HOST_US_2: 159.223.96.246
-  DEV_HOST_US_3: 137.184.203.195
 
 jobs:
   build:
@@ -127,33 +125,6 @@ jobs:
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
-    # Upload to SG_4
-    - name: Upload build-root.tar.gz to sg_4
-      uses: appleboy/scp-action@master
-      with:
-        source: build-root.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_SG_4 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-        debug: true
-    - name: Upload build-server.tar.gz to sg_4
-      uses: appleboy/scp-action@master
-      with:
-        source: build-server.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_SG_4 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Upload build-web.tar.gz to sg_4
-      uses: appleboy/scp-action@master
-      with:
-        source: build-web.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_SG_4 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-
 
     # Upload to GE_1
     - name: Upload build-root.tar.gz to ge_1
@@ -209,33 +180,60 @@ jobs:
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
-    # Upload to GE_3
-    - name: Upload build-root.tar.gz to ge_3
+    # Upload to GE_DB
+    - name: Upload build-root.tar.gz to ge_db
       uses: appleboy/scp-action@master
       with:
         source: build-root.tar.gz
         target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_GE_3 }}
+        host: ${{ env.DEV_HOST_GE_DB }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
         debug: true
-    - name: Upload build-server.tar.gz to ge_3
+    - name: Upload build-server.tar.gz to ge_db
       uses: appleboy/scp-action@master
       with:
         source: build-server.tar.gz
         target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_GE_3 }}
+        host: ${{ env.DEV_HOST_GE_DB }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
-    - name: Upload build-web.tar.gz to ge_3
+    - name: Upload build-web.tar.gz to ge_db
       uses: appleboy/scp-action@master
       with:
         source: build-web.tar.gz
         target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_GE_3 }}
+        host: ${{ env.DEV_HOST_GE_DB }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
+
+    # Upload to US_DB
+    - name: Upload build-root.tar.gz to us_db
+      uses: appleboy/scp-action@master
+      with:
+        source: build-root.tar.gz
+        target: ${{ env.APP_DIR }}
+        host: ${{ env.DEV_HOST_US_DB }}
+        username: ${{ env.DEV_USER }}
+        key: ${{ secrets.SSH_SECRET }}
+        debug: true
+    - name: Upload build-server.tar.gz to us_db
+      uses: appleboy/scp-action@master
+      with:
+        source: build-server.tar.gz
+        target: ${{ env.APP_DIR }}
+        host: ${{ env.DEV_HOST_US_DB }}
+        username: ${{ env.DEV_USER }}
+        key: ${{ secrets.SSH_SECRET }}
+    - name: Upload build-web.tar.gz to us_db
+      uses: appleboy/scp-action@master
+      with:
+        source: build-web.tar.gz
+        target: ${{ env.APP_DIR }}
+        host: ${{ env.DEV_HOST_US_DB }}
+        username: ${{ env.DEV_USER }}
+        key: ${{ secrets.SSH_SECRET }}
 
     # Upload to US_1
     - name: Upload build-root.tar.gz to us_1
@@ -261,60 +259,6 @@ jobs:
         source: build-web.tar.gz
         target: ${{ env.APP_DIR }}
         host: ${{ env.DEV_HOST_US_1 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-
-    # Upload to US_2
-    - name: Upload build-root.tar.gz to us_2
-      uses: appleboy/scp-action@master
-      with:
-        source: build-root.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_US_2 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-        debug: true
-    - name: Upload build-server.tar.gz to us_2
-      uses: appleboy/scp-action@master
-      with:
-        source: build-server.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_US_2 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Upload build-web.tar.gz to us_2
-      uses: appleboy/scp-action@master
-      with:
-        source: build-web.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_US_2 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-
-    # Upload to US_3
-    - name: Upload build-root.tar.gz to us_3
-      uses: appleboy/scp-action@master
-      with:
-        source: build-root.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_US_3 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-        debug: true
-    - name: Upload build-server.tar.gz to us_3
-      uses: appleboy/scp-action@master
-      with:
-        source: build-server.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_US_3 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Upload build-web.tar.gz to us_3
-      uses: appleboy/scp-action@master
-      with:
-        source: build-web.tar.gz
-        target: ${{ env.APP_DIR }}
-        host: ${{ env.DEV_HOST_US_3 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
@@ -394,31 +338,6 @@ jobs:
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
-    # Deployment SG_4
-    - name: Extract build-root.tar.gz to sg_4
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }} && rm -rf node_modules && tar -xzf build-root.tar.gz && rm -rf build-root.tar.gz
-        host: ${{ env.DEV_HOST_SG_4 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-web.tar.gz to sg_4
-      if: ${{ github.event_name == 'push' }}
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }}/web && rm -rf node_modules && rm -rf build && cd .. && tar -xzf build-web.tar.gz && rm -rf build-web.tar.gz
-        host: ${{ env.DEV_HOST_SG_4 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-server.tar.gz to sg_4
-      if: ${{ github.event_name == 'push' }}
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
-        host: ${{ env.DEV_HOST_SG_4 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-
 
     # Deployment GE_1
     - name: Extract build-root.tar.gz to ge_1
@@ -470,31 +389,56 @@ jobs:
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
-    # Deployment GE_3
-    - name: Extract build-root.tar.gz to ge_3
+    # Deployment GE_DB
+    - name: Extract build-root.tar.gz to ge_db
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }} && rm -rf node_modules && tar -xzf build-root.tar.gz && rm -rf build-root.tar.gz
-        host: ${{ env.DEV_HOST_GE_3 }}
+        host: ${{ env.DEV_HOST_GE_DB }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-web.tar.gz to ge_3
+    - name: Extract build-web.tar.gz to ge_db
       if: ${{ github.event_name == 'push' }}
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }}/web && rm -rf node_modules && rm -rf build && cd .. && tar -xzf build-web.tar.gz && rm -rf build-web.tar.gz
-        host: ${{ env.DEV_HOST_GE_3 }}
+        host: ${{ env.DEV_HOST_GE_DB }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-server.tar.gz to ge_3
+    - name: Extract build-server.tar.gz to ge_db
       if: ${{ github.event_name == 'push' }}
       uses: appleboy/ssh-action@master
       with:
         script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
-        host: ${{ env.DEV_HOST_GE_3 }}
+        host: ${{ env.DEV_HOST_GE_DB }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
+
+    # Deployment US_DB
+    - name: Extract build-root.tar.gz to us_db
+      uses: appleboy/ssh-action@master
+      with:
+        script: cd ${{ env.APP_DIR }} && rm -rf node_modules && tar -xzf build-root.tar.gz && rm -rf build-root.tar.gz
+        host: ${{ env.DEV_HOST_US_DB }}
+        username: ${{ env.DEV_USER }}
+        key: ${{ secrets.SSH_SECRET }}
+    - name: Extract build-web.tar.gz to us_db
+      if: ${{ github.event_name == 'push' }}
+      uses: appleboy/ssh-action@master
+      with:
+        script: cd ${{ env.APP_DIR }}/web && rm -rf node_modules && rm -rf build && cd .. && tar -xzf build-web.tar.gz && rm -rf build-web.tar.gz
+        host: ${{ env.DEV_HOST_US_DB }}
+        username: ${{ env.DEV_USER }}
+        key: ${{ secrets.SSH_SECRET }}
+    - name: Extract build-server.tar.gz to us_db
+      if: ${{ github.event_name == 'push' }}
+      uses: appleboy/ssh-action@master
+      with:
+        script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
+        host: ${{ env.DEV_HOST_US_DB }}
+        username: ${{ env.DEV_USER }}
+        key: ${{ secrets.SSH_SECRET }}
 
     # Deployment US_1
     - name: Extract build-root.tar.gz to us_1
@@ -518,56 +462,6 @@ jobs:
       with:
         script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
         host: ${{ env.DEV_HOST_US_1 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-
-    # Deployment US_2
-    - name: Extract build-root.tar.gz to us_2
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }} && rm -rf node_modules && tar -xzf build-root.tar.gz && rm -rf build-root.tar.gz
-        host: ${{ env.DEV_HOST_US_2 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-web.tar.gz to us_2
-      if: ${{ github.event_name == 'push' }}
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }}/web && rm -rf node_modules && rm -rf build && cd .. && tar -xzf build-web.tar.gz && rm -rf build-web.tar.gz
-        host: ${{ env.DEV_HOST_US_2 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-server.tar.gz to us_2
-      if: ${{ github.event_name == 'push' }}
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
-        host: ${{ env.DEV_HOST_US_2 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-
-    # Deployment US_3
-    - name: Extract build-root.tar.gz to us_3
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }} && rm -rf node_modules && tar -xzf build-root.tar.gz && rm -rf build-root.tar.gz
-        host: ${{ env.DEV_HOST_US_3 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-web.tar.gz to us_3
-      if: ${{ github.event_name == 'push' }}
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }}/web && rm -rf node_modules && rm -rf build && cd .. && tar -xzf build-web.tar.gz && rm -rf build-web.tar.gz
-        host: ${{ env.DEV_HOST_US_3 }}
-        username: ${{ env.DEV_USER }}
-        key: ${{ secrets.SSH_SECRET }}
-    - name: Extract build-server.tar.gz to us_3
-      if: ${{ github.event_name == 'push' }}
-      uses: appleboy/ssh-action@master
-      with:
-        script: cd ${{ env.APP_DIR }}/server && rm -rf node_modules && rm -rf dist && cd .. && tar -xzf build-server.tar.gz && rm -rf build-server.tar.gz && git pull origin main --rebase && cd ${{ env.APP_DIR }} && /usr/local/bin/pm2 restart td
-        host: ${{ env.DEV_HOST_US_3 }}
         username: ${{ env.DEV_USER }}
         key: ${{ secrets.SSH_SECRET }}
 
