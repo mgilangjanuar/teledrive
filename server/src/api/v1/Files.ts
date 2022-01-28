@@ -36,6 +36,18 @@ export class Files {
       }
     }
     let query = Model.createQueryBuilder('files')
+      .select([
+        'files.id',
+        'files.name',
+        'files.type',
+        'files.size',
+        'files.sharing_options',
+        'files.upload_progress',
+        'files.link_id',
+        'files.user_id',
+        'files.uploaded_at',
+        'files.created_at'
+      ])
       .where(where, {
         user: shared ? req.user?.username : req.user?.id  })
       .andWhere(buildWhereQuery(filters, 'files.') || 'true')
@@ -626,15 +638,14 @@ export class Files {
         })
 
         let trial = 0
-        while (trial < 10) {
+        while (trial < 20) {
           try {
             data = await getData()
             res.write(data)
-            trial = 10
+            trial = 20
           } catch (error) {
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
             await req.tg?.connect()
-            trial++
           }
         }
         res.flush()

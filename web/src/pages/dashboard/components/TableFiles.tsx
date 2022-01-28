@@ -336,7 +336,10 @@ const TableFiles: React.FC<Props> = ({
       visible={Boolean(showDetails)}
       onCancel={() => setShowDetails(undefined)}
       okText="View"
-      onOk={() => onRowClick(showDetails)}
+      onOk={() => {
+        setShowDetails(undefined)
+        onRowClick(showDetails)
+      }}
       cancelButtonProps={{ shape: 'round' }}
       okButtonProps={{ shape: 'round' }}>
       <Descriptions column={1}>
