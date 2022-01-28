@@ -88,3 +88,7 @@ html, body {
 .ant-popover-inner-content {
   padding: 0 !important;
 }
+
+.view .ant-drawer-content-wrapper {
+  height: 100vh !important;
+}

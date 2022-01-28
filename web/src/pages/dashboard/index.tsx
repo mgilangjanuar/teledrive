@@ -10,6 +10,7 @@ import {
   Alert,
   Button,
   Col,
+  Drawer,
   Dropdown,
   Input,
   Layout,
@@ -23,10 +24,11 @@ import {
 import { FilterValue, SorterResult, TableCurrentDataSource } from 'antd/lib/table/interface'
 import qs from 'qs'
 import React, { useEffect, useState } from 'react'
-import { RouteComponentProps, useHistory } from 'react-router'
+import { RouteComponentProps, useHistory, useLocation } from 'react-router'
 import { Link } from 'react-router-dom'
 import useSWR from 'swr'
 import { fetcher, req } from '../../utils/Fetcher'
+import View from '../view'
 import AddFolder from './components/AddFolder'
 import Breadcrumb from './components/Breadcrumb'
 import Messaging from './components/Messaging'
@@ -44,6 +46,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   const PAGE_SIZE = 10
 
   const history = useHistory()
+  const location = useLocation()
   const [parent, setParent] = useState<Record<string, any> | null>()
   const [breadcrumbs, setBreadcrumbs] = useState<any[]>([{ id: null, name: <><HomeOutlined /></> }])
   const [data, setData] = useState<any[]>([])
@@ -66,6 +69,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   const [loading, setLoading] = useState<boolean>()
   const [syncConfirmation, setSyncConfirmation] = useState<boolean>()
   const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
+  const [collapsedView, setCollapsedView] = useState<string>()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
@@ -170,6 +174,16 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
       }
     }
   }, [filesUpload])
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const openFile = params.get('view')
+    if (openFile) {
+      setCollapsedView(openFile)
+    } else {
+      setCollapsedView(undefined)
+    }
+  }, [location.search])
 
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
     setLoading(true)
@@ -385,7 +399,10 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
                     setSelected([])
                   }
                 } else {
-                  history.push(`/view/${row.id}`)
+                  const searchParams = new URLSearchParams(window.location.search)
+                  searchParams.set('view', row.id)
+                  history.push(`${window.location.pathname}?${searchParams.toString()}`)
+                  // setCollapsedView(row.id)
                 }
               }}
               onCopy={row => {
@@ -461,6 +478,14 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
           Are you sure to sync up to 50 files from your Saved Messages to the <code>{typeof parent?.name === 'string' ? parent.name : 'root'}</code> directory?
         </Typography.Paragraph>
       </Modal>
+
+      <Drawer placement="bottom" visible={!!collapsedView} className="view" headerStyle={{ display: 'none' }} bodyStyle={{ padding: 0 }}>
+        <View isInDrawer onCloseDrawer={() => {
+          const searchParams = new URLSearchParams(window.location.search)
+          searchParams.delete('view')
+          history.push(`${window.location.pathname}?${searchParams.toString()}`)
+        }} match={{ params: { id: collapsedView as string } } as any} history={history} location={location} />
+      </Drawer>
     </Layout>
   </Layout>
 }

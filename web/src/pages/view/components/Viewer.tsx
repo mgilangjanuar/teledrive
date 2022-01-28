@@ -36,10 +36,12 @@ interface Props {
   data: any,
   error: any,
   mutate: () => void,
-  pageParams: { id: string }
+  pageParams: { id: string },
+  isInDrawer?: boolean,
+  onCloseDrawer?: () => void
 }
 
-const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams }) => {
+const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDrawer, onCloseDrawer }) => {
   const history = useHistory()
   const [collapsed, setCollapsed] = useState<boolean>()
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
@@ -92,6 +94,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams }) => {
     // if (errorMe) {
     //   return history.push('/login')
     // }
+    if (isInDrawer) return onCloseDrawer?.()
     return history.goBack()
   }
 

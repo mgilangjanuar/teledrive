@@ -55,13 +55,7 @@ export const runDB = async (): Promise<void> => {
     cli: {
       'migrationsDir': 'src/model/migrations'
     },
-    namingStrategy: new SnakeNamingStrategy(),
-    // ...process.env.REDIS_URI ? {
-    //   cache: {
-    //     type: 'redis',
-    //     options: process.env.REDIS_URI
-    //   }
-    // } : {}
+    namingStrategy: new SnakeNamingStrategy()
   }, BaseModel).build()
 }
 
