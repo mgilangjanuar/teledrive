@@ -8,6 +8,7 @@ import moment from 'moment'
 import multer from 'multer'
 import { Files as Model } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
+import { Redis } from '../../service/Cache'
 import { PROCESS_RETRY, TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
@@ -27,41 +28,43 @@ export class Files {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
 
-    let where = 'files.user_id = :user'
-    if (shared) {
-      if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
-        where = 'true'
-      } else {
-        where = ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
+    const [files, length] = await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, async () => {
+      let where = 'files.user_id = :user'
+      if (shared) {
+        if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
+          where = 'true'
+        } else {
+          where = ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
+        }
       }
-    }
-    let query = Model.createQueryBuilder('files')
-      .select([
-        'files.id',
-        'files.name',
-        'files.type',
-        'files.size',
-        'files.sharing_options',
-        'files.upload_progress',
-        'files.link_id',
-        'files.user_id',
-        'files.uploaded_at',
-        'files.created_at'
-      ])
-      .where(where, {
-        user: shared ? req.user?.username : req.user?.id  })
-      .andWhere(buildWhereQuery(filters, 'files.') || 'true')
-    if (excludeParts === 'true' || excludeParts === '1') {
-      query = query.andWhere('(files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')')
-    }
-    if (shared && where !== 'true') {
-      query = query.leftJoin('files.parent', 'parent')
-    }
-    const [files, length] = await query
-      .skip(Number(offset) || 0)
-      .take(Number(limit) || 10)
-      .orderBy(buildSort(sort as string, 'files.'))
-      .getManyAndCount()
+      let query = Model.createQueryBuilder('files')
+        .select([
+          'files.id',
+          'files.name',
+          'files.type',
+          'files.size',
+          'files.sharing_options',
+          'files.upload_progress',
+          'files.link_id',
+          'files.user_id',
+          'files.uploaded_at',
+          'files.created_at'
+        ])
+        .where(where, {
+          user: shared ? req.user?.username : req.user?.id  })
+        .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+      if (excludeParts === 'true' || excludeParts === '1') {
+        query = query.andWhere('(files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')')
+      }
+      if (shared && where !== 'true') {
+        query = query.leftJoin('files.parent', 'parent')
+      }
+      return await query
+        .skip(Number(offset) || 0)
+        .take(Number(limit) || 10)
+        .orderBy(buildSort(sort as string, 'files.'))
+        .getManyAndCount()
+    }, 2)
     return res.send({ files, length })
   }
 
