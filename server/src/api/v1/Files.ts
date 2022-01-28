@@ -8,7 +8,7 @@ import moment from 'moment'
 import multer from 'multer'
 import { Files as Model } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
-import { TG_CREDS } from '../../utils/Constant'
+import { PROCESS_RETRY, TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -638,12 +638,15 @@ export class Files {
         })
 
         let trial = 0
-        while (trial < 20) {
+        while (trial < PROCESS_RETRY) {
           try {
             data = await getData()
             res.write(data)
-            trial = 20
+            trial = PROCESS_RETRY
           } catch (error) {
+            if (trial >= PROCESS_RETRY) {
+              throw error
+            }
             await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
             await req.tg?.connect()
           }

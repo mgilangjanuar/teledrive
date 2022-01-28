@@ -69,8 +69,8 @@ export const Endpoint = {
         try {
           return await target(req, res, next)
         } catch (error) {
-          if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial++ < 5) {
-            await new Promise(res => setTimeout(res, 1000))
+          if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial < 5) {
+            await new Promise(res => setTimeout(res, ++trial * 1000))
             req.tg?.connect()
             return await execute()
           }
@@ -120,8 +120,8 @@ export const Endpoint = {
             await descriptor.value(req, res, next)
             req.tg?.disconnect()
           } catch (error) {
-            if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial++ < 5) {
-              await new Promise(res => setTimeout(res, 1000))
+            if (/.*You need to call \.connect\(\)/gi.test(error.message) && trial < 5) {
+              await new Promise(res => setTimeout(res, ++trial * 1000))
               req.tg?.connect()
               return await execute()
             }
