@@ -37,18 +37,36 @@ jobs:
     - name: Compress node_modules root
       if: ${{ github.event_name == 'push' }}
       run: tar -czf build-root.tar.gz node_modules
+    - name: Archive build-root.tar.gz
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-root.tar.gz
+        path: build-root.tar.gz
     - name: Compress node_modules & dist server
       if: ${{ github.event_name == 'push' }}
       run: tar -czf build-server.tar.gz server/node_modules server/dist
+    - name: Archive build-server.tar.gz
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-server.tar.gz
+        path: build-server.tar.gz
     - name: Compress node_modules & build web
       if: ${{ github.event_name == 'push' }}
       run: tar -czf build-web.tar.gz web/node_modules web/build
+    - name: Archive build-web.tar.gz
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-web.tar.gz
+        path: build-web.tar.gz
 
   sg1:
     name: Upload & Deploy to SG1
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to SG_1
       - name: Upload build-root.tar.gz to sg_1
         uses: appleboy/scp-action@master
@@ -123,6 +141,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to SG_2
       - name: Upload build-root.tar.gz to sg_2
         uses: appleboy/scp-action@master
@@ -197,6 +218,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to SG_3
       - name: Upload build-root.tar.gz to sg_3
         uses: appleboy/scp-action@master
@@ -271,6 +295,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to GE_1
       - name: Upload build-root.tar.gz to ge_1
         uses: appleboy/scp-action@master
@@ -345,6 +372,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to GE_2
       - name: Upload build-root.tar.gz to ge_2
         uses: appleboy/scp-action@master
@@ -419,6 +449,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to GE_DB
       - name: Upload build-root.tar.gz to ge_db
         uses: appleboy/scp-action@master
@@ -493,6 +526,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to US_DB
       - name: Upload build-root.tar.gz to us_db
         uses: appleboy/scp-action@master
@@ -567,6 +603,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
       # Upload to US_1
       - name: Upload build-root.tar.gz to us_1
         uses: appleboy/scp-action@master
