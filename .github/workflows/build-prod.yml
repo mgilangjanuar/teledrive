@@ -40,7 +40,7 @@ jobs:
     - name: Archive build-root.tar.gz
       uses: actions/upload-artifact@v2
       with:
-        name: build-root.tar.gz
+        name: build-root
         path: build-root.tar.gz
     - name: Compress node_modules & dist server
       if: ${{ github.event_name == 'push' }}
@@ -48,7 +48,7 @@ jobs:
     - name: Archive build-server.tar.gz
       uses: actions/upload-artifact@v2
       with:
-        name: build-server.tar.gz
+        name: build-server
         path: build-server.tar.gz
     - name: Compress node_modules & build web
       if: ${{ github.event_name == 'push' }}
@@ -56,7 +56,7 @@ jobs:
     - name: Archive build-web.tar.gz
       uses: actions/upload-artifact@v2
       with:
-        name: build-web.tar.gz
+        name: build-web
         path: build-web.tar.gz
 
   sg1:
@@ -71,7 +71,7 @@ jobs:
       - name: Upload build-root.tar.gz to sg_1
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_1 }}
           username: ${{ env.DEV_USER }}
@@ -80,7 +80,7 @@ jobs:
       - name: Upload build-server.tar.gz to sg_1
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_1 }}
           username: ${{ env.DEV_USER }}
@@ -88,7 +88,7 @@ jobs:
       - name: Upload build-web.tar.gz to sg_1
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_1 }}
           username: ${{ env.DEV_USER }}
@@ -148,7 +148,7 @@ jobs:
       - name: Upload build-root.tar.gz to sg_2
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_2 }}
           username: ${{ env.DEV_USER }}
@@ -157,7 +157,7 @@ jobs:
       - name: Upload build-server.tar.gz to sg_2
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_2 }}
           username: ${{ env.DEV_USER }}
@@ -165,7 +165,7 @@ jobs:
       - name: Upload build-web.tar.gz to sg_2
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_2 }}
           username: ${{ env.DEV_USER }}
@@ -225,7 +225,7 @@ jobs:
       - name: Upload build-root.tar.gz to sg_3
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_3 }}
           username: ${{ env.DEV_USER }}
@@ -234,7 +234,7 @@ jobs:
       - name: Upload build-server.tar.gz to sg_3
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_3 }}
           username: ${{ env.DEV_USER }}
@@ -242,7 +242,7 @@ jobs:
       - name: Upload build-web.tar.gz to sg_3
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_SG_3 }}
           username: ${{ env.DEV_USER }}
@@ -302,7 +302,7 @@ jobs:
       - name: Upload build-root.tar.gz to ge_1
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_1 }}
           username: ${{ env.DEV_USER }}
@@ -311,7 +311,7 @@ jobs:
       - name: Upload build-server.tar.gz to ge_1
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_1 }}
           username: ${{ env.DEV_USER }}
@@ -319,7 +319,7 @@ jobs:
       - name: Upload build-web.tar.gz to ge_1
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_1 }}
           username: ${{ env.DEV_USER }}
@@ -379,7 +379,7 @@ jobs:
       - name: Upload build-root.tar.gz to ge_2
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_2 }}
           username: ${{ env.DEV_USER }}
@@ -388,7 +388,7 @@ jobs:
       - name: Upload build-server.tar.gz to ge_2
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_2 }}
           username: ${{ env.DEV_USER }}
@@ -396,7 +396,7 @@ jobs:
       - name: Upload build-web.tar.gz to ge_2
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_2 }}
           username: ${{ env.DEV_USER }}
@@ -456,7 +456,7 @@ jobs:
       - name: Upload build-root.tar.gz to ge_db
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_DB }}
           username: ${{ env.DEV_USER }}
@@ -465,7 +465,7 @@ jobs:
       - name: Upload build-server.tar.gz to ge_db
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_DB }}
           username: ${{ env.DEV_USER }}
@@ -473,7 +473,7 @@ jobs:
       - name: Upload build-web.tar.gz to ge_db
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_GE_DB }}
           username: ${{ env.DEV_USER }}
@@ -533,7 +533,7 @@ jobs:
       - name: Upload build-root.tar.gz to us_db
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_US_DB }}
           username: ${{ env.DEV_USER }}
@@ -542,7 +542,7 @@ jobs:
       - name: Upload build-server.tar.gz to us_db
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_US_DB }}
           username: ${{ env.DEV_USER }}
@@ -550,7 +550,7 @@ jobs:
       - name: Upload build-web.tar.gz to us_db
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_US_DB }}
           username: ${{ env.DEV_USER }}
@@ -610,7 +610,7 @@ jobs:
       - name: Upload build-root.tar.gz to us_1
         uses: appleboy/scp-action@master
         with:
-          source: build-root.tar.gz
+          source: build-root/build-root.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_US_1 }}
           username: ${{ env.DEV_USER }}
@@ -619,7 +619,7 @@ jobs:
       - name: Upload build-server.tar.gz to us_1
         uses: appleboy/scp-action@master
         with:
-          source: build-server.tar.gz
+          source: build-server/build-server.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_US_1 }}
           username: ${{ env.DEV_USER }}
@@ -627,7 +627,7 @@ jobs:
       - name: Upload build-web.tar.gz to us_1
         uses: appleboy/scp-action@master
         with:
-          source: build-web.tar.gz
+          source: build-web/build-web.tar.gz
           target: ${{ env.APP_DIR }}
           host: ${{ env.DEV_HOST_US_1 }}
           username: ${{ env.DEV_USER }}
