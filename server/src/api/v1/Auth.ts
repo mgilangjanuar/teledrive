@@ -9,6 +9,7 @@ import { serializeError } from 'serialize-error'
 import { getRepository } from 'typeorm'
 import { Users } from '../../model//entities/Users'
 import { Files } from '../../model/entities/Files'
+import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
 import { TGClient } from '../middlewares/TGClient'
@@ -338,6 +339,7 @@ export class Auth {
   public async logout(req: Request, res: Response): Promise<any> {
     await req.tg.connect()
     const success = req.query.destroySession === '1' ? await req.tg.invoke(new Api.auth.LogOut()) : true
+    await Redis.connect().del(`auth:${req.authKey}`)
     return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
   }
 }

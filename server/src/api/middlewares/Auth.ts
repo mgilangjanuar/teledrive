@@ -3,7 +3,6 @@ import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
 import { Users } from '../../model/entities/Users'
-import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {
@@ -27,7 +26,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
   }
 
   req.authKey = authkey
-  const [userAuth, user] = await Redis.connect().getFromCacheFirst(`auth:${authkey}`, async () => {
+  const [userAuth, user] = await (async () => {
     let userAuth: any
     try {
       await req.tg.connect()
@@ -49,7 +48,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
       throw { status: 401, body: { error: 'User not found' } }
     }
     return [userAuth, user]
-  }, 3600)
+  })()
 
   req.user = user
   req.userAuth = userAuth
@@ -75,7 +74,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
     }
 
     req.authKey = authkey
-    const [userAuth, user] = await Redis.connect().getFromCacheFirst(`auth:${authkey}`, async () => {
+    const [userAuth, user] = await (async () => {
       let userAuth: any
       try {
         await req.tg.connect()
@@ -97,7 +96,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
         throw { status: 401, body: { error: 'User not found' } }
       }
       return [userAuth, user]
-    }, 3600)
+    })()
 
     req.user = user
     req.userAuth = userAuth
