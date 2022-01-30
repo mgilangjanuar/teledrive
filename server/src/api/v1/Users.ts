@@ -214,10 +214,11 @@ export class Users {
         }
       }
 
+      const udpatedTime = typeof req.user.updated_at === 'string' ? new Date(req.user.updated_at) : req.user.updated_at
       req.user.plan = plan
       req.user.username = username
       req.user.name = `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
-      if (plan === 'free' && new Date().getTime() - req.user.updated_at.getTime() > 2.592e+8) {
+      if (plan === 'free' && new Date().getTime() - udpatedTime.getTime() > 2.592e+8) {
         req.user.subscription_id = null
         req.user.midtrans_id = null
       }
