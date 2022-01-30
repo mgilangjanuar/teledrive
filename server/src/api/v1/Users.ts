@@ -72,7 +72,8 @@ export class Users {
       ...req.user.settings || {},
       ...settings
     }
-    await req.user.save()
+    await Model.update(req.user.id, req.user)
+    await Redis.connect().del(`auth:${req.authKey}`)
     return res.send({ settings: req.user?.settings })
   }
 
@@ -136,7 +137,8 @@ export class Users {
       req.user.subscription_id = result?.subscription_id
       req.user.midtrans_id = result?.midtrans_id
       req.user.plan = result?.plan as any
-      await req.user.save()
+      await Model.update(req.user.id, req.user)
+      await Redis.connect().del(`auth:${req.authKey}`)
     }
     return res.status(202).send({ accepted: true })
   }
@@ -219,12 +221,17 @@ export class Users {
         req.user.subscription_id = null
         req.user.midtrans_id = null
       }
-      await req.user.save()
-      // await Model.update(req.user.id, {
-      //   plan,
-      //   ...username ? { username } : {},
-      //   name: `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username,
-      // })
+      await Model.update(req.user.id, req.user)
+      await Redis.connect().del(`auth:${req.authKey}`)
+
+      if (plan === 'free') {
+        try {
+          await Redis.connect().del(`paypal:subscription:${req.user.subscription_id}`)
+          await Redis.connect().del(`midtrans:transaction:${req.user.midtrans_id}`)
+        } catch (error) {
+          // ignore
+        }
+      }
     }
 
     const user = username === 'me' || username === req.user.username ? req.user : await Model.findOne({ where: [
@@ -236,29 +243,4 @@ export class Users {
 
     return res.send({ user })
   }
-
-  // @Endpoint.USE('/upgradePlans', { middlewares: [Auth] })
-  // public async upgradePlans(req: Request, res: Response): Promise<any> {
-  //   if (req.user.username !== 'mgilangjanuar') {
-  //     throw { status: 403, body: { error: 'Forbidden' } }
-  //   }
-
-  //   const { username, plan, expired } = req.query || req.body
-  //   let user: any
-  //   if (username && plan && expired) {
-  //     user = await Model.createQueryBuilder('users')
-  //       .where('users.username = :username', { username }).update().set({
-  //         plan,
-  //         plan_expired_at: moment().add(expired, 'months').toISOString()
-  //       }).returning('*').execute()
-  //   }
-
-  //   await Model.createQueryBuilder('users')
-  //     .where('users.plan_expired_at > :date', {
-  //       date: moment().add(3, 'days').toISOString()
-  //     }).update().set({
-  //       plan: null
-  //     }).execute()
-  //   return res.send({ ok: true, ...user ? { user: user.raw?.[0] } : {} })
-  // }
 }
