@@ -1,5 +1,5 @@
 import { CrownOutlined, DashboardOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
-import { Button, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
+import { Button, Checkbox, Form, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
 import Avatar from 'antd/lib/avatar/avatar'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -21,10 +21,11 @@ const Navbar: React.FC<Props> = ({ user }) => {
   const { currentTheme } = useThemeSwitcher()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [popoverVisibility, setPopoverVisibility] = useState<boolean>(false)
+  const [destroySession, setDestroySession] = useState<boolean>(false)
   const { data: usage } = useSWR('/users/me/usage', fetcher)
 
   const logout = async () => {
-    await req.post('/auth/logout')
+    await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
     return window.location.replace('/')
   }
 
@@ -89,8 +90,13 @@ const Navbar: React.FC<Props> = ({ user }) => {
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Typography.Paragraph>
-        All the files you share will not be able to download once you sign out. Continue?
+        Are you sure to logout?
       </Typography.Paragraph>
+      <Form.Item help="All files you share will not be able to download once you sign out">
+        <Checkbox checked={destroySession} onChange={({ target }) => setDestroySession(target.checked)}>
+          Also delete my active session
+        </Checkbox>
+      </Form.Item>
     </Modal>
   </>
 }

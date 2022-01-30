@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, MobileOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
+import { Avatar, Button, Card, Checkbox, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import pwaInstallHandler from 'pwa-install-handler'
 import React, { useEffect, useState } from 'react'
@@ -20,6 +20,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [expandableRows, setExpandableRows] = useState<boolean>()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
+  const [destroySession, setDestroySession] = useState<boolean>(false)
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [formRemoval] = useForm()
   const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
@@ -60,7 +61,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   }, [])
 
   const logout = async () => {
-    await req.post('/auth/logout')
+    await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
     return window.location.replace('/')
   }
 
@@ -156,8 +157,13 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Typography.Paragraph>
-        All the files you share will not be able to download once you sign out. Continue?
+        Are you sure to logout?
       </Typography.Paragraph>
+      <Form.Item help="All files you share will not be able to download once you sign out">
+        <Checkbox checked={destroySession} onChange={({ target }) => setDestroySession(target.checked)}>
+          Also delete my active session
+        </Checkbox>
+      </Form.Item>
     </Modal>
 
     <Modal title={<Typography.Text>
