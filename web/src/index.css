@@ -92,3 +92,7 @@ html, body {
 .view .ant-drawer-content-wrapper {
   height: 100vh !important;
 }
+
+.ant-form-item .ant-select {
+  width: max-content !important;
+}
