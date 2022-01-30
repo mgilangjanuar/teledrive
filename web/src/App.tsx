@@ -91,6 +91,14 @@ function App(): React.ReactElement {
     })
   }, [])
 
+  useEffect(() => {
+    window.addEventListener('message', event => {
+      if (event.data.type === 'files') {
+        localStorage.setItem('files', JSON.stringify(event.data.files))
+      }
+    })
+  }, [])
+
   return (
     <Layout className="App">
       <Helmet>

@@ -573,7 +573,6 @@ export class Files {
         .andWhere(`size ${file.size ? `= ${file.size}` : 'is null'}`)
         .andWhere(`parent_id is ${file.parent_id ? 'not' : ''} null`)
         .getOne()
-      console.log('KAUSNAS', existFile)
       if (!existFile) {
         try {
           await Model.insert({
@@ -581,7 +580,6 @@ export class Files {
             user_id: req.user.id
           })
         } catch (error) {
-          console.error(error)
           // ignore
         }
       }

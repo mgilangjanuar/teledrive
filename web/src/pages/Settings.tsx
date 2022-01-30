@@ -32,7 +32,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const save = async (settings: any): Promise<void> => {
     try {
       await req.patch('/users/me/settings', { settings })
-      notification.success({ message: 'Settings saved' })
+      notification.success({ message: 'Saved' })
       mutate()
     } catch ({ response }) {
       if ((response as any).status === 402) {
@@ -104,7 +104,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       offset: 0,
       limit: 10
     } })
-    const files = data?.files
+    const files = data?.files || []
     while (files?.length < data.length) {
       const { data } = await req.get('/files', { params: {
         full_properties: 1,
@@ -114,7 +114,11 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       } })
       files.push(...data.files)
     }
-    localStorage.setItem('files', JSON.stringify(files || []))
+    (document.querySelector(`#frame${dc}`) as any)?.contentWindow.postMessage({
+      type: 'files',
+      files
+    }, '*')
+    // localStorage.setItem('files', JSON.stringify(files || []))
     await req.post('/auth/logout', {}, { params: { destroySession: 1 } })
     setLoadingChangeServer(false)
     setChangeDCConfirmation(false)
@@ -256,6 +260,10 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
         You'll be logged out and redirected to the new server. Please login again to that new server.
       </Typography.Paragraph>
     </Modal>
+
+    <iframe style={{ display: 'none' }} src="https://teledriveapp.com" id="framesg" />
+    <iframe style={{ display: 'none' }} src="https://us.teledriveapp.com" id="frameus" />
+    <iframe style={{ display: 'none' }} src="https://ge.teledriveapp.com" id="framege" />
   </>
 }
 
