@@ -26,6 +26,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
     throw { status: 401, body: { error: 'Invalid key' } }
   }
   await req.tg.connect()
+  req.authKey = authkey
 
   const [userAuth, user] = await Redis.connect().getFromCacheFirst(`auth:${authkey}`, async () => {
     let userAuth: any
@@ -73,6 +74,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
       throw { status: 401, body: { error: 'Invalid key' } }
     }
     await req.tg.connect()
+    req.authKey = authkey
 
     const [userAuth, user] = await Redis.connect().getFromCacheFirst(`auth:${authkey}`, async () => {
       let userAuth: any
