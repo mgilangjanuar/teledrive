@@ -233,10 +233,10 @@ const Login: React.FC<Props> = ({ me }) => {
                     .then(() => {
                       notification.success({
                         key: 'sync',
-                        duration: 4.5,
+                        duration: null,
                         message: 'Files data synced successfully',
                         description: 'Reload your browser to see the migrated files.',
-                        btn: <Button href={window.location.href}>Reload</Button>
+                        btn: <Button type="primary" href={window.location.href}>Reload</Button>
                       })
                       localStorage.removeItem('files')
                     })
