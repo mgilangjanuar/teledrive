@@ -1,5 +1,5 @@
 import { WarningOutlined } from '@ant-design/icons'
-import { Checkbox, Form, Modal, Typography } from 'antd'
+import { Modal, Typography } from 'antd'
 import React, { useState } from 'react'
 import { req } from '../../../utils/Fetcher'
 
@@ -15,13 +15,13 @@ const Remove: React.FC<Props> = ({
   onFinish }) => {
 
   const [loadingRemove, setLoadingRemove] = useState<boolean>()
-  const [deleteMessage, setDeleteMessage] = useState<boolean>()
+  // const [deleteMessage, setDeleteMessage] = useState<boolean>()
 
   const remove = async (ids: string[]) => {
     setLoadingRemove(true)
     try {
       await Promise.all(ids.map(async id => await req.delete(`/files/${id}`, {
-        params: { deleteMessage: deleteMessage ? 'true' : undefined }
+        // params: { deleteMessage: deleteMessage ? 'true' : undefined }
       })))
     } catch (error) {
       // ignore
@@ -43,11 +43,11 @@ const Remove: React.FC<Props> = ({
     <Typography.Paragraph>
       Are you sure to delete {selectDeleted?.length > 1 ? `${selectDeleted?.length} objects` : selectDeleted?.[0]?.name.replace(/\.part0*\d+$/, '') }?
     </Typography.Paragraph>
-    <Form.Item>
+    {/* <Form.Item>
       <Checkbox checked={deleteMessage} onChange={({ target }) => setDeleteMessage(target.checked)}>
         Delete from Saved Messages too
       </Checkbox>
-    </Form.Item>
+    </Form.Item> */}
   </Modal>
 }
 
