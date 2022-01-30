@@ -5,6 +5,7 @@ declare module 'http' {
   interface IncomingMessage {
     tg?: TelegramClient,
     user?: Users,
-    userAuth?: any
+    userAuth?: any,
+    authKey?: string
   }
 }

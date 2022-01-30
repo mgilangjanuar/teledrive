@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, MobileOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Switch, Typography } from 'antd'
+import { Avatar, Button, Card, Checkbox, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Select, Switch, Typography } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import pwaInstallHandler from 'pwa-install-handler'
 import React, { useEffect, useState } from 'react'
@@ -20,7 +20,11 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [expandableRows, setExpandableRows] = useState<boolean>()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
+  const [changeDCConfirmation, setChangeDCConfirmation] = useState<boolean>(false)
+  const [loadingChangeServer, setLoadingChangeServer] = useState<boolean>(false)
+  const [destroySession, setDestroySession] = useState<boolean>(false)
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
+  const [dc, setDc] = useState<string>()
   const [formRemoval] = useForm()
   const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
   const { currentTheme } = useThemeSwitcher()
@@ -28,7 +32,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const save = async (settings: any): Promise<void> => {
     try {
       await req.patch('/users/me/settings', { settings })
-      notification.success({ message: 'Settings saved' })
+      notification.success({ message: 'Saved' })
       mutate()
     } catch ({ response }) {
       if ((response as any).status === 402) {
@@ -59,8 +63,21 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     })
   }, [])
 
+  useEffect(() => {
+    if (window.location.host === 'ge.teledriveapp.com') {
+      setDc('ge')
+      localStorage.setItem('dc', 'ge')
+    } else if (window.location.host === 'us.teledriveapp.com') {
+      setDc('us')
+      localStorage.setItem('dc', 'us')
+    } else {
+      setDc('sg')
+      localStorage.setItem('dc', 'sg')
+    }
+  }, [])
+
   const logout = async () => {
-    await req.post('/auth/logout')
+    await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
     return window.location.replace('/')
   }
 
@@ -72,6 +89,41 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     } catch (error: any) {
       return notification.error({ message: 'Error', description: error.response?.data.error })
     }
+  }
+
+  const wantToChangeServer = (server: string) => {
+    setDc(server)
+    setChangeDCConfirmation(true)
+  }
+
+  const changeServer = async () => {
+    setLoadingChangeServer(true)
+    const { data } = await req.get('/files', { params: {
+      full_properties: 1,
+      sort: 'created_at',
+      offset: 0,
+      limit: 10
+    } })
+    const files = data?.files || []
+    while (files?.length < data.length) {
+      const { data } = await req.get('/files', { params: {
+        full_properties: 1,
+        sort: 'created_at',
+        offset: 0,
+        limit: 10
+      } })
+      files.push(...data.files)
+    }
+    (document.querySelector(`#frame${dc}`) as any)?.contentWindow.postMessage({
+      type: 'files',
+      files
+    }, '*')
+    // localStorage.setItem('files', JSON.stringify(files || []))
+    await req.post('/auth/logout', {}, { params: { destroySession: 1 } })
+    setLoadingChangeServer(false)
+    setChangeDCConfirmation(false)
+
+    return window.location.replace(`https://${dc === 'sg' ? '' : `${dc}.`}teledriveapp.com/login`)
   }
 
   return <>
@@ -119,6 +171,16 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                   <List.Item.Meta title="Dark Mode" description="Join the dark side" />
                 </List.Item>
 
+                <List.Item key="change-server" actions={[<Form.Item name="change_server">
+                  {dc && <Select defaultValue={dc} value={dc} onChange={wantToChangeServer}>
+                    <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
+                    <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
+                    <Select.Option value="us">&#127482;&#127480; New York</Select.Option>
+                  </Select>}
+                </Form.Item>]}>
+                  <List.Item.Meta title="Change Server" description="Migrate to another datacenter" />
+                </List.Item>
+
                 <List.Item key="check-for-updates" actions={[<Form.Item>
                   <Button shape="round" icon={<ReloadOutlined />} onClick={() => {
                     serviceWorkerRegistration.unregister();
@@ -156,8 +218,13 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
       <Typography.Paragraph>
-        All the files you share will not be able to download once you sign out. Continue?
+        Are you sure to logout?
       </Typography.Paragraph>
+      <Form.Item help="All files you share will not be able to download once you sign out">
+        <Checkbox checked={destroySession} onChange={({ target }) => setDestroySession(target.checked)}>
+          Also delete my active session
+        </Checkbox>
+      </Form.Item>
     </Modal>
 
     <Modal title={<Typography.Text>
@@ -177,6 +244,26 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
         </Form.Item>
       </Form>
     </Modal>
+
+    <Modal title={<Typography.Text>
+      <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Confirmation
+    </Typography.Text>}
+    visible={changeDCConfirmation}
+    onCancel={() => setChangeDCConfirmation(false)}
+    onOk={changeServer}
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round', loading: loadingChangeServer }}>
+      <Typography.Paragraph>
+        Are you sure to change the server region?
+      </Typography.Paragraph>
+      <Typography.Paragraph type="secondary">
+        You'll be logged out and redirected to the new server. Please login again to that new server.
+      </Typography.Paragraph>
+    </Modal>
+
+    <iframe style={{ display: 'none' }} src="https://teledriveapp.com" id="framesg" />
+    <iframe style={{ display: 'none' }} src="https://us.teledriveapp.com" id="frameus" />
+    <iframe style={{ display: 'none' }} src="https://ge.teledriveapp.com" id="framege" />
   </>
 }
 

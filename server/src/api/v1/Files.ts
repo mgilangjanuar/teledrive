@@ -19,7 +19,7 @@ export class Files {
 
   @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, offset, limit, shared, exclude_parts: excludeParts, t: _t, ...filters } = req.query
+    const { sort, offset, limit, shared, exclude_parts: excludeParts, full_properties: fullProperties, t: _t, ...filters } = req.query
     const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
     if (filters?.parent_id && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
@@ -38,7 +38,11 @@ export class Files {
         }
       }
       let query = Model.createQueryBuilder('files')
-        .select([
+        .where(where, {
+          user: shared ? req.user?.username : req.user?.id  })
+        .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+      if (fullProperties !== 'true' && fullProperties !== '1') {
+        query = query.select([
           'files.id',
           'files.name',
           'files.type',
@@ -47,12 +51,11 @@ export class Files {
           'files.upload_progress',
           'files.link_id',
           'files.user_id',
+          'files.parent_id',
           'files.uploaded_at',
           'files.created_at'
         ])
-        .where(where, {
-          user: shared ? req.user?.username : req.user?.id  })
-        .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+      }
       if (excludeParts === 'true' || excludeParts === '1') {
         query = query.andWhere('(files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')')
       }
@@ -559,6 +562,29 @@ export class Files {
       }
     }
     return res.send({ files })
+  }
+
+  @Endpoint.POST('/filesSync', { middlewares: [Auth] })
+  public async filesSync(req: Request, res: Response): Promise<any> {
+    const { files } = req.body
+    for (const file of files) {
+      const existFile = await Model.createQueryBuilder('files')
+        .where('name = :name and type = :type', { name: file.name, type: file.type })
+        .andWhere(`size ${file.size ? `= ${file.size}` : 'is null'}`)
+        .andWhere(`parent_id is ${file.parent_id ? 'not' : ''} null`)
+        .getOne()
+      if (!existFile) {
+        try {
+          await Model.insert({
+            ...file,
+            user_id: req.user.id
+          })
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+    return res.status(202).send({ accepted: true })
   }
 
   public static async download(req: Request, res: Response, files: Model[]): Promise<any> {

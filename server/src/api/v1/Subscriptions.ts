@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import uuid from 'uuid-random'
 import { Users } from '../../model/entities/Users'
+import { Redis } from '../../service/Cache'
 import { Midtrans } from '../../service/Midtrans'
 import { PayPal } from '../../service/PayPal'
 import { Endpoint } from '../base/Endpoint'
@@ -28,7 +29,8 @@ export class Subscriptions {
       if (req.body.email) {
         req.user.email = req.body.email
       }
-      await req.user.save()
+      await Users.update(req.user.id, req.user)
+      await Redis.connect().del(`auth:${req.authKey}`)
       const result = await new Midtrans().getPaymentLink(req.user, 144_000)
       return res.send({ link: result.redirect_url })
     }

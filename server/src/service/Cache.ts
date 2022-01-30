@@ -41,6 +41,10 @@ export class Redis {
     }
   }
 
+  public async del(key: string): Promise<boolean> {
+    return await this.redis.del(key) === 1
+  }
+
   public async getFromCacheFirst<T>(key: string, fn: () => T | Promise<T>, ex?: number): Promise<T> {
     const result = await this.get(key)
     if (result) return result

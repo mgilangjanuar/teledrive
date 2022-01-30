@@ -95,6 +95,25 @@ const Login: React.FC<Props> = ({ me }) => {
       const { data } = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
       try {
         req.post('/users/me/paymentSync')
+        if (localStorage.getItem('files')) {
+          notification.info({
+            key: 'sync',
+            duration: null,
+            message: 'Sync files data...',
+            description: 'Please wait, we found your files data from another server.'
+          })
+          req.post('/files/filesSync', { files: JSON.parse(localStorage.getItem('files') || '[]') })
+            .then(() => {
+              notification.success({
+                key: 'sync',
+                duration: 4.5,
+                message: 'Files data synced successfully',
+                description: 'Reload your browser to see the migrated files.',
+                btn: <Button href={window.location.href}>Reload</Button>
+              })
+              localStorage.removeItem('files')
+            })
+        }
       } catch (error) {
         // ignore
       }
@@ -129,6 +148,25 @@ const Login: React.FC<Props> = ({ me }) => {
       const { data } = await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session })
       try {
         req.post('/users/me/paymentSync')
+        if (localStorage.getItem('files')) {
+          notification.info({
+            key: 'sync',
+            duration: null,
+            message: 'Sync files data...',
+            description: 'Please wait, we found your files data from another server.'
+          })
+          req.post('/files/filesSync', { files: JSON.parse(localStorage.getItem('files') || '[]') })
+            .then(() => {
+              notification.success({
+                key: 'sync',
+                duration: 4.5,
+                message: 'Files data synced successfully',
+                description: 'Reload your browser to see the migrated files.',
+                btn: <Button href={window.location.href}>Reload</Button>
+              })
+              localStorage.removeItem('files')
+            })
+        }
       } catch (error) {
         // ignore
       }
@@ -184,6 +222,25 @@ const Login: React.FC<Props> = ({ me }) => {
             if (data?.user) {
               try {
                 req.post('/users/me/paymentSync')
+                if (localStorage.getItem('files')) {
+                  notification.info({
+                    key: 'sync',
+                    duration: null,
+                    message: 'Sync files data...',
+                    description: 'Please wait, we found your files data from another server.'
+                  })
+                  req.post('/files/filesSync', { files: JSON.parse(localStorage.getItem('files') || '[]') })
+                    .then(() => {
+                      notification.success({
+                        key: 'sync',
+                        duration: null,
+                        message: 'Files data synced successfully',
+                        description: 'Reload your browser to see the migrated files.',
+                        btn: <Button type="primary" href={window.location.href}>Reload</Button>
+                      })
+                      localStorage.removeItem('files')
+                    })
+                }
               } catch (error) {
                 // ignore
               }

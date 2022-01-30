@@ -337,7 +337,7 @@ export class Auth {
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
   public async logout(req: Request, res: Response): Promise<any> {
     await req.tg.connect()
-    const success = await req.tg.invoke(new Api.auth.LogOut())
+    const success = req.query.destroySession === '1' ? await req.tg.invoke(new Api.auth.LogOut()) : true
     return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
   }
 }

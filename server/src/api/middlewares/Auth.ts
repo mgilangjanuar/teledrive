@@ -3,6 +3,7 @@ import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
 import { Users } from '../../model/entities/Users'
+import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {
@@ -25,26 +26,31 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
     throw { status: 401, body: { error: 'Invalid key' } }
   }
 
-  let userAuth: any
-  try {
-    await req.tg.connect()
-    userAuth = await req.tg.getMe()
-  } catch (error) {
+  req.authKey = authkey
+  const [userAuth, user] = await Redis.connect().getFromCacheFirst(`auth:${authkey}`, async () => {
+    let userAuth: any
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
       await req.tg.connect()
       userAuth = await req.tg.getMe()
     } catch (error) {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      await req.tg.connect()
-      userAuth = await req.tg.getMe()
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        await req.tg.connect()
+        userAuth = await req.tg.getMe()
+      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        await req.tg.connect()
+        userAuth = await req.tg.getMe()
+      }
     }
-  }
 
-  const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
-  if (!user) {
-    throw { status: 401, body: { error: 'User not found' } }
-  }
+    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+    if (!user) {
+      throw { status: 401, body: { error: 'User not found' } }
+    }
+    return [userAuth, user]
+  }, 3600)
+
   req.user = user
   req.userAuth = userAuth
 
@@ -68,27 +74,31 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
       throw { status: 401, body: { error: 'Invalid key' } }
     }
 
-    await req.tg.connect()
-    let userAuth: any
-    try {
-      await req.tg.connect()
-      userAuth = await req.tg.getMe()
-    } catch (error) {
+    req.authKey = authkey
+    const [userAuth, user] = await Redis.connect().getFromCacheFirst(`auth:${authkey}`, async () => {
+      let userAuth: any
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000))
         await req.tg.connect()
         userAuth = await req.tg.getMe()
       } catch (error) {
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-        await req.tg.connect()
-        userAuth = await req.tg.getMe()
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+          await req.tg.connect()
+          userAuth = await req.tg.getMe()
+        } catch (error) {
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+          await req.tg.connect()
+          userAuth = await req.tg.getMe()
+        }
       }
-    }
 
-    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
-    if (!user) {
-      throw { status: 401, body: { error: 'User not found' } }
-    }
+      const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+      if (!user) {
+        throw { status: 401, body: { error: 'User not found' } }
+      }
+      return [userAuth, user]
+    }, 3600)
+
     req.user = user
     req.userAuth = userAuth
   }

@@ -9,6 +9,10 @@ export const req = axios.create({
 })
 
 req.interceptors.response.use(response => response, async error => {
+  if (!error.response) {
+    throw error
+  }
+
   const { config, response: { status, data } } = error
   if (status === 401 && data?.details?.errorMessage !== 'SESSION_PASSWORD_NEEDED') {
     await req.post('/auth/refreshToken')

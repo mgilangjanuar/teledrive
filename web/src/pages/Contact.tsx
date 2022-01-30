@@ -15,7 +15,10 @@ const Contact: React.FC<Props> = ({ me }) => {
   const [confirmation, setConfirmation] = useState<boolean>()
 
   useEffect(() => {
-    form.setFieldsValue({ from: me?.user.username })
+    form.setFieldsValue({
+      from: me?.user.username,
+      email: localStorage.getItem('email')
+    })
   }, [me])
 
   useEffect(() => {
@@ -44,6 +47,7 @@ const Contact: React.FC<Props> = ({ me }) => {
       return setConfirmation(true)
     }
     setLoading(true)
+    localStorage.setItem('email', form.getFieldValue('email'))
     await req.post('/contact/send', form.getFieldsValue())
     form.setFieldsValue({ message: null })
     notification.success({
@@ -69,10 +73,13 @@ const Contact: React.FC<Props> = ({ me }) => {
               <Form.Item name="from" label="Username" rules={[{ required: true, message: 'Please input your username' }]}>
                 <Input />
               </Form.Item>
-              <Form.Item name="message" label="Message" rules={[{ required: true, message: 'Please input your message' }]}>
+              <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Please input your email' }]}>
+                <Input type="email" />
+              </Form.Item>
+              <Form.Item help={<>Preferred language: &#127468;&#127463; English</>} name="message" label="Message" rules={[{ required: true, message: 'Please input your message' }]}>
                 <Input.TextArea rows={5} />
               </Form.Item>
-              <Form.Item style={{ textAlign: 'right' }} wrapperCol={{ span: 24 }}>
+              <Form.Item style={{ textAlign: 'right', marginTop: '30px' }} wrapperCol={{ span: 24 }}>
                 <Button shape="round" loading={loading} htmlType="submit" type="primary" icon={<SendOutlined />}>Send</Button>
               </Form.Item>
             </Form>
