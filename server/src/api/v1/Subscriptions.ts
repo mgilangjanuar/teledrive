@@ -47,6 +47,7 @@ export class Subscriptions {
 
     const result = await new PayPal().createSubscription(req.user)
     await Users.update(req.user.id, { subscription_id: result.id })
+    await Redis.connect().del(`auth:${req.authKey}`)
     return res.send({ link: result.links.find(link => link.rel === 'approve').href })
   }
 }
