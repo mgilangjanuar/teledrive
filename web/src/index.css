@@ -96,3 +96,8 @@ html, body {
 .ant-form-item .ant-select {
   width: max-content !important;
 }
+
+.ant-select .ant-select-selector {
+  border: none !important;
+  box-shadow: none !important;
+}

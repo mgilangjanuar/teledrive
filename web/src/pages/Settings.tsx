@@ -20,7 +20,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [expandableRows, setExpandableRows] = useState<boolean>()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
-  const [changeDCConfirmation, setChangeDCConfirmation] = useState<boolean>(false)
+  const [changeDCConfirmation, setChangeDCConfirmation] = useState<string>()
   const [loadingChangeServer, setLoadingChangeServer] = useState<boolean>(false)
   const [destroySession, setDestroySession] = useState<boolean>(false)
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
@@ -91,11 +91,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     }
   }
 
-  const wantToChangeServer = (server: string) => {
-    setDc(server)
-    setChangeDCConfirmation(true)
-  }
-
   const changeServer = async () => {
     setLoadingChangeServer(true)
     const { data } = await req.get('/files', { params: {
@@ -114,14 +109,20 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       } })
       files.push(...data.files)
     }
-    (document.querySelector(`#frame${dc}`) as any)?.contentWindow.postMessage({
+    const frame = document.createElement('iframe')
+    frame.style.display = 'none'
+    frame.src = `https://${dc === 'sg' ? '' : `${dc}.`}teledriveapp.com`
+    document.body.appendChild(frame)
+
+    await new Promise(res => setTimeout(res, 5000))
+    frame.contentWindow?.postMessage({
       type: 'files',
       files
     }, '*')
-    // localStorage.setItem('files', JSON.stringify(files || []))
+
     await req.post('/auth/logout', {}, { params: { destroySession: 1 } })
     setLoadingChangeServer(false)
-    setChangeDCConfirmation(false)
+    setChangeDCConfirmation(undefined)
 
     return window.location.replace(`https://${dc === 'sg' ? '' : `${dc}.`}teledriveapp.com/login`)
   }
@@ -172,7 +173,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </List.Item>
 
                 <List.Item key="change-server" actions={[<Form.Item name="change_server">
-                  {dc && <Select defaultValue={dc} value={dc} onChange={wantToChangeServer}>
+                  {dc && <Select defaultValue={dc} value={dc} onChange={setChangeDCConfirmation}>
                     <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
                     <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
                     <Select.Option value="us">&#127482;&#127480; New York</Select.Option>
@@ -248,22 +249,18 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     <Modal title={<Typography.Text>
       <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Confirmation
     </Typography.Text>}
-    visible={changeDCConfirmation}
-    onCancel={() => setChangeDCConfirmation(false)}
+    visible={!!changeDCConfirmation}
+    onCancel={() => setChangeDCConfirmation(undefined)}
     onOk={changeServer}
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ danger: true, type: 'primary', shape: 'round', loading: loadingChangeServer }}>
       <Typography.Paragraph>
-        Are you sure to change the server region?
+        Are you sure to change the server region to {changeDCConfirmation === 'ge' ? 'Frankfurt' : changeDCConfirmation === 'us' ? 'New York' : 'Singapore'}?
       </Typography.Paragraph>
       <Typography.Paragraph type="secondary">
         You'll be logged out and redirected to the new server. Please login again to that new server.
       </Typography.Paragraph>
     </Modal>
-
-    <iframe style={{ display: 'none' }} src="https://teledriveapp.com" id="framesg" />
-    <iframe style={{ display: 'none' }} src="https://us.teledriveapp.com" id="frameus" />
-    <iframe style={{ display: 'none' }} src="https://ge.teledriveapp.com" id="framege" />
   </>
 }
 

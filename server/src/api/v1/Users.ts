@@ -218,14 +218,14 @@ export class Users {
       req.user.plan = plan
       req.user.username = username
       req.user.name = `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
-      if (plan === 'free' && new Date().getTime() - udpatedTime.getTime() > 2.592e+8) {
+      if (plan === 'free' && new Date().getTime() - udpatedTime.getTime() > 8.64e+7) {
         req.user.subscription_id = null
         req.user.midtrans_id = null
       }
       await Model.update(req.user.id, req.user)
       await Redis.connect().del(`auth:${req.authKey}`)
 
-      if (plan === 'free') {
+      if (plan === 'free' && (req.user.subscription_id || req.user.midtrans_id)) {
         try {
           await Redis.connect().del(`paypal:subscription:${req.user.subscription_id}`)
           await Redis.connect().del(`midtrans:transaction:${req.user.midtrans_id}`)
