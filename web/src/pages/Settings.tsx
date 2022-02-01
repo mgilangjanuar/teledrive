@@ -323,7 +323,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     </Modal>
 
     <Modal title={<Typography.Text>
-      <Typography.Text type="warning"><InfoOutlined /></Typography.Text> Report Bugs
+      <Typography.Text><InfoOutlined /></Typography.Text> Report Bugs
     </Typography.Text>}
     visible={reportBug}
     onCancel={() => setReportBug(false)}
