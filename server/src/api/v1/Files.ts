@@ -19,7 +19,7 @@ export class Files {
 
   @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, offset, limit, shared, exclude_parts: excludeParts, full_properties: fullProperties, t: _t, ...filters } = req.query
+    const { sort, offset, limit, shared, exclude_parts: excludeParts, full_properties: fullProperties, no_cache: noCache, t: _t, ...filters } = req.query
     const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
     if (filters?.parent_id && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
@@ -28,7 +28,7 @@ export class Files {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
 
-    const [files, length] = await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, async () => {
+    const getFiles = async () => {
       let where = 'files.user_id = :user'
       if (shared) {
         if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
@@ -67,7 +67,9 @@ export class Files {
         .take(Number(limit) || 10)
         .orderBy(buildSort(sort as string, 'files.'))
         .getManyAndCount()
-    }, 2)
+    }
+
+    const [files, length] = noCache === 'true' || noCache === '1' ? await getFiles() : await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, getFiles, 2)
     return res.send({ files, length })
   }
 

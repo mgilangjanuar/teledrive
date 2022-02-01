@@ -8,7 +8,14 @@ export const req = axios.create({
   withCredentials: true
 })
 
-req.interceptors.response.use(response => response, async error => {
+req.interceptors.response.use(response => {
+  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), { date: new Date().toISOString(), ...response }]
+  sessionStorage.setItem('requests', JSON.stringify(requests.slice(-1_000)))
+  return response
+}, async error => {
+  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), { date: new Date().toISOString(), ...error }]
+  sessionStorage.setItem('requests', JSON.stringify(requests.slice(-1_000)))
+
   if (!error.response) {
     throw error
   }
