@@ -67,7 +67,7 @@ function App(): React.ReactElement {
     } else {
       switcher({ theme: moment().format('l') === '2/2/2022' ? 'dark' : 'light' })
     }
-  }, [me])
+  }, [me, errorMe])
 
   useEffect(() => {
     pwaInstallHandler.addListener(canInstall => {
