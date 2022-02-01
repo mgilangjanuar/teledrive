@@ -621,6 +621,8 @@ export class Files {
     let cancel = false
     req.on('close', () => cancel = true)
     res.setHeader('Cache-Control', 'public, max-age=604800')
+    res.setHeader('Content-Range', `bytes */${totalFileSize}`)
+    res.setHeader('Accept-Ranges', 'bytes')
     res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
