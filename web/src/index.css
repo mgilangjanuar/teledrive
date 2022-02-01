@@ -105,3 +105,11 @@ html, body {
 .ant-list-item-action > li {
   padding: 0 !important;
 }
+
+.ant-list-split .ant-list-header {
+  border-bottom: none !important;
+}
+
+.ant-list-split .ant-list-item {
+  border-bottom: none !important;
+}

@@ -206,7 +206,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
             </Col>
           </Row>]}>
             <Form layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
-              <List header="Interface">
+              <List header="Interface" bordered={false}>
                 {pwa?.canInstall && <List.Item key="install" actions={[<Form.Item>
                   <Button shape="round" icon={<MobileOutlined />} onClick={pwa?.install}>Install</Button>
                 </Form.Item>]}>
