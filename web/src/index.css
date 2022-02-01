@@ -93,11 +93,15 @@ html, body {
   height: 100vh !important;
 }
 
-.ant-form-item .ant-select {
+.ant-form-item .change-server.ant-select {
   width: max-content !important;
 }
 
-.ant-select .ant-select-selector {
+.change-server.ant-select .ant-select-selector {
   border: none !important;
   box-shadow: none !important;
+}
+
+.ant-list-item-action > li {
+  padding: 0 !important;
 }

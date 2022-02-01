@@ -1,5 +1,40 @@
-import { ArrowLeftOutlined, CrownOutlined, FrownOutlined, LogoutOutlined, MobileOutlined, ReloadOutlined, WarningOutlined } from '@ant-design/icons'
-import { Avatar, Button, Card, Checkbox, Col, Form, Input, Layout, List, Modal, notification, Popover, Row, Select, Switch, Typography } from 'antd'
+import {
+  ArrowLeftOutlined,
+  BugOutlined,
+  CrownOutlined,
+  FrownOutlined,
+  InfoOutlined,
+  LogoutOutlined,
+  MobileOutlined,
+  ReloadOutlined,
+  WarningOutlined,
+  ExpandAltOutlined,
+  GlobalOutlined,
+  DeleteOutlined,
+  MonitorOutlined,
+  SkinOutlined,
+  SyncOutlined,
+  DownloadOutlined
+} from '@ant-design/icons'
+import {
+  Avatar,
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  Form,
+  Input,
+  Layout,
+  List,
+  Modal,
+  notification,
+  Popover,
+  Row,
+  Select,
+  Space,
+  Switch,
+  Typography
+} from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import pwaInstallHandler from 'pwa-install-handler'
 import React, { useEffect, useState } from 'react'
@@ -24,6 +59,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [loadingChangeServer, setLoadingChangeServer] = useState<boolean>(false)
   const [loadingRemove, setLoadingRemove] = useState<boolean>(false)
   const [destroySession, setDestroySession] = useState<boolean>(false)
+  const [reportBug, setReportBug] = useState<boolean>(false)
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [dc, setDc] = useState<string>()
   const [formRemoval] = useForm()
@@ -132,10 +168,19 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     return window.location.replace(`https://${dc === 'sg' ? '' : `${dc}.`}teledriveapp.com/login`)
   }
 
+  const downloadLogs = async () => {
+    const hiddenElement = document.createElement('a')
+
+    hiddenElement.href = 'data:attachment/text,' + encodeURI(sessionStorage.getItem('requests') || '')
+    hiddenElement.target = '_blank'
+    hiddenElement.download = 'logs.json'
+    hiddenElement.click()
+  }
+
   return <>
     <Layout.Content>
       <Row style={{ margin: '50px 12px 100px' }}>
-        <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 8, offset: 8 }} lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={24}>
+        <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 10, offset: 7 }} lg={{ span: 12, offset: 6 }} md={{ span: 14, offset: 5 }} span={24}>
           <Typography.Title>
             Settings
           </Typography.Title>
@@ -161,51 +206,61 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
             </Col>
           </Row>]}>
             <Form layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
-              <List>
+              <List header="Interface">
+                {pwa?.canInstall && <List.Item key="install" actions={[<Form.Item>
+                  <Button shape="round" icon={<MobileOutlined />} onClick={pwa?.install}>Install</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><DownloadOutlined /><>Install App</></Space>} description="Install TeleDrive to your device" />
+                </List.Item>}
+
                 <List.Item key="expandable-rows" actions={[<Form.Item name="expandable_rows">
                   <Switch onChange={val => {
                     setExpandableRows(val)
                     save({ expandable_rows: val })
                   }} checked={expandableRows} defaultChecked={expandableRows} />
                 </Form.Item>]}>
-                  <List.Item.Meta title="Expandable Rows" description="Show file details in row table" />
+                  <List.Item.Meta title={<Space><ExpandAltOutlined /><>Expandable Rows</></Space>} description="Show file details in row table" />
                 </List.Item>
 
                 <List.Item key="dark-mode" actions={[<Form.Item name="dark_mode">
                   <Switch onChange={(val: boolean) => save({ theme: val ? 'dark' : 'light' }).then(window.location.reload)} checked={currentTheme === 'dark'} defaultChecked={currentTheme === 'dark'} />
                 </Form.Item>]}>
-                  <List.Item.Meta title="Dark Mode" description="Join the dark side" />
+                  <List.Item.Meta title={<Space><SkinOutlined /><>Dark Mode</></Space>} description="Join the dark side" />
                 </List.Item>
+              </List>
 
-                <List.Item key="change-server" actions={[<Form.Item name="change_server">
-                  {dc && <Select defaultValue={dc} value={dc} onChange={setChangeDCConfirmation}>
-                    <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
-                    <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
-                    <Select.Option value="us">&#127482;&#127480; New York</Select.Option>
-                  </Select>}
-                </Form.Item>]}>
-                  <List.Item.Meta title="Change Server" description="Migrate to another datacenter" />
-                </List.Item>
-
+              <List header="Operational">
                 <List.Item key="check-for-updates" actions={[<Form.Item>
                   <Button shape="round" icon={<ReloadOutlined />} onClick={() => {
                     serviceWorkerRegistration.unregister();
                     (window.location as any).reload(true)
                   }}>Reload</Button>
                 </Form.Item>]}>
-                  <List.Item.Meta title="Check Updates" description="Reload to checking for updates" />
+                  <List.Item.Meta title={<Space><SyncOutlined /><>Check Updates</></Space>} description="Reload to checking for updates" />
                 </List.Item>
 
-                {pwa?.canInstall && <List.Item key="install" actions={[<Form.Item>
-                  <Button shape="round" icon={<MobileOutlined />} onClick={pwa?.install}>Install</Button>
+                <List.Item key="report-bugs" actions={[<Form.Item>
+                  <Button shape="round" icon={<BugOutlined />} onClick={() => setReportBug(true)}>Report</Button>
                 </Form.Item>]}>
-                  <List.Item.Meta title="Install App" description="Install TeleDrive to your device" />
-                </List.Item>}
+                  <List.Item.Meta title={<Space><MonitorOutlined /><>Report Bug</></Space>} description="Send your activities for reporting" />
+                </List.Item>
+              </List>
+
+              <List header="Danger Zone">
+                <List.Item key="change-server" actions={[<Form.Item name="change_server">
+                  {dc && <Select className="change-server" defaultValue={dc} value={dc} onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
+                    <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
+                    <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
+                    <Select.Option value="us">&#127482;&#127480; New York</Select.Option>
+                  </Select>}
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><GlobalOutlined /><>Change Server</></Space>} description="Migrate to another datacenter" />
+                </List.Item>
 
                 <List.Item key="delete-account" actions={[<Form.Item>
                   <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>
                 </Form.Item>]}>
-                  <List.Item.Meta title={<Typography.Text type="danger">Delete Account</Typography.Text>} description="Delete your account permanently" />
+                  <List.Item.Meta title={<Typography.Text type="danger"><Space><DeleteOutlined /><>Delete Account</></Space></Typography.Text>} description="Delete your account permanently" />
                 </List.Item>
               </List>
 
@@ -216,7 +271,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     </Layout.Content>
 
     <Modal title={<Typography.Text>
-      <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Confirmation
+      <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Logout Confirmation
     </Typography.Text>}
     visible={logoutConfirmation}
     onCancel={() => setLogoutConfirmation(false)}
@@ -252,7 +307,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     </Modal>
 
     <Modal title={<Typography.Text>
-      <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Confirmation
+      <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Change Server Confirmation
     </Typography.Text>}
     visible={!!changeDCConfirmation}
     onCancel={() => setChangeDCConfirmation(undefined)}
@@ -265,6 +320,28 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       <Typography.Paragraph type="secondary">
         You'll be logged out and redirected to the new server. Please login again to that new server.
       </Typography.Paragraph>
+    </Modal>
+
+    <Modal title={<Typography.Text>
+      <Typography.Text type="warning"><InfoOutlined /></Typography.Text> Report Bugs
+    </Typography.Text>}
+    visible={reportBug}
+    onCancel={() => setReportBug(false)}
+    onOk={undefined}
+    okText="Send Email"
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ type: 'primary', shape: 'round', href: `mailto:mgilangjanuar+bug@gmail.com?subject=TeleDrive%20-%20Bug%20Report&body=User%3A%20${decodeURIComponent(me?.user.username)}%0D%0AOrigin%3A%20${decodeURIComponent(window.location.origin)}%0D%0ADevice%3A%20${decodeURIComponent(navigator.userAgent)}%0D%0AProblem%3A%20%3CPlease%20describe%20your%20problem%20here%3E%0D%0AExpectation%3A%20%3CPlease%20describe%20your%20expectation%20here%3E` }}>
+      <Typography.Paragraph>
+        Please follow these instructions:
+      </Typography.Paragraph>
+      <ol>
+        <li>
+          Download <a onClick={downloadLogs}>your logs</a>
+        </li>
+        <li>
+          Send an email to <a href={`mailto:mgilangjanuar+bug@gmail.com?subject=TeleDrive%20-%20Bug%20Report&body=User%3A%20${decodeURIComponent(me?.user.username)}%0D%0AOrigin%3A%20${decodeURIComponent(window.location.origin)}%0D%0ADevice%3A%20${decodeURIComponent(navigator.userAgent)}%0D%0AProblem%3A%20%3CPlease%20describe%20your%20problem%20here%3E%0D%0AExpectation%3A%20%3CPlease%20describe%20your%20expectation%20here%3E`}>mgilangjanuar+bug@gmail.com</a> with logs and additional screenshots in the attachment
+        </li>
+      </ol>
     </Modal>
   </>
 }
