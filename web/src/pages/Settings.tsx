@@ -22,6 +22,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
   const [changeDCConfirmation, setChangeDCConfirmation] = useState<string>()
   const [loadingChangeServer, setLoadingChangeServer] = useState<boolean>(false)
+  const [loadingRemove, setLoadingRemove] = useState<boolean>(false)
   const [destroySession, setDestroySession] = useState<boolean>(false)
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [dc, setDc] = useState<string>()
@@ -82,11 +83,15 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   }
 
   const remove = async () => {
+    setLoadingRemove(true)
     const { agreement, reason } = formRemoval.getFieldsValue()
     try {
       await req.post('/users/me/delete', { agreement, reason })
+      setRemoveConfirmation(false)
+      setLoadingRemove(false)
       return window.location.replace('/')
     } catch (error: any) {
+      setLoadingRemove(false)
       return notification.error({ message: 'Error', description: error.response?.data.error })
     }
   }
@@ -235,7 +240,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     onCancel={() => setRemoveConfirmation(false)}
     onOk={remove}
     cancelButtonProps={{ shape: 'round' }}
-    okButtonProps={{ danger: true, type: 'primary', shape: 'round' }}>
+    okButtonProps={{ danger: true, type: 'primary', shape: 'round', loading: loadingRemove }}>
       <Form form={formRemoval} onFinish={remove} layout="vertical">
         <Form.Item name="reason" label="Reason" rules={[{ required: true, message: 'Please input your reason' }]}>
           <Input.TextArea />

@@ -45,37 +45,26 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     try {
       let parentId = parent?.id
       if (file.webkitRelativePath) {
-        if (isDirectory) {
-          await new Promise(res => setTimeout(res, 1000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid) + 1))
-        }
+        await new Promise(res => setTimeout(res, 1000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid) + 1))
         const paths = file.webkitRelativePath.split('/').slice(0, -1) || []
-        if (parentPath.current?.[paths.join('/')]) {
-          parentId = parentPath.current[paths.join('/')]
-        } else {
-          for (const i in paths) {
-            const path = paths[i]
-            if (parentPath.current?.[paths.slice(0, i + 1).join('/')]) {
-              parentId = parentPath.current[paths.slice(0, i + 1).join('/')]
-            } else {
-              const { data: findFolder } = await req.get('/files', { params: {
-                type: 'folder',
+        for (const i in paths) {
+          const path = paths[i]
+          const { data: findFolder } = await req.get('/files', { params: {
+            type: 'folder',
+            name: path,
+            no_cache: 1,
+            ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
+          } })
+          if (findFolder?.length) {
+            parentId = findFolder.files[0].id
+          } else {
+            const { data: newFolder } = await req.post('/files/addFolder', {
+              file: {
                 name: path,
-                ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
-              } })
-              if (findFolder?.length) {
-                parentId = findFolder.files[0].id
-                parentPath.current = { ...parentPath.current || {}, [paths.slice(0, i + 1).join('/')]: parentId }
-              } else {
-                const { data: newFolder } = await req.post('/files/addFolder', {
-                  file: {
-                    name: path,
-                    ...parentId ? { parent_id: parentId } : {},
-                  }
-                })
-                parentId = newFolder.file.id
-                parentPath.current = { ...parentPath.current || {}, [paths.slice(0, i + 1).join('/')]: parentId }
+                ...parentId ? { parent_id: parentId } : {},
               }
-            }
+            })
+            parentId = newFolder.file.id
           }
         }
       }
