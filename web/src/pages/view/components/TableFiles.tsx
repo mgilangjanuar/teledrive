@@ -10,6 +10,7 @@ import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import QueryString from 'qs'
 import React, { useEffect, useState } from 'react'
+import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router-dom'
 import useSWR from 'swr'
 import { fetcher } from '../../../utils/Fetcher'
@@ -30,6 +31,7 @@ const TableFiles: React.FC<Props> = ({ me, data }) => {
     filters?: Record<string, FilterValue | null>,
     sorter?: SorterResult<any> | SorterResult<any>[]
   }>()
+  const { currentTheme } = useThemeSwitcher()
   const [parent, setParent] = useState<Record<string, any> | null>()
   const [breadcrumbs, setBreadcrumbs] = useState<any[]>([data?.file || { id: null, name: <><HomeOutlined /></> }])
   const [scrollTop, setScrollTop] = useState<number>(0)
@@ -202,7 +204,7 @@ const TableFiles: React.FC<Props> = ({ me, data }) => {
                     type = <TeamOutlined />
                   }
 
-                  return <Button type="link" block style={{ textAlign: 'left', padding: 0, color: '#000000D9' }}>
+                  return <Button type="link" block style={{ textAlign: 'left', padding: 0, color: currentTheme === 'dark' ? '#FFFFFFD9' : '#000000D9' }}>
                     {row.link_id ? <BranchesOutlined /> : '' } {type} <Icon type={row.type} /> {row.name.replace(/\.part0*\d+$/, '')}
                   </Button>
                 }
