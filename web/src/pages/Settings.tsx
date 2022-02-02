@@ -152,7 +152,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     }
     const frame = document.createElement('iframe')
     frame.style.display = 'none'
-    frame.src = `https://${dc === 'sg' ? '' : `${dc}.`}teledriveapp.com`
+    frame.src = `https://${changeDCConfirmation === 'sg' ? '' : `${changeDCConfirmation}.`}teledriveapp.com`
     document.body.appendChild(frame)
 
     await new Promise(res => setTimeout(res, 5000))
@@ -165,7 +165,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     setLoadingChangeServer(false)
     setChangeDCConfirmation(undefined)
 
-    return window.location.replace(`https://${dc === 'sg' ? '' : `${dc}.`}teledriveapp.com/login`)
+    return window.location.replace(`https://${changeDCConfirmation === 'sg' ? '' : `${changeDCConfirmation}.`}teledriveapp.com/login`)
   }
 
   const downloadLogs = async () => {
