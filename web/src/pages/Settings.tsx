@@ -163,8 +163,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
     await req.post('/auth/logout', {}, { params: { destroySession: 1 } })
     setLoadingChangeServer(false)
-    setChangeDCConfirmation(undefined)
-
     return window.location.replace(`https://${changeDCConfirmation === 'sg' ? '' : `${changeDCConfirmation}.`}teledriveapp.com/login`)
   }
 
