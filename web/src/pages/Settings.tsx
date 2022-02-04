@@ -175,6 +175,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     hiddenElement.click()
   }
 
+  const emailLink = () => `mailto:bug@teledriveapp.com?subject=TeleDrive%20-%20Bug%20Report&body=User%3A%20${decodeURIComponent(me?.user.username)}%0D%0AOrigin%3A%20${decodeURIComponent(window.location.origin)}%0D%0ADevice%3A%20${decodeURIComponent(navigator.userAgent)}%0D%0AProblem%3A%20%3CPlease%20describe%20your%20problem%20here%3E%0D%0AExpectation%3A%20%3CPlease%20describe%20your%20expectation%20here%3E`
+
   return <>
     <Layout.Content>
       <Row style={{ margin: '50px 12px 100px' }}>
@@ -328,7 +330,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     onOk={undefined}
     okText="Send Email"
     cancelButtonProps={{ shape: 'round' }}
-    okButtonProps={{ type: 'primary', shape: 'round', href: `mailto:mgilangjanuar+bug@gmail.com?subject=TeleDrive%20-%20Bug%20Report&body=User%3A%20${decodeURIComponent(me?.user.username)}%0D%0AOrigin%3A%20${decodeURIComponent(window.location.origin)}%0D%0ADevice%3A%20${decodeURIComponent(navigator.userAgent)}%0D%0AProblem%3A%20%3CPlease%20describe%20your%20problem%20here%3E%0D%0AExpectation%3A%20%3CPlease%20describe%20your%20expectation%20here%3E` }}>
+    okButtonProps={{ type: 'primary', shape: 'round', href: emailLink() }}>
       <Typography.Paragraph>
         Please follow these instructions:
       </Typography.Paragraph>
@@ -337,7 +339,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
           Download <a onClick={downloadLogs}>your logs</a>
         </li>
         <li>
-          Send an email to <a href={`mailto:mgilangjanuar+bug@gmail.com?subject=TeleDrive%20-%20Bug%20Report&body=User%3A%20${decodeURIComponent(me?.user.username)}%0D%0AOrigin%3A%20${decodeURIComponent(window.location.origin)}%0D%0ADevice%3A%20${decodeURIComponent(navigator.userAgent)}%0D%0AProblem%3A%20%3CPlease%20describe%20your%20problem%20here%3E%0D%0AExpectation%3A%20%3CPlease%20describe%20your%20expectation%20here%3E`}>mgilangjanuar+bug@gmail.com</a> with logs and additional screenshots in the attachment
+          Send an email to <a href={emailLink()}>bug@teledriveapp.com</a> with logs and additional screenshots in the attachment
         </li>
       </ol>
     </Modal>
