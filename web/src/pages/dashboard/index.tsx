@@ -91,13 +91,14 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
         ], []).filter(Boolean)
       }
 
-      if (!fileList?.length) {
-        const deletedFiles = newData.filter(file => file.upload_progress !== null)
-        if (deletedFiles?.length) {
-          deletedFiles.map(file => req.delete(`/files/${file.id}`))
-          newData = newData.filter(file => !deletedFiles.find(deleted => deleted.id === file.id))
-        }
-      }
+      // if (!fileList?.length) {
+      //   const deletedFiles = newData.filter(file => file.upload_progress !== null)
+      //   if (deletedFiles?.length) {
+      //     console.log('OAHJSASAS', deletedFiles)
+      //     deletedFiles.map(file => req.delete(`/files/${file.id}`))
+      //     newData = newData.filter(file => !deletedFiles.find(deleted => deleted.id === file.id))
+      //   }
+      // }
 
       setData(newData)
     }
