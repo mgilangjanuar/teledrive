@@ -112,7 +112,7 @@ const rateLimiter = new RateLimiterPostgres({
 app.get('/ping', (_, res) => res.send({ pong: true }))
 app.get('/security.txt', (_, res) => {
   res.setHeader('Content-Type', 'text/plain')
-  res.send('Contact: mgilangjanuar+tdsecurity@gmail.com\nPreferred-Languages: en, id')
+  res.send('Contact: security@teledriveapp.com\nPreferred-Languages: en, id')
 })
 app.use('/api', (req, res, next) => {
   rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {

@@ -16,7 +16,7 @@ When this Policy mentions "We", "Us," and "Our" it refers to TeleDrive and its s
 
 This Privacy Policy is governed by our [Terms of Services](https://teledriveapp.com/terms).
 
-For any questions regarding this Policy or any requests regarding the processing of personal data, please contact us at mgilangjanuar@gmail.com.
+For any questions regarding this Policy or any requests regarding the processing of personal data, please contact us at support@teledriveapp.com.
 
 ## 1. INFORMATION WE COLLECT FROM YOU
 We collect the information You provide to us and this information is necessary for the adequate performance of the contractual arrangement which is in place between You and us and allow us to comply with our legal obligations.
@@ -90,7 +90,7 @@ We will retain your personal information as long as we need it to provide servic
 We have implemented security measures designed to protect the personal information you share with us, including physical, electronic and procedural measures. Among other things, we regularly monitor our systems for possible vulnerabilities and attacks.
 Regardless of the measures and efforts taken by us, the transmission of information via internet, email or text message is not completely secure. We do not guarantee the absolute protection and security of your personal information.
 We therefore encourage you to avoid providing us or anyone with any sensitive information of which you believe its disclosure could cause you substantial or irreparable harm.
-If you have any questions regarding the security of our Site or Services, you are welcome to contact us at mgilangjanuar@gmail.com.
+If you have any questions regarding the security of our Site or Services, you are welcome to contact us at security@teledriveapp.com.
 
 
 ## 10. YOUR RIGHTS
@@ -247,7 +247,7 @@ If you have any questions about this Agreement, please contact us by email or re
 TeleDrive
 South Jakarta, Indonesia
 Indonesia
-mgilangjanuar@gmail.com` })
+support@teledriveapp.com` })
   }
 
   @Endpoint.GET()
@@ -257,7 +257,7 @@ mgilangjanuar@gmail.com` })
 All our clients are very important to us, that's why TeleDrive ("Company"), has created the following Refund Policy to let You know how we handle the refunds for the goods ordered and bought on our website https://teledriveapp.com ("Website").
 The terms "You," "Your," and "Yours" refer to the entity/ person/ organization using our Website. When this Policy mentions "we", "us,", and "our" it refers to the Company and its subsidiaries or /and affiliates. The term "goods" refer to any product or item bought on our Website by You.
 This Refund Policy is governed by our [Terms of Services](https://teledriveapp.com/terms).
-For any questions regarding this Refund Policy or any requests regarding the refunds and returns, please contact us by email mgilangjanuar@gmail.com, phone +6289676721188 or other contacts provided below.
+For any questions regarding this Refund Policy or any requests regarding the refunds and returns, please contact us by email refund@teledriveapp.com or other contacts provided below.
 You have the right, without giving a reason, to return the goods within 14 days, if it has not been used, damaged or its appearance has not substantially changed, that is, the appearance of the product or its packaging has been made only such alterations as were necessary to inspect the goods received.
 The right to withdraw from a distance contract within 14 days without giving a reason does not apply to legal persons (e.g. companies, entrepreneurs).
 This Return policy does not limit Your statutory rights to withdraw or rights You may have in relation to incorrect, damaged or defective goods.
@@ -275,7 +275,7 @@ If You fail to meet the deadlines of our Return policy, we will be unable to off
 
 ## Defective goods
 In certain cases, such as defective, damaged or wrong goods, you may be required to provide evidence of the issue, such as a photo or video, or to return the item to receive a refund.
-You must contact our company at mgilangjanuar@gmail.com within 14 days upon purchase and provide detailed information, such as:
+You must contact our company at refund@teledriveapp.com within 14 days upon purchase and provide detailed information, such as:
 
   - Proof of purchase
   - Order number

@@ -43,30 +43,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     let deleted = false
 
     try {
-      let parentId = parent?.id
       if (file.webkitRelativePath) {
-        await new Promise(res => setTimeout(res, 1000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid) + 1))
-        const paths = file.webkitRelativePath.split('/').slice(0, -1) || []
-        for (const i in paths) {
-          const path = paths[i]
-          const { data: findFolder } = await req.get('/files', { params: {
-            type: 'folder',
-            name: path,
-            no_cache: 1,
-            ...parentId ? { parent_id: parentId } : { 'parent_id.is': 'null' },
-          } })
-          if (findFolder?.length) {
-            parentId = findFolder.files[0].id
-          } else {
-            const { data: newFolder } = await req.post('/files/addFolder', {
-              file: {
-                name: path,
-                ...parentId ? { parent_id: parentId } : {},
-              }
-            })
-            parentId = newFolder.file.id
-          }
-        }
+        await new Promise(res => setTimeout(res, 2000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid) + 1))
       }
 
       const responses: any[] = []
@@ -98,7 +76,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               const beginUpload = async () => {
                 const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
                   params: {
-                    ...parentId ? { parent_id: parentId } : {},
+                    ...parent?.id ? { parent_id: parent.id } : {},
+                    relative_path: file.webkitRelativePath || null,
                     name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
                     size: fileBlob.size,
                     mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',

@@ -356,7 +356,7 @@ export class Files {
 
   @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer().single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
-    const { name, size, mime_type: mimetype, parent_id: parentId, total_part: totalPart, part } = req.query as Record<string, string>
+    const { name, size, mime_type: mimetype, parent_id: parentId, relative_path: relativePath, total_part: totalPart, part } = req.query as Record<string, string>
 
     if (!name || !size || !mimetype || !part || !totalPart) {
       throw { status: 400, body: { error: 'Name, size, mimetype, part, and total part are required' } }
@@ -397,6 +397,36 @@ export class Files {
         type = 'unknown'
       }
 
+      let currentParentId = parentId
+      if (relativePath) {
+        const paths = relativePath.split('/').slice(0, -1) || []
+        for (const i in paths) {
+          const path = paths[i]
+          const findFolder = await Model.createQueryBuilder('files')
+            .where(`type = :type and name = :name and user_id = :user_id and parent_id ${currentParentId ? '= :parent_id' : 'is null'}`, {
+              type: 'folder',
+              name: path,
+              user_id: req.user.id,
+              parent_id: currentParentId
+            })
+            .getOne()
+          if (findFolder) {
+            currentParentId = findFolder.id
+          } else {
+            const newFolder = new Model()
+            newFolder.name = path
+            newFolder.type = 'folder'
+            newFolder.user_id = req.user.id
+            newFolder.mime_type = 'teledrive/folder'
+            if (currentParentId) {
+              newFolder.parent_id = currentParentId
+            }
+            await newFolder.save()
+            currentParentId = newFolder.id
+          }
+        }
+      }
+
       model = new Model()
       model.name = name,
       model.mime_type = mimetype
@@ -404,7 +434,7 @@ export class Files {
       model.size = size
       model.user_id = req.user.id
       model.type = type
-      model.parent_id = parentId as string || null
+      model.parent_id = currentParentId || null
       model.upload_progress = 0
       model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
       await model.save()
