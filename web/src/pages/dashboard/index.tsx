@@ -118,7 +118,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
 
   useEffect(() => {
     const footer = document.querySelector('.ant-layout-footer')
-    if (scrollTop >= document.body.scrollHeight - document.body.clientHeight - (footer?.clientHeight || 50) && files?.files.length >= PAGE_SIZE) {
+    if (scrollTop >= document.body.scrollHeight - document.body.clientHeight - (footer?.clientHeight || 80) && files?.files.length >= PAGE_SIZE) {
       change({ ...dataChanges?.pagination, current: (dataChanges?.pagination?.current || 1) + 1 }, dataChanges?.filters, dataChanges?.sorter)
     }
   }, [scrollTop])
