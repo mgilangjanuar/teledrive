@@ -42,6 +42,11 @@ export const Endpoint = {
       this._handlers.push(this._buildRouteHandler('get', method, descriptor, ...args))
     }
   },
+  HEAD: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
+    return (_: any, method: string, descriptor: PropertyDescriptor): void => {
+      this._handlers.push(this._buildRouteHandler('head', method, descriptor, ...args))
+    }
+  },
   POST: function (...args: [(string | RouteOptions)?, RouteOptions?]): any {
     return (_: any, method: string, descriptor: PropertyDescriptor): void => {
       this._handlers.push(this._buildRouteHandler('post', method, descriptor, ...args))

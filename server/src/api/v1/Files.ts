@@ -619,7 +619,7 @@ export class Files {
     return res.status(202).send({ accepted: true })
   }
 
-  public static async download(req: Request, res: Response, files: Model[]): Promise<any> {
+  public static async download(req: Request, res: Response, files: Model[], onlyHeaders?: boolean): Promise<any> {
     const { raw, dl, thumb } = req.query
 
     let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
@@ -659,6 +659,8 @@ export class Files {
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
+
+    if (onlyHeaders) return
 
     for (const file of files) {
       let chat: any

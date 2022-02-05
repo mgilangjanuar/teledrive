@@ -480,13 +480,20 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
         </Typography.Paragraph>
       </Modal>
 
-      <Drawer placement="bottom" visible={!!collapsedView} className="view" headerStyle={{ display: 'none' }} bodyStyle={{ padding: 0 }}>
+      {/* <Drawer placement="bottom" visible={!!collapsedView} className="view" headerStyle={{ display: 'none' }} bodyStyle={{ padding: 0 }}>
         <View isInDrawer onCloseDrawer={() => {
           const searchParams = new URLSearchParams(window.location.search)
           searchParams.delete('view')
           history.push(`${window.location.pathname}?${searchParams.toString()}`)
         }} match={{ params: { id: collapsedView as string } } as any} history={history} location={location} />
-      </Drawer>
+      </Drawer> */}
+      <Modal visible={!!collapsedView} className="view" footer={null} closable={false}>
+        <View isInDrawer onCloseDrawer={() => {
+          const searchParams = new URLSearchParams(window.location.search)
+          searchParams.delete('view')
+          history.push(`${window.location.pathname}?${searchParams.toString()}`)
+        }} match={{ params: { id: collapsedView as string } } as any} history={history} location={location} />
+      </Modal>
     </Layout>
   </Layout>
 }

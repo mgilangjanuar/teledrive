@@ -20,6 +20,7 @@
     "react-chat-elements": "^10.16.0",
     "react-css-theme-switcher": "^0.3.0",
     "react-dnd": "^14.0.4",
+    "react-doc-viewer": "^0.1.5",
     "react-dom": "^17.0.2",
     "react-github-btn": "^1.2.1",
     "react-helmet": "^6.1.0",

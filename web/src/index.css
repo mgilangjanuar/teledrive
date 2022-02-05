@@ -93,6 +93,18 @@ html, body {
   height: 100vh !important;
 }
 
+.ant-modal.view {
+  position: sticky !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.view .ant-modal-body {
+  padding: 0 !important;
+}
+
 .ant-form-item .change-server.ant-select {
   width: max-content !important;
 }
