@@ -66,7 +66,7 @@ const Contact: React.FC<Props> = ({ me }) => {
             Contact Us
           </Typography.Title>
           <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
-            Please fill in your Telegram username and we'll get back to you via Telegram.
+            Please fill in your Telegram username and we'll get back to you via Telegram. Or, email us at <a href="mailto:support@teledriveapp.com">support@teledriveapp.com</a>.
           </Typography.Paragraph>
           <Card>
             <Form form={form} layout="horizontal" onFinish={send} wrapperCol={{ span: 18 }} labelCol={{ span: 6 }}>
@@ -76,7 +76,7 @@ const Contact: React.FC<Props> = ({ me }) => {
               <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Please input your email' }]}>
                 <Input type="email" />
               </Form.Item>
-              <Form.Item help={<>Preferred language: &#127468;&#127463; English</>} name="message" label="Message" rules={[{ required: true, message: 'Please input your message' }]}>
+              <Form.Item help={<>Language: English</>} name="message" label="Message" rules={[{ required: true, message: 'Please input your message' }]}>
                 <Input.TextArea rows={5} />
               </Form.Item>
               <Form.Item style={{ textAlign: 'right', marginTop: '30px' }} wrapperCol={{ span: 24 }}>

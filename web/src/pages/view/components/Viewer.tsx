@@ -101,6 +101,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   return <>
     <Layout style={{ minHeight: '100vh', overflow: 'hidden', background: '#2a2a2a', color: 'rgb(251,251,254)' }}>
       <Layout.Content>
+        {/* {links?.raw && <DocViewer documents={[{ uri: links?.raw as string }]} /> */}
         {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : data?.file.type === 'video' ? <video style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} controls>
           <source src={links?.raw} type={data?.file.mime_type} />
           Your browser does not support HTML video.

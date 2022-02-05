@@ -9,9 +9,7 @@ import {
 import {
   Alert,
   Button,
-  Col,
-  Drawer,
-  Dropdown,
+  Col, Dropdown,
   Input,
   Layout,
   Menu, Modal,
@@ -318,7 +316,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
           history.push(`${window.location.pathname}?${searchParams.toString()}`)
         }
       }}>
-        <Row style={{ minHeight: '80vh', marginBottom: '100px', padding: '0 12px' }}>
+        <Row style={{ minHeight: '90vh', marginBottom: '100px', padding: '0 12px' }}>
           <Col xxl={{ span: 14, offset: 5 }} xl={{ span: 16, offset: 4 }} lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
             <Typography.Paragraph>
               <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => changeTab(key)}>
@@ -480,13 +478,20 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
         </Typography.Paragraph>
       </Modal>
 
-      <Drawer placement="bottom" visible={!!collapsedView} className="view" headerStyle={{ display: 'none' }} bodyStyle={{ padding: 0 }}>
+      {/* <Drawer placement="bottom" visible={!!collapsedView} className="view" headerStyle={{ display: 'none' }} bodyStyle={{ padding: 0 }}>
         <View isInDrawer onCloseDrawer={() => {
           const searchParams = new URLSearchParams(window.location.search)
           searchParams.delete('view')
           history.push(`${window.location.pathname}?${searchParams.toString()}`)
         }} match={{ params: { id: collapsedView as string } } as any} history={history} location={location} />
-      </Drawer>
+      </Drawer> */}
+      <Modal visible={!!collapsedView} className="view" footer={null} closable={false}>
+        <View isInDrawer onCloseDrawer={() => {
+          const searchParams = new URLSearchParams(window.location.search)
+          searchParams.delete('view')
+          history.push(`${window.location.pathname}?${searchParams.toString()}`)
+        }} match={{ params: { id: collapsedView as string } } as any} history={history} location={location} />
+      </Modal>
     </Layout>
   </Layout>
 }
