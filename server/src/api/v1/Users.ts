@@ -90,7 +90,7 @@ export class Users {
       })
     }
     await Files.delete({ user_id: req.user.id })
-    await req.user.remove()
+    await Model.delete(req.user.id)
     const success = await req.tg.invoke(new Api.auth.LogOut())
     return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
   }
