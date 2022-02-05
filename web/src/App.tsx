@@ -139,7 +139,7 @@ function App(): React.ReactElement {
             </Switch>
           </Suspense>
         </div>
-        {!/^\/view\/.*/gi.test(window.location.pathname) && <Footer me={me} />}
+        {/^\/view\/.*/gi.test(window.location.pathname) || /^\/dashboard*/gi.test(window.location.pathname) || /^\/settings*/gi.test(window.location.pathname) ? <></> : <Footer me={me} />}
       </>}
     </Layout>
   )
