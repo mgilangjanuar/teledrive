@@ -65,6 +65,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   const [scrollTop, setScrollTop] = useState<number>(0)
   const [fileList, setFileList] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>()
+  const [loadingSync, setLoadingSync] = useState<boolean>()
   const [syncConfirmation, setSyncConfirmation] = useState<boolean>()
   const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
   const [collapsedView, setCollapsedView] = useState<string>()
@@ -281,6 +282,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   }
 
   const sync = async () => {
+    setLoadingSync(true)
     try {
       await req.post('/files/sync', {}, {
         params: {
@@ -289,7 +291,9 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
         }
       })
       refetch()
+      setLoadingSync(false)
     } catch (error: any) {
+      setLoadingSync(false)
       if (error?.response?.status === 402) {
         return notification.error({
           message: 'Premium Feature',
@@ -472,9 +476,9 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
       onCancel={() => setSyncConfirmation(false)}
       onOk={sync}
       cancelButtonProps={{ shape: 'round' }}
-      okButtonProps={{ shape: 'round' }}>
+      okButtonProps={{ shape: 'round', loading: loadingSync }}>
         <Typography.Paragraph>
-          Are you sure to sync up to 50 files from your Saved Messages to the <code>{typeof parent?.name === 'string' ? parent.name : 'root'}</code> directory?
+          Are you sure to sync up to 50 files from your Upload Destination to the <code>{typeof parent?.name === 'string' ? parent.name : 'root'}</code> directory?
         </Typography.Paragraph>
       </Modal>
 
