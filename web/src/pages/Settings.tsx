@@ -324,7 +324,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     </Typography.Text>}
     visible={removeConfirmation}
     onCancel={() => setRemoveConfirmation(false)}
-    onOk={remove}
+    onOk={formRemoval.submit}
     cancelButtonProps={{ shape: 'round' }}
     okButtonProps={{ danger: true, type: 'primary', shape: 'round', loading: loadingRemove }}>
       <Form form={formRemoval} onFinish={remove} layout="vertical">
