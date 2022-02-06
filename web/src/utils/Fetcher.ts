@@ -9,11 +9,15 @@ export const req = axios.create({
 })
 
 req.interceptors.response.use(response => {
-  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), { date: new Date().toISOString(), ...response }]
+  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), {
+    date: new Date().toISOString(), ref: location.href, ...response
+  }]
   sessionStorage.setItem('requests', JSON.stringify(requests.slice(-1_000)))
   return response
 }, async error => {
-  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), { date: new Date().toISOString(), ...error }]
+  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), {
+    date: new Date().toISOString(), ref: location.href, ...error
+  }]
   sessionStorage.setItem('requests', JSON.stringify(requests.slice(-1_000)))
 
   if (!error.response) {

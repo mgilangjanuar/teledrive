@@ -1,9 +1,21 @@
 import {
   ArrowLeftOutlined,
-  BugOutlined, CloudUploadOutlined, CrownOutlined, DeleteOutlined, DownloadOutlined, ExpandAltOutlined, FrownOutlined, GlobalOutlined, InfoOutlined,
+  BugOutlined,
+  CloudUploadOutlined,
+  CrownOutlined,
+  DeleteOutlined,
+  DownloadOutlined,
+  ExpandAltOutlined,
+  FrownOutlined,
+  GlobalOutlined,
+  InfoOutlined,
   LogoutOutlined,
-  MobileOutlined, MonitorOutlined, ReloadOutlined, SkinOutlined,
-  SyncOutlined, WarningOutlined
+  MobileOutlined,
+  MonitorOutlined,
+  ReloadOutlined,
+  SkinOutlined,
+  SyncOutlined,
+  WarningOutlined
 } from '@ant-design/icons'
 import {
   Avatar,
@@ -52,9 +64,10 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [reportBug, setReportBug] = useState<boolean>(false)
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [dc, setDc] = useState<string>()
+  const [form] = useForm()
   const [formRemoval] = useForm()
   const { currentTheme } = useThemeSwitcher()
-  const { data: dialogs } = useSWR('/dialogs?limit=50&offset=0', fetcher)
+  const { data: dialogs } = useSWR('/dialogs?limit=100&offset=0', fetcher)
 
   const save = async (settings: any): Promise<void> => {
     try {
@@ -102,6 +115,18 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       localStorage.setItem('dc', 'sg')
     }
   }, [])
+
+  useEffect(() => {
+    if (dc) {
+      form.setFieldsValue({ change_server: dc })
+    }
+  }, [dc])
+
+  useEffect(() => {
+    if (me) {
+      form.setFieldsValue({ saved_location: me?.user.settings?.saved_location || 'me' })
+    }
+  }, [me])
 
   const logout = async () => {
     await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
@@ -200,7 +225,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
               </Typography.Paragraph>
             </Col>
           </Row>]}>
-            <Form layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
+            <Form form={form} layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
               <List header="Interface" bordered={false}>
                 {pwa?.canInstall && <List.Item key="install" actions={[<Form.Item>
                   <Button shape="round" icon={<MobileOutlined />} onClick={pwa?.install}>Install</Button>
@@ -228,8 +253,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 {dialogs?.dialogs && <List.Item key="saved-location" actions={[<Form.Item name="saved_location">
                   <Select className="saved-location ghost" showSearch
                     filterOption={(input, option: any) => !option.children.toLowerCase().indexOf(input.toLowerCase())}
-                    defaultValue={me?.user.settings?.saved_location || 'me'}
-                    value={me?.user.settings?.saved_location || 'me'}
                     onChange={saved_location => save({ saved_location: saved_location === 'me' ? null : saved_location })}>
                     <Select.Option key="me" value="me">Saved Messages</Select.Option>
                     {dialogs?.dialogs.filter((d: any) => d.entity.id != me?.user.tg_id).map((dialog: any) => <Select.Option key={dialog.entity.id} value={buildPathDialog(dialog)}>{dialog.title}</Select.Option>)}
@@ -256,7 +279,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
               <List header="Danger Zone">
                 <List.Item key="change-server" actions={[<Form.Item name="change_server">
-                  {dc && <Select className="change-server ghost" defaultValue={dc} value={dc} onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
+                  {dc && <Select className="change-server ghost" onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
                     <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
                     <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
                     <Select.Option value="us">&#127482;&#127480; New York</Select.Option>
