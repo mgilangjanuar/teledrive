@@ -235,7 +235,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                     {dialogs?.dialogs.filter((d: any) => d.entity.id != me?.user.tg_id).map((dialog: any) => <Select.Option key={dialog.entity.id} value={buildPathDialog(dialog)}>{dialog.title}</Select.Option>)}
                   </Select>
                 </Form.Item>]}>
-                  <List.Item.Meta title={<Space><CloudUploadOutlined /><>Saved Location</></Space>} description="Select where to save files" />
+                  <List.Item.Meta title={<Space><CloudUploadOutlined /><>Upload Destination</></Space>} description="Select where to save files" />
                 </List.Item>}
 
                 <List.Item key="check-for-updates" actions={[<Form.Item>

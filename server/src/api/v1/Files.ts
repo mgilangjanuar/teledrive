@@ -437,7 +437,7 @@ export class Files {
       model.parent_id = currentParentId || null
       model.upload_progress = 0
       model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
-      model.forward_info = req.user.settings.saved_location
+      model.forward_info = req.user.settings?.saved_location || null
       await model.save()
     }
 
@@ -475,8 +475,8 @@ export class Files {
     // begin to send
     const sendData = async (forceDocument: boolean) => {
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      if (req.user.settings.saved_location) {
-        const [type, peerId, _, accessHash] = req.user.settings.saved_location.split('/')
+      if (req.user.settings?.saved_location) {
+        const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
@@ -515,6 +515,10 @@ export class Files {
     model.message_id = data.id?.toString()
     model.uploaded_at = data.date ? new Date(data.date * 1000) : null
     model.upload_progress = null
+    if (req.user.settings?.saved_location) {
+      const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+      model.forward_info = `${type}/${peerId}/${data.id?.toString()}/${accessHash}`
+    }
     await model.save()
     return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
@@ -551,12 +555,29 @@ export class Files {
       throw { status: 402, body: { error: 'Payment required' } }
     }
 
+    let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    if (req.user.settings?.saved_location) {
+      const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+      if (type === 'channel') {
+        peer = new Api.InputPeerChannel({
+          channelId: bigInt(peerId),
+          accessHash: accessHash ? bigInt(accessHash as string) : null })
+      } else if (type === 'user') {
+        peer = new Api.InputPeerUser({
+          userId: bigInt(peerId),
+          accessHash: bigInt(accessHash as string) })
+      } else if (type === 'chat') {
+        peer = new Api.InputPeerChat({
+          chatId: bigInt(peerId) })
+      }
+    }
+
     let files = []
     let found = true
     let offsetId: number
     while (files.length < (Number(limit) || 10) && found) {
       const messages = await req.tg.invoke(new Api.messages.GetHistory({
-        peer: 'me',
+        peer: peer || 'me',
         limit: Number(limit) || 10,
         offsetId: offsetId || 0,
       }))
