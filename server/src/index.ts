@@ -1,6 +1,7 @@
 import 'source-map-support/register'
 require('dotenv').config({ path: '.env' })
 
+import axios from 'axios'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import compression from 'compression'
@@ -125,8 +126,17 @@ app.use('/api', (req, res, next) => {
 
 // error handler
 app.use(Sentry.Handlers.errorHandler())
-app.use((err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
+app.use(async (err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
   console.error(err)
+  try {
+    await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+      chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
+      parse_mode: 'Markdown',
+      text: `🔥 *${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}*\n\n\`\`\`\n${JSON.stringify(serializeError(err), null, 2)}\n\`\`\``
+    })
+  } catch (error) {
+    // ignore
+  }
   return res.status(err.status || 500).send(err.body || { error: 'Something error', details: serializeError(err) })
 })
 
