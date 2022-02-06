@@ -1,21 +1,9 @@
 import {
   ArrowLeftOutlined,
-  BugOutlined,
-  CrownOutlined,
-  FrownOutlined,
-  InfoOutlined,
+  BugOutlined, CloudUploadOutlined, CrownOutlined, DeleteOutlined, DownloadOutlined, ExpandAltOutlined, FrownOutlined, GlobalOutlined, InfoOutlined,
   LogoutOutlined,
-  MobileOutlined,
-  ReloadOutlined,
-  WarningOutlined,
-  ExpandAltOutlined,
-  GlobalOutlined,
-  DeleteOutlined,
-  MonitorOutlined,
-  SkinOutlined,
-  SyncOutlined,
-  DownloadOutlined,
-  CloudUploadOutlined
+  MobileOutlined, MonitorOutlined, ReloadOutlined, SkinOutlined,
+  SyncOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
   Avatar,
@@ -42,8 +30,8 @@ import React, { useEffect, useState } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router-dom'
 import useSWR from 'swr'
-import useSWRImmutable from 'swr/immutable'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
+import { VERSION } from '../utils/Constant'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
 
 interface Props {
@@ -65,7 +53,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [dc, setDc] = useState<string>()
   const [formRemoval] = useForm()
-  const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
   const { currentTheme } = useThemeSwitcher()
   const { data: dialogs } = useSWR('/dialogs?limit=50&offset=0', fetcher)
 
@@ -209,7 +196,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </Button>
               </Typography.Paragraph>
               <Typography.Paragraph style={{ textAlign: 'center' }} type="secondary">
-                v{respVersion?.version}
+                v{VERSION}
               </Typography.Paragraph>
             </Col>
           </Row>]}>
