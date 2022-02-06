@@ -65,6 +65,8 @@ services:
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
   migration:
     command: yarn server typeorm schema:sync
     container_name: migration
