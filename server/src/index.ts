@@ -20,8 +20,6 @@ import path from 'path'
 import { Pool } from 'pg'
 import { RateLimiterPostgres } from 'rate-limiter-flexible'
 import { serializeError } from 'serialize-error'
-import * as Sentry from '@sentry/node'
-import * as Tracing from '@sentry/tracing'
 import { API } from './api'
 import { runDB } from './model'
 import { Redis } from './service/Cache'
@@ -56,26 +54,6 @@ Redis.connect()
 runDB()
 
 const app = express()
-Sentry.init({
-  dsn: 'https://9b19fe16a45741798b87cfd3833822b2@o1062116.ingest.sentry.io/6052883',
-  integrations: [
-    // enable HTTP calls tracing
-    new Sentry.Integrations.Http({ tracing: true }),
-    // enable Express.js middleware tracing
-    new Tracing.Integrations.Express({ app }),
-  ],
-
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  // We recommend adjusting this value in production
-  tracesSampleRate: 1.0,
-})
-
-// RequestHandler creates a separate execution context using domains, so that every
-// transaction/span/breadcrumb is attached to its own Hub instance
-app.use(Sentry.Handlers.requestHandler())
-// TracingHandler creates a trace for every incoming request
-app.use(Sentry.Handlers.tracingHandler())
 
 app.set('trust proxy', 1)
 
@@ -125,17 +103,18 @@ app.use('/api', (req, res, next) => {
 }, API)
 
 // error handler
-app.use(Sentry.Handlers.errorHandler())
 app.use(async (err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
   console.error(err)
-  try {
-    await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
-      chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
-      parse_mode: 'Markdown',
-      text: `🔥 *${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}*\n\n\`\`\`\n${JSON.stringify(serializeError(err), null, 2)}\n\`\`\``
-    })
-  } catch (error) {
-    // ignore
+  if (!err.body) {
+    try {
+      await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+        chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
+        parse_mode: 'Markdown',
+        text: `🔥 *${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}*\n\n\`\`\`\n${JSON.stringify(serializeError(err), null, 2)}\n\`\`\``
+      })
+    } catch (error) {
+      // ignore
+    }
   }
   return res.status(err.status || 500).send(err.body || { error: 'Something error', details: serializeError(err) })
 })
