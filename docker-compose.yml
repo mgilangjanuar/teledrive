@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  server:
+    container_name: server
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONTEXT: server
+        NPM_TOKEN: ${NPM_TOKEN}
+    ports:
+      - '8080:80'
+  web:
+    container_name: web
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONTEXT: web
+        NPM_TOKEN: ${NPM_TOKEN}
+    ports:
+      - '8082:80'
