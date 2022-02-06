@@ -9,16 +9,24 @@ export const req = axios.create({
 })
 
 req.interceptors.response.use(response => {
-  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), {
-    date: new Date().toISOString(), ref: location.href, ...response
-  }]
-  sessionStorage.setItem('requests', JSON.stringify(requests.slice(-1_000)))
+  try {
+    const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), {
+      date: new Date().toISOString(), ref: location.href, ...response
+    }]
+    sessionStorage.setItem('requests', JSON.stringify(requests.slice(-200)))
+  } catch (error) {
+    // ignore
+  }
   return response
 }, async error => {
-  const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), {
-    date: new Date().toISOString(), ref: location.href, ...error
-  }]
-  sessionStorage.setItem('requests', JSON.stringify(requests.slice(-1_000)))
+  try {
+    const requests = [...JSON.parse(sessionStorage.getItem('requests') || '[]'), {
+      date: new Date().toISOString(), ref: location.href, ...error
+    }]
+    sessionStorage.setItem('requests', JSON.stringify(requests.slice(-200)))
+  } catch (error) {
+    // ignore
+  }
 
   if (!error.response) {
     throw error
