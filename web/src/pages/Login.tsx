@@ -261,10 +261,10 @@ const Login: React.FC<Props> = ({ me }) => {
               setQrCode({ ...qrCode, session: response.data.details.session })
               setNeedPassword(true)
             } else {
-              notification.error({
-                message: 'Error',
-                description: response?.data?.error || 'Something error'
-              })
+              // notification.error({
+              //   message: 'Error',
+              //   description: response?.data?.error || 'Something error'
+              // })
             }
           })
         }
