@@ -105,11 +105,12 @@ html, body {
   padding: 0 !important;
 }
 
-.ant-form-item .change-server.ant-select {
-  width: max-content !important;
+.ant-form-item .ghost.ant-select {
+  width: 149px !important;
+  text-align: right !important;
 }
 
-.change-server.ant-select .ant-select-selector {
+.ghost.ant-select .ant-select-selector {
   border: none !important;
   box-shadow: none !important;
 }

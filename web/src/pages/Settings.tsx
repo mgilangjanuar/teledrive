@@ -1,20 +1,9 @@
 import {
   ArrowLeftOutlined,
-  BugOutlined,
-  CrownOutlined,
-  FrownOutlined,
-  InfoOutlined,
+  BugOutlined, CloudUploadOutlined, CrownOutlined, DeleteOutlined, DownloadOutlined, ExpandAltOutlined, FrownOutlined, GlobalOutlined, InfoOutlined,
   LogoutOutlined,
-  MobileOutlined,
-  ReloadOutlined,
-  WarningOutlined,
-  ExpandAltOutlined,
-  GlobalOutlined,
-  DeleteOutlined,
-  MonitorOutlined,
-  SkinOutlined,
-  SyncOutlined,
-  DownloadOutlined
+  MobileOutlined, MonitorOutlined, ReloadOutlined, SkinOutlined,
+  SyncOutlined, WarningOutlined
 } from '@ant-design/icons'
 import {
   Avatar,
@@ -40,8 +29,9 @@ import pwaInstallHandler from 'pwa-install-handler'
 import React, { useEffect, useState } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router-dom'
-import useSWRImmutable from 'swr/immutable'
+import useSWR from 'swr'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
+import { VERSION } from '../utils/Constant'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
 
 interface Props {
@@ -63,8 +53,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [pwa, setPwa] = useState<{ canInstall: boolean, install: () => Promise<boolean> }>()
   const [dc, setDc] = useState<string>()
   const [formRemoval] = useForm()
-  const { data: respVersion } = useSWRImmutable('/utils/version', fetcher)
   const { currentTheme } = useThemeSwitcher()
+  const { data: dialogs } = useSWR('/dialogs?limit=50&offset=0', fetcher)
 
   const save = async (settings: any): Promise<void> => {
     try {
@@ -177,6 +167,11 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
   const emailLink = () => `mailto:bug@teledriveapp.com?subject=TeleDrive%20-%20Bug%20Report&body=User%3A%20${decodeURIComponent(me?.user.username)}%0D%0AOrigin%3A%20${decodeURIComponent(window.location.origin)}%0D%0ADevice%3A%20${decodeURIComponent(navigator.userAgent)}%0D%0AProblem%3A%20%3CPlease%20describe%20your%20problem%20here%3E%0D%0AExpectation%3A%20%3CPlease%20describe%20your%20expectation%20here%3E`
 
+  const buildPathDialog = (dialog: any) => {
+    const peerType = dialog.isUser ? 'user' : dialog.isChannel ? 'channel' : 'chat'
+    return `${peerType}/${dialog.entity?.id}/_${dialog.entity?.accessHash ? `/${dialog.entity?.accessHash}` : ''}`
+  }
+
   return <>
     <Layout.Content>
       <Row style={{ margin: '50px 12px 100px' }}>
@@ -201,7 +196,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </Button>
               </Typography.Paragraph>
               <Typography.Paragraph style={{ textAlign: 'center' }} type="secondary">
-                v{respVersion?.version}
+                v{VERSION}
               </Typography.Paragraph>
             </Col>
           </Row>]}>
@@ -230,6 +225,19 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
               </List>
 
               <List header="Operational">
+                {dialogs?.dialogs && <List.Item key="saved-location" actions={[<Form.Item name="saved_location">
+                  <Select className="saved-location ghost" showSearch
+                    filterOption={(input, option: any) => !option.children.toLowerCase().indexOf(input.toLowerCase())}
+                    defaultValue={me?.user.settings?.saved_location || 'me'}
+                    value={me?.user.settings?.saved_location || 'me'}
+                    onChange={saved_location => save({ saved_location: saved_location === 'me' ? null : saved_location })}>
+                    <Select.Option key="me" value="me">Saved Messages</Select.Option>
+                    {dialogs?.dialogs.filter((d: any) => d.entity.id != me?.user.tg_id).map((dialog: any) => <Select.Option key={dialog.entity.id} value={buildPathDialog(dialog)}>{dialog.title}</Select.Option>)}
+                  </Select>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><CloudUploadOutlined /><>Saved Location</></Space>} description="Select where to save files" />
+                </List.Item>}
+
                 <List.Item key="check-for-updates" actions={[<Form.Item>
                   <Button shape="round" icon={<ReloadOutlined />} onClick={() => {
                     serviceWorkerRegistration.unregister();
@@ -248,7 +256,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
               <List header="Danger Zone">
                 <List.Item key="change-server" actions={[<Form.Item name="change_server">
-                  {dc && <Select className="change-server" defaultValue={dc} value={dc} onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
+                  {dc && <Select className="change-server ghost" defaultValue={dc} value={dc} onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
                     <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
                     <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
                     <Select.Option value="us">&#127482;&#127480; New York</Select.Option>

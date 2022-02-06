@@ -437,6 +437,7 @@ export class Files {
       model.parent_id = currentParentId || null
       model.upload_progress = 0
       model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
+      model.forward_info = req.user.settings.saved_location
       await model.save()
     }
 
@@ -472,19 +473,37 @@ export class Files {
     }
 
     // begin to send
-    const sendData = async (forceDocument: boolean) => await req.tg.sendFile('me', {
-      file: new Api.InputFileBig({
-        id: bigInt(model.file_id),
-        parts: Number(totalPart),
-        name: model.name
-      }),
-      forceDocument,
-      fileSize: Number(model.size),
-      attributes: forceDocument ? [
-        new Api.DocumentAttributeFilename({ fileName: model.name })
-      ] : undefined,
-      workers: 1
-    })
+    const sendData = async (forceDocument: boolean) => {
+      let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+      if (req.user.settings.saved_location) {
+        const [type, peerId, _, accessHash] = req.user.settings.saved_location.split('/')
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: accessHash ? bigInt(accessHash as string) : null })
+        } else if (type === 'user') {
+          peer = new Api.InputPeerUser({
+            userId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peer = new Api.InputPeerChat({
+            chatId: bigInt(peerId) })
+        }
+      }
+      return await req.tg.sendFile(peer || 'me', {
+        file: new Api.InputFileBig({
+          id: bigInt(model.file_id),
+          parts: Number(totalPart),
+          name: model.name
+        }),
+        forceDocument,
+        fileSize: Number(model.size),
+        attributes: forceDocument ? [
+          new Api.DocumentAttributeFilename({ fileName: model.name })
+        ] : undefined,
+        workers: 1
+      })
+    }
 
     let data: Api.Message
     try {
