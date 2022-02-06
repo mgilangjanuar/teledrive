@@ -1,0 +1,86 @@
+version: '3'
+
+services:
+  traefik:
+    image: traefik:v2.6
+    command:
+      - --log.level=INFO
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --providers.docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      traefik.http.routers.dash.rule: Host(`dash.localhost`)
+      traefik.http.routers.dash.service: api@internal
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+      - web
+  server:
+    command: yarn server start
+    labels:
+      traefik.http.routers.server.rule: Host(`server.localhost`)
+      traefik.port: 4000
+    expose:
+      - 4000
+    container_name: server
+    build:
+      context: ../.
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONTEXT: server
+        NPM_TOKEN: ${NPM_TOKEN}
+    environment:
+      DB_NAME: postgres
+      DB_HOST: db
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_URI: redis://cache
+    depends_on:
+      - db
+      - redis
+  web:
+    command: yarn web start
+    labels:
+      traefik.http.routers.web.rule: Host(`web.localhost`)
+      traefik.port: 3000
+    expose:
+      - 3000
+    container_name: web
+    build:
+      context: ../.
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONTEXT: web
+        NPM_TOKEN: ${NPM_TOKEN}
+    environment:
+      REACT_APP_API_URL: http://server.localhost
+    depends_on:
+      - server
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+  migration:
+    command: yarn server typeorm schema:sync
+    container_name: migration
+    build:
+      context: ../.
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONTEXT: server
+        NPM_TOKEN: ${NPM_TOKEN}
+    environment:
+      DB_NAME: postgres
+      DB_HOST: db
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+  cache:
+    image: redis:6
+    restart: always
