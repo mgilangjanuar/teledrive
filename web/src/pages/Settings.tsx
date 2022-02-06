@@ -67,7 +67,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [form] = useForm()
   const [formRemoval] = useForm()
   const { currentTheme } = useThemeSwitcher()
-  const { data: dialogs } = useSWR('/dialogs?limit=100&offset=0', fetcher)
+  const { data: dialogs } = useSWR('/dialogs?limit=75&offset=0', fetcher)
 
   const save = async (settings: any): Promise<void> => {
     try {
