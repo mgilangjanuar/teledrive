@@ -89,7 +89,8 @@ export class Users {
     if (reason) {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_OWNER_ID,
-        text: `😭 ${req.user.name} (@${req.user.username}) removed their account.\n\nReason: ${reason}`
+        parse_mode: 'Markdown',
+        text: `😭 ${req.user.name} (@${req.user.username}) removed their account.\n\nReason: ${reason}\n\nfrom: \`${req.headers['cf-connecting-ip'] as string || req.ip}\`\ndomain: \`${req.headers['authority'] || req.headers.origin}\`${req.user ? `\nplan: ${req.user.plan}${req.user.subscription_id ? `\npaypal: ${req.user.subscription_id}` : ''}${req.user.midtrans_id ? `\nmidtrans: ${req.user.midtrans_id}` : ''}` : ''}`
       })
     }
     await Files.delete({ user_id: req.user.id })

@@ -49,7 +49,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
       throw { status: 401, body: { error: 'User not found' } }
     }
     return [userAuth, user]
-  }, 3600)
+  }, 54000)
 
   req.user = user
   req.userAuth = userAuth
@@ -97,7 +97,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
         throw { status: 401, body: { error: 'User not found' } }
       }
       return [userAuth, user]
-    }, 3600)
+    }, 54000)
 
     req.user = user
     req.userAuth = userAuth
