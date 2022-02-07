@@ -156,8 +156,8 @@ const Home: React.FC<Props> = ({ me }) => {
         <Col span={20} offset={2}>
           <Row gutter={72}>
             <Col lg={12} span={24} style={{ textAlign: 'right', marginBottom: '30px' }}>
-              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Collaborators</Typography.Title>
-              <Typography.Paragraph style={{ marginBottom: '20px' }}>
+              <Typography.Title level={3} style={{ marginBottom: '30px' }}>Collaborators</Typography.Title>
+              <Typography.Paragraph>
                 <Space wrap>
                   {data?.contributors?.map((contributor: any) => <Tooltip placement="bottom" title={contributor.login} key={contributor.id}>
                     <a href={contributor.html_url} target="_blank">
@@ -172,9 +172,13 @@ const Home: React.FC<Props> = ({ me }) => {
                   <GitHubButton href="https://github.com/mgilangjanuar/teledrive" data-size="large" data-show-count="true" aria-label="Star mgilangjanuar/teledrive on GitHub">Star</GitHubButton>
                 </Space>
               </Typography.Paragraph>
+              <Typography.Title level={3} style={{ marginBottom: '20px' }}>Financial Contributors</Typography.Title>
+              <Typography.Paragraph style={{ marginBottom: '15px' }}>
+                <object type="image/svg+xml" data="https://opencollective.com/teledrive/tiers/backer.svg"></object>
+              </Typography.Paragraph>
             </Col>
             <Col lg={12} span={24} style={{ textAlign: 'left', marginBottom: '30px' }}>
-              <Typography.Title level={2} style={{ marginBottom: '30px' }}>Our Sponsor</Typography.Title>
+              <Typography.Title level={3} style={{ marginBottom: '30px' }}>Sponsor</Typography.Title>
               <Typography.Paragraph style={{ marginBottom: '20px' }}>
                 <Space wrap size={30}>
                   <Tooltip placement="bottom" title="Bahasa.ai - Chatbot Which Serves Customers Fully" key="bahasa-ai">
