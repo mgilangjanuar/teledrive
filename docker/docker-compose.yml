@@ -80,6 +80,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - db
-  cache:
+  redis:
     image: redis:6
     restart: always
