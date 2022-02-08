@@ -13,6 +13,7 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
 
 - node ^14
 - psql ^13
+- redis ^5
 - yarn
 
 ## Getting Started
