@@ -16,12 +16,11 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - server
-      - web
-  server:
+      - app
+  app:
     command: yarn server start
     labels:
-      traefik.http.routers.server.rule: Host(`server.localhost`)
+      traefik.http.routers.server.rule: Host(`teledrive.localhost`)
       traefik.port: 4000
     expose:
       - 4000
@@ -29,7 +28,6 @@ services:
       context: ../.
       dockerfile: Dockerfile
       args:
-        BUILD_CONTEXT: server
         NPM_TOKEN: ${NPM_TOKEN}
     environment:
       DB_NAME: postgres
@@ -39,24 +37,7 @@ services:
       REDIS_URI: redis://cache
     depends_on:
       - db
-      - redis
-  web:
-    command: yarn web start
-    labels:
-      traefik.http.routers.web.rule: Host(`web.localhost`)
-      traefik.port: 3000
-    expose:
-      - 3000
-    build:
-      context: ../.
-      dockerfile: Dockerfile
-      args:
-        BUILD_CONTEXT: web
-        NPM_TOKEN: ${NPM_TOKEN}
-    environment:
-      REACT_APP_API_URL: http://server.localhost
-    depends_on:
-      - server
+      - cache
   db:
     image: postgres:13
     restart: always
@@ -65,21 +46,20 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
-  migration:
-    command: yarn server typeorm schema:sync
-    build:
-      context: ../.
-      dockerfile: Dockerfile
-      args:
-        BUILD_CONTEXT: server
-        NPM_TOKEN: ${NPM_TOKEN}
-    environment:
-      DB_NAME: postgres
-      DB_HOST: db
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-    depends_on:
-      - db
-  redis:
+  # migration:
+  #   command: yarn server typeorm schema:sync
+  #   build:
+  #     context: ../.
+  #     dockerfile: Dockerfile
+  #     args:
+  #       NPM_TOKEN: ${NPM_TOKEN}
+  #   environment:
+  #     DB_NAME: postgres
+  #     DB_HOST: db
+  #     DB_USERNAME: ${DB_USERNAME}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #   depends_on:
+  #     - db
+  cache:
     image: redis:6
     restart: always
