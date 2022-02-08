@@ -34,7 +34,11 @@ req.interceptors.response.use(response => {
 
   const { config, response: { status, data } } = error
   if (status === 401 && data?.details?.errorMessage !== 'SESSION_PASSWORD_NEEDED') {
-    await req.post('/auth/refreshToken')
+    try {
+      await req.post('/auth/refreshToken')
+    } catch (_error) {
+      throw error
+    }
     return await req(config)
   } else if (status === 429) {
     await new Promise(res => setTimeout(res, data.retryAfter || 1000))

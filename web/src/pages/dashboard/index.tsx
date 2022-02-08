@@ -334,13 +334,14 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
                 onCancel={file => setSelectDeleted([file])}
                 parent={parent}
                 dataFileList={[fileList, setFileList]}
-              /> : <Alert
+              /> : !sessionStorage.getItem('hide-shared-warning') && <Alert
                 message={<>
                   These are all files that other users share with you. If you find any suspicious, spam, or etc, please <Link to="/contact?intent=report">report it to us</Link>.
                 </>}
                 type="warning"
                 showIcon
-                closable/>}
+                onClose={() => sessionStorage.setItem('hide-shared-warning', 'true')}
+                closable />}
             </Typography.Paragraph>
             <Typography.Paragraph style={{ float: 'left' }}>
               <Breadcrumb dataSource={[breadcrumbs, setBreadcrumbs]} dataParent={[parent, setParent]} />

@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  traefik:
+    image: traefik:v2.6
+    command:
+      - --log.level=INFO
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --providers.docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      traefik.http.routers.dash.rule: Host(`dash.localhost`)
+      traefik.http.routers.dash.service: api@internal
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+  app:
+    command: yarn server start
+    labels:
+      traefik.http.routers.server.rule: Host(`teledrive.localhost`)
+      traefik.port: 4000
+    expose:
+      - 4000
+    build:
+      context: ../.
+      dockerfile: Dockerfile
+      args:
+        NPM_TOKEN: ${NPM_TOKEN}
+    environment:
+      DB_NAME: postgres
+      DB_HOST: db
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_URI: redis://cache
+    depends_on:
+      - db
+      - cache
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+  # migration:
+  #   command: yarn server typeorm schema:sync
+  #   build:
+  #     context: ../.
+  #     dockerfile: Dockerfile
+  #     args:
+  #       NPM_TOKEN: ${NPM_TOKEN}
+  #   environment:
+  #     DB_NAME: postgres
+  #     DB_HOST: db
+  #     DB_USERNAME: ${DB_USERNAME}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #   depends_on:
+  #     - db
+  cache:
+    image: redis:6
+    restart: always
