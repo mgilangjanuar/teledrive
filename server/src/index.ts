@@ -110,7 +110,7 @@ app.use(async (err: { status?: number, body?: Record<string, any> }, req: Reques
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
         parse_mode: 'HTML',
-        text: `🔥 <b>${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}</b>\n\n<code>${req.protocol + '://' + req.get('host') + req.originalUrl}</code>\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>`
+        text: `🔥 <b>[${err.status || 500}] ${err.body.error  || (err as any).message || 'Unknown error'}</b>\n\n<code>${req.protocol + '://' + req.get('host') + req.originalUrl}</code>\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>`
       })
     } catch (error) {
       console.error(error)
