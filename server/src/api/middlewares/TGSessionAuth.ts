@@ -1,4 +1,5 @@
-import { TelegramClient } from '@mgilangjanuar/telegram'
+import { Logger, TelegramClient } from '@mgilangjanuar/telegram'
+import { LogLevel } from '@mgilangjanuar/telegram/extensions/Logger'
 import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
@@ -19,7 +20,11 @@ export async function TGSessionAuth(req: Request, _: Response, next: NextFunctio
 
   try {
     const session = new StringSession(data.session)
-    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
+    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, {
+      connectionRetries: CONNECTION_RETRIES,
+      useWSS: false,
+      baseLogger: new Logger(LogLevel.NONE)
+    })
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }
   }

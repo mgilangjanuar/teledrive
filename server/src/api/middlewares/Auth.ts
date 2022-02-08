@@ -1,4 +1,5 @@
-import { TelegramClient } from '@mgilangjanuar/telegram'
+import { Logger, TelegramClient } from '@mgilangjanuar/telegram'
+import { LogLevel } from '@mgilangjanuar/telegram/extensions/Logger'
 import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
@@ -21,7 +22,11 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
 
   try {
     const session = new StringSession(data.session)
-    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
+    req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, {
+      connectionRetries: CONNECTION_RETRIES,
+      useWSS: false,
+      baseLogger: new Logger(LogLevel.NONE)
+    })
   } catch (error) {
     throw { status: 401, body: { error: 'Invalid key' } }
   }
@@ -69,7 +74,11 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
 
     try {
       const session = new StringSession(data.session)
-      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
+      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, {
+        connectionRetries: CONNECTION_RETRIES,
+        useWSS: false,
+        baseLogger: new Logger(LogLevel.NONE)
+      })
     } catch (error) {
       throw { status: 401, body: { error: 'Invalid key' } }
     }
