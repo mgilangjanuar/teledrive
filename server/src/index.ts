@@ -109,10 +109,11 @@ app.use(async (err: { status?: number, body?: Record<string, any> }, _: Request,
     try {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
-        parse_mode: 'Markdown',
-        text: `🔥 *${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}*\n\n\`\`\`\n${JSON.stringify(serializeError(err), null, 2)}\n\`\`\``
+        parse_mode: 'HTML',
+        text: `🔥 *${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}*\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>`
       })
     } catch (error) {
+      console.error(error)
       // ignore
     }
   }
