@@ -111,7 +111,7 @@ app.use('/api', (req, res, next) => {
 // error handler
 app.use(async (err: { status?: number, body?: Record<string, any> }, req: Request, res: Response, __: NextFunction) => {
   console.error(err)
-  if ((err.status || 500) >= 100) {
+  if ((err.status || 500) >= 500) {
     try {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
