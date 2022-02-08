@@ -19,15 +19,20 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
 
 - [Create Telegram application](https://core.telegram.org/api/obtaining_api_id)
 - Create a Telegram bot for forwarding messages from the contact form to your Telegram with [BotFather](https://t.me/botfather)
-- Install the PostgreSQL as a database and sync the schema
+- Install [Redis](https://redis.io/)
+- Install the [PostgreSQL](https://www.postgresql.org/) as a database and sync the schema
 
   ```bash
   yarn server typeorm schema:sync
   ```
 
-## Installation
+  or, with dump.sql:
 
-- Define .env in `./server/.env` from `./server/.env-example` and `./web/.env` from `./web/.env-example`
+  ```bash
+  psql db_name < ./server/src/model/migrations/dump.sql
+  ```
+
+- Setup environment variables
 
   - Server variables
 
@@ -59,6 +64,22 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
     | ----------------- | -------- | -------------------------------------------------- |
     | REACT_APP_API_URL | no       | Base URL for the API, default: `''` (empty string) |
 
+## Installation
+
+### Docker
+
+- Define environment variables in `./docker/.env`
+- Run
+
+  ```bash
+  docker-compose -f docker/docker-compose.yml up -d
+  ```
+- Open `teledrive.localhost` in browser
+
+### Manual
+
+- Define environment variables in `./server/.env` and `./web/.env`
+
 - Create .npmrc in `~/.npmrc`
   and add your GitHub personal token
 
@@ -87,6 +108,8 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
   yarn server node .
   ```
 
+- Open `localhost:4000` *(default port: 4000)*
+
 Or, if you want to run in the local environment:
 
 - Build server
@@ -106,6 +129,9 @@ Or, if you want to run in the local environment:
   ```bash
   # Define the REACT_APP_API_URL in web/.env first, then
   yarn web start
+
+  # Or, directly define the env
+  REACT_APP_API_URL=http://localhost:4000 yarn web start
   ```
 
 ## API Documentation
