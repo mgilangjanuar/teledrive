@@ -9,7 +9,7 @@ export async function TGClient(req: Request, _: Response, next: NextFunction): P
   req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, {
     connectionRetries: CONNECTION_RETRIES,
     useWSS: false,
-    baseLogger: new Logger(LogLevel.NONE)
+    ...process.env.ENV === 'production' ? { baseLogger: new Logger(LogLevel.NONE) } : {}
   })
   return next()
 }

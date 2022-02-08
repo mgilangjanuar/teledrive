@@ -15,6 +15,7 @@ import express, {
   urlencoded
 } from 'express'
 import listEndpoints from 'express-list-endpoints'
+import morgan from 'morgan'
 import path from 'path'
 import { Pool } from 'pg'
 import { RateLimiterPostgres } from 'rate-limiter-flexible'
@@ -67,7 +68,9 @@ app.use(json())
 app.use(urlencoded({ extended: true }))
 app.use(raw())
 app.use(cookieParser())
-// app.use(morgan('tiny'))
+if (process.env.ENV !== 'production') {
+  app.use(morgan('tiny'))
+}
 // app.use((req, _, next) => {
 //   req['ip'] = req.headers['cf-connecting-ip'] as string || req.ip
 //   return next()

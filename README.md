@@ -39,6 +39,7 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
 
     | env                    | required | description                                           |
     | ---------------------- | -------- | -------------------------------------------           |
+    | ENV                    | no       | Hide the logs for production, default: develop        |
     | RPS                    | no       | Rate limit API per second, default: 20                |
     | TG_API_ID              | yes      | Application ID from your Telegram App                 |
     | TG_API_HASH            | yes      | Application hash from Telegram App                    |
