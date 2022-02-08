@@ -46,7 +46,7 @@ export const runDB = async (): Promise<void> => {
     } : false,
     schema: 'public',
     synchronize: false,
-    logging: true,
+    logging: process.env.ENV !== 'production',
     entities: [`${__dirname}/entities/*.js`],
     subscribers: [`${__dirname}/subscriber/*.js`],
     migrations: [

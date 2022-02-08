@@ -5,6 +5,7 @@ import axios from 'axios'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import compression from 'compression'
+import { cURL } from 'curly-express'
 import express, {
   json,
   NextFunction,
@@ -53,6 +54,8 @@ import { Redis } from './service/Cache'
 Redis.connect()
 runDB()
 
+const curl = cURL({ attach: true })
+
 const app = express()
 
 app.set('trust proxy', 1)
@@ -68,7 +71,10 @@ app.use(json())
 app.use(urlencoded({ extended: true }))
 app.use(raw())
 app.use(cookieParser())
-app.use(morgan('tiny'))
+if (process.env.ENV !== 'production') {
+  app.use(morgan('tiny'))
+}
+app.use(curl)
 // app.use((req, _, next) => {
 //   req['ip'] = req.headers['cf-connecting-ip'] as string || req.ip
 //   return next()
@@ -110,7 +116,7 @@ app.use(async (err: { status?: number, body?: Record<string, any> }, req: Reques
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
         parse_mode: 'HTML',
-        text: `🔥 <b>${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}</b>\n\n${req.protocol + '://' + req.get('host') + req.originalUrl}\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>`
+        text: `🔥 <b>${err.body.error  || (err as any).message || 'Unknown error'}</b>\n\n<code>[${err.status || 500}] ${req.protocol + '://' + req.get('host') + req.originalUrl}</code>\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>\n\n<pre>${req['_curl']}</pre>`
       })
     } catch (error) {
       console.error(error)
