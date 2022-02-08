@@ -103,14 +103,14 @@ app.use('/api', (req, res, next) => {
 }, API)
 
 // error handler
-app.use(async (err: { status?: number, body?: Record<string, any> }, _: Request, res: Response, __: NextFunction) => {
+app.use(async (err: { status?: number, body?: Record<string, any> }, req: Request, res: Response, __: NextFunction) => {
   console.error(err)
   if ((err.status || 500) >= 500) {
     try {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
         parse_mode: 'HTML',
-        text: `🔥 *${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}*\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>`
+        text: `🔥 <b>${err.body.error  || (err as any).message || `Status: ${err.status || 500}`}</b>\n\n${req.protocol + '://' + req.get('host') + req.originalUrl}\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>`
       })
     } catch (error) {
       console.error(error)

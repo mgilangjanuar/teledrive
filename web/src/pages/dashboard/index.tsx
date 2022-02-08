@@ -320,7 +320,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
           history.push(`${window.location.pathname}?${searchParams.toString()}`)
         }
       }}>
-        <Row style={{ minHeight: '90vh', marginBottom: '100px', padding: '0 12px' }}>
+        <Row style={{ minHeight: '96vh', marginBottom: '100px', padding: '0 12px' }}>
           <Col xxl={{ span: 14, offset: 5 }} xl={{ span: 16, offset: 4 }} lg={{ span: 18, offset: 3 }} md={{ span: 20, offset: 2 }} span={24}>
             <Typography.Paragraph>
               <Menu mode="horizontal" selectedKeys={[params?.shared ? 'shared' : 'mine']} onClick={({ key }) => changeTab(key)}>
