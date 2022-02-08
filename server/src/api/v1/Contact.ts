@@ -12,7 +12,7 @@ export class Contact {
     const user = await Users.createQueryBuilder('users').select(['users.subscription_id', 'users.midtrans_id', 'users.plan']).where({ username: from }).getOne()
     await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
       chat_id: process.env.TG_BOT_OWNER_ID,
-      text: `🛎 @${from} wants to contact you!\n\n${message}\n\nfrom: <code>${req.headers['cf-connecting-ip'] as string || req.ip}</code>\nemail: <code>${email}</code>\ndomain: <code>${req.headers['authority'] || req.headers.origin}</code>${user ? `\nplan: ${user.plan}${user.subscription_id ? `\npaypal: ${user.subscription_id}` : ''}${user.midtrans_id ? `\nmidtrans: ${user.midtrans_id}` : ''}` : ''}`,
+      text: `🛎 @${from} wants to contact you!\n\n${message}\n\nfrom: <code>${req.headers['cf-connecting-ip'] as string || req.ip}</code>\nemail: <code>${email}</code>\ndomain: <code>${req.headers['authority'] || req.headers.origin}</code>${user ? `\nplan: ${user?.plan}${user?.subscription_id ? `\npaypal: ${user?.subscription_id}` : ''}${user?.midtrans_id ? `\nmidtrans: ${user?.midtrans_id}` : ''}` : ''}`,
       parse_mode: 'HTML'
     })
     return res.send({ success: true })
