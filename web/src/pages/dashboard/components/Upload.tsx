@@ -35,17 +35,18 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     window.onbeforeunload = () => {
       return 'Are you sure you want to leave?'
     }
-    if (isDirectory) {
-      await new Promise(res => setTimeout(res, 3000))
-    }
+    notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
+    await new Promise(res => setTimeout(res, 3000))
 
     const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
     let deleted = false
 
     try {
-      if (file.webkitRelativePath) {
-        await new Promise(res => setTimeout(res, 2000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid) + 1))
-      }
+      // while (filesWantToUpload.current.filter(f => f.status !== 'done').length < 10) {
+      //   await new Promise(res => setTimeout(res, 500))
+      // }
+      await new Promise(res => setTimeout(res, 4000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid) + 1))
+      // console.log('filesWantToUpload', filesWantToUpload.current)
 
       const responses: any[] = []
       let totalParts: number = 0
@@ -129,6 +130,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           description: `File ${file.name} uploaded successfully`
         })
       }
+      filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       return onSuccess(responses[0], file)
     } catch (error: any) {
       console.error(error)
