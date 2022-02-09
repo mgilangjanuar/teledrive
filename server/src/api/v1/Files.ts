@@ -663,7 +663,10 @@ export class Files {
   public static async download(req: Request, res: Response, files: Model[], onlyHeaders?: boolean): Promise<any> {
     const { raw, dl, thumb } = req.query
 
-    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
+    let usage = await Usages.createQueryBuilder('usages')
+      .where('key = :key', {
+        key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
+      }).getOne()
     if (!usage) {
       usage = new Usages()
       usage.key = req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
