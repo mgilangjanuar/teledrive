@@ -79,7 +79,9 @@ export const Endpoint = {
             req.tg?.connect()
             return await execute()
           }
-          console.error('RequestWrapper', error)
+          if (process.env.ENV !== 'production') {
+            console.error('RequestWrapper', error)
+          }
           req.tg?.disconnect()
           const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
           return next(error.code ? {
@@ -130,7 +132,9 @@ export const Endpoint = {
               req.tg?.connect()
               return await execute()
             }
-            console.error('handler', error.message)
+            if (process.env.ENV !== 'production') {
+              console.error('handler', error.message)
+            }
             req.tg?.disconnect()
             const isValidCode = error.code && Number(error.code) > 99 && Number(error.code) < 599
             return next(error.code ? {

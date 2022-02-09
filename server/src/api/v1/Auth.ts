@@ -154,7 +154,7 @@ export class Auth {
         .cookie('refreshToken', auth.refreshToken, { maxAge: 3.154e+10, expires: new Date(Date.now() + 3.154e+10) })
         .send({ user, ...auth })
     } catch (error) {
-      throw { status: 500, body: { error: error.message || 'Something error', details: serializeError(error) } }
+      throw { status: 400, body: { error: error.message || 'Something error', details: serializeError(error) } }
     }
   }
 

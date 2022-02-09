@@ -774,7 +774,6 @@ export class Files {
     try {
       data = JSON.parse(AES.decrypt(files[0].signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
     } catch (error) {
-      console.error(error)
       throw { status: 401, body: { error: 'Invalid token' } }
     }
 

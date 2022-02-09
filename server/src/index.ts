@@ -24,6 +24,7 @@ import { serializeError } from 'serialize-error'
 import { API } from './api'
 import { runDB } from './model'
 import { Redis } from './service/Cache'
+import { markdownSafe } from './utils/StringParser'
 
 // import bigInt from 'json-bigint'
 // const parse = JSON.parse
@@ -110,16 +111,20 @@ app.use('/api', (req, res, next) => {
 
 // error handler
 app.use(async (err: { status?: number, body?: Record<string, any> }, req: Request, res: Response, __: NextFunction) => {
-  console.error(err)
+  if (process.env.ENV !== 'production') {
+    console.error(err)
+  }
   if ((err.status || 500) >= 500) {
     try {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
-        parse_mode: 'HTML',
-        text: `🔥 <b>${err.body.error  || (err as any).message || 'Unknown error'}</b>\n\n<code>[${err.status || 500}] ${req.protocol + '://' + req.get('host') + req.originalUrl}</code>\n\n<pre>${JSON.stringify(serializeError(err), null, 2)}</pre>\n\n<pre>${req['_curl']}</pre>`
+        parse_mode: 'Markdown',
+        text: `🔥 *${markdownSafe(err.body.error  || (err as any).message || 'Unknown error')}*\n\n\`[${err.status || 500}] ${markdownSafe(req.protocol + '://' + req.get('host') + req.originalUrl)}\`\n\n\`\`\`\n${JSON.stringify(serializeError(err), null, 2)}\n\`\`\`\n\n\`\`\`\n${req['_curl']}\n\`\`\``
       })
     } catch (error) {
-      console.error(error)
+      if (process.env.ENV !== 'production') {
+        console.error(error)
+      }
       // ignore
     }
   }
