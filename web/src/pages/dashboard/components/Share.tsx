@@ -67,7 +67,6 @@ const Share: React.FC<Props> = ({
         isPublic ? '*' : null
       ].filter(sh => isPublic ? sh : sh !== '*').filter(Boolean)) as any
     ] : []
-    console.log(isPublic, sharing, sharingOptions, sharingOpts)
     setSharingOptions(sharing)
 
     try {

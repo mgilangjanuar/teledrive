@@ -672,7 +672,11 @@ export class Files {
       usage.key = req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
       usage.usage = '0'
       usage.expire = moment().add(1, 'day').toDate()
-      await usage.save()
+      try {
+        await usage.save()
+      } catch (error) {
+        // ignore
+      }
     }
 
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
@@ -762,9 +766,9 @@ export class Files {
         }
         res.flush()
       }
-      usage.usage = bigInt(file.size).add(bigInt(usage.usage)).toString()
-      await usage.save()
     }
+    usage.usage = bigInt(totalFileSize).add(bigInt(usage.usage)).toString()
+    await usage.save()
 
     res.end()
   }

@@ -187,7 +187,6 @@ const Login: React.FC<Props> = ({ me }) => {
 
   useEffect(() => {
     if (JSCookie.get('authorization') && me?.user) {
-      console.log(me.user)
       history.replace('/dashboard')
     }
   }, [me])
