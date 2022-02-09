@@ -1,4 +1,5 @@
-import { Api, TelegramClient } from '@mgilangjanuar/telegram'
+import { Api, Logger, TelegramClient } from '@mgilangjanuar/telegram'
+import { LogLevel } from '@mgilangjanuar/telegram/extensions/Logger'
 import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
@@ -9,7 +10,7 @@ import multer from 'multer'
 import { Files as Model } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
 import { Redis } from '../../service/Cache'
-import { PROCESS_RETRY, TG_CREDS } from '../../utils/Constant'
+import { CONNECTION_RETRIES, PROCESS_RETRY, TG_CREDS } from '../../utils/Constant'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -779,7 +780,11 @@ export class Files {
 
     try {
       const session = new StringSession(data.session)
-      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
+      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, {
+        connectionRetries: CONNECTION_RETRIES,
+        useWSS: false,
+        ...process.env.ENV === 'production' ? { baseLogger: new Logger(LogLevel.NONE) } : {}
+      })
     } catch (error) {
       throw { status: 401, body: { error: 'Invalid key' } }
     }

@@ -1,4 +1,5 @@
-import { Api, TelegramClient } from '@mgilangjanuar/telegram'
+import { Api, Logger, TelegramClient } from '@mgilangjanuar/telegram'
+import { LogLevel } from '@mgilangjanuar/telegram/extensions/Logger'
 import { generateRandomBytes } from '@mgilangjanuar/telegram/Helpers'
 import { computeCheck } from '@mgilangjanuar/telegram/Password'
 import { StringSession } from '@mgilangjanuar/telegram/sessions'
@@ -130,7 +131,11 @@ export class Auth {
 
     try {
       const session = new StringSession(data.session)
-      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: 5 })
+      req.tg = new TelegramClient(session, TG_CREDS.apiId, TG_CREDS.apiHash, {
+        connectionRetries: CONNECTION_RETRIES,
+        useWSS: false,
+        ...process.env.ENV === 'production' ? { baseLogger: new Logger(LogLevel.NONE) } : {}
+      })
     } catch (error) {
       throw { status: 400, body: { error: 'Invalid key' } }
     }
@@ -196,7 +201,11 @@ export class Auth {
 
     // handle the 2fa password in the second call
     if (password && sessionString) {
-      req.tg = new TelegramClient(new StringSession(sessionString), TG_CREDS.apiId, TG_CREDS.apiHash, { connectionRetries: CONNECTION_RETRIES, useWSS: false })
+      req.tg = new TelegramClient(new StringSession(sessionString), TG_CREDS.apiId, TG_CREDS.apiHash, {
+        connectionRetries: CONNECTION_RETRIES,
+        useWSS: false,
+        ...process.env.ENV === 'production' ? { baseLogger: new Logger(LogLevel.NONE) } : {}
+      })
       await req.tg.connect()
 
       const passwordData = await req.tg.invoke(new Api.account.GetPassword())
