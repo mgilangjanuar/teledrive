@@ -24,6 +24,8 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import useSWR from 'swr'
 import { apiUrl, fetcher } from '../../../utils/Fetcher'
+import streamSaver from 'streamsaver'
+import { directDownload, download } from '../../../utils/Download'
 
 interface Props {
   files?: any,
@@ -145,7 +147,10 @@ const TableFiles: React.FC<Props> = ({
           {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
             icon={<DownloadOutlined />}
             key="download"
-            onClick={() => location.replace(`${apiUrl}/files/${popup?.row.id}?raw=1&dl=1`)}>Download</Menu.Item> : ''}
+            onClick={async () => {
+              popup?.row && await directDownload(popup?.row.id, popup?.row.name.replace(/\.part0*\d+$/, ''))
+              // location.replace(`${apiUrl}/files/${popup?.row.id}?raw=1&dl=1`)
+            }}>Download</Menu.Item> : ''}
           <Menu.Item {...baseProps}
             icon={<DeleteOutlined />}
             key="delete"

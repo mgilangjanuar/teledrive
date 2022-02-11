@@ -635,6 +635,10 @@ export class Files {
       return res.send({ file: result })
     }
 
+    usage.usage = bigInt(totalFileSize).add(bigInt(usage.usage)).toString()
+    await usage.save()
+    return res.send({ files })
+
     let cancel = false
     req.on('close', () => cancel = true)
     res.setHeader('Cache-Control', 'public, max-age=604800')
