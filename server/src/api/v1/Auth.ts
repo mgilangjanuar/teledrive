@@ -95,6 +95,7 @@ export class Auth {
 
     const session = req.tg.session.save()
     const auth = {
+      session,
       accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
       refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
       expiredAfter: Date.now() + COOKIE_AGE
@@ -150,6 +151,7 @@ export class Auth {
 
       const session = req.tg.session.save()
       const auth = {
+        session,
         accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
         refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
         expiredAfter: Date.now() + COOKIE_AGE
@@ -179,6 +181,7 @@ export class Auth {
 
     const session = req.tg.session.save()
     const auth = {
+      session,
       accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
       refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
       expiredAfter: Date.now() + COOKIE_AGE
@@ -231,6 +234,7 @@ export class Auth {
 
       const session = req.tg.session.save()
       const auth = {
+        session,
         accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
         refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
         expiredAfter: Date.now() + COOKIE_AGE
@@ -264,6 +268,7 @@ export class Auth {
       const buildResponse = (data: Record<string, any> & { user?: { id: string } })=> {
         const session = req.tg.session.save()
         const auth = {
+          session,
           accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
           refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
           expiredAfter: Date.now() + COOKIE_AGE

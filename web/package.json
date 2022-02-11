@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@ideasio/add-to-homescreen-react": "^1.0.10",
+    "@mgilangjanuar/telegram": "2.5.0",
     "antd": "4.18.3",
     "antd-country-phone-input": "^4.2.1",
     "axios": "^0.21.4",
