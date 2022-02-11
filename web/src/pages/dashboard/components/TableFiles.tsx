@@ -23,9 +23,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import useSWR from 'swr'
-import { apiUrl, fetcher } from '../../../utils/Fetcher'
-import streamSaver from 'streamsaver'
-import { directDownload, download } from '../../../utils/Download'
+import { directDownload } from '../../../utils/Download'
+import { fetcher } from '../../../utils/Fetcher'
 
 interface Props {
   files?: any,

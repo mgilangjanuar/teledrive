@@ -20,11 +20,12 @@ import {
 import * as clipboardy from 'clipboardy'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useHistory } from 'react-router'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { useDebounce } from 'use-debounce/lib'
+import { directDownload, download } from '../../../utils/Download'
 import { apiUrl, fetcher } from '../../../utils/Fetcher'
 import Remove from '../../dashboard/components/Remove'
 import Rename from '../../dashboard/components/Rename'
@@ -52,6 +53,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   const [selectShare, setSelectShare] = useState<any>()
   const [fileRename, setFileRename] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
+  const iframe = useRef<any>()
 
   useEffect(() => {
     if (data?.file) {
@@ -102,7 +104,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
     <Layout style={{ minHeight: '100vh', overflow: 'hidden', background: '#2a2a2a', color: 'rgb(251,251,254)' }}>
       <Layout.Content>
         {/* {links?.raw && <DocViewer documents={[{ uri: links?.raw as string }]} /> */}
-        {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : data?.file.type === 'video' ? <video style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} controls>
+        {/* {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : data?.file.type === 'video' ? <video style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} controls>
           <source src={links?.raw} type={data?.file.mime_type} />
           Your browser does not support HTML video.
         </video> : <iframe onLoad={(e: any) => {
@@ -112,7 +114,29 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
           } catch (error) {
             // ignore
           }
-        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> }
+        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> } */}
+        <iframe ref={iframe} onLoad={async (e: any) => {
+          try {
+            e.target.contentWindow.document.body.style.margin = 0
+            e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
+          } catch (error) {
+            // ignore
+          }
+          const reader = (await download(pageParams.id)).getReader()
+          const LOOP = true
+          while (LOOP) {
+            const { done, value } = await reader.read()
+            if (done) break
+            e.target.contentDocument.write(value)
+          }
+          e.target.contentDocument.close()
+
+          // const stream = await download(pageParams.id)
+          // const response = new Response(stream, { headers: { 'Content-Type': data.file.mime_type } })
+          // e.target.contentDocument.write(response)
+          // e.target.contentDocument.close()
+
+        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src='' frameBorder={0}>Browser not compatible.</iframe>
 
       </Layout.Content>
       <Layout.Sider width={320} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
@@ -152,11 +176,11 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
             <Menu.Item key="rename" onClick={() => setFileRename(data?.file)} icon={<EditOutlined />}>Rename</Menu.Item>
             <Menu.Item key="share" onClick={() => setSelectShare({ action: 'share', row: data?.file })} icon={<ShareAltOutlined />}>Share</Menu.Item>
             <Menu.Item key="send" onClick={() => setSelectShare({ action: 'forward', row: data?.file })} icon={<ArrowRightOutlined />}>Send to</Menu.Item>
-            <Menu.Item key="download" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />}>Download</Menu.Item>
+            <Menu.Item key="download" onClick={() => directDownload(data?.file.id, data?.file.name.replace(/\.part0*\d+$/, ''))} icon={<DownloadOutlined />}>Download</Menu.Item>
             <Menu.Item key="remove" danger onClick={() => setSelectDeleted([data?.file])} icon={<DeleteOutlined />}>Delete</Menu.Item>
           </Menu>}>
             <Button shape="circle" icon={<EllipsisOutlined />} />
-          </Dropdown> : <Button shape="circle" onClick={() => location.replace(`${apiUrl}/files/${data?.file.id}?raw=1&dl=1`)} icon={<DownloadOutlined />} />}
+          </Dropdown> : <Button shape="circle" onClick={() => directDownload(data?.file.id, data?.file.name.replace(/\.part0*\d+$/, ''))} icon={<DownloadOutlined />} />}
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
         </Space>
       </div>

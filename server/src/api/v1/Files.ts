@@ -598,7 +598,7 @@ export class Files {
   }
 
   public static async download(req: Request, res: Response, files: Model[], onlyHeaders?: boolean): Promise<any> {
-    const { raw, dl, thumb } = req.query
+    const { raw, dl, thumb, as_array: asArray } = req.query
 
     let usage = await Usages.createQueryBuilder('usages')
       .where('key = :key', {
@@ -637,7 +637,9 @@ export class Files {
 
     usage.usage = bigInt(totalFileSize).add(bigInt(usage.usage)).toString()
     await usage.save()
-    return res.send({ files })
+    if (asArray === '1') {
+      return res.send({ files })
+    }
 
     let cancel = false
     req.on('close', () => cancel = true)

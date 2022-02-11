@@ -5,7 +5,7 @@ import { req } from './Fetcher'
 import { telegramClient } from './Telegram'
 
 export async function _download(id: string): Promise<any> {
-  const { data: response } = await req.get(`/files/${id}`, { params: { raw: 1 } })
+  const { data: response } = await req.get(`/files/${id}`, { params: { raw: 1, as_array: 1 } })
   const cancel = false
 
   const client = await telegramClient.connect()
@@ -53,7 +53,7 @@ export async function _download(id: string): Promise<any> {
 }
 
 export async function download(id: string): Promise<ReadableStream> {
-  const { data: response } = await req.get(`/files/${id}`, { params: { raw: 1 } })
+  const { data: response } = await req.get(`/files/${id}`, { params: { raw: 1, as_array: 1 } })
   let cancel = false
 
   const client = await telegramClient.connect()
