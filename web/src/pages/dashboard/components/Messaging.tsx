@@ -19,7 +19,6 @@ import {
   Tabs,
   Typography
 } from 'antd'
-import bigInt from 'big-integer'
 import prettyBytes from 'pretty-bytes'
 import React, { useEffect, useRef, useState } from 'react'
 import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
@@ -356,16 +355,16 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | undefined = undefined
     if (type === 'channel') {
       peer = new Api.InputPeerChannel({
-        channelId: bigInt(id),
-        accessHash: bigInt(accessHash as string) })
+        channelId: BigInt(id) as any,
+        accessHash: BigInt(accessHash as string) as any })
     } else if (type === 'chat') {
       peer = new Api.InputPeerChat({
-        chatId: bigInt(id)
+        chatId: BigInt(id) as any
       })
     } else if (type === 'user') {
       peer = new Api.InputPeerUser({
-        userId: bigInt(id),
-        accessHash: bigInt(accessHash as string) })
+        userId: BigInt(id) as any,
+        accessHash: BigInt(accessHash as string) as any })
     }
     try {
       await client.invoke(new Api.messages.DeleteMessages({ id: [Number(msgId)], revoke: true }))
@@ -396,16 +395,16 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | undefined = undefined
       if (type === 'channel') {
         peer = new Api.InputPeerChannel({
-          channelId: bigInt(id),
-          accessHash: bigInt(accessHash as string) })
+          channelId: BigInt(id) as any,
+          accessHash: BigInt(accessHash as string) as any })
       } else if (type === 'chat') {
         peer = new Api.InputPeerChat({
-          chatId: bigInt(id)
+          chatId: BigInt(id) as any
         })
       } else if (type === 'user') {
         peer = new Api.InputPeerUser({
-          userId: bigInt(id),
-          accessHash: bigInt(accessHash as string) })
+          userId: BigInt(id) as any,
+          accessHash: BigInt(accessHash as string) as any })
       }
       if (messageId) {
         await client.invoke(new Api.messages.EditMessage({
