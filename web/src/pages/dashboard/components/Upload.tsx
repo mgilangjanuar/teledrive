@@ -27,6 +27,19 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     }
   }, [fileList])
 
+  const retry = async (fn: () => Promise<any>, cb?: () => any | Promise<any>) => {
+    let retry = 0
+    while (retry < RETRY_COUNT) {
+      try {
+        await fn()
+        retry = RETRY_COUNT
+      } catch (error) {
+        await new Promise(res => setTimeout(res, 1000 * ++retry))
+        await cb?.()
+      }
+    }
+  }
+
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
     console.log(file)
     filesWantToUpload.current.push(file)
@@ -41,10 +54,10 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
 
+    let client = await telegramClient.connect()
+
     const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
     let deleted = false
-
-    let client = await telegramClient.connect()
 
     try {
       await new Promise(res => setTimeout(res, 1000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid)))
@@ -92,16 +105,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                   bytes: Buffer.from(await blobPart.arrayBuffer())
                 }))
 
-                let retry = 0
-                while (retry < RETRY_COUNT) {
-                  try {
-                    await uploadPart()
-                    retry = RETRY_COUNT
-                  } catch (error) {
-                    await new Promise(res => setTimeout(res, 1000 * ++retry))
-                    client = await telegramClient.connect()
-                  }
-                }
+                await retry(async () => await uploadPart(), async () => client = await telegramClient.connect())
 
                 if (Number(i) >= Number(parts) - 1) {
                   // begin to send
@@ -163,15 +167,15 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             }
           }
 
-          const group = 20
-          await uploadPart(0)
+          const group = 5
+          await retry(async () => await uploadPart(0), async () => client = await telegramClient.connect())
           for (let i = 1; i < parts - 1; i += group) {
             if (deleted) break
             const others = Array.from(Array(i + group).keys()).slice(i, Math.min(parts - 1, i + group))
-            await Promise.all(others.map(async j => await uploadPart(j)))
+            await Promise.all(others.map(async j => await retry(async () => await uploadPart(j), async () => client = await telegramClient.connect())))
           }
           if (!deleted && parts - 1 > 0) {
-            await uploadPart(parts - 1)
+            await retry(async () => await uploadPart(parts - 1), async () => client = await telegramClient.connect())
           }
         }
 

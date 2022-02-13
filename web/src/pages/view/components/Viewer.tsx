@@ -26,7 +26,7 @@ import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { useDebounce } from 'use-debounce/lib'
 import { directDownload, download } from '../../../utils/Download'
-import { apiUrl, fetcher } from '../../../utils/Fetcher'
+import { fetcher } from '../../../utils/Fetcher'
 import Remove from '../../dashboard/components/Remove'
 import Rename from '../../dashboard/components/Rename'
 import Share from '../../dashboard/components/Share'
@@ -53,6 +53,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   const [selectShare, setSelectShare] = useState<any>()
   const [fileRename, setFileRename] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
+  const [blobURL, setBlobURL] = useState<string>()
   const iframe = useRef<any>()
 
   useEffect(() => {
@@ -61,6 +62,52 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
         raw: `${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${pageParams.id}?raw=1`,
         download: `${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${pageParams.id}?raw=1&dl=1`,
         share: `${window.location.origin}/view/${pageParams.id}`
+      })
+      setBlobURL(undefined)
+
+      // const mediaSource = new MediaSource()
+      // document.querySelector('video')!.src = URL.createObjectURL(mediaSource)
+      // mediaSource.addEventListener('sourceopen', async () => {
+      //   const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.64001E"')
+      //   const reader = (await download(pageParams.id)).getReader()
+      //   sourceBuffer.addEventListener('updateend', () => {
+      //     mediaSource.endOfStream()
+      //     document.querySelector('video')!.play()
+      //   })
+      //   let streamNotDone = true
+      //   while (streamNotDone) {
+      //     const { value, done } = await reader.read()
+      //     console.log(done)
+      //     if (done) {
+      //       streamNotDone = false
+      //       break
+      //     }
+      //     await new Promise((resolve) => {
+      //       console.log(mediaSource, value)
+      //       sourceBuffer.appendBuffer(value)
+
+      //       sourceBuffer.onupdateend = () => {
+      //         resolve(true)
+      //       }
+      //     })
+      //   }
+      // })
+
+      download(pageParams.id).then(stream => {
+        console.log(new Date())
+        const resp = new Response(stream, {
+          headers: {
+            'Content-Type': data?.file.mime_type,
+            'Content-Disposition': `inline; filename="${data?.file.name}"`,
+            'Cache-Control': 'public, max-age=604800',
+            'ETag': Buffer.from(data?.file.id).toString('base64')
+          }
+        })
+        resp.blob().then(blob => {
+          console.log(new Date())
+          const url = URL.createObjectURL(blob)
+          setBlobURL(url)
+        })
       })
     }
   }, [data])
@@ -96,6 +143,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
     // if (errorMe) {
     //   return history.push('/login')
     // }
+    setBlobURL(undefined)
     if (isInDrawer) return onCloseDrawer?.()
     return history.goBack()
   }
@@ -115,28 +163,24 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
             // ignore
           }
         }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> } */}
-        <iframe ref={iframe} onLoad={async (e: any) => {
+
+        {/* !blobURL ? <Spin style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} /> */}
+        {<iframe ref={iframe} onLoad={async (e: any) => {
           try {
-            e.target.contentWindow.document.body.style.margin = 0
+            e.target.contentWindow.document.body.style.margin = 'auto'
             e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
+            e.target.contentWindow.document.body.style.maxHeight = '100%'
+            e.target.contentWindow.document.body.style.maxWidth = '100%'
+            e.target.contentWindow.document.body.style.position = 'absolute'
+            e.target.contentWindow.document.body.style.imageOrientation = 'from-image'
+            e.target.contentWindow.document.body.style.top = '0'
+            e.target.contentWindow.document.body.style.bottom = '0'
+            e.target.contentWindow.document.body.style.left = '0'
+            e.target.contentWindow.document.body.style.right = '0'
           } catch (error) {
             // ignore
           }
-          const reader = (await download(pageParams.id)).getReader()
-          const LOOP = true
-          while (LOOP) {
-            const { done, value } = await reader.read()
-            if (done) break
-            e.target.contentDocument.write(value)
-          }
-          e.target.contentDocument.close()
-
-          // const stream = await download(pageParams.id)
-          // const response = new Response(stream, { headers: { 'Content-Type': data.file.mime_type } })
-          // e.target.contentDocument.write(response)
-          // e.target.contentDocument.close()
-
-        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src='' frameBorder={0}>Browser not compatible.</iframe>
+        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={blobURL} frameBorder={0}>Browser not compatible.</iframe>}
 
       </Layout.Content>
       <Layout.Sider width={320} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
