@@ -191,7 +191,11 @@ const Login: React.FC<Props> = ({ me }) => {
       }
     } catch (error: any) {
       setLoadingLogin(false)
-      if (error?.errorMessage === 'SESSION_PASSWORD_NEEDED' || error?.response && error.response.data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+      let errorMessage = error?.errorMessage
+      if (error.response && error.response.data) {
+        errorMessage = error.response.data.details?.errorMessage
+      }
+      if (errorMessage === 'SESSION_PASSWORD_NEEDED') {
         notification.info({
           message: 'Info',
           description: 'Please input your 2FA password'
