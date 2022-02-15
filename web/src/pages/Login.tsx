@@ -133,9 +133,9 @@ const Login: React.FC<Props> = ({ me }) => {
         const client = await anonymousTelegramClient.connect()
         let signIn: any
         if (password) {
-          const data = await client.invoke(new Api.account.GetPassword())
-          data.newAlgo['salt1'] = Buffer.concat([data.newAlgo['salt1'], generateRandomBytes(32)])
-          signIn = await client.invoke(new Api.auth.CheckPassword({ password: await computeCheck(data, password) }))
+          const dataLogin = await client.invoke(new Api.account.GetPassword())
+          dataLogin.newAlgo['salt1'] = Buffer.concat([dataLogin.newAlgo['salt1'], generateRandomBytes(32)])
+          signIn = await client.invoke(new Api.auth.CheckPassword({ password: await computeCheck(dataLogin, password) }))
         } else {
           signIn = await client.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
         }
@@ -145,8 +145,12 @@ const Login: React.FC<Props> = ({ me }) => {
         }
         const session = client.session.save() as any
         localStorage.setItem('session', session)
-        const resp = await req.get('/users/me')
-        data = resp.data
+        try {
+          const resp = await req.get('/users/me')
+          data = resp?.data
+        } catch (error) {
+          // ignore
+        }
       } else {
         const resp = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
         data = resp.data
