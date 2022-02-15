@@ -403,9 +403,11 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
                     setSelected([])
                   }
                 } else {
-                  const searchParams = new URLSearchParams(window.location.search)
-                  searchParams.set('view', row.id)
-                  history.push(`${window.location.pathname}?${searchParams.toString()}`)
+                  // const searchParams = new URLSearchParams(window.location.search)
+                  // searchParams.set('view', row.id)
+                  // history.push(`${window.location.pathname}?${searchParams.toString()}`)
+                  window.open(`${window.location.origin}/view/${row.id}`, '_blank')
+
                   // setCollapsedView(row.id)
                 }
               }}

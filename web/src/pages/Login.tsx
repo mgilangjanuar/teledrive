@@ -93,6 +93,7 @@ const Login: React.FC<Props> = ({ me }) => {
     const { password } = formLogin.getFieldsValue()
     try {
       const { data } = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
+      if (data.session) localStorage.setItem('session', data.session)
       try {
         req.post('/users/me/paymentSync')
         if (localStorage.getItem('files')) {
@@ -146,6 +147,7 @@ const Login: React.FC<Props> = ({ me }) => {
       const { password } = formLoginQRCode.getFieldsValue()
       setLoadingLogin(true)
       const { data } = await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session })
+      if (data.session) localStorage.setItem('session', data.session)
       try {
         req.post('/users/me/paymentSync')
         if (localStorage.getItem('files')) {
@@ -219,6 +221,7 @@ const Login: React.FC<Props> = ({ me }) => {
             'Authorization': `Bearer ${qrCode.accessToken}`
           } }).then(({ data }) => {
             if (data?.user) {
+              if (data.session) localStorage.setItem('session', data.session)
               try {
                 req.post('/users/me/paymentSync')
                 if (localStorage.getItem('files')) {
