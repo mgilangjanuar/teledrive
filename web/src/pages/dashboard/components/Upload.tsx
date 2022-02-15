@@ -33,9 +33,13 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       try {
         await fn()
         retry = RETRY_COUNT
-      } catch (error) {
-        await new Promise(res => setTimeout(res, 1000 * ++retry))
+      } catch (error: any) {
+        await new Promise(res => setTimeout(res, 3000 * ++retry))
         await cb?.()
+        if (retry === RETRY_COUNT) {
+          notification.error({ message: 'Failed to upload file', description: error.message })
+          throw error
+        }
       }
     }
   }
