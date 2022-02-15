@@ -3,7 +3,7 @@ import {
   AudioOutlined,
   BranchesOutlined,
   CopyOutlined,
-  DeleteOutlined, DownloadOutlined,
+  DeleteOutlined, DownloadOutlined, CloudDownloadOutlined,
   EditOutlined,
   FileImageOutlined,
   FileOutlined,
@@ -15,7 +15,7 @@ import {
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Descriptions, Menu, Modal, Table, Typography } from 'antd'
+import { Descriptions, Menu, Modal, Table, Tag, Typography } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -24,7 +24,7 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import useSWR from 'swr'
 import { directDownload } from '../../../utils/Download'
-import { fetcher } from '../../../utils/Fetcher'
+import { apiUrl, fetcher } from '../../../utils/Fetcher'
 
 interface Props {
   files?: any,
@@ -147,9 +147,14 @@ const TableFiles: React.FC<Props> = ({
             icon={<DownloadOutlined />}
             key="download"
             onClick={async () => {
-              popup?.row && await directDownload(popup?.row.id, popup?.row.name.replace(/\.part0*\d+$/, ''))
-              // location.replace(`${apiUrl}/files/${popup?.row.id}?raw=1&dl=1`)
+              location.replace(`${apiUrl}/files/${popup?.row.id}?raw=1&dl=1`)
             }}>Download</Menu.Item> : ''}
+          {popup?.row.type !== 'folder' ? <Menu.Item {...baseProps}
+            icon={<CloudDownloadOutlined />}
+            key="fastdownload"
+            onClick={async () => {
+              popup?.row && await directDownload(popup?.row.id, popup?.row.name.replace(/\.part0*\d+$/, ''))
+            }}>Fast Download <Tag color="green">beta</Tag></Menu.Item> : ''}
           <Menu.Item {...baseProps}
             icon={<DeleteOutlined />}
             key="delete"

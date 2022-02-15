@@ -2,6 +2,7 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   CopyOutlined,
+  CloudDownloadOutlined,
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
@@ -15,17 +16,17 @@ import {
   Button, Descriptions,
   Divider,
   Dropdown, Input,
-  Layout, Menu, message, notification, Space, Typography
+  Layout, Menu, message, notification, Space, Tag, Typography
 } from 'antd'
 import * as clipboardy from 'clipboardy'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 import { useDebounce } from 'use-debounce/lib'
-import { directDownload, download } from '../../../utils/Download'
+import { directDownload } from '../../../utils/Download'
 import { fetcher } from '../../../utils/Fetcher'
 import Remove from '../../dashboard/components/Remove'
 import Rename from '../../dashboard/components/Rename'
@@ -53,8 +54,6 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   const [selectShare, setSelectShare] = useState<any>()
   const [fileRename, setFileRename] = useState<any>()
   const [selectDeleted, setSelectDeleted] = useState<any>()
-  const [blobURL, setBlobURL] = useState<string>()
-  const iframe = useRef<any>()
 
   useEffect(() => {
     if (data?.file) {
@@ -63,52 +62,64 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
         download: `${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${pageParams.id}?raw=1&dl=1`,
         share: `${window.location.origin}/view/${pageParams.id}`
       })
-      setBlobURL(undefined)
+      // setBlobURL(undefined)
 
-      // const mediaSource = new MediaSource()
-      // document.querySelector('video')!.src = URL.createObjectURL(mediaSource)
-      // mediaSource.addEventListener('sourceopen', async () => {
-      //   const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.64001E"')
-      //   const reader = (await download(pageParams.id)).getReader()
-      //   sourceBuffer.addEventListener('updateend', () => {
-      //     mediaSource.endOfStream()
-      //     document.querySelector('video')!.play()
-      //   })
-      //   let streamNotDone = true
-      //   while (streamNotDone) {
-      //     const { value, done } = await reader.read()
-      //     console.log(done)
-      //     if (done) {
-      //       streamNotDone = false
-      //       break
-      //     }
-      //     await new Promise((resolve) => {
-      //       console.log(mediaSource, value)
-      //       sourceBuffer.appendBuffer(value)
+      // download(pageParams.id).then(stream => {
+      //   const video = document.querySelector('video')
+      //   const mime = 'video/mp4; codecs="mp4a.40.2,avc1.64001f"'
+      //   const mediaSource = new MediaSource()
+      //   if (video) {
+      //     setBlobURL(URL.createObjectURL(mediaSource))
+      //     // video.src = URL.createObjectURL(mediaSource)
+      //     mediaSource.addEventListener('sourceopen', async () => {
+      //       // URL.revokeObjectURL(video.src)
+      //       // mediaSource.duration = 8
+      //       // const buffer = mediaSource.addSourceBuffer(mime)
+      //       const buffer = mediaSource.addSourceBuffer(mime)
+      //       buffer.mode = 'sequence'
+      //       buffer.addEventListener('updateend', () => {
+      //         // buffer.remove(0, 0)
+      //         if (!buffer.updating && mediaSource.readyState === 'open') {
+      //           mediaSource.endOfStream()
+      //         }
+      //         // video.play()
+      //       })
+      //       buffer.addEventListener('error', console.error)
 
-      //       sourceBuffer.onupdateend = () => {
-      //         resolve(true)
+      //       const reader = stream.getReader()
+
+      //       let isDone = false
+      //       while (!isDone) {
+      //         console.log(mediaSource.readyState)
+      //         const { done, value } = await reader.read()
+      //         if (done) {
+      //           isDone = done
+      //           break
+      //         }
+      //         console.log(mediaSource.readyState, value)
+      //         buffer.appendBuffer(value)
       //       }
       //     })
       //   }
       // })
 
-      download(pageParams.id).then(stream => {
-        console.log(new Date())
-        const resp = new Response(stream, {
-          headers: {
-            'Content-Type': data?.file.mime_type,
-            'Content-Disposition': `inline; filename="${data?.file.name}"`,
-            'Cache-Control': 'public, max-age=604800',
-            'ETag': Buffer.from(data?.file.id).toString('base64')
-          }
-        })
-        resp.blob().then(blob => {
-          console.log(new Date())
-          const url = URL.createObjectURL(blob)
-          setBlobURL(url)
-        })
-      })
+
+      // download(pageParams.id).then(async stream => {
+      //   console.log(new Date())
+      //   const resp = new Response(stream, {
+      //     headers: {
+      //       'Content-Type': data?.file.mime_type,
+      //       'Content-Disposition': `inline; filename="${data?.file.name}"`,
+      //       'Cache-Control': 'public, max-age=604800',
+      //       'ETag': Buffer.from(data?.file.id).toString('base64')
+      //     }
+      //   })
+      //   resp.blob().then(blob => {
+      //     console.log(new Date())
+      //     const url = URL.createObjectURL(blob)
+      //     setBlobURL(url)
+      //   })
+      // })
     }
   }, [data])
 
@@ -143,7 +154,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
     // if (errorMe) {
     //   return history.push('/login')
     // }
-    setBlobURL(undefined)
+    // setBlobURL(undefined)
     if (isInDrawer) return onCloseDrawer?.()
     return history.goBack()
   }
@@ -151,8 +162,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   return <>
     <Layout style={{ minHeight: '100vh', overflow: 'hidden', background: '#2a2a2a', color: 'rgb(251,251,254)' }}>
       <Layout.Content>
-        {/* {links?.raw && <DocViewer documents={[{ uri: links?.raw as string }]} /> */}
-        {/* {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : data?.file.type === 'video' ? <video style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} controls>
+        {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : data?.file.type === 'video' ? <video style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} controls>
           <source src={links?.raw} type={data?.file.mime_type} />
           Your browser does not support HTML video.
         </video> : <iframe onLoad={(e: any) => {
@@ -162,10 +172,10 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
           } catch (error) {
             // ignore
           }
-        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> } */}
+        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> }
 
         {/* !blobURL ? <Spin style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} /> */}
-        {<iframe ref={iframe} onLoad={async (e: any) => {
+        {/* {data?.file.type === 'video' ? <video src={blobURL} controls><source src={blobURL} type="video/mp4" /></video> : <iframe ref={iframe} onLoad={async (e: any) => {
           try {
             e.target.contentWindow.document.body.style.margin = 'auto'
             e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
@@ -180,7 +190,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
           } catch (error) {
             // ignore
           }
-        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={blobURL} frameBorder={0}>Browser not compatible.</iframe>}
+        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={blobURL} frameBorder={0}>Browser not compatible.</iframe>} */}
 
       </Layout.Content>
       <Layout.Sider width={320} trigger={null} collapsedWidth={0} breakpoint="lg" collapsed={collapsed} onCollapse={setCollapsed}>
@@ -220,7 +230,8 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
             <Menu.Item key="rename" onClick={() => setFileRename(data?.file)} icon={<EditOutlined />}>Rename</Menu.Item>
             <Menu.Item key="share" onClick={() => setSelectShare({ action: 'share', row: data?.file })} icon={<ShareAltOutlined />}>Share</Menu.Item>
             <Menu.Item key="send" onClick={() => setSelectShare({ action: 'forward', row: data?.file })} icon={<ArrowRightOutlined />}>Send to</Menu.Item>
-            <Menu.Item key="download" onClick={() => directDownload(data?.file.id, data?.file.name.replace(/\.part0*\d+$/, ''))} icon={<DownloadOutlined />}>Download</Menu.Item>
+            <Menu.Item key="download" onClick={() => window.open(links?.download)} icon={<DownloadOutlined />}>Download</Menu.Item>
+            <Menu.Item key="fastdownload" onClick={() => directDownload(data?.file.id, data?.file.name.replace(/\.part0*\d+$/, ''))} icon={<CloudDownloadOutlined />}>Fast Download <Tag color="green">beta</Tag></Menu.Item>
             <Menu.Item key="remove" danger onClick={() => setSelectDeleted([data?.file])} icon={<DeleteOutlined />}>Delete</Menu.Item>
           </Menu>}>
             <Button shape="circle" icon={<EllipsisOutlined />} />
