@@ -284,6 +284,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                     if (localStorage.getItem('experimental')) {
                       const client = await telegramClient.connect()
                       localStorage.removeItem('experimental')
+                      localStorage.removeItem('session')
+                      location.reload()
                       try {
                         await client.invoke(new Api.auth.LogOut())
                       } catch (error) {

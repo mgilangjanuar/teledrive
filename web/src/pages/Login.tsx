@@ -108,7 +108,6 @@ const Login: React.FC<Props> = ({ me }) => {
       setCurrentStep(1)
       setLoadingSendCode(false)
     } catch (error: any) {
-      console.error('ASIUYGHIUSAAS', error)
       setLoadingSendCode(false)
       notification.error({
         message: 'Error',
@@ -188,7 +187,7 @@ const Login: React.FC<Props> = ({ me }) => {
       }
     } catch (error: any) {
       setLoadingLogin(false)
-      if (error?.errorMessage === 'SESSION_PASSWORD_NEEDED' || error?.response?.data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+      if (error?.errorMessage === 'SESSION_PASSWORD_NEEDED' || error?.response && error.response.data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
         notification.info({
           message: 'Info',
           description: 'Please input your 2FA password'
@@ -198,7 +197,7 @@ const Login: React.FC<Props> = ({ me }) => {
       }
       return notification.error({
         message: 'Error',
-        description: error?.response?.data?.error || error?.errorMessage || 'Something error'
+        description: 'Something error'
       })
     }
   }
