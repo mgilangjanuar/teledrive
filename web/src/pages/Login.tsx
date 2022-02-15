@@ -214,12 +214,7 @@ const Login: React.FC<Props> = ({ me }) => {
     let data: any = null
     const sessionString = qrCode?.session
     if (password && sessionString) {
-      const client = new TelegramClient(new StringSession(sessionString), Number(process.env.REACT_APP_TG_API_ID), process.env.REACT_APP_TG_API_HASH as string, {
-        connectionRetries: 10,
-        useWSS: true
-      })
-      await client.connect()
-
+      const client = await telegramClient.connect(sessionString || '')
       const passwordData = await client.invoke(new Api.account.GetPassword())
 
       passwordData.newAlgo['salt1'] = Buffer.concat([passwordData.newAlgo['salt1'], generateRandomBytes(32)])
@@ -237,7 +232,7 @@ const Login: React.FC<Props> = ({ me }) => {
       data = resp.data
     } else {
       // handle the second call for export login token, result case: success, need to migrate to other dc, or 2fa
-      const client = await telegramClient.connect()
+      const client = await telegramClient.connect(sessionString || '')
       try {
         const dataLogin = await client.invoke(new Api.auth.ExportLoginToken({
           apiId: Number(process.env.REACT_APP_TG_API_ID),
@@ -363,7 +358,7 @@ const Login: React.FC<Props> = ({ me }) => {
     if (method === 'qrCode') {
       if (!qrCode?.loginToken) {
         if (localStorage.getItem('experimental')) {
-          telegramClient.connect()
+          anonymousTelegramClient.connect()
             .then(client => {
               client.invoke(new Api.auth.ExportLoginToken({
                 apiId: Number(process.env.REACT_APP_TG_API_ID),
@@ -373,8 +368,9 @@ const Login: React.FC<Props> = ({ me }) => {
                 .then(data => {
                   const session = client.session.save() as any
                   localStorage.setItem('session', session)
+                  console.log(data['token'])
                   setQrCode({
-                    loginToken: Buffer.from(data['token'], 'utf8').toString('base64url')
+                    loginToken: Buffer.from(data['token'], 'utf8').toString('base64')
                   })
                 })
             })
@@ -399,9 +395,10 @@ const Login: React.FC<Props> = ({ me }) => {
             } else {
               req.post('/auth/qrCodeSignIn', {}, { headers: {
                 'Authorization': `Bearer ${qrCode.accessToken}`
-              } }).then(({ data }) => resolve(data)).catch(error => reject(error))
+              } }).then(({ data }) => resolve(data)).catch(reject)
             }
           }).then((data: any) => {
+            console.log(data)
             if (data?.user) {
               // if (data.session) localStorage.setItem('session', data.session)
               try {
