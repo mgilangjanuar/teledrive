@@ -1,4 +1,8 @@
 import { ArrowRightOutlined, CheckCircleTwoTone, GlobalOutlined, LoginOutlined } from '@ant-design/icons'
+import { Api, TelegramClient } from '@mgilangjanuar/telegram'
+import { generateRandomBytes } from '@mgilangjanuar/telegram/Helpers'
+import { computeCheck } from '@mgilangjanuar/telegram/Password'
+import { StringSession } from '@mgilangjanuar/telegram/sessions'
 import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
@@ -11,6 +15,7 @@ import { useHistory } from 'react-router'
 import useSWRImmutable from 'swr/immutable'
 import en from 'world_countries_lists/data/en/world.json'
 import { fetcher, req } from '../utils/Fetcher'
+import { anonymousTelegramClient, telegramClient } from '../utils/Telegram'
 
 interface Props {
   me?: any
@@ -31,7 +36,7 @@ const Login: React.FC<Props> = ({ me }) => {
   const [needPassword, setNeedPassword] = useState<boolean>()
   const [method, setMethod] = useState<'phoneNumber' | 'qrCode'>('phoneNumber')
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
-  const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken: string, session?: string }>()
+  const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken?: string, session?: string }>()
   const { currentTheme } = useThemeSwitcher()
 
   useEffect(() => {
@@ -57,7 +62,38 @@ const Login: React.FC<Props> = ({ me }) => {
     }
 
     const fetch = async (phoneCodeHash?: string) => {
-      const { data } = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { phoneNumber })
+      let data: any = null
+      if (localStorage.getItem('experimental')) {
+        const client = await anonymousTelegramClient.connect()
+        if (phoneCodeHash) {
+          const { phoneCodeHash: newPhoneCodeHash } = await client.invoke(new Api.auth.ResendCode({
+            phoneNumber, phoneCodeHash }))
+          const session = client.session.save() as any
+          localStorage.setItem('session', session)
+          data = { phoneCodeHash: newPhoneCodeHash }
+        } else {
+          try {
+            const { phoneCodeHash } = await client.invoke(new Api.auth.SendCode({
+              apiId: Number(process.env.REACT_APP_TG_API_ID),
+              apiHash: process.env.REACT_APP_TG_API_HASH,
+              phoneNumber,
+              settings: new Api.CodeSettings({
+                allowFlashcall: true,
+                currentNumber: true,
+                allowAppHash: true,
+              })
+            }))
+            const session = client.session.save() as any
+            localStorage.setItem('session', session)
+            data = { phoneCodeHash }
+          } catch (error) {
+            // ignore
+          }
+        }
+      } else {
+        const resp = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { phoneNumber })
+        data = resp.data
+      }
       setPhoneCodeHash(data.phoneCodeHash)
       setCountdown(170)
       notification.info({
@@ -72,12 +108,13 @@ const Login: React.FC<Props> = ({ me }) => {
       setCurrentStep(1)
       setLoadingSendCode(false)
     } catch (error: any) {
+      console.error('ASIUYGHIUSAAS', error)
       setLoadingSendCode(false)
       notification.error({
         message: 'Error',
-        description: error?.response?.data?.error || 'Something error'
+        description: error?.response?.data?.error || error.message || 'Something error'
       })
-      if (error?.response?.status === 400) {
+      if (error?.status === 400 || error?.response?.status === 400) {
         await fetch()
       }
     }
@@ -92,8 +129,29 @@ const Login: React.FC<Props> = ({ me }) => {
     const phoneCode = otp
     const { password } = formLogin.getFieldsValue()
     try {
-      const { data } = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
-      if (data.session) localStorage.setItem('session', data.session)
+      let data: any = null
+      if (localStorage.getItem('experimental')) {
+        const client = await anonymousTelegramClient.connect()
+        let signIn: any
+        if (password) {
+          const data = await client.invoke(new Api.account.GetPassword())
+          data.newAlgo['salt1'] = Buffer.concat([data.newAlgo['salt1'], generateRandomBytes(32)])
+          signIn = await client.invoke(new Api.auth.CheckPassword({ password: await computeCheck(data, password) }))
+        } else {
+          signIn = await client.invoke(new Api.auth.SignIn({ phoneNumber, phoneCode, phoneCodeHash }))
+        }
+        const userAuth = signIn['user']
+        if (!userAuth) {
+          return notification.error({ message: 'User not found/authorized' })
+        }
+        const session = client.session.save() as any
+        localStorage.setItem('session', session)
+        const resp = await req.get('/users/me')
+        data = resp.data
+      } else {
+        const resp = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
+        data = resp.data
+      }
       try {
         req.post('/users/me/paymentSync')
         if (localStorage.getItem('files')) {
@@ -123,11 +181,15 @@ const Login: React.FC<Props> = ({ me }) => {
         message: 'Success',
         description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
       })
-      return history.replace('/dashboard')
+      if (localStorage.getItem('experimental')) {
+        window.close()
+      } else {
+        history.replace('/dashboard')
+      }
     } catch (error: any) {
       setLoadingLogin(false)
       const { data } = error?.response
-      if (data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+      if (error?.errorMessage === 'SESSION_PASSWORD_NEEDED' || data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
         notification.info({
           message: 'Info',
           description: 'Please input your 2FA password'
@@ -142,12 +204,96 @@ const Login: React.FC<Props> = ({ me }) => {
     }
   }
 
+  const _qrCodeSignIn = async (password?: string) => {
+    let data: any = null
+    const sessionString = qrCode?.session
+    if (password && sessionString) {
+      const client = new TelegramClient(new StringSession(sessionString), Number(process.env.REACT_APP_TG_API_ID), process.env.REACT_APP_TG_API_HASH as string, {
+        connectionRetries: 10,
+        useWSS: true
+      })
+      await client.connect()
+
+      const passwordData = await client.invoke(new Api.account.GetPassword())
+
+      passwordData.newAlgo['salt1'] = Buffer.concat([passwordData.newAlgo['salt1'], generateRandomBytes(32)])
+      const signIn = await client.invoke(new Api.auth.CheckPassword({
+        password: await computeCheck(passwordData, password)
+      }))
+      const userAuth = signIn['user']
+      if (!userAuth) {
+        throw { status: 400, body: { error: 'User not found/authorized' } }
+      }
+
+      const session = client.session.save() as any
+      localStorage.setItem('session', session)
+      const resp = await req.get('/users/me')
+      data = resp.data
+    } else {
+      // handle the second call for export login token, result case: success, need to migrate to other dc, or 2fa
+      const client = await telegramClient.connect()
+      try {
+        const dataLogin = await client.invoke(new Api.auth.ExportLoginToken({
+          apiId: Number(process.env.REACT_APP_TG_API_ID),
+          apiHash: process.env.REACT_APP_TG_API_HASH,
+          exceptIds: []
+        }))
+
+        // handle to switch dc
+        if (dataLogin instanceof Api.auth.LoginTokenMigrateTo) {
+          await client._switchDC(dataLogin.dcId)
+          const result = await client.invoke(new Api.auth.ImportLoginToken({
+            token: dataLogin.token
+          }))
+
+          // result import login token success
+          if (result instanceof Api.auth.LoginTokenSuccess && result.authorization instanceof Api.auth.Authorization) {
+            const userAuth = result.authorization.user
+            if (userAuth) {
+              const session = client.session.save() as any
+              localStorage.setItem('session', session)
+              const resp = await req.get('/users/me')
+              data = resp.data
+            } else {
+              // ignore
+            }
+          } else {
+            // ignore
+          }
+
+          // handle if success
+        } else if (dataLogin instanceof Api.auth.LoginTokenSuccess && (dataLogin as any).authorization instanceof Api.auth.Authorization) {
+          const userAuth = (dataLogin as any).authorization.user
+          if (userAuth) {
+            const session = client.session.save() as any
+            localStorage.setItem('session', session)
+            const resp = await req.get('/users/me')
+            data = resp.data
+          } else {
+            // ignore
+          }
+        }
+
+        setQrCode({
+          loginToken: Buffer.from(dataLogin['token'] as any, 'utf8').toString('base64url')
+        })
+      } catch (error: any) {
+        // handle if need 2fa password
+        if (error.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+          error.session = client.session.save() as any
+          setQrCode({ ...qrCode as any || {}, session: error.session })
+        }
+        throw error
+      }
+    }
+    return data
+  }
+
   const loginByQrCode = async () => {
     try {
       const { password } = formLoginQRCode.getFieldsValue()
       setLoadingLogin(true)
-      const { data } = await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session })
-      if (data.session) localStorage.setItem('session', data.session)
+      const data = localStorage.getItem('experimental') ? await _qrCodeSignIn(password) : (await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session }))?.data
       try {
         req.post('/users/me/paymentSync')
         if (localStorage.getItem('files')) {
@@ -177,7 +323,11 @@ const Login: React.FC<Props> = ({ me }) => {
         description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
       })
       setLoadingLogin(false)
-      return history.replace('/dashboard')
+      if (localStorage.getItem('experimental')) {
+        window.close()
+      } else {
+        history.replace('/dashboard')
+      }
     } catch (error: any) {
       setLoadingLogin(false)
       return notification.error({
@@ -189,7 +339,9 @@ const Login: React.FC<Props> = ({ me }) => {
 
   useEffect(() => {
     if (JSCookie.get('authorization') && me?.user) {
-      history.replace('/dashboard')
+      if (!localStorage.getItem('experimental')) {
+        return history.replace('/dashboard')
+      }
     }
   }, [me])
 
@@ -204,9 +356,27 @@ const Login: React.FC<Props> = ({ me }) => {
   useEffect(() => {
     if (method === 'qrCode') {
       if (!qrCode?.loginToken) {
-        req.get('/auth/qrCode').then(({ data }) => {
-          setQrCode(data)
-        })
+        if (localStorage.getItem('experimental')) {
+          telegramClient.connect()
+            .then(client => {
+              client.invoke(new Api.auth.ExportLoginToken({
+                apiId: Number(process.env.REACT_APP_TG_API_ID),
+                apiHash: process.env.REACT_APP_TG_API_HASH,
+                exceptIds: []
+              }))
+                .then(data => {
+                  const session = client.session.save() as any
+                  localStorage.setItem('session', session)
+                  setQrCode({
+                    loginToken: Buffer.from(data['token'], 'utf8').toString('base64url')
+                  })
+                })
+            })
+        } else {
+          req.get('/auth/qrCode').then(({ data }) => {
+            setQrCode(data)
+          })
+        }
       }
     } else {
       setQrCode(undefined)
@@ -217,11 +387,17 @@ const Login: React.FC<Props> = ({ me }) => {
     if (qrCode && method === 'qrCode' && !needPassword) {
       setTimeout(() => {
         if (method === 'qrCode' && !needPassword && qrCode?.loginToken && qrCode?.accessToken) {
-          req.post('/auth/qrCodeSignIn', {}, { headers: {
-            'Authorization': `Bearer ${qrCode.accessToken}`
-          } }).then(({ data }) => {
+          new Promise((resolve, reject) => {
+            if (localStorage.getItem('experimental')) {
+              _qrCodeSignIn().then(resolve).catch(reject)
+            } else {
+              req.post('/auth/qrCodeSignIn', {}, { headers: {
+                'Authorization': `Bearer ${qrCode.accessToken}`
+              } }).then(({ data }) => resolve(data)).catch(error => reject(error))
+            }
+          }).then((data: any) => {
             if (data?.user) {
-              if (data.session) localStorage.setItem('session', data.session)
+              // if (data.session) localStorage.setItem('session', data.session)
               try {
                 req.post('/users/me/paymentSync')
                 if (localStorage.getItem('files')) {
@@ -250,17 +426,21 @@ const Login: React.FC<Props> = ({ me }) => {
                 message: 'Success',
                 description: `Welcome back, ${data.user.name || data.user.username}! Please wait a moment...`
               })
-              history.replace('/dashboard')
+              if (localStorage.getItem('experimental')) {
+                window.close()
+              } else {
+                history.replace('/dashboard')
+              }
             } else {
               setQrCode(data)
             }
-          }).catch(({ response }: any) => {
-            if (response?.data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+          }).catch((error: any) => {
+            if (error?.errorMessage === 'SESSION_PASSWORD_NEEDED' || error?.response?.data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
               notification.info({
                 message: 'Info',
                 description: 'Please input your 2FA password'
               })
-              setQrCode({ ...qrCode, session: response.data.details.session })
+              setQrCode({ ...qrCode, session: error?.response.data.details.session })
               setNeedPassword(true)
             } else {
               // notification.error({

@@ -5,6 +5,7 @@ import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
+import multer from 'multer'
 import moment from 'moment'
 import { Files as Model } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
@@ -354,8 +355,177 @@ export class Files {
     return res.send({ file: { id } })
   }
 
-  @Endpoint.POST('/upload/:id?', { middlewares: [Auth] })
+  @Endpoint.POST('/upload/:id?', { middlewares: [Auth, multer().single('upload')] })
   public async upload(req: Request, res: Response): Promise<any> {
+    const { name, size, mime_type: mimetype, parent_id: parentId, relative_path: relativePath, total_part: totalPart, part } = req.query as Record<string, string>
+
+    if (!name || !size || !mimetype || !part || !totalPart) {
+      throw { status: 400, body: { error: 'Name, size, mimetype, part, and total part are required' } }
+    }
+    const file = req.file
+    if (!file) {
+      throw { status: 400, body: { error: 'File upload is required' } }
+    }
+
+    if (file.size > 512 * 1024) {
+      throw { status: 400, body: { error: 'Maximum file part size is 500kB' } }
+    }
+
+    if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
+      throw { status: 402, body: { error: 'Payment required' } }
+    }
+
+    let model: Model
+    if (req.params?.id) {
+      model = await Model.createQueryBuilder('files')
+        .where('id = :id', { id: req.params.id })
+        .addSelect('files.file_id')
+        .getOne()
+      if (!model) {
+        throw { status: 404, body: { error: 'File not found' } }
+      }
+    } else {
+      let type = null
+      if (mimetype.match(/^image/gi)) {
+        type = 'image'
+      } else if (mimetype.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
+        type = 'video'
+      } else if (mimetype.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
+        type = 'document'
+      } else if (mimetype.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+        type = 'audio'
+      } else {
+        type = 'unknown'
+      }
+
+      let currentParentId = parentId
+      if (relativePath) {
+        const paths = relativePath.split('/').slice(0, -1) || []
+        for (const i in paths) {
+          const path = paths[i]
+          const findFolder = await Model.createQueryBuilder('files')
+            .where(`type = :type and name = :name and user_id = :user_id and parent_id ${currentParentId ? '= :parent_id' : 'is null'}`, {
+              type: 'folder',
+              name: path,
+              user_id: req.user.id,
+              parent_id: currentParentId
+            })
+            .getOne()
+          if (findFolder) {
+            currentParentId = findFolder.id
+          } else {
+            const newFolder = new Model()
+            newFolder.name = path
+            newFolder.type = 'folder'
+            newFolder.user_id = req.user.id
+            newFolder.mime_type = 'teledrive/folder'
+            if (currentParentId) {
+              newFolder.parent_id = currentParentId
+            }
+            await newFolder.save()
+            currentParentId = newFolder.id
+          }
+        }
+      }
+
+      model = new Model()
+      model.name = name,
+      model.mime_type = mimetype
+      // model.size = '0'
+      model.size = size
+      model.user_id = req.user.id
+      model.type = type
+      model.parent_id = currentParentId || null
+      model.upload_progress = 0
+      model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
+      model.forward_info = req.user.settings?.saved_location || null
+      await model.save()
+    }
+
+    // upload per part
+    let uploadPartStatus: boolean
+    const uploadPart = async () => await req.tg.invoke(new Api.upload.SaveBigFilePart({
+      fileId: bigInt(model.file_id),
+      filePart: Number(part),
+      fileTotalParts: Number(totalPart),
+      bytes: file.buffer
+    }))
+
+    try {
+      uploadPartStatus = await uploadPart()
+    } catch (error) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await req.tg?.connect()
+        uploadPartStatus = await uploadPart()
+      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await req.tg?.connect()
+        uploadPartStatus = await uploadPart()
+      }
+    }
+
+    // model.size = bigInt(model.size).add(file.buffer.length).toString()
+    model.upload_progress = (Number(part) + 1) / Number(totalPart)
+    await model.save()
+
+    if (Number(part) < Number(totalPart) - 1) {
+      return res.status(202).send({ accepted: true, file: { id: model.id }, uploadPartStatus })
+    }
+
+    // begin to send
+    const sendData = async (forceDocument: boolean) => {
+      let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+      if (req.user.settings?.saved_location) {
+        const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: accessHash ? bigInt(accessHash as string) : null })
+        } else if (type === 'user') {
+          peer = new Api.InputPeerUser({
+            userId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peer = new Api.InputPeerChat({
+            chatId: bigInt(peerId) })
+        }
+      }
+      return await req.tg.sendFile(peer || 'me', {
+        file: new Api.InputFileBig({
+          id: bigInt(model.file_id),
+          parts: Number(totalPart),
+          name: model.name
+        }),
+        forceDocument,
+        fileSize: Number(model.size),
+        attributes: forceDocument ? [
+          new Api.DocumentAttributeFilename({ fileName: model.name })
+        ] : undefined,
+        workers: 1
+      })
+    }
+
+    let data: Api.Message
+    try {
+      data = await sendData(false)
+    } catch (error) {
+      data = await sendData(true)
+    }
+
+    model.message_id = data.id?.toString()
+    model.uploaded_at = data.date ? new Date(data.date * 1000) : null
+    model.upload_progress = null
+    if (req.user.settings?.saved_location) {
+      const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+      model.forward_info = `${type}/${peerId}/${data.id?.toString()}/${accessHash}`
+    }
+    await model.save()
+    return res.status(202).send({ accepted: true, file: { id: model.id } })
+  }
+
+  @Endpoint.POST('/uploadBeta/:id?', { middlewares: [Auth] })
+  public async uploadBeta(req: Request, res: Response): Promise<any> {
     const {
       name,
       size,

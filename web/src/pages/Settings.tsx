@@ -6,10 +6,9 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   ExpandAltOutlined,
-  FrownOutlined,
+  ExperimentOutlined, EyeOutlined, FrownOutlined,
   GlobalOutlined,
-  InfoOutlined,
-  LogoutOutlined,
+  InfoOutlined, LogoutOutlined,
   MobileOutlined,
   MonitorOutlined,
   ReloadOutlined,
@@ -17,6 +16,7 @@ import {
   SyncOutlined,
   WarningOutlined
 } from '@ant-design/icons'
+import { Api } from '@mgilangjanuar/telegram'
 import {
   Avatar,
   Button,
@@ -45,6 +45,7 @@ import useSWR from 'swr'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
 import { VERSION } from '../utils/Constant'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
+import { telegramClient } from '../utils/Telegram'
 
 interface Props {
   me?: any,
@@ -278,6 +279,25 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
               </List>
 
               <List header="Danger Zone">
+                <List.Item key="join-exp" actions={[<Form.Item>
+                  <Button shape="round" icon={<EyeOutlined />} onClick={async () => {
+                    if (localStorage.getItem('experimental')) {
+                      const client = await telegramClient.connect()
+                      localStorage.removeItem('experimental')
+                      try {
+                        await client.invoke(new Api.auth.LogOut())
+                      } catch (error) {
+                        // ignore
+                      }
+                    } else {
+                      localStorage.setItem('experimental', 'true')
+                      // await new Promise(resolve => setTimeout(resolve, 3000))
+                      window.open(`${window.location.origin}/login`, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes,top=200,left=200')
+                    }
+                  }}>{localStorage.getItem('experimental') ? 'Revoke' : 'Join'}</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><ExperimentOutlined /><>Experimental</></Space>} description="Join to the experimental features" />
+                </List.Item>
                 <List.Item key="change-server" actions={[<Form.Item name="change_server">
                   {dc && <Select className="change-server ghost" onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
                     <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>

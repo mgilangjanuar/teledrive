@@ -124,7 +124,7 @@ function App(): React.ReactElement {
               <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
               <Route path="/view/:id" exact component={View} />
               <Route path="/login" exact>
-                {me?.user ? <Redirect to="/dashboard" /> : <Login me={me} />}
+                {me?.user && !localStorage.getItem('experimental') ? <Redirect to="/dashboard" /> : <Login me={me} />}
               </Route>
               <Route path="/terms" exact component={Terms} />
               <Route path="/refund" exact component={Refund} />

@@ -1,10 +1,15 @@
 import {
-  ArrowLeftOutlined, ArrowRightOutlined, CloseCircleOutlined, CommentOutlined, DeleteOutlined, EditOutlined,
-  EnterOutlined, LoadingOutlined,
+  ArrowLeftOutlined,
+  CommentOutlined,
+  CloseCircleOutlined,
+  EditOutlined,
+  EnterOutlined,
+  ArrowRightOutlined,
+  DeleteOutlined,
+  LoadingOutlined,
   ReloadOutlined,
   SendOutlined
 } from '@ant-design/icons'
-import { Api } from '@mgilangjanuar/telegram'
 import {
   Avatar,
   Button,
@@ -21,16 +26,15 @@ import {
 } from 'antd'
 import prettyBytes from 'pretty-bytes'
 import React, { useEffect, useRef, useState } from 'react'
-import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
-import 'react-chat-elements/dist/main.css'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
+import { ChatItem, ChatList, MessageBox } from 'react-chat-elements'
 import ReactMarkdown from 'react-markdown'
 import { useHistory, useLocation } from 'react-router'
 import remarkGfm from 'remark-gfm'
 import useSWR from 'swr'
 import { apiUrl, fetcher, req } from '../../../utils/Fetcher'
-import { telegramClient } from '../../../utils/Telegram'
 
+import 'react-chat-elements/dist/main.css'
 
 interface Props {
   me?: any,
@@ -349,29 +353,7 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
   }
 
   const remove = async (msg: any) => {
-    const [type, id, others] = msg.id.replace('?t=1', '').split('/')
-    const [msgId, accessHash] = others.split('?accessHash=')
-    const client = await telegramClient.connect()
-    let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | undefined = undefined
-    if (type === 'channel') {
-      peer = new Api.InputPeerChannel({
-        channelId: BigInt(id) as any,
-        accessHash: BigInt(accessHash as string) as any })
-    } else if (type === 'chat') {
-      peer = new Api.InputPeerChat({
-        chatId: BigInt(id) as any
-      })
-    } else if (type === 'user') {
-      peer = new Api.InputPeerUser({
-        userId: BigInt(id) as any,
-        accessHash: BigInt(accessHash as string) as any })
-    }
-    try {
-      await client.invoke(new Api.messages.DeleteMessages({ id: [Number(msgId)], revoke: true }))
-    } catch (error) {
-      await client.invoke(new Api.channels.DeleteMessages({ id: [Number(msgId)], channel: peer }))
-    }
-    // await req.delete(`/messages/${msg.id}`)
+    await req.delete(`/messages/${msg.id}`)
     setMessages({
       ...messages,
       messages: messages?.messages.filter((message: any) => message.id != msg.id.split('/')[msg.id.split('/').length - 1])
@@ -389,29 +371,10 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
 
     setLoadingSend(true)
     try {
-      const [type, others] = message.id.replace('?t=1', '').split('/')
-      const [id, accessHash] = others.split('?accessHash=')
-      const client = await telegramClient.connect()
-      let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat | undefined = undefined
-      if (type === 'channel') {
-        peer = new Api.InputPeerChannel({
-          channelId: BigInt(id) as any,
-          accessHash: BigInt(accessHash as string) as any })
-      } else if (type === 'chat') {
-        peer = new Api.InputPeerChat({
-          chatId: BigInt(id) as any
-        })
-      } else if (type === 'user') {
-        peer = new Api.InputPeerUser({
-          userId: BigInt(id) as any,
-          accessHash: BigInt(accessHash as string) as any })
-      }
       if (messageId) {
-        await client.invoke(new Api.messages.EditMessage({
-          id: Number(messageId),
-          peer,
-          message: messageText
-        }))
+        const [type, others] = message.id.replace('?t=1', '').split('/')
+        const [id, accessHash] = others.split('?accessHash=')
+        await req.patch(`/messages/${type}/${id}/${messageId}`, { message: messageText }, { params: accessHash ? { accessHash } : {} })
         setMessagesParsed(messagesParsed?.map((message: any) => message.key == messageId ? {
           ...message,
           message: messageText,
@@ -419,21 +382,17 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
         } : message))
         setMessageId(undefined)
       } else {
-        await client.invoke(new Api.messages.SendMessage({
-          peer,
-          message: messageText,
-          ...messageReply?.key ? { replyToMsgId: messageReply.key } : {}
-        }))
+        await req.post(`/messages/send/${message?.id}`, {
+          message: messageText, ...messageReply?.key ? { replyToMsgId: messageReply.key } : {} })
         refetchHistory()
       }
       setMessageText(undefined)
       setMessageReply(undefined)
     } catch (error: any) {
-      console.error(error)
       setLoadingSend(false)
       return notification.error({
         message: 'Error',
-        description: error?.response?.data?.error || 'Something error, please try again.'
+        description: error?.response.data?.error || 'Something error, please try again.'
       })
     }
     return setLoadingSend(false)
