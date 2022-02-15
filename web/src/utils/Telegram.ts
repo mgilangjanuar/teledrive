@@ -9,7 +9,7 @@ export const telegramClient = {
     }
     const client = new TelegramClient(new StringSession(session), Number(process.env.REACT_APP_TG_API_ID), process.env.REACT_APP_TG_API_HASH as string, {
       connectionRetries: 10,
-      useWSS: false,
+      useWSS: true,
       baseLogger: new Logger(LogLevel.NONE)
     })
     await client.connect()
