@@ -1,5 +1,4 @@
-import { Logger, TelegramClient } from '@mgilangjanuar/telegram'
-import { LogLevel } from '@mgilangjanuar/telegram/extensions/Logger'
+import { TelegramClient } from '@mgilangjanuar/telegram'
 import { StringSession } from '@mgilangjanuar/telegram/sessions'
 
 export const telegramClient = {
@@ -10,7 +9,7 @@ export const telegramClient = {
     const client = new TelegramClient(new StringSession(session), Number(process.env.REACT_APP_TG_API_ID), process.env.REACT_APP_TG_API_HASH as string, {
       connectionRetries: 10,
       useWSS: true,
-      baseLogger: new Logger(LogLevel.NONE)
+      // baseLogger: new Logger(LogLevel.NONE)
     })
     await client.connect()
     return client
