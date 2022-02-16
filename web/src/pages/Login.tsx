@@ -72,23 +72,19 @@ const Login: React.FC<Props> = ({ me }) => {
           localStorage.setItem('session', session)
           data = { phoneCodeHash: newPhoneCodeHash }
         } else {
-          try {
-            const { phoneCodeHash } = await client.invoke(new Api.auth.SendCode({
-              apiId: Number(process.env.REACT_APP_TG_API_ID),
-              apiHash: process.env.REACT_APP_TG_API_HASH,
-              phoneNumber,
-              settings: new Api.CodeSettings({
-                allowFlashcall: true,
-                currentNumber: true,
-                allowAppHash: true,
-              })
-            }))
-            const session = client.session.save() as any
-            localStorage.setItem('session', session)
-            data = { phoneCodeHash }
-          } catch (error) {
-            // ignore
-          }
+          const { phoneCodeHash } = await client.invoke(new Api.auth.SendCode({
+            apiId: Number(process.env.REACT_APP_TG_API_ID),
+            apiHash: process.env.REACT_APP_TG_API_HASH,
+            phoneNumber,
+            settings: new Api.CodeSettings({
+              allowFlashcall: true,
+              currentNumber: true,
+              allowAppHash: true,
+            })
+          }))
+          const session = client.session.save() as any
+          localStorage.setItem('session', session)
+          data = { phoneCodeHash }
         }
       } else {
         const resp = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { phoneNumber })
