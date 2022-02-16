@@ -30,7 +30,10 @@ jobs:
       env:
         NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
     - run: yarn install
-    - run: GENERATE_SOURCEMAP=false yarn workspaces run build
+    - run: REACT_APP_TG_API_ID=${APP_ID} REACT_APP_TG_API_HASH=${APP_HASH} GENERATE_SOURCEMAP=false yarn workspaces run build
+      env:
+        APP_ID: ${{ secrets.TG_API_ID }}
+        APP_HASH: ${{ secrets.TG_API_HASH }}
     - name: Compress node_modules root
       if: ${{ github.event_name == 'push' }}
       run: tar -czf build-root.tar.gz node_modules

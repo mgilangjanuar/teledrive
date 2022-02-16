@@ -5,8 +5,8 @@ import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import moment from 'moment'
 import multer from 'multer'
+import moment from 'moment'
 import { Files as Model } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
 import { Redis } from '../../service/Cache'
@@ -524,6 +524,113 @@ export class Files {
     return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
 
+  @Endpoint.POST('/uploadBeta/:id?', { middlewares: [Auth] })
+  public async uploadBeta(req: Request, res: Response): Promise<any> {
+    const {
+      name,
+      size,
+      mime_type: mimetype,
+      parent_id: parentId,
+      relative_path: relativePath,
+      total_part: totalPart,
+      part,
+      message
+    } = req.body as Record<string, any>
+
+    let model: Model
+    if (req.params?.id) {
+      model = await Model.createQueryBuilder('files')
+        .where('id = :id', { id: req.params.id })
+        .addSelect('files.file_id')
+        .getOne()
+      if (!model) {
+        throw { status: 404, body: { error: 'File not found' } }
+      }
+    }
+
+    if (!message) {
+      if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
+        throw { status: 402, body: { error: 'Payment required' } }
+      }
+
+      if (!model) {
+        let type = null
+        if (mimetype.match(/^image/gi)) {
+          type = 'image'
+        } else if (mimetype.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
+          type = 'video'
+        } else if (mimetype.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
+          type = 'document'
+        } else if (mimetype.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
+          type = 'audio'
+        } else {
+          type = 'unknown'
+        }
+
+        let currentParentId = parentId
+        if (relativePath) {
+          const paths = relativePath.split('/').slice(0, -1) || []
+          for (const i in paths) {
+            const path = paths[i]
+            const findFolder = await Model.createQueryBuilder('files')
+              .where(`type = :type and name = :name and user_id = :user_id and parent_id ${currentParentId ? '= :parent_id' : 'is null'}`, {
+                type: 'folder',
+                name: path,
+                user_id: req.user.id,
+                parent_id: currentParentId
+              })
+              .getOne()
+            if (findFolder) {
+              currentParentId = findFolder.id
+            } else {
+              const newFolder = new Model()
+              newFolder.name = path
+              newFolder.type = 'folder'
+              newFolder.user_id = req.user.id
+              newFolder.mime_type = 'teledrive/folder'
+              if (currentParentId) {
+                newFolder.parent_id = currentParentId
+              }
+              await newFolder.save()
+              currentParentId = newFolder.id
+            }
+          }
+        }
+
+        model = new Model()
+        model.name = name,
+        model.mime_type = mimetype
+        model.size = size
+        model.user_id = req.user.id
+        model.type = type
+        model.parent_id = currentParentId || null
+        model.upload_progress = 0
+        model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
+        model.forward_info = req.user.settings?.saved_location || null
+        await model.save()
+      }
+
+      // model.size = bigInt(model.size).add(file.buffer.length).toString()
+      model.upload_progress = (Number(part) + 1) / Number(totalPart)
+      await model.save()
+
+      // if (Number(part) < Number(totalPart) - 1) {
+      if (!message) {
+        return res.status(202).send({ accepted: true, file: { id: model.id, file_id: model.file_id, name: model.name, size: model.size, type: model.type } })
+      }
+    }
+
+    model.message_id = message.id?.toString()
+    model.uploaded_at = message.date ? new Date(message.date * 1000) : null
+    model.upload_progress = null
+    if (req.user.settings?.saved_location) {
+      const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+      model.forward_info = `${type}/${peerId}/${message.id?.toString()}/${accessHash}`
+    }
+    await model.save()
+    return res.status(202).send({ accepted: true, file: { id: model.id, file_id: model.file_id, name: model.name, size: model.size, type: model.type } })
+  }
+
   @Endpoint.GET('/breadcrumbs/:id', { middlewares: [AuthMaybe] })
   public async breadcrumbs(req: Request, res: Response): Promise<any> {
     const { id } = req.params
@@ -661,7 +768,7 @@ export class Files {
   }
 
   public static async download(req: Request, res: Response, files: Model[], onlyHeaders?: boolean): Promise<any> {
-    const { raw, dl, thumb } = req.query
+    const { raw, dl, thumb, as_array: asArray } = req.query
 
     let usage = await Usages.createQueryBuilder('usages')
       .where('key = :key', {
@@ -698,17 +805,24 @@ export class Files {
       return res.send({ file: result })
     }
 
+    usage.usage = bigInt(totalFileSize).add(bigInt(usage.usage)).toString()
+    await usage.save()
+    if (asArray === '1') {
+      return res.send({ files })
+    }
+
     let cancel = false
     req.on('close', () => cancel = true)
+    // res.status(206)
     res.setHeader('Cache-Control', 'public, max-age=604800')
+    res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Range', `bytes */${totalFileSize}`)
     res.setHeader('Accept-Ranges', 'bytes')
-    res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
 
-    if (onlyHeaders) return
+    if (onlyHeaders) return res.status(200)
 
     for (const file of files) {
       let chat: any
@@ -732,7 +846,7 @@ export class Files {
 
       let data = null
 
-      const chunk = 512 * 1024
+      const chunk = 64 * 1024
       let idx = 0
 
       while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {

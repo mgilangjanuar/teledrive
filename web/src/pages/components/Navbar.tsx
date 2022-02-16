@@ -26,6 +26,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
 
   const logout = async () => {
     await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
+    window.localStorage.clear()
     return window.location.replace('/')
   }
 

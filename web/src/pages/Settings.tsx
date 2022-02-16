@@ -6,7 +6,9 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   ExpandAltOutlined,
+  ExperimentOutlined,
   FrownOutlined,
+  LoginOutlined,
   GlobalOutlined,
   InfoOutlined,
   LogoutOutlined,
@@ -17,6 +19,7 @@ import {
   SyncOutlined,
   WarningOutlined
 } from '@ant-design/icons'
+import { Api } from '@mgilangjanuar/telegram'
 import {
   Avatar,
   Button,
@@ -45,6 +48,7 @@ import useSWR from 'swr'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
 import { VERSION } from '../utils/Constant'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
+import { telegramClient } from '../utils/Telegram'
 
 interface Props {
   me?: any,
@@ -57,6 +61,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [expandableRows, setExpandableRows] = useState<boolean>()
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
+  const [expFeatures, setExpFeatures] = useState<boolean>(false)
   const [changeDCConfirmation, setChangeDCConfirmation] = useState<string>()
   const [loadingChangeServer, setLoadingChangeServer] = useState<boolean>(false)
   const [loadingRemove, setLoadingRemove] = useState<boolean>(false)
@@ -130,6 +135,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
   const logout = async () => {
     await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
+    window.localStorage.clear()
     return window.location.replace('/')
   }
 
@@ -278,6 +284,25 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
               </List>
 
               <List header="Danger Zone">
+                <List.Item key="join-exp" actions={[<Form.Item>
+                  <Button shape="round" icon={localStorage.getItem('experimental') && localStorage.getItem('session') ? <LogoutOutlined /> : <LoginOutlined />} onClick={async () => {
+                    if (localStorage.getItem('experimental') && localStorage.getItem('session')) {
+                      const client = await telegramClient.connect()
+                      localStorage.removeItem('experimental')
+                      localStorage.removeItem('session')
+                      location.reload()
+                      try {
+                        await client.invoke(new Api.auth.LogOut())
+                      } catch (error) {
+                        // ignore
+                      }
+                    } else {
+                      setExpFeatures(true)
+                    }
+                  }}>{localStorage.getItem('experimental') && localStorage.getItem('session') ? 'Revoke' : 'Join'}</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><ExperimentOutlined /><>Experimental</></Space>} description="Join to the experimental features" />
+                </List.Item>
                 <List.Item key="change-server" actions={[<Form.Item name="change_server">
                   {dc && <Select className="change-server ghost" onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
                     <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
@@ -373,6 +398,51 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
           Send an email to <a href={emailLink()}>bug@teledriveapp.com</a> with logs and additional screenshots in the attachment
         </li>
       </ol>
+    </Modal>
+
+    <Modal title={<Typography.Text>
+      <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Join Experimental
+    </Typography.Text>}
+    visible={expFeatures}
+    onCancel={() => {
+      localStorage.removeItem('experimental')
+      setExpFeatures(false)
+    }}
+    onOk={() => {
+      localStorage.setItem('experimental', 'true')
+      setExpFeatures(false)
+      window.open(`${window.location.origin}/login`, '_blank', 'location=yes,height=720,width=520,scrollbars=yes,status=yes,top=100,left=300')
+    }}
+    cancelButtonProps={{ shape: 'round' }}
+    okButtonProps={{ type: 'primary', shape: 'round' }}>
+      <Typography.Paragraph>
+        You will get this experimental features:
+      </Typography.Paragraph>
+      <ul>
+        <li>
+          <strong>Ultra Upload</strong>
+          <Typography.Paragraph>
+            Your files will directly upload to the Telegram servers and the speed will follow your internet connection.
+          </Typography.Paragraph>
+        </li>
+        <li>
+          <strong>Fast Download</strong>
+          <Typography.Paragraph>
+            Same like Ultra Upload, your files will be downloaded directly from the Telegram servers. But, it will have some limitations:
+            <ul>
+              <li>Only works with chrome-based browsers</li>
+              <li>The max download size is 2GB for free users or follows your device memory</li>
+            </ul>
+          </Typography.Paragraph>
+        </li>
+      </ul>
+      <Typography.Paragraph>
+        Note. Those features may have bugs please report them to <a href={emailLink()}>bug@teledriveapp.com</a> and you can always revoke from experimental features anytime.
+      </Typography.Paragraph>
+
+      <Typography.Paragraph strong>
+        You need to be logged in again to TeleDrive. Continue?
+      </Typography.Paragraph>
     </Modal>
   </>
 }
