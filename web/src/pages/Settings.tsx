@@ -6,9 +6,12 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   ExpandAltOutlined,
-  ExperimentOutlined, EyeOutlined, FrownOutlined,
+  ExperimentOutlined,
+  FrownOutlined,
+  LoginOutlined,
   GlobalOutlined,
-  InfoOutlined, LogoutOutlined,
+  InfoOutlined,
+  LogoutOutlined,
   MobileOutlined,
   MonitorOutlined,
   ReloadOutlined,
@@ -131,6 +134,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
   const logout = async () => {
     await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
+    window.localStorage.clear()
     return window.location.replace('/')
   }
 
@@ -280,8 +284,8 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
 
               <List header="Danger Zone">
                 <List.Item key="join-exp" actions={[<Form.Item>
-                  <Button shape="round" icon={<EyeOutlined />} onClick={async () => {
-                    if (localStorage.getItem('experimental')) {
+                  <Button shape="round" icon={localStorage.getItem('experimental') && localStorage.getItem('session') ? <LogoutOutlined /> : <LoginOutlined />} onClick={async () => {
+                    if (localStorage.getItem('experimental') && localStorage.getItem('session')) {
                       const client = await telegramClient.connect()
                       localStorage.removeItem('experimental')
                       localStorage.removeItem('session')
@@ -294,9 +298,9 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                     } else {
                       localStorage.setItem('experimental', 'true')
                       // await new Promise(resolve => setTimeout(resolve, 3000))
-                      window.open(`${window.location.origin}/login`, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes,top=200,left=200')
+                      window.open(`${window.location.origin}/login`, '_blank', 'location=yes,height=720,width=520,scrollbars=yes,status=yes,top=100,left=300')
                     }
-                  }}>{localStorage.getItem('experimental') ? 'Revoke' : 'Join'}</Button>
+                  }}>{localStorage.getItem('experimental') && localStorage.getItem('session') ? 'Revoke' : 'Join'}</Button>
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><ExperimentOutlined /><>Experimental</></Space>} description="Join to the experimental features" />
                 </List.Item>

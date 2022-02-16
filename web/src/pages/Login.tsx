@@ -611,7 +611,7 @@ const Login: React.FC<Props> = ({ me }) => {
                   {!needPassword ? <>
                     <Row align="middle" gutter={24}>
                       <Col span={24} lg={12}>
-                        <Typography.Paragraph style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <Typography.Paragraph style={{ textAlign: 'center', marginBottom: '20px', background: '#fff', padding: '20px' }}>
                           {qrCode?.loginToken ? <QRCode size={165} value={`tg://login?token=${qrCode?.loginToken}`} /> : <Spin />}
                         </Typography.Paragraph>
                       </Col>
