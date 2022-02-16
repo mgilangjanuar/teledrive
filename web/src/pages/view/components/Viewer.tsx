@@ -156,6 +156,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
     // }
     // setBlobURL(undefined)
     if (isInDrawer) return onCloseDrawer?.()
+    window.close()
     return history.goBack()
   }
 
@@ -235,7 +236,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
             <Menu.Item key="remove" danger onClick={() => setSelectDeleted([data?.file])} icon={<DeleteOutlined />}>Delete</Menu.Item>
           </Menu>}>
             <Button shape="circle" icon={<EllipsisOutlined />} />
-          </Dropdown> : <Button shape="circle" onClick={() => directDownload(data?.file.id, data?.file.name.replace(/\.part0*\d+$/, ''))} icon={<DownloadOutlined />} />}
+          </Dropdown> : <Button shape="circle" onClick={() => window.open(links?.download)} icon={<DownloadOutlined />} />}
           <Button shape="circle" icon={collapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
         </Space>
       </div>
