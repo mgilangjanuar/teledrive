@@ -4,7 +4,7 @@ import { notification } from 'antd'
 
 export const telegramClient = {
   connect: async (session = localStorage.getItem('session')): Promise<TelegramClient> => {
-    if (!session) {
+    if (session === null || session === undefined) {
       notification.info({ message: 'Experimental feature', description: 'Join the experimental features in the Settings page' })
       throw { status: 401, message: 'Session not found' }
     }

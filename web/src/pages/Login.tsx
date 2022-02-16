@@ -5,6 +5,7 @@ import { computeCheck } from '@mgilangjanuar/telegram/Password'
 import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
+import base64url from 'base64url'
 import JSCookie from 'js-cookie'
 import React, { useEffect, useState } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
@@ -220,6 +221,7 @@ const Login: React.FC<Props> = ({ me }) => {
       const signIn = await client.invoke(new Api.auth.CheckPassword({
         password: await computeCheck(passwordData, password)
       }))
+
       const userAuth = signIn['user']
       if (!userAuth) {
         throw { status: 400, body: { error: 'User not found/authorized' } }
@@ -273,15 +275,15 @@ const Login: React.FC<Props> = ({ me }) => {
             // ignore
           }
         }
+        data = {
+          session: client.session.save() as any,
+          loginToken: base64url(dataLogin['token'])
+        }
 
-        setQrCode({
-          loginToken: Buffer.from(dataLogin['token'] as any, 'utf8').toString('base64url')
-        })
       } catch (error: any) {
         // handle if need 2fa password
         if (error.errorMessage === 'SESSION_PASSWORD_NEEDED') {
           error.session = client.session.save() as any
-          setQrCode({ ...qrCode as any || {}, session: error.session })
         }
         throw error
       }
@@ -367,9 +369,9 @@ const Login: React.FC<Props> = ({ me }) => {
                 .then(data => {
                   const session = client.session.save() as any
                   localStorage.setItem('session', session)
-                  console.log(data['token'])
                   setQrCode({
-                    loginToken: Buffer.from(data['token'], 'utf8').toString('base64')
+                    session: client.session.save() as any,
+                    loginToken: base64url(data['token'])
                   })
                 })
             })
@@ -386,8 +388,8 @@ const Login: React.FC<Props> = ({ me }) => {
 
   useEffect(() => {
     if (qrCode && method === 'qrCode' && !needPassword) {
-      setTimeout(() => {
-        if (method === 'qrCode' && !needPassword && qrCode?.loginToken && qrCode?.accessToken) {
+      const timeout = setTimeout(() => {
+        if (method === 'qrCode' && !needPassword && qrCode?.loginToken) {
           new Promise((resolve, reject) => {
             if (localStorage.getItem('experimental')) {
               _qrCodeSignIn().then(resolve).catch(reject)
@@ -397,9 +399,9 @@ const Login: React.FC<Props> = ({ me }) => {
               } }).then(({ data }) => resolve(data)).catch(reject)
             }
           }).then((data: any) => {
-            console.log(data)
+            // console.log(data)
             if (data?.user) {
-              // if (data.session) localStorage.setItem('session', data.session)
+              clearTimeout(timeout)
               try {
                 req.post('/users/me/paymentSync')
                 if (localStorage.getItem('files')) {
@@ -437,12 +439,21 @@ const Login: React.FC<Props> = ({ me }) => {
               setQrCode(data)
             }
           }).catch((error: any) => {
-            if (error?.errorMessage === 'SESSION_PASSWORD_NEEDED' || error?.response?.data?.details?.errorMessage === 'SESSION_PASSWORD_NEEDED') {
+            let errorMessage = error?.errorMessage
+            if (error.response && error.response.data) {
+              errorMessage = error.response.data.details?.errorMessage
+            }
+            if (errorMessage === 'SESSION_PASSWORD_NEEDED') {
               notification.info({
                 message: 'Info',
                 description: 'Please input your 2FA password'
               })
-              setQrCode({ ...qrCode, session: error?.response.data.details.session })
+
+              let session = error.session
+              if (!session && error.response && error.response.data) {
+                session = error.response.data.details?.session
+              }
+              setQrCode({ ...qrCode, session })
               setNeedPassword(true)
             } else {
               // notification.error({
@@ -460,7 +471,7 @@ const Login: React.FC<Props> = ({ me }) => {
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
         <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 8, offset: 8 }} lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={22} offset={1}>
-          <Collapse>
+          {!localStorage.getItem('experimental') && <Collapse>
             <Collapse.Panel key="1" showArrow={false} header={<Typography.Text>
               <GlobalOutlined /> Data center region
             </Typography.Text>}>
@@ -521,7 +532,7 @@ const Login: React.FC<Props> = ({ me }) => {
                 </Col>
               </Row>
             </Collapse.Panel>
-          </Collapse>
+          </Collapse>}
           <br /><br />
 
           <Typography.Title level={2}>
