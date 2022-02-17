@@ -53,12 +53,12 @@ const Pricing: React.FC<Props> = ({ me }) => {
     <>
       {isIDR && <Form.Item style={{ margin: '15px 20px' }}>
         <Tooltip placement="topLeft" title="This is required for sending the invoice to your email">
-          <Input.Search type="email" size="large" placeholder="Type your email here..." required defaultValue={email}
+          <Input.Search disabled type="email" size="large" placeholder="Type your email here..." required defaultValue={email}
             onBlur={({ target }) => setEmail(target.value)} enterButton={<ArrowRightOutlined />}
             onSearch={val => select('premium', 'midtrans', val)} />
         </Tooltip>
       </Form.Item>}
-      <Button block loading={loading} type="text" size="large" onClick={() => isIDR ? select('premium', 'midtrans') : select('premium')}>
+      <Button disabled block loading={loading} type="text" size="large" onClick={() => isIDR ? select('premium', 'midtrans') : select('premium')}>
         {isIDR ? <>Powered by<strong> Midtrans</strong></> : <>Subscribe with<strong> PayPal</strong></>} <ArrowRightOutlined />
       </Button>
     </>
