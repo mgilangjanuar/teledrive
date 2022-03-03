@@ -7,6 +7,7 @@ COPY ./package.json .
 RUN echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > ~/.npmrc && \
     echo "@mgilangjanuar:registry=https://npm.pkg.github.com/" >> ~/.npmrc && \
     yarn install && \
-    rm -f ~/.npmrc
+    rm -f ~/.npmrc && \
+    npm i react-scripts -g
 COPY . .
 RUN yarn workspaces run build
