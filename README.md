@@ -59,6 +59,7 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
     | PAYPAL_PLAN_PREMIUM_ID | yes      | Product ID for premium plan                           |
     | REDIS_URI              | no       | Cache some responses from external services           |
     | UTILS_API_KEY          | yes      | Token key for make all servers communicate            |
+    | DISABLE_PAYMENT_CHECK  | no       | Disable subscription check to PayPal, default: false  |
 
   - Web variables
 
