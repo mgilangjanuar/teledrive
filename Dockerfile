@@ -9,6 +9,6 @@ RUN echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > ~/.npmrc && \
     yarn install && \
     rm -f ~/.npmrc && \
     npm i react-scripts -g && \
-    npm i typescript -g
+    npm i typescript
 COPY . .
 RUN yarn workspaces run build
