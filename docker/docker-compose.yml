@@ -16,11 +16,12 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - app
-  app:
-    command: yarn server start
+      - server
+      - web
+  server:
+    command: yarn start
     labels:
-      traefik.http.routers.server.rule: Host(`teledrive.localhost`)
+      traefik.http.routers.server.rule: Host(`server.localhost`)
       traefik.port: 4000
     expose:
       - 4000
@@ -28,6 +29,7 @@ services:
       context: ../.
       dockerfile: Dockerfile
       args:
+        BUILD_CONTEXT: server
         NPM_TOKEN: ${NPM_TOKEN}
     environment:
       DB_NAME: postgres
@@ -38,6 +40,23 @@ services:
     depends_on:
       - db
       - cache
+  web:
+    command: yarn start
+    labels:
+      traefik.http.routers.web.rule: Host(`teledrive.localhost`)
+      traefik.port: 3000
+    expose:
+      - 3000
+    build:
+      context: ../.
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONTEXT: web
+        NPM_TOKEN: ${NPM_TOKEN}
+    environment:
+      REACT_APP_API_URL: http://server.localhost
+    depends_on:
+      - server
   db:
     image: postgres:13
     restart: always

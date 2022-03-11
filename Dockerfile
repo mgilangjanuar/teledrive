@@ -1,14 +1,16 @@
 FROM node:14.19.0 as build
 ARG NPM_TOKEN
+ARG BUILD_CONTEXT
+
 WORKDIR /apps
-COPY package.json .
+
 COPY yarn.lock .
-COPY ./package.json .
+COPY $BUILD_CONTEXT/package.json .
 RUN echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > ~/.npmrc && \
-    echo "@mgilangjanuar:registry=https://npm.pkg.github.com/" >> ~/.npmrc && \
-    yarn install && \
-    rm -f ~/.npmrc && \
-    npm i react-scripts -g && \
-    npm i typescript -g
-COPY . .
-RUN yarn workspaces run build
+    echo "@mgilangjanuar:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+RUN npm i react-scripts -g --silent && \
+    npm i typescript
+RUN yarn install
+RUN rm -f ~/.npmrc
+COPY $BUILD_CONTEXT .
+RUN yarn run build
