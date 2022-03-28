@@ -57,11 +57,35 @@ Get started by build all needed services.
 
 ### Provide environment variables
 
-Complete all variables from `./server/.env` and `./web/.env` with your own values to Heroku:
+Set all variables with your own values to Heroku:
 
 ```shell
 heroku config:set [ENV_NAME]=[ENV_VALUE]
 ```
+
+- Define all server variables
+
+  | env                    | required | description                                           |
+  | ---------------------- | -------- | ----------------------------------------------------- |
+  | ENV                    | no       | Hide the logs for production, default: develop        |
+  | PORT                   | no       | Port for running API, default: 4000                   |
+  | TG_API_ID              | yes      | Application ID from your Telegram App                 |
+  | TG_API_HASH            | yes      | Application hash from Telegram App                    |
+  | DB_HOST                | no       | Database host URI, default: localhost                 |
+  | DB_NAME                | yes      | Database name                                         |
+  | DB_PORT                | no       | Database port, default: 5432                          |
+  | DB_USERNAME            | yes      | Database username                                     |
+  | DB_PASSWORD            | yes      | Database password                                     |
+  | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token               |
+  | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
+
+- Define all web variables
+
+  | env                   | required | description                                                       |
+  | --------------------- | -------- | ----------------------------------------------------------------- |
+  | REACT_APP_API_URL     | no       | Base URL for the API, default: `''` (empty string)                |
+  | REACT_APP_TG_API_ID   | yes      | Application ID from your Telegram App *(for experimental features)* |
+  | REACT_APP_TG_API_HASH | yes      | Application hash from Telegram App  *(for experimental features)*   |
 
 ## Deploy
 

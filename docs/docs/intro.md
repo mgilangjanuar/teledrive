@@ -68,5 +68,4 @@ Next, you can select where you want to install TeleDrive.
 - Heroku
 
   - Clone repository to your local machine
-  - Install with [manual](/docs/installation/manual) method
   - Deploy to [Heroku](/docs/deployment/heroku)
