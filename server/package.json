@@ -1,12 +1,12 @@
 {
   "name": "server",
-  "version": "1.10.0-beta",
+  "version": "2.0.0",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
   "scripts": {
     "start": "nodemon dist/index.js --watch",
-    "build": "rimraf dist && eslint --fix -c .eslintrc.js --ext .ts . && tsc"
+    "build": "tsc"
   },
   "dependencies": {
     "@mgilangjanuar/telegram": "2.5.0",

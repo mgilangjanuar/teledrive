@@ -18,10 +18,12 @@ services:
     depends_on:
       - app
   app:
-    command: yarn server start
+    command: node server/dist/index.js
     labels:
       traefik.http.routers.server.rule: Host(`teledrive.localhost`)
       traefik.port: 4000
+    ports:
+      - "4000:4000"
     expose:
       - 4000
     build:
@@ -32,34 +34,15 @@ services:
     environment:
       DB_NAME: postgres
       DB_HOST: db
-      DB_USERNAME: ${DB_USERNAME}
+      DB_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_URI: redis://cache
     depends_on:
       - db
-      - cache
   db:
     image: postgres:13
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
-  # migration:
-  #   command: yarn server typeorm schema:sync
-  #   build:
-  #     context: ../.
-  #     dockerfile: Dockerfile
-  #     args:
-  #       NPM_TOKEN: ${NPM_TOKEN}
-  #   environment:
-  #     DB_NAME: postgres
-  #     DB_HOST: db
-  #     DB_USERNAME: ${DB_USERNAME}
-  #     DB_PASSWORD: ${DB_PASSWORD}
-  #   depends_on:
-  #     - db
-  cache:
-    image: redis:6
-    restart: always

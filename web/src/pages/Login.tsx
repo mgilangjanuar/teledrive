@@ -1,8 +1,8 @@
-import { ArrowRightOutlined, CheckCircleTwoTone, GlobalOutlined, LoginOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, LoginOutlined } from '@ant-design/icons'
 import { Api } from '@mgilangjanuar/telegram'
 import { generateRandomBytes } from '@mgilangjanuar/telegram/Helpers'
 import { computeCheck } from '@mgilangjanuar/telegram/Password'
-import { Button, Card, Col, Collapse, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
+import { Button, Card, Col, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
 import base64url from 'base64url'
@@ -25,7 +25,6 @@ const Login: React.FC<Props> = ({ me }) => {
   const history = useHistory()
   const [formLogin] = useForm()
   const [formLoginQRCode] = useForm()
-  const [dc, setDc] = useState<string>()
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [phoneData, setPhoneData] = useState<{ phone?: string, code?: number, short?: string }>({})
   const [otp, setOtp] = useState<string>()
@@ -38,19 +37,6 @@ const Login: React.FC<Props> = ({ me }) => {
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
   const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken?: string, session?: string }>()
   const { currentTheme } = useThemeSwitcher()
-
-  useEffect(() => {
-    if (window.location.host === 'ge.teledriveapp.com') {
-      setDc('ge')
-      localStorage.setItem('dc', 'ge')
-    } else if (window.location.host === 'us.teledriveapp.com') {
-      setDc('us')
-      localStorage.setItem('dc', 'us')
-    } else {
-      setDc('sg')
-      localStorage.setItem('dc', 'sg')
-    }
-  }, [])
 
   const sendCode = async (phoneNumber?: string) => {
     phoneNumber = phoneNumber || phoneData.phone ? `+${phoneData.code}${phoneData.phone}` : ''
@@ -152,7 +138,7 @@ const Login: React.FC<Props> = ({ me }) => {
         data = resp.data
       }
       try {
-        req.post('/users/me/paymentSync')
+        // req.post('/users/me/paymentSync')
         if (localStorage.getItem('files')) {
           notification.info({
             key: 'sync',
@@ -293,7 +279,7 @@ const Login: React.FC<Props> = ({ me }) => {
       setLoadingLogin(true)
       const data = localStorage.getItem('experimental') ? await _qrCodeSignIn(password) : (await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session }))?.data
       try {
-        req.post('/users/me/paymentSync')
+        // req.post('/users/me/paymentSync')
         if (localStorage.getItem('files')) {
           notification.info({
             key: 'sync',
@@ -399,7 +385,7 @@ const Login: React.FC<Props> = ({ me }) => {
             if (data?.user) {
               clearTimeout(timeout)
               try {
-                req.post('/users/me/paymentSync')
+                // req.post('/users/me/paymentSync')
                 if (localStorage.getItem('files')) {
                   notification.info({
                     key: 'sync',
@@ -467,7 +453,7 @@ const Login: React.FC<Props> = ({ me }) => {
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
         <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 8, offset: 8 }} lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={22} offset={1}>
-          {!localStorage.getItem('experimental') && <Collapse>
+          {/* {!localStorage.getItem('experimental') && <Collapse>
             <Collapse.Panel key="1" showArrow={false} header={<Typography.Text>
               <GlobalOutlined /> Data center region
             </Typography.Text>}>
@@ -529,7 +515,7 @@ const Login: React.FC<Props> = ({ me }) => {
               </Row>
             </Collapse.Panel>
           </Collapse>}
-          <br /><br />
+          <br /><br /> */}
 
           <Typography.Title level={2}>
             Login with Telegram

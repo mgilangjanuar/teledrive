@@ -18,8 +18,6 @@ import express, {
 import listEndpoints from 'express-list-endpoints'
 import morgan from 'morgan'
 import path from 'path'
-import { Pool } from 'pg'
-import { RateLimiterPostgres } from 'rate-limiter-flexible'
 import { serializeError } from 'serialize-error'
 import { API } from './api'
 import { runDB } from './model'
@@ -81,33 +79,34 @@ app.use(curl)
 //   return next()
 // })
 
-const rateLimiter = new RateLimiterPostgres({
-  storeClient: new Pool({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD
-  }),
-  points: Number(process.env.RPS) || 20,
-  duration: 1,
-  tableName: 'rate_limits',
-  tableCreated: false
-})
+// const rateLimiter = new RateLimiterPostgres({
+//   storeClient: new Pool({
+//     host: process.env.DB_HOST,
+//     port: Number(process.env.DB_PORT) || 5432,
+//     database: process.env.DB_NAME,
+//     user: process.env.DB_USERNAME,
+//     password: process.env.DB_PASSWORD
+//   }),
+//   points: Number(process.env.RPS) || 20,
+//   duration: 1,
+//   tableName: 'rate_limits',
+//   tableCreated: false
+// })
 
 app.get('/ping', (_, res) => res.send({ pong: true }))
 app.get('/security.txt', (_, res) => {
   res.setHeader('Content-Type', 'text/plain')
   res.send('Contact: security@teledriveapp.com\nPreferred-Languages: en, id')
 })
-app.use('/api', (req, res, next) => {
-  rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {
-    if (error.msBeforeNext) {
-      return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests', retryAfter: error.msBeforeNext })
-    }
-    throw error
-  })
-}, API)
+// app.use('/api', (req, res, next) => {
+//   rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {
+//     if (error.msBeforeNext) {
+//       return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests', retryAfter: error.msBeforeNext })
+//     }
+//     throw error
+//   })
+// }, API)
+app.use('/api', API)
 
 // error handler
 app.use(async (err: { status?: number, body?: Record<string, any> }, req: Request, res: Response, __: NextFunction) => {
@@ -115,17 +114,19 @@ app.use(async (err: { status?: number, body?: Record<string, any> }, req: Reques
     console.error(err)
   }
   if ((err.status || 500) >= 500) {
-    try {
-      await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
-        chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
-        parse_mode: 'Markdown',
-        text: `🔥 *${markdownSafe(err.body.error  || (err as any).message || 'Unknown error')}*\n\n\`[${err.status || 500}] ${markdownSafe(req.protocol + '://' + req.get('host') + req.originalUrl)}\`\n\n\`\`\`\n${JSON.stringify(serializeError(err), null, 2)}\n\`\`\`\n\n\`\`\`\n${req['_curl']}\n\`\`\``
-      })
-    } catch (error) {
-      if (process.env.ENV !== 'production') {
-        console.error(error)
+    if (process.env.TG_BOT_TOKEN && (process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID)) {
+      try {
+        await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+          chat_id: process.env.TG_BOT_ERROR_REPORT_ID || process.env.TG_BOT_OWNER_ID,
+          parse_mode: 'Markdown',
+          text: `🔥 *${markdownSafe(err.body.error  || (err as any).message || 'Unknown error')}*\n\n\`[${err.status || 500}] ${markdownSafe(req.protocol + '://' + req.get('host') + req.originalUrl)}\`\n\n\`\`\`\n${JSON.stringify(serializeError(err), null, 2)}\n\`\`\`\n\n\`\`\`\n${req['_curl']}\n\`\`\``
+        })
+      } catch (error) {
+        if (process.env.ENV !== 'production') {
+          console.error(error)
+        }
+        // ignore
       }
-      // ignore
     }
   }
   return res.status(err.status || 500).send(err.body || { error: 'Something error', details: serializeError(err) })
