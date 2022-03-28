@@ -10,11 +10,12 @@ const config = {
   tagline: 'Your free unlimited cloud storage service using the Telegram API.',
   url: 'https://teledriveapp.com',
   baseUrl: '/',
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'ignore',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'https://res.cloudinary.com/mgilangjanuar/image/upload/v1648461015/teledrive/favicon_zuhgjb.png',
   organizationName: 'mgilangjanuar', // Usually your GitHub org/user name.
   projectName: 'teledrive', // Usually your repo name.
+  deploymentBranch: 'staging',
 
   presets: [
     [
@@ -105,7 +106,6 @@ const config = {
         disableSwitch: true,
         respectPrefersColorScheme: false,
       },
-      onBrokenLinks: 'ignore',
     }),
 };
 
