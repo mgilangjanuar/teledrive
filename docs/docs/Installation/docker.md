@@ -38,9 +38,6 @@ Get started by installing all needed services and define all variables.
 Build and run with this command:
 
 ```shell
-docker-compose -f docker/docker-compose.yml up
-
-# or with -d for make it daemon
 docker-compose -f docker/docker-compose.yml up -d
 ```
 

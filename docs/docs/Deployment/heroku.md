@@ -6,6 +6,8 @@ sidebar_position: 4
 
 For deployment to [Heroku](https://heroku.com/) you need to create an account first.
 
+**Note.** *You need to clone TeleDrive in your local machine first.*
+
 ## Prerequisite
 
 Get started by build all needed services.

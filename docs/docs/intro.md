@@ -37,11 +37,36 @@ You need to create an application on [Telegram](https://my.telegram.org/) first.
 
 ![img](https://res.cloudinary.com/mgilangjanuar/image/upload/v1648508069/teledrive/Screen_Shot_2022-03-29_at_05.52.20_rf4dxt.png)
 
-Save the access keys in the environment variables.
+**Note.** *Save the access keys in the environment variables.*
 
-```shell
+```
 TG_API_ID=[your_api_id]
 TG_API_HASH=[your_api_hash]
 ```
 
-Next, go to the installation tutorial with [Docker](/docs/installation/docker) or [manual](/docs/installation/manual) installation.
+Next, you can select where you want to install TeleDrive.
+
+- Virtual machine (Ubuntu 20.04)
+
+  Clone repository to your virtual machine and choose the installation method:
+
+  - Running application with [Docker](/docs/installation/docker):
+    - Then, setup domain with reverse proxy ([nginx](/docs/deoployment/nginx))
+  - Or, running with [manual](/docs/installation/manual):
+    - Daemonize the application with [pm2](/docs/deoployment/pm2)
+    - Then, setup domain with reverse proxy ([nginx](/docs/deoployment/nginx))
+
+
+- Vercel
+
+  - Clone repository to your local machine
+  - Install with [manual](/docs/installation/manual) method
+  - Deploy to [Vercel](/docs/deployment/vercel)
+
+  **Note.** *Vercel doesn't have database service. So, you need to create a database manually in [Supabase](https://supabase.com/), [ElephantSQL](https://www.elephantsql.com/), or any other database service.*
+
+- Heroku
+
+  - Clone repository to your local machine
+  - Install with [manual](/docs/installation/manual) method
+  - Deploy to [Heroku](/docs/deployment/heroku)
