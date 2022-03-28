@@ -10,4 +10,3 @@ lab/
 sessions/
 *.crt
 dump\.rdb
-.npmrc
