@@ -25,7 +25,7 @@ Get started by installing all needed services and define all variables.
   Install LTS version with command:
 
   ```shell
-  sudo apt install nodejs -y    # if, using Ubuntu
+  sudo apt install nodejs npm -y    # if, using Ubuntu
 
   # install node version
   npm i -g n
@@ -110,6 +110,16 @@ You need to create and import the database schema.
 - `DB_NAME`: teledrive
 - `DB_USERNAME`: postgres
 
+### Provide a GitHub personal token
+
+Create a personal access token from your GitHub account: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+
+Create `~/.npmrc` and add this line:
+
+```shell
+//npm.pkg.github.com/:_authToken=[YOUR_GITHUB_PERSONAL_TOKEN]
+@mgilangjanuar:registry=https://npm.pkg.github.com/
+```
 
 ### Dependencies installation
 
