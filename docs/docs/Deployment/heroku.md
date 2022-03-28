@@ -27,7 +27,7 @@ Get started by build all needed services.
   ```
 - Set NPM_TOKEN:
 
-  Create a personal token from your [GitHub account](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and set it as an environment variable:
+  Create a personal token from your [GitHub account](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with [these permissions](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-scopes-and-permissions-for-package-registries) and set it as an environment variable:
 
   ```shell
   heroku config:set NPM_TOKEN=[YOUR_TOKEN]
