@@ -27,7 +27,7 @@ Get started by installing all needed services and define all variables.
   ```shell
   sudo apt install nodejs npm -y    # if, using Ubuntu
 
-  # install node version
+  # install stable version
   npm i -g n
   n stable
   ```
@@ -106,6 +106,18 @@ You need to create and import the database schema.
   psql teledrive < ./server/src/model/migrations/dump.sql
   ```
 
+  Sometimes, we need to copy the dump file to the `/var/lib/postgresql` directory first:
+
+  ```shell
+  sudo cp ./server/src/model/migrations/dump.sql /var/lib/postgresql/
+
+  # change owner
+  sudo su - postgres
+
+  # import dump file
+  psql teledrive < dump.sql
+  ```
+
 **Note.** *If you follow the instructions above then you need to fill the server variables:*
 - `DB_NAME`: teledrive
 - `DB_USERNAME`: postgres
@@ -114,7 +126,7 @@ You need to create and import the database schema.
 
 Create a personal access token from your GitHub account: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 
-Create `~/.npmrc` and add this line:
+Create `~/.npmrc` and add these lines:
 
 ```shell
 //npm.pkg.github.com/:_authToken=[YOUR_GITHUB_PERSONAL_TOKEN]

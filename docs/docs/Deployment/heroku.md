@@ -6,8 +6,6 @@ sidebar_position: 4
 
 For deployment to [Heroku](https://heroku.com/) you need to create an account first.
 
-**Note.** *You need to build TeleDrive with manual installation until [the build workspaces step](/docs/Installation/manual#build) in your local machine.*
-
 ## Prerequisite
 
 Get started by build all needed services.
@@ -27,13 +25,41 @@ Get started by build all needed services.
   ```shell
   heroku git:remote -a [YOUR_APP_NAME]
   ```
-- Push code to Heroku:
+- Set NPM_TOKEN:
+
+  Create a personal token from your [GitHub account](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and set it as an environment variable:
 
   ```shell
-  git push heroku main  # or staging:main, if you're from staging branch
+  heroku config:set NPM_TOKEN=[YOUR_TOKEN]
   ```
 
+### Database preparation
 
-### Database creation
+- Install [Heroku Postgres](https://elements.heroku.com/addons/heroku-postgresql) as addon to your project.
+- Go to the settings page and View Credentials of your database and set the following variables:
 
-- Install [Heroku Postgres](https://elements.heroku.com/addons/heroku-postgresql) as addon
+  ```shell
+  heroku config:set DB_HOST=[YOUR_DB_HOST]
+  heroku config:set DB_PORT=[YOUR_DB_PORT]
+  heroku config:set DB_USERNAME=[YOUR_DB_USER]
+  heroku config:set DB_PASSWORD=[YOUR_DB_PASSWORD]
+  heroku config:set DB_NAME=[YOUR_DB_NAME]
+  ```
+
+### Provide environment variables
+
+Complete all variables from `./server/.env` and `./web/.env` with your own values to Heroku:
+
+```shell
+heroku config:set [ENV_NAME]=[ENV_VALUE]
+```
+
+## Deploy
+
+Push your code to main branch in Heroku:
+
+```shell
+git push heroku main  # or staging:main, if you're from staging branch
+```
+
+Your app will automatically deploy to [your-project-name].herokuapp.com
