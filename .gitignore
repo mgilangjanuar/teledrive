@@ -10,3 +10,4 @@ lab/
 sessions/
 *.crt
 dump\.rdb
+*.log
