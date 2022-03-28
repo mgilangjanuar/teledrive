@@ -10,7 +10,7 @@ const FeatureList = [
         <p>
           The open source project to give you what you deserve. Using the Telegram API as your unlimited storage. So, you can upload as many as you want without any limit 👌
         </p>
-        <img src="https://res.cloudinary.com/mgilangjanuar/image/upload/v1648438905/Screen_Shot_2022-03-28_at_10.41.06_m7ugy3.png" alt="screenshot" />
+        <img src="https://res.cloudinary.com/mgilangjanuar/image/upload/v1648438905/teledrive/Screen_Shot_2022-03-28_at_10.41.06_m7ugy3.png" alt="screenshot" />
       </>
     ),
   },

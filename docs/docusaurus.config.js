@@ -12,7 +12,7 @@ const config = {
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'https://teledrive.vercel.app/favicon.ico',
+  favicon: 'https://res.cloudinary.com/mgilangjanuar/image/upload/v1648461015/teledrive/favicon_zuhgjb.png',
   organizationName: 'mgilangjanuar', // Usually your GitHub org/user name.
   projectName: 'teledrive', // Usually your repo name.
 
@@ -46,7 +46,7 @@ const config = {
         title: '',
         logo: {
           alt: 'Logo',
-          src: 'https://teledrive.vercel.app/teledrive-logo/logoteledrive-white.png',
+          src: 'https://res.cloudinary.com/mgilangjanuar/image/upload/v1648461000/teledrive/logoteledrive-white_u8hevi.png',
         },
         items: [
           {
@@ -109,6 +109,7 @@ const config = {
         disableSwitch: true,
         respectPrefersColorScheme: false,
       },
+      onBrokenLinks: 'ignore',
     }),
 };
 
