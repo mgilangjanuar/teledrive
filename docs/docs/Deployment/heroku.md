@@ -33,6 +33,13 @@ Get started by build all needed services.
   heroku config:set NPM_TOKEN=[YOUR_TOKEN]
   ```
 
+  Create `.npmrc` file in root project or run this command:
+
+  ```shell
+  echo '@mgilangjanuar:registry=https://npm.pkg.github.com/' > .npmrc
+  echo '//npm.pkg.github.com/:_authToken=${NPM_TOKEN}' >> .npmrc
+  ```
+
 ### Database preparation
 
 - Install [Heroku Postgres](https://elements.heroku.com/addons/heroku-postgresql) as addon to your project.

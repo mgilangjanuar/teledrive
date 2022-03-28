@@ -31,4 +31,17 @@ git clone https://github.com/mgilangjanuar/teledrive.git
 git checkout main
 ```
 
+### Access keys
+
+You need to create an application on [Telegram](https://my.telegram.org/) first.
+
+![img](https://res.cloudinary.com/mgilangjanuar/image/upload/v1648508069/teledrive/Screen_Shot_2022-03-29_at_05.52.20_rf4dxt.png)
+
+Save the access keys in the environment variables.
+
+```shell
+TG_API_ID=[your_api_id]
+TG_API_HASH=[your_api_hash]
+```
+
 Next, go to the installation tutorial with [Docker](/docs/installation/docker) or [manual](/docs/installation/manual) installation.
