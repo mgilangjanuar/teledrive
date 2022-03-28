@@ -44,6 +44,8 @@ docker-compose -f docker/docker-compose.yml up
 docker-compose -f docker/docker-compose.yml up -d
 ```
 
+Done! You can now open [teledrive.localhost](http://teledrive.localhost) or [localhost:4000](http://localhost:4000) in your browser 🎊
+
 View the app logs with this command:
 
 ```shell
@@ -58,7 +60,6 @@ Stop the services by:
 docker-compose -f docker/docker-compose.yml down
 ```
 
-Done! You can now open [teledrive.localhost](http://teledrive.localhost) or [localhost:4000](http://localhost:4000) in your browser 🎊
 
 ## Upgrade
 
