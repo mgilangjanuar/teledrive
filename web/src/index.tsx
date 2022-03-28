@@ -9,7 +9,7 @@ import * as serviceWorkerRegistration from './serviceWorkerRegistration'
 
 
 ReactDOM.render(
-  <ThemeSwitcherProvider defaultTheme="light" themeMap={{ light: '/app.css', dark: '/app.dark.css' }}>
+  <ThemeSwitcherProvider defaultTheme="dark" themeMap={{ light: '/app.css', dark: '/app.dark.css' }}>
     <BrowserRouter>
       <App />
     </BrowserRouter>

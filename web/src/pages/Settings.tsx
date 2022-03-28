@@ -9,7 +9,6 @@ import {
   ExperimentOutlined,
   FrownOutlined,
   LoginOutlined,
-  GlobalOutlined,
   InfoOutlined,
   LogoutOutlined,
   MobileOutlined,
@@ -277,7 +276,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </List.Item>
 
                 <List.Item key="report-bugs" actions={[<Form.Item>
-                  <Button shape="round" icon={<BugOutlined />} onClick={() => setReportBug(true)}>Report</Button>
+                  <Button shape="round" icon={<BugOutlined />} onClick={() => window.open('https://github.com/mgilangjanuar/teledrive/issues/new?assignees=&labels=bug&template=bug_report.md&title=', '_blank')}>Report</Button>
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><MonitorOutlined /><>Report Bug</></Space>} description="Send your activities for reporting" />
                 </List.Item>
@@ -303,7 +302,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><ExperimentOutlined /><>Experimental</></Space>} description="Join to the experimental features" />
                 </List.Item>
-                <List.Item key="change-server" actions={[<Form.Item name="change_server">
+                {/* <List.Item key="change-server" actions={[<Form.Item name="change_server">
                   {dc && <Select className="change-server ghost" onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
                     <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
                     <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
@@ -311,7 +310,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                   </Select>}
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><GlobalOutlined /><>Change Server</></Space>} description="Migrate to another datacenter" />
-                </List.Item>
+                </List.Item> */}
 
                 <List.Item key="delete-account" actions={[<Form.Item>
                   <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>

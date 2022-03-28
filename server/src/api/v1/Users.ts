@@ -6,8 +6,6 @@ import { Files } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
 import { Users as Model } from '../../model/entities/Users'
 import { Redis } from '../../service/Cache'
-import { Midtrans, TransactionDetails } from '../../service/Midtrans'
-import { PayPal, SubscriptionDetails } from '../../service/PayPal'
 import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
 import { markdownSafe } from '../../utils/StringParser'
 import { Endpoint } from '../base/Endpoint'
@@ -87,7 +85,7 @@ export class Users {
     if (agreement !== 'permanently removed') {
       throw { status: 400, body: { error: 'Invalid agreement' } }
     }
-    if (reason) {
+    if (reason && process.env.TG_BOT_TOKEN && process.env.TG_BOT_OWNER_ID) {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_OWNER_ID,
         parse_mode: 'Markdown',
@@ -177,71 +175,6 @@ export class Users {
       res.setHeader('Content-Length', file.length)
       res.write(file)
       return res.end()
-    }
-
-    if (username === 'me' || username === req.user.username) {
-      const username = req.userAuth.username || req.userAuth.phone
-
-      if (!process.env.DISABLE_PAYMENT_CHECK || process.env.DISABLE_PAYMENT_CHECK === 'false') {
-        let paymentDetails: SubscriptionDetails = null, midtransPaymentDetails: TransactionDetails = null
-
-        if (req.user.subscription_id) {
-          try {
-            paymentDetails = await Redis.connect().getFromCacheFirst(`paypal:subscription:${req.user.subscription_id}`, async () => await new PayPal().getSubscription(req.user.subscription_id), 600)
-          } catch (error) {
-            // ignore
-          }
-        }
-
-        if (req.user.midtrans_id) {
-          try {
-            midtransPaymentDetails = await Redis.connect().getFromCacheFirst(`midtrans:transaction:${req.user.midtrans_id}`, async () => await new Midtrans().getTransactionStatus(req.user.midtrans_id), 600)
-            if (!midtransPaymentDetails?.transaction_status) {
-              midtransPaymentDetails = null
-            }
-          } catch (error) {
-            // ignore
-          }
-        }
-
-        let plan: 'free' | 'premium' = 'free'
-
-        if (paymentDetails && paymentDetails.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ID) {
-          const isExpired = new Date().getTime() - new Date(paymentDetails.billing_info?.last_payment.time).getTime() > 3.154e+10
-          if (paymentDetails.billing_info?.last_payment && !isExpired || ['APPROVED', 'ACTIVE'].includes(paymentDetails.status)) {
-            plan = 'premium'
-          }
-        }
-
-        if (midtransPaymentDetails && (midtransPaymentDetails.settlement_time || midtransPaymentDetails.transaction_time)) {
-          const isExpired = new Date().getTime() - new Date(midtransPaymentDetails.settlement_time || midtransPaymentDetails.transaction_time).getTime() > 3.154e+10
-          if (['settlement', 'capture'].includes(midtransPaymentDetails.transaction_status) && !isExpired) {
-            plan = 'premium'
-          }
-        }
-
-        const udpatedTime = typeof req.user.updated_at === 'string' ? new Date(req.user.updated_at) : req.user.updated_at
-        req.user.plan = plan
-        if (plan === 'free' && new Date().getTime() - udpatedTime.getTime() > 8.64e+7) {
-          req.user.subscription_id = null
-          req.user.midtrans_id = null
-        }
-
-        if (plan === 'free' && (req.user.subscription_id || req.user.midtrans_id)) {
-          try {
-            await Redis.connect().del(`paypal:subscription:${req.user.subscription_id}`)
-            await Redis.connect().del(`midtrans:transaction:${req.user.midtrans_id}`)
-          } catch (error) {
-            // ignore
-          }
-        }
-      }
-
-
-      req.user.username = username
-      req.user.name = `${req.userAuth.firstName || ''} ${req.userAuth.lastName || ''}`.trim() || username
-      await Model.update(req.user.id, req.user)
-      await Redis.connect().del(`auth:${req.authKey}`)
     }
 
     const user = username === 'me' || username === req.user.username ? req.user : await Model.findOne({ where: [

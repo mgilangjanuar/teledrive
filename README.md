@@ -13,21 +13,14 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
 
 - node ^14
 - psql ^13
-- redis ^5
 - yarn
 
 ## Getting Started
 
 - [Create Telegram application](https://core.telegram.org/api/obtaining_api_id)
-- Create a Telegram bot for forwarding messages from the contact form to your Telegram with [BotFather](https://t.me/botfather)
-- Install [Redis](https://redis.io/)
 - Install the [PostgreSQL](https://www.postgresql.org/) as a database and sync the schema
 
-  ```bash
-  yarn server typeorm schema:sync
-  ```
-
-  or, with dump.sql:
+  with dump.sql:
 
   ```bash
   psql db_name < ./server/src/model/migrations/dump.sql
@@ -38,34 +31,25 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
   - Server variables
 
     | env                    | required | description                                           |
-    | ---------------------- | -------- | -------------------------------------------           |
+    | ---------------------- | -------- | ----------------------------------------------------- |
     | ENV                    | no       | Hide the logs for production, default: develop        |
-    | RPS                    | no       | Rate limit API per second, default: 20                |
+    | PORT                   | no       | Port for running API, default: 4000                   |
     | TG_API_ID              | yes      | Application ID from your Telegram App                 |
     | TG_API_HASH            | yes      | Application hash from Telegram App                    |
-    | TG_BOT_TOKEN           | yes      | Telegram bot token                                    |
-    | TG_BOT_OWNER_ID        | yes      | Chat ID for sending messages to you                   |
-    | TG_BOT_ERROR_REPORT_ID | no       | Chat ID for sending error, default: TG_BOT_OWNER_ID   |
     | DB_HOST                | no       | Database host URI, default: localhost                 |
     | DB_NAME                | yes      | Database name                                         |
     | DB_PORT                | no       | Database port, default: 5432                          |
     | DB_USERNAME            | yes      | Database username                                     |
     | DB_PASSWORD            | yes      | Database password                                     |
-    | GITHUB_TOKEN           | yes      | GitHub token for getting contributors                 |
-    | API_JWT_SECRET         | yes      | Random string for hashing auth token                  |
     | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
-    | PAYPAL_CLIENT_ID       | yes      | Client ID for PayPal subscription                     |
-    | PAYPAL_CLIENT_SECRET   | yes      | Client secret for PayPal subscription                 |
-    | PAYPAL_PLAN_PREMIUM_ID | yes      | Product ID for premium plan                           |
-    | REDIS_URI              | no       | Cache some responses from external services           |
-    | UTILS_API_KEY          | yes      | Token key for make all servers communicate            |
-    | DISABLE_PAYMENT_CHECK  | no       | Disable subscription check to PayPal, default: false  |
 
   - Web variables
 
-    | env               | required | description                                        |
-    | ----------------- | -------- | -------------------------------------------------- |
-    | REACT_APP_API_URL | no       | Base URL for the API, default: `''` (empty string) |
+    | env               | required | description                                                       |
+    | ----------------- | -------- | ----------------------------------------------------------------- |
+    | REACT_APP_API_URL | no       | Base URL for the API, default: `''` (empty string)                |
+    | TG_API_ID         | yes      | Application ID from your Telegram App (for experimental features) |
+    | TG_API_HASH       | yes      | Application hash from Telegram App  (for experimental features)   |
 
 ## Installation
 

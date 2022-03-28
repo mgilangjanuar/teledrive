@@ -2,7 +2,6 @@ import { GithubOutlined, TwitterOutlined } from '@ant-design/icons'
 import { Button, Col, Divider, Layout, Row, Space, Typography } from 'antd'
 import React from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
-import { Link } from 'react-router-dom'
 
 interface Props {
   me?: any
@@ -15,7 +14,7 @@ const Footer: React.FC<Props> = () => {
       <Row>
         <Col lg={{ span: 18, offset: 3 }} md={{ span: 24, offset: 1 }} span={24}>
           <Row gutter={48}>
-            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
+            <Col md={10} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Paragraph>
                 <Button type="link" href="/" style={{ fontSize: '20px', fontWeight: 'bolder' }}
                   icon={<img src={currentTheme === 'dark' ? '/teledrive-logo/logoteledrive-white.png' : '/teledrive-logo/logoteledrive.png'} style={{ height: '24px' }} />}>
@@ -28,7 +27,7 @@ const Footer: React.FC<Props> = () => {
                 Made with &hearts; from Indonesia &#127470;&#127465;
               </Typography.Paragraph>
             </Col>
-            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
+            <Col md={7} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Support Us</Typography.Title>
               <Typography.Paragraph>
                 <a href="https://opencollective.com/teledrive/contribute" target="_blank">
@@ -39,28 +38,7 @@ const Footer: React.FC<Props> = () => {
                 Or, become <a href="https://teledriveapp.com/contact?intent=sponsor">a sponsor</a>.
               </Typography.Paragraph>
             </Col>
-            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
-              <Typography.Title level={5}>Links</Typography.Title>
-              <Row>
-                <Col span={12}>
-                  <Space direction="vertical">
-                    <Link to="/pricing">Pricing</Link>
-                    <Link to="/contact">Contact Us</Link>
-                    <Link to="/terms">Terms</Link>
-                    <Link target="_blank" to={{ pathname: 'https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8' }}>Blog</Link>
-                  </Space>
-                </Col>
-                <Col span={12}>
-                  <Space direction="vertical">
-                    <Link to="/faq">FAQ</Link>
-                    <Link to="/privacy">Privacy Policy</Link>
-                    <Link to="/refund">Refund Policy</Link>
-                    <Link target="_blank" to={{ pathname: 'https://analytics.teledriveapp.com/share/4RhiPDRP/TeleDrive' }}>Analytics</Link>
-                  </Space>
-                </Col>
-              </Row>
-            </Col>
-            <Col md={6} sm={12} span={24} style={{ marginBottom: '30px' }}>
+            <Col md={7} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Social Media</Typography.Title>
               <Space direction="horizontal">
                 <Button type="link" size="small" href="https://github.com/mgilangjanuar/teledrive" target="_blank" icon={<GithubOutlined />}>GitHub</Button>
