@@ -52,7 +52,7 @@ export default function HomepageFeatures() {
               <div className="text--center padding-horiz--md">
                 <h3>Always FREE</h3>
                 <p>
-                  All your needed services is on you, the application itself will always free.
+                  All your needed services are on you, the application itself will always free.
                 </p>
               </div>
             </div>
