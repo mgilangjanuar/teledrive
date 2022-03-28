@@ -27,6 +27,11 @@ Get started by build all needed services.
   ```shell
   heroku git:remote -a [YOUR_APP_NAME]
   ```
+- Push code to Heroku:
+
+  ```shell
+  git push heroku main  # or staging:main, if you're from staging branch
+  ```
 
 
 ### Database creation
