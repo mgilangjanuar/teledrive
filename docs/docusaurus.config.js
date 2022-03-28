@@ -83,6 +83,10 @@ const config = {
                 label: 'Twitter',
                 href: 'https://twitter.com/teledriveapp',
               },
+              {
+                label: 'Discord',
+                href: 'https://discord.gg/8v26KavKa4'
+              }
             ],
           },
           {
