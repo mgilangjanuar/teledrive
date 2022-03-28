@@ -8,9 +8,27 @@ If you ever heard about cloud storage services like Google Drive, OneDrive, iClo
 
 ## Prerequisite
 
-Get started by **creating a new site**.
+Get started by installing all needed services.
 
-### What you'll need
+### OS recommendation
 
-- [Node.js](https://nodejs.org/en/download/) version 16.14.2 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+- Ubuntu 20.04
+
+  Install build-essential with command:
+
+  ```shell
+  sudo apt install build-essential -y
+  ```
+
+### Repository
+
+Clone the repository by:
+
+```shell
+git clone https://github.com/mgilangjanuar/teledrive.git
+
+# then, change to the main branch for the stable version
+git checkout main
+```
+
+Next, go to the installation tutorial with [Docker](/docs/installation/docker) or [manual](/docs/installation/manual) installation.

@@ -11,8 +11,8 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
 
 ## Requirements
 
-- node ^14
-- psql ^13
+- node ^16.14.2
+- psql ^14
 - yarn
 
 ## Getting Started
@@ -41,15 +41,16 @@ This is the open source project of Google Drive/OneDrive/iCloud/Dropbox alternat
     | DB_PORT                | no       | Database port, default: 5432                          |
     | DB_USERNAME            | yes      | Database username                                     |
     | DB_PASSWORD            | yes      | Database password                                     |
+    | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token               |
     | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
 
   - Web variables
 
-    | env               | required | description                                                       |
-    | ----------------- | -------- | ----------------------------------------------------------------- |
-    | REACT_APP_API_URL | no       | Base URL for the API, default: `''` (empty string)                |
-    | TG_API_ID         | yes      | Application ID from your Telegram App (for experimental features) |
-    | TG_API_HASH       | yes      | Application hash from Telegram App  (for experimental features)   |
+    | env                   | required | description                                                       |
+    | --------------------- | -------- | ----------------------------------------------------------------- |
+    | REACT_APP_API_URL     | no       | Base URL for the API, default: `''` (empty string)                |
+    | REACT_APP_TG_API_ID   | yes      | Application ID from your Telegram App (for experimental features) |
+    | REACT_APP_TG_API_HASH | yes      | Application hash from Telegram App  (for experimental features)   |
 
 ## Installation
 
