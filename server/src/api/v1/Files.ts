@@ -193,9 +193,9 @@ export class Files {
 
     let files = [file]
     if (/.*\.part0*1$/gi.test(file?.name)) {
-      if (req.user?.plan !== 'premium') {
-        throw { status: 402, body: { error: 'Please upgrade your plan for view this file' } }
-      }
+      // if (req.user?.plan !== 'premium') {
+      //   throw { status: 402, body: { error: 'Please upgrade your plan for view this file' } }
+      // }
       files = await Model.createQueryBuilder('files')
         .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
           id, user_id: file.user_id, parent_id: file.parent_id
@@ -281,11 +281,11 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    if (file.sharing_options?.length && currentFile.type === 'folder') {
-      if (req.user.plan === 'free' || !req.user.plan) {
-        throw { status: 402, body: { error: 'Payment required' } }
-      }
-    }
+    // if (file.sharing_options?.length && currentFile.type === 'folder') {
+    //   if (req.user.plan === 'free' || !req.user.plan) {
+    //     throw { status: 402, body: { error: 'Payment required' } }
+    //   }
+    // }
 
     const parent = file.parent_id ? await Model.createQueryBuilder('files')
       .where('id = :id', { id: file.parent_id })
@@ -371,9 +371,9 @@ export class Files {
       throw { status: 400, body: { error: 'Maximum file part size is 500kB' } }
     }
 
-    if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
-      throw { status: 402, body: { error: 'Payment required' } }
-    }
+    // if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
+    //   throw { status: 402, body: { error: 'Payment required' } }
+    // }
 
     let model: Model
     if (req.params?.id) {
@@ -549,9 +549,9 @@ export class Files {
     }
 
     if (!message) {
-      if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
-        throw { status: 402, body: { error: 'Payment required' } }
-      }
+      // if ((!req.user?.plan || req.user?.plan === 'free') && /\.part\d+$/gi.test(name)) {
+      //   throw { status: 402, body: { error: 'Payment required' } }
+      // }
 
       if (!model) {
         let type = null
@@ -659,9 +659,9 @@ export class Files {
   public async sync(req: Request, res: Response): Promise<any> {
     const { parent_id: parentId, limit } = req.query
 
-    if (req.user.plan === 'free' || !req.user.plan) {
-      throw { status: 402, body: { error: 'Payment required' } }
-    }
+    // if (req.user.plan === 'free' || !req.user.plan) {
+    //   throw { status: 402, body: { error: 'Payment required' } }
+    // }
 
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
     if (req.user.settings?.saved_location) {
@@ -795,9 +795,9 @@ export class Files {
     const totalFileSize = files.reduce((res, file) => res.add(file.size || 0), bigInt(0))
     if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
       // check quota
-      if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {
-        throw { status: 402, body: { error: 'You just hit the daily bandwidth limit' } }
-      }
+      // if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {
+      //   throw { status: 402, body: { error: 'You just hit the daily bandwidth limit' } }
+      // }
     }
 
     if (!raw || Number(raw) === 0) {

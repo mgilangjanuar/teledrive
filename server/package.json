@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "nodemon dist/index.js --watch",
-    "build": "rimraf dist && eslint --fix -c .eslintrc.js --ext .ts . && tsc"
+    "build": "tsc"
   },
   "dependencies": {
     "@mgilangjanuar/telegram": "2.5.0",
