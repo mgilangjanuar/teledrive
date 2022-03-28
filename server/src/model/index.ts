@@ -1,5 +1,6 @@
 
 import { readFileSync } from 'fs'
+import * as PostgressConnectionStringParser from 'pg-connection-string'
 import {
   Connection,
   ConnectionOptions,
@@ -28,14 +29,27 @@ export class DB {
 
 export const runDB = async (): Promise<void> => {
 
-  // init the default DB for each class that extends BaseModel
-  await new DB({
-    type: 'postgres',
+  const creds = {
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: Number(process.env.DB_PORT) || 5432,
-    username: process.env.DB_USERNAME,
+    username: process.env.DB_USERNAME || 'postgres',
+  }
+
+  if (process.env.DATABASE_URL) {
+    const connectionOptions = PostgressConnectionStringParser.parse(process.env.DATABASE_URL)
+    creds.host = connectionOptions.host
+    creds.database = connectionOptions.database
+    creds.password = connectionOptions.password
+    creds.port = Number(connectionOptions.port) || 5432
+    creds.username = connectionOptions.user
+  }
+
+  // init the default DB for each class that extends BaseModel
+  await new DB({
+    ...creds,
+    type: 'postgres',
     ssl: process.env.DB_USE_SSL === 'true' ? {
       cert: readFileSync(`${__dirname}/../${process.env.DB_CERT || 'client-cert.pem'}`, 'utf-8'),
       key: readFileSync(`${__dirname}/../${process.env.DB_KEY || 'client-key.pem'}`, 'utf-8'),
