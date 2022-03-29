@@ -1687,28 +1687,6 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@mgilangjanuar/telegram@^2.5.44":
-  version "2.5.44"
-  resolved "https://npm.pkg.github.com/download/@mgilangjanuar/telegram/2.5.44/cee00d3c92fd003c837e4a78e656047d50db73cd8adf3713fdf171ae84b30068#4dc784c63bfcf79e4c7f14d4a5ec211f8fb2403d"
-  integrity sha512-vaIME37btxOxK3dNiUv8C7irLfEkdqYSCl7TXClNAE575isuor76k7znOYw8mmLcLqu4+h2jaj3m1ivOG1RKdw==
-  dependencies:
-    "@cryptography/aes" "^0.1.1"
-    async-mutex "^0.3.0"
-    big-integer "^1.6.48"
-    buffer "^6.0.3"
-    htmlparser2 "^6.1.0"
-    mime "^3.0.0"
-    node-localstorage "^2.2.1"
-    pako "^2.0.3"
-    path-browserify "^1.0.1"
-    socks "^2.6.2"
-    store2 "^2.12.0"
-    ts-custom-error "^3.2.0"
-    websocket "^1.0.34"
-  optionalDependencies:
-    bufferutil "^4.0.3"
-    utf-8-validate "^5.0.5"
-
 "@node-redis/client@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@node-redis/client/-/client-1.0.1.tgz#ddca6021097ce1026fedc193cac8c36b05c6cad8"
@@ -14655,6 +14633,28 @@ tar@^6.0.2:
     minizlib "^2.1.1"
     mkdirp "^1.0.3"
     yallist "^4.0.0"
+
+teledrive-client@^2.5.47:
+  version "2.5.47"
+  resolved "https://registry.yarnpkg.com/teledrive-client/-/teledrive-client-2.5.47.tgz#eecf3fc43502292c3b31638fa45996b9af0abf22"
+  integrity sha512-uVEYAa66bhInaOfxm1YyfFINZDffOOrCyxPkOiFXjp/PHWN0BsV4DYhkfXHsJsEcrRnjCd5rewyw0Qi8EwFQyg==
+  dependencies:
+    "@cryptography/aes" "^0.1.1"
+    async-mutex "^0.3.0"
+    big-integer "^1.6.48"
+    buffer "^6.0.3"
+    htmlparser2 "^6.1.0"
+    mime "^3.0.0"
+    node-localstorage "^2.2.1"
+    pako "^2.0.3"
+    path-browserify "^1.0.1"
+    socks "^2.6.2"
+    store2 "^2.12.0"
+    ts-custom-error "^3.2.0"
+    websocket "^1.0.34"
+  optionalDependencies:
+    bufferutil "^4.0.3"
+    utf-8-validate "^5.0.5"
 
 temp-dir@^1.0.0:
   version "1.0.0"

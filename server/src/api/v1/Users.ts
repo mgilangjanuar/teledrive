@@ -1,4 +1,4 @@
-import { Api } from '@mgilangjanuar/telegram'
+import { Api } from 'teledrive-client'
 import axios from 'axios'
 import { Request, Response } from 'express'
 import moment from 'moment'
