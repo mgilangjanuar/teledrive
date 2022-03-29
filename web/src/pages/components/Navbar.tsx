@@ -1,14 +1,11 @@
 import { CrownOutlined, DashboardOutlined, GithubOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
-import { Button, Checkbox, Form, Layout, Menu, Modal, Popover, Progress, Tag, Tooltip, Typography } from 'antd'
+import { Button, Checkbox, Form, Layout, Menu, Modal, Popover, Tag, Typography } from 'antd'
 import Avatar from 'antd/lib/avatar/avatar'
-import moment from 'moment'
-import prettyBytes from 'pretty-bytes'
 import React, { useState } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router'
 import { Link, useLocation } from 'react-router-dom'
-import useSWR from 'swr'
-import { apiUrl, fetcher, req } from '../../utils/Fetcher'
+import { apiUrl, req } from '../../utils/Fetcher'
 
 interface Props {
   user?: any
@@ -22,7 +19,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [popoverVisibility, setPopoverVisibility] = useState<boolean>(false)
   const [destroySession, setDestroySession] = useState<boolean>(false)
-  const { data: usage } = useSWR('/users/me/usage', fetcher)
+  // const { data: usage } = useSWR('/users/me/usage', fetcher)
 
   const logout = async () => {
     await req.post('/auth/logout', {}, destroySession ? { params: { destroySession: 1 } } : undefined)
@@ -47,12 +44,12 @@ const Navbar: React.FC<Props> = ({ user }) => {
       </div>
       {user ? <>{/\/dashboard/.test(pathname) ? <>
         <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
-          <div style={{ padding: '10px' }}>
+          {/* <div style={{ padding: '10px' }}>
             Bandwidth: { }
             {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - Number(usage?.usage.usage) || 0))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
               <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
             </Tooltip>}
-          </div>
+          </div> */}
           <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
             setPopoverVisibility(false)
             if (key === 'settings') {
