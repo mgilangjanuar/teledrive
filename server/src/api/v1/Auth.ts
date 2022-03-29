@@ -8,7 +8,7 @@ import { Request, Response } from 'express'
 import { sign, verify } from 'jsonwebtoken'
 import { serializeError } from 'serialize-error'
 import { getRepository } from 'typeorm'
-import { Users } from '../../model//entities/Users'
+import { Users } from '../../model/entities/Users'
 import { Files } from '../../model/entities/Files'
 import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
@@ -88,6 +88,7 @@ export class Auth {
       const username = userAuth.username || userAuth.phone || phoneNumber
       user = await getRepository<Users>(Users).save({
         username,
+        plan: 'premium',
         name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
         tg_id: userAuth.id.toString()
       }, { reload: true })
@@ -227,6 +228,7 @@ export class Auth {
         const username = userAuth.username || userAuth.phone
         user = await getRepository<Users>(Users).save({
           username,
+          plan: 'premium',
           name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
           tg_id: userAuth.id.toString()
         }, { reload: true })
@@ -306,6 +308,7 @@ export class Auth {
             const username = userAuth['username'] || userAuth['phone']
             user = await getRepository<Users>(Users).save({
               username,
+              plan: 'premium',
               name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
               tg_id: userAuth.id.toString()
             }, { reload: true })
@@ -322,6 +325,7 @@ export class Auth {
           const username = userAuth['username'] || userAuth['phone']
           user = await getRepository<Users>(Users).save({
             username,
+            plan: 'premium',
             name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
             tg_id: userAuth.id.toString()
           }, { reload: true })
