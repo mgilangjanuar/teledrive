@@ -14,6 +14,14 @@ Get started by build all needed services.
 
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) version 7.59.4 or above
 
+- [PostgreSQL](https://www.postgresql.org/) version 14.2 or above:
+
+  Needed for importing SQL file. Install with this command (Ubuntu):
+
+  ```shell
+  sudo apt install postgresql -y
+  ```
+
 ### Project creation
 
 - Create a project from [Heroku dashboard](https://dashboard.heroku.com/apps)
@@ -90,3 +98,9 @@ git pull origin main  # or, staging for the latest updates
 
 git push heroku main  # or staging:main, if you're from staging branch
 ```
+
+## Common Issues
+
+- *Error: The local psql command could not be located*
+
+  https://stackoverflow.com/questions/15576064/the-local-psql-command-could-not-be-located
