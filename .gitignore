@@ -11,4 +11,3 @@ sessions/
 *.crt
 dump\.rdb
 *.log
-.npmrc
