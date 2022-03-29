@@ -44,12 +44,10 @@ const Navbar: React.FC<Props> = ({ user }) => {
       </div>
       {user ? <>{/\/dashboard/.test(pathname) ? <>
         <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
-          {/* <div style={{ padding: '10px' }}>
+          <div style={{ padding: '10px' }}>
             Bandwidth: { }
-            {user?.plan === 'premium' ? <Tag color="green">Unlimited</Tag> : <Tooltip placement="left" title={<>You can download up to {prettyBytes(Math.max(0, 1_500_000_000 - Number(usage?.usage.usage) || 0))} until {moment(usage?.usage.expire).local().format('lll')}</>}>
-              <Progress status="exception" percent={Number((Number(usage?.usage.usage || 0) / 1_500_000_000 * 100).toFixed(1))} />
-            </Tooltip>}
-          </div> */}
+            <Tag color="green">Unlimited</Tag>
+          </div>
           <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
             setPopoverVisibility(false)
             if (key === 'settings') {
