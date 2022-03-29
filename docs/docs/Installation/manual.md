@@ -115,8 +115,7 @@ You need to create and import the database schema.
   ```
 
 **Note.** *If you follow the instructions above then you need to fill the server variables:*
-- `DB_NAME`: teledrive
-- `DB_USERNAME`: postgres
+- `DATABASE_URL`: postgresql://postgres@localhost:5432/teledrive
 
 ### Provide a GitHub personal token
 
