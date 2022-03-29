@@ -57,8 +57,8 @@ export default function HomepageFeatures() {
                 <h3>Easy Installation</h3>
                 <pre style={{ textAlign: 'left' }}>
                   $ git clone https://github.com/mgilangjanuar/teledrive.git<br />
-                  $ cd teledrive<br />
-                  $ docker-compose -f docker/docker-compose.yml up -d
+                  $ cd teledrive/docker<br />
+                  $ docker-compose up -d
                 </pre>
                 <p>
                   <Link className="button button--secondary" to="/docs/intro">

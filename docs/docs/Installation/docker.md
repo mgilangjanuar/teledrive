@@ -37,7 +37,8 @@ Get started by installing all needed services and define all variables.
 Build and run with this command:
 
 ```shell
-docker-compose -f docker/docker-compose.yml up -d
+cd docker
+docker-compose up -d
 ```
 
 Done! You can now open [teledrive.localhost](http://teledrive.localhost) or [localhost:4000](http://localhost:4000) in your browser 🎊
@@ -45,7 +46,8 @@ Done! You can now open [teledrive.localhost](http://teledrive.localhost) or [loc
 View the app logs with this command:
 
 ```shell
-docker-compose -f docker/docker-compose.yml logs app --follow
+cd docker
+docker-compose logs app --follow
 ```
 
 **Note.** *You need to set `ENV=develop` in the variables to logging all events.*
@@ -53,7 +55,8 @@ docker-compose -f docker/docker-compose.yml logs app --follow
 Stop the services by:
 
 ```shell
-docker-compose -f docker/docker-compose.yml down
+cd docker
+docker-compose down
 ```
 
 
@@ -64,7 +67,8 @@ Upgrade to the latest version of TeleDrive with this command:
 ```shell
 git pull origin main   # or, staging for the latest updates
 
-docker-compose -f docker/docker-compose.yml up -d --build app
+cd docker
+docker-compose up -d --build app
 ```
 
 ## Common Issues
@@ -74,7 +78,8 @@ docker-compose -f docker/docker-compose.yml up -d --build app
   Try to up the services again with command:
 
   ```shell
-  docker-compose -f docker/docker-compose.yml up -d
+  cd docker
+  docker-compose up -d
   ```
 
 Next, you need to reverse proxy the application to your domain with [Nginx](/docs/deployment/nginx).
