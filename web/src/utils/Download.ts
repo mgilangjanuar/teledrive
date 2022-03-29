@@ -1,4 +1,4 @@
-import { Api } from '@mgilangjanuar/telegram'
+import { Api } from 'teledrive-client'
 import bigInt from 'big-integer'
 import streamSaver from 'streamsaver'
 import { req } from './Fetcher'

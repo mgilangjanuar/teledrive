@@ -1,4 +1,4 @@
-import { Api } from '@mgilangjanuar/telegram'
+import { Api } from 'teledrive-client'
 import bigInt from 'big-integer'
 import { Request, Response } from 'express'
 import { Redis } from '../../service/Cache'

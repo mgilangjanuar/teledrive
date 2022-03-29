@@ -1,10 +1,9 @@
 {
   "name": "web",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "private": true,
   "dependencies": {
     "@ideasio/add-to-homescreen-react": "^1.0.10",
-    "@mgilangjanuar/telegram": "^2.5.44",
     "antd": "4.18.3",
     "antd-country-phone-input": "^4.3.1",
     "axios": "^0.21.4",
@@ -43,6 +42,7 @@
     "streamsaver": "^2.0.5",
     "sw-precache-cra": "^1.0.0",
     "swr": "^1.0.0",
+    "teledrive-client": "^2.5.47",
     "through2": "^4.0.2",
     "typescript": "^4.0.3",
     "use-debounce": "^7.0.1",

@@ -117,17 +117,6 @@ You need to create and import the database schema.
 **Note.** *If you follow the instructions above then you need to fill the server variables:*
 - `DATABASE_URL`: postgresql://postgres@localhost:5432/teledrive
 
-### Provide a GitHub personal token
-
-Create a personal access token from your GitHub account: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token with [these permissions](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-scopes-and-permissions-for-package-registries)
-
-Create `~/.npmrc` and add these lines:
-
-```shell
-//npm.pkg.github.com/:_authToken=[YOUR_GITHUB_PERSONAL_TOKEN]
-@mgilangjanuar:registry=https://npm.pkg.github.com/
-```
-
 ### Dependencies installation
 
 Install all dependencies with yarn:

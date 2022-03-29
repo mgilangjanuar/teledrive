@@ -1,5 +1,5 @@
 import { CloudUploadOutlined } from '@ant-design/icons'
-import { Api } from '@mgilangjanuar/telegram'
+import { Api } from 'teledrive-client'
 import { notification, Upload as BaseUpload } from 'antd'
 import mime from 'mime-types'
 import React, { useEffect, useRef } from 'react'

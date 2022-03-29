@@ -27,20 +27,6 @@ Get started by build all needed services.
   ```shell
   heroku git:remote -a [YOUR_APP_NAME]
   ```
-- Set NPM_TOKEN:
-
-  Create a personal token from your [GitHub account](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with [these permissions](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-scopes-and-permissions-for-package-registries) and set it as an environment variable:
-
-  ```shell
-  heroku config:set NPM_TOKEN=[YOUR_TOKEN]
-  ```
-
-  Create `.npmrc` file in root project or run this command:
-
-  ```shell
-  echo '@mgilangjanuar:registry=https://npm.pkg.github.com/' > .npmrc
-  echo '//npm.pkg.github.com/:_authToken=${NPM_TOKEN}' >> .npmrc
-  ```
 
 ### Database preparation
 

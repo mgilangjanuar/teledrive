@@ -18,7 +18,7 @@ import {
   SyncOutlined,
   WarningOutlined
 } from '@ant-design/icons'
-import { Api } from '@mgilangjanuar/telegram'
+import { Api } from 'teledrive-client'
 import {
   Avatar,
   Button,
