@@ -54,11 +54,7 @@ Get started by installing all needed services and define all variables.
   | PORT                   | no       | Port for running API, default: 4000                   |
   | TG_API_ID              | yes      | Application ID from your Telegram App                 |
   | TG_API_HASH            | yes      | Application hash from Telegram App                    |
-  | DB_HOST                | no       | Database host URI, default: localhost                 |
-  | DB_NAME                | yes      | Database name                                         |
-  | DB_PORT                | no       | Database port, default: 5432                          |
-  | DB_USERNAME            | yes      | Database username                                     |
-  | DB_PASSWORD            | yes      | Database password                                     |
+  | DATABASE_URL           | yes      | PostgreSQL connection URI, format: `postgresql://[user]:[password]@[host]:[port][/dbname][?paramspec]` |
   | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token               |
   | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
 

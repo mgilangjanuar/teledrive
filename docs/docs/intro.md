@@ -44,9 +44,11 @@ TG_API_ID=[your_api_id]
 TG_API_HASH=[your_api_hash]
 ```
 
+## Next Steps
+
 Next, you can select where you want to install TeleDrive.
 
-- Virtual machine (Ubuntu 20.04)
+- Virtual machine (Ubuntu 20.04) *(difficulty level: high)*
 
   Clone repository to your virtual machine and choose the installation method:
 
@@ -57,15 +59,15 @@ Next, you can select where you want to install TeleDrive.
     - Then, setup domain with reverse proxy ([nginx](/docs/deoployment/nginx))
 
 
-- Vercel
+- Vercel *(difficulty level: low)*
 
   - Clone repository to your local machine
-  - Install with [manual](/docs/installation/manual) method
+  - Build with [manual](/docs/installation/manual) method
   - Deploy to [Vercel](/docs/deployment/vercel)
 
-  **Note.** *Vercel doesn't have database service. So, you need to create a database manually in [Supabase](https://supabase.com/), [ElephantSQL](https://www.elephantsql.com/), or any other database service.*
+  **Note.** *Vercel doesn't have database service. So, you need to create a database manually in [Supabase](https://supabase.com/), [Heroku Postgres](https://elements.heroku.com/addons/heroku-postgresql), [ElephantSQL](https://www.elephantsql.com/), or any other database service.*
 
-- Heroku
+- Heroku *(difficulty level: low)*
 
   - Clone repository to your local machine
   - Deploy to [Heroku](/docs/deployment/heroku)

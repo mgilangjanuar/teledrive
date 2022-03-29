@@ -16,8 +16,8 @@ Get started by build all needed services.
 
 ### Project creation
 
-- Create a project from Heroku dashboard
-- Login from Heroku CLI:
+- Create a project from [Heroku dashboard](https://dashboard.heroku.com/apps)
+- Login from Heroku CLI in terminal:
 
   ```shell
   heroku login
@@ -49,11 +49,7 @@ Get started by build all needed services.
 
   ```shell
   heroku config:set USE_PSQL_HEROKU=1
-  heroku config:set DB_HOST=[YOUR_DB_HOST]
-  heroku config:set DB_PORT=[YOUR_DB_PORT]
-  heroku config:set DB_USERNAME=[YOUR_DB_USER]
-  heroku config:set DB_PASSWORD=[YOUR_DB_PASSWORD]
-  heroku config:set DB_NAME=[YOUR_DB_NAME]
+  heroku config:set DATABASE_URL=[YOUR_DB_CONNECTION_URI]
   ```
 
 - Import dump.sql
@@ -77,11 +73,7 @@ heroku config:set [ENV_NAME]=[ENV_VALUE]
   | ENV                    | no       | Hide the logs for production, default: develop        |
   | TG_API_ID              | yes      | Application ID from your Telegram App                 |
   | TG_API_HASH            | yes      | Application hash from Telegram App                    |
-  | DB_HOST                | no       | Database host URI, default: localhost                 |
-  | DB_NAME                | yes      | Database name                                         |
-  | DB_PORT                | no       | Database port, default: 5432                          |
-  | DB_USERNAME            | yes      | Database username                                     |
-  | DB_PASSWORD            | yes      | Database password                                     |
+  | DATABASE_URL           | yes      | PostgreSQL connection URI, format: `postgresql://[user]:[password]@[host]:[port][/dbname][?paramspec]` |
   | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token               |
   | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
 
@@ -101,4 +93,4 @@ Push your code to main branch in Heroku:
 git push heroku main  # or staging:main, if you're from staging branch
 ```
 
-Your app will automatically deploy to [your-project-name].herokuapp.com
+Your app will automatically deploy to `[YOUR_APP_NAME].herokuapp.com`
