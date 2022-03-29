@@ -12,7 +12,8 @@ Get started by installing all needed services and define all variables.
 
 ### What you'll need
 
-- [Docker](https://www.docker.com/products/docker-desktop/) version 4.6.1 or above
+- [Docker](https://docs.docker.com/engine/install/) version 20.10.13 or above
+- [Docker compose](https://docs.docker.com/compose/install/) version 2.3.3 or above
 - Define all .env variables in `./docker/.env`, you can copy from `./docker/.env.example`
 
   ```shell

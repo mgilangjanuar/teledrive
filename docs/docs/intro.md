@@ -26,9 +26,7 @@ Clone the repository by:
 
 ```shell
 git clone https://github.com/mgilangjanuar/teledrive.git
-
-# then, change to the main branch for the stable version
-git checkout main
+cd teledrive
 ```
 
 ### Access keys

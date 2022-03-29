@@ -41,7 +41,7 @@ Get started by build all needed services.
 - Import dump.sql
 
   ```shell
-  heroku pg:psql --app [YOUR_APP_NAME] < ./server/src/model/migrations/dump.sql
+  heroku pg:psql --app [YOUR_APP_NAME] -f ./server/src/model/migrations/dump.sql
   ```
 
 ### Provide environment variables
