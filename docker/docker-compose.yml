@@ -30,12 +30,15 @@ services:
       context: ../.
       dockerfile: Dockerfile
       args:
-        NPM_TOKEN: ${NPM_TOKEN}
+        REACT_APP_TG_API_ID: ${REACT_APP_TG_API_ID}
+        REACT_APP_TG_API_HASH: ${REACT_APP_TG_API_HASH}
     environment:
-      DB_NAME: postgres
+      DB_NAME: teledrive
       DB_HOST: db
       DB_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD}
+    env_file:
+      - .env
     depends_on:
       - db
   db:
@@ -44,5 +47,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: teledrive
     volumes:
       - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
