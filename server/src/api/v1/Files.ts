@@ -862,7 +862,7 @@ export class Files {
             }
             return updateProgess
           })()
-        })
+        } as any)
 
         let trial = 0
         while (trial < PROCESS_RETRY) {
