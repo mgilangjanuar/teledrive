@@ -32,7 +32,7 @@ services:
       args:
         NPM_TOKEN: ${NPM_TOKEN}
     environment:
-      DB_NAME: postgres
+      DB_NAME: teledrive
       DB_HOST: db
       DB_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD}
@@ -44,5 +44,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: teledrive
     volumes:
       - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
