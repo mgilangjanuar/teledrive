@@ -1,6 +1,7 @@
-import React from 'react';
-import clsx from 'clsx';
-import styles from './styles.module.css';
+import Link from '@docusaurus/Link'
+import clsx from 'clsx'
+import React from 'react'
+import styles from './styles.module.css'
 
 const FeatureList = [
   {
@@ -12,6 +13,9 @@ const FeatureList = [
         </p>
         <p>
           The open source project to give you what you deserve. Using the Telegram API as your unlimited storage. So, you can upload as many as you want without any limit 👌
+        </p>
+        <p>
+          Demo applications: <a href="https://teledrive.vercel.app" target="_blank">teledrive.vercel.app</a>, or <a href="https://teledriveapp.herokuapp.com">teledriveapp.herokuapp.com</a> <em>(*expect high traffic)</em>
         </p>
       </>
     ),
@@ -44,38 +48,28 @@ export default function HomepageFeatures() {
           </div>
         </div>
       </section>
-      <br /><br />
       <section className={styles.features}>
         <div className="container">
           <div className="row">
-            <div className={clsx('col col--4')}>
-              <div className="text--center padding-horiz--md">
-                <h3>Always FREE</h3>
-                <p>
-                  All your needed services are on you, the application itself will always free.
-                </p>
-              </div>
-            </div>
-            <div className={clsx('col col--4')}>
+            <div className={clsx('col col--2')}></div>
+            <div className={clsx('col col--8')}>
               <div className="text--center padding-horiz--md">
                 <h3>Easy Installation</h3>
+                <pre style={{ textAlign: 'left' }}>
+                  $ git clone https://github.com/mgilangjanuar/teledrive.git<br />
+                  $ cd teledrive<br />
+                  $ docker-compose -f docker/docker-compose.yml up -d
+                </pre>
                 <p>
-                  We provide Docker installation and make installation easier for everyone.
-                </p>
-              </div>
-            </div>
-            <div className={clsx('col col--4')}>
-              <div className="text--center padding-horiz--md">
-                <h3>No Limitations</h3>
-                <p>
-                  We remove all the restrictions. Everyone can share and download anything without limits.
+                  <Link className="button button--secondary" to="/docs/intro">
+                    Learn more
+                  </Link>
                 </p>
               </div>
             </div>
           </div>
         </div>
       </section>
-      <br /><br />
       <section className={styles.features}>
         <div className="container">
           <div className="row">
@@ -84,7 +78,10 @@ export default function HomepageFeatures() {
               <div className="text--center padding-horiz--md">
                 <h3>Need Help?</h3>
                 <p>
-                  We provide a Discord server for you to get help from the community. <a target="_blank" href="https://discord.gg/8v26KavKa4">Join now!</a>
+                  We provide a Discord server for you to get help from the community.
+                </p>
+                <p>
+                  <a target="_blank" className="button button--secondary" href="https://discord.gg/8v26KavKa4">Join now!</a>
                 </p>
               </div>
             </div>
