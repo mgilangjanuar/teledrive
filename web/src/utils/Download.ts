@@ -50,7 +50,7 @@ export async function download(id: string): Promise<ReadableStream> {
               }
               return updateProgess
             })()
-          })
+          } as any)
           data = await getData()
           controller.enqueue(data)
         }
