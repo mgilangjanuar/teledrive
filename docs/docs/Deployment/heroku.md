@@ -44,15 +44,22 @@ Get started by build all needed services.
 
 ### Database preparation
 
-- Install [Heroku Postgres](https://elements.heroku.com/addons/heroku-postgresql) as addon to your project.
+- Install [Heroku Postgres](https://elements.heroku.com/addons/heroku-postgresql) as addon and connect to your project.
 - Go to the settings page and View Credentials of your database and set the following variables:
 
   ```shell
+  heroku config:set USE_PSQL_HEROKU=1
   heroku config:set DB_HOST=[YOUR_DB_HOST]
   heroku config:set DB_PORT=[YOUR_DB_PORT]
   heroku config:set DB_USERNAME=[YOUR_DB_USER]
   heroku config:set DB_PASSWORD=[YOUR_DB_PASSWORD]
   heroku config:set DB_NAME=[YOUR_DB_NAME]
+  ```
+
+- Import dump.sql
+
+  ```shell
+  heroku pg:psql --app [YOUR_APP_NAME] < ./server/src/model/migrations/dump.sql
   ```
 
 ### Provide environment variables
@@ -68,7 +75,6 @@ heroku config:set [ENV_NAME]=[ENV_VALUE]
   | env                    | required | description                                           |
   | ---------------------- | -------- | ----------------------------------------------------- |
   | ENV                    | no       | Hide the logs for production, default: develop        |
-  | PORT                   | no       | Port for running API, default: 4000                   |
   | TG_API_ID              | yes      | Application ID from your Telegram App                 |
   | TG_API_HASH            | yes      | Application hash from Telegram App                    |
   | DB_HOST                | no       | Database host URI, default: localhost                 |
