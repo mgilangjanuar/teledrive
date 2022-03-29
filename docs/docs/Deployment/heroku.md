@@ -94,3 +94,13 @@ git push heroku main  # or staging:main, if you're from staging branch
 ```
 
 Your app will automatically deploy to `[YOUR_APP_NAME].herokuapp.com`
+
+## Upgrade
+
+Upgrade to the latest version of TeleDrive with this command:
+
+```shell
+git pull origin main  # or, staging for the latest updates
+
+git push heroku main  # or staging:main, if you're from staging branch
+```
