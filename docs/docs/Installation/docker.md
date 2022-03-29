@@ -23,7 +23,6 @@ Get started by installing all needed services and define all variables.
 
   | env                    | required | description                                                       |
   | ---------------------- | -------- | ----------------------------------------------------------------- |
-  | NPM_TOKEN              | yes      | Your [GitHub personal token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with [these permissions](https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#about-scopes-and-permissions-for-package-registries) |
   | ENV                    | no       | Hide the logs for production, default: develop                    |
   | TG_API_ID              | yes      | Application ID from your Telegram App                             |
   | TG_API_HASH            | yes      | Application hash from Telegram App                                |

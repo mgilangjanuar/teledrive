@@ -11,6 +11,6 @@ COPY web/package.json web/package.json
 #     echo "@mgilangjanuar:registry=https://npm.pkg.github.com/" >> ~/.npmrc
 # RUN npm i npm@latest && npm i react-scripts -g --force --silent && npm i typescript --force
 RUN yarn install
-RUN rm -f ~/.npmrc
+# RUN rm -f ~/.npmrc
 COPY . .
 RUN yarn workspaces run build
