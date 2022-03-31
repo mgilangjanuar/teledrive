@@ -12,6 +12,9 @@ export class Redis {
     if (!this.client) {
       this.client = new Redis()
     }
+    this.client.redis?.on('connect', () => console.log('redis: connected'))
+    this.client.redis?.on('ready', () => console.log('redis: ready'))
+    this.client.redis?.on('error', console.error)
     return this.client
   }
 
