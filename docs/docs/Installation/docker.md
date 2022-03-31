@@ -39,7 +39,7 @@ cd docker
 docker-compose up -d
 ```
 
-Done! You can now open [teledrive.localhost](http://teledrive.localhost) or [localhost:4000](http://localhost:4000) in your browser 🎊
+Done! You can now open [localhost:4000](http://localhost:4000) in your browser 🎊
 
 View the app logs with this command:
 
