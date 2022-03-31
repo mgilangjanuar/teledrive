@@ -1,23 +1,7 @@
 version: '3'
 
 services:
-  traefik:
-    image: traefik:v2.6
-    command:
-      - --log.level=INFO
-      - --api.insecure=true
-      - --entrypoints.web.address=:80
-      - --providers.docker
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    labels:
-      traefik.http.routers.dash.rule: Host(`dash.localhost`)
-      traefik.http.routers.dash.service: api@internal
-    ports:
-      - "80:80"
-    depends_on:
-      - app
-  app:
+  teledrive:
     command: node server/dist/index.js
     labels:
       traefik.http.routers.server.rule: Host(`teledrive.localhost`)
@@ -37,10 +21,12 @@ services:
       DB_HOST: db
       DB_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_URI: redis://redis:6379
     env_file:
       - .env
     depends_on:
       - db
+
   db:
     image: postgres:13
     restart: always
@@ -49,4 +35,12 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: teledrive
     volumes:
+      - teledrive_data:/var/lib/postgresql/data
       - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+
+  redis:
+    image: redis:6
+    restart: always
+
+volumes:
+  teledrive_data:

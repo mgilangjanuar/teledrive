@@ -66,7 +66,9 @@ Upgrade to the latest version of TeleDrive with this command:
 git pull origin main   # or, staging for the latest updates
 
 cd docker
-docker-compose up -d --build app
+docker-compose down
+docker-compose build app
+docker-compose up -d
 ```
 
 ## Common Issues
