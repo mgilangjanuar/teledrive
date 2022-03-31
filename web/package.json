@@ -51,7 +51,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "REACT_APP_TG_API_ID=${REACT_APP_TG_API_ID} REACT_APP_TG_API_HASH=${REACT_APP_TG_API_HASH} react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

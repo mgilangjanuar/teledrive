@@ -30,8 +30,8 @@ services:
       context: ../.
       dockerfile: Dockerfile
       args:
-        REACT_APP_TG_API_ID: ${REACT_APP_TG_API_ID}
-        REACT_APP_TG_API_HASH: ${REACT_APP_TG_API_HASH}
+        REACT_APP_TG_API_ID: ${TG_API_ID}
+        REACT_APP_TG_API_HASH: ${TG_API_HASH}
     environment:
       DB_NAME: teledrive
       DB_HOST: db

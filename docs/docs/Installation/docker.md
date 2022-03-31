@@ -30,9 +30,6 @@ Get started by installing all needed services and define all variables.
   | DB_PASSWORD            | yes      | Database password                                                 |
   | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token                           |
   | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                            |
-  | REACT_APP_TG_API_ID    | yes      | Application ID from your Telegram App *(for experimental features)* |
-  | REACT_APP_TG_API_HASH  | yes      | Application hash from Telegram App  *(for experimental features)*   |
-
 ## Build and Run
 
 Build and run with this command:
