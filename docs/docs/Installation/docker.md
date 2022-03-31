@@ -45,7 +45,7 @@ View the app logs with this command:
 
 ```shell
 cd docker
-docker-compose logs app --follow
+docker-compose logs teledrive --follow
 ```
 
 **Note.** *You need to set `ENV=develop` in the variables to logging all events.*
@@ -67,7 +67,7 @@ git pull origin main   # or, staging for the latest updates
 
 cd docker
 docker-compose down
-docker-compose build app
+docker-compose build teledrive
 docker-compose up -d
 ```
 
