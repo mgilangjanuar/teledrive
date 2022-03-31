@@ -39,13 +39,13 @@ cd docker
 docker-compose up -d
 ```
 
-Done! You can now open [teledrive.localhost](http://teledrive.localhost) or [localhost:4000](http://localhost:4000) in your browser 🎊
+Done! You can now open [localhost:4000](http://localhost:4000) in your browser 🎊
 
 View the app logs with this command:
 
 ```shell
 cd docker
-docker-compose logs app --follow
+docker-compose logs teledrive --follow
 ```
 
 **Note.** *You need to set `ENV=develop` in the variables to logging all events.*
@@ -66,7 +66,9 @@ Upgrade to the latest version of TeleDrive with this command:
 git pull origin main   # or, staging for the latest updates
 
 cd docker
-docker-compose up -d --build app
+docker-compose down
+docker-compose build teledrive
+docker-compose up -d
 ```
 
 ## Common Issues
