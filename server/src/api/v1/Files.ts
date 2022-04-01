@@ -1,12 +1,12 @@
-import { Api, Logger, TelegramClient } from 'teledrive-client'
-import { LogLevel } from 'teledrive-client/extensions/Logger'
-import { StringSession } from 'teledrive-client/sessions'
 import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import multer from 'multer'
 import moment from 'moment'
+import multer from 'multer'
+import { Api, Logger, TelegramClient } from 'teledrive-client'
+import { LogLevel } from 'teledrive-client/extensions/Logger'
+import { StringSession } from 'teledrive-client/sessions'
 import { Files as Model } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
 import { Redis } from '../../service/Cache'
@@ -814,8 +814,8 @@ export class Files {
     let cancel = false
     req.on('close', () => cancel = true)
     // res.status(206)
-    res.setHeader('Cache-Control', 'public, max-age=604800')
-    res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
+    // res.setHeader('Cache-Control', 'public, max-age=604800')
+    // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Range', `bytes */${totalFileSize}`)
     res.setHeader('Accept-Ranges', 'bytes')
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
@@ -844,42 +844,35 @@ export class Files {
         }))
       }
 
-      let data = null
-
-      const chunk = 64 * 1024
-      let idx = 0
-
-      while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {
-        // const startDate = Date.now()
-        const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
-          ...thumb ? { sizeType: 'i' } : {},
-          start: idx++ * chunk,
-          end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
-          workers: 1,   // using 1 for stable
-          progressCallback: (() => {
-            const updateProgess: any = () => {
-              updateProgess.isCanceled = cancel
+      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
+        ...thumb ? { thumb: 0 } : {},
+        outputFile: {
+          write: (buffer: Buffer) => {
+            if (cancel) {
+              throw { status: 422, body: { error: 'canceled' } }
+            } else {
+              res.write(buffer)
+              res.flush()
             }
-            return updateProgess
-          })()
-        } as any)
-
-        let trial = 0
-        while (trial < PROCESS_RETRY) {
-          try {
-            data = await getData()
-            res.write(data)
-            trial = PROCESS_RETRY
-          } catch (error) {
-            if (trial >= PROCESS_RETRY) {
-              throw error
-            }
-            await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
-            await req.tg?.connect()
-          }
+          },
+          close: res.end
         }
-        res.flush()
+      })
+
+      let trial = 0
+      while (trial < PROCESS_RETRY) {
+        try {
+          await getData()
+          trial = PROCESS_RETRY
+        } catch (error) {
+          if (trial >= PROCESS_RETRY) {
+            throw error
+          }
+          await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
+          await req.tg?.connect()
+        }
       }
+
     }
     usage.usage = bigInt(totalFileSize).add(bigInt(usage.usage)).toString()
     await usage.save()
