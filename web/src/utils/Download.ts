@@ -1,6 +1,5 @@
-import { Api } from 'teledrive-client'
-import bigInt from 'big-integer'
 import streamSaver from 'streamsaver'
+import { Api } from 'teledrive-client'
 import { req } from './Fetcher'
 import { telegramClient } from './Telegram'
 
@@ -13,6 +12,7 @@ export async function download(id: string): Promise<ReadableStream> {
     start(_controller: ReadableStreamDefaultController) {
     },
     async pull(controller: ReadableStreamDefaultController) {
+      console.log('start downloading:', response.files)
       for (const file of response.files) {
         let chat: any
         if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
@@ -33,29 +33,20 @@ export async function download(id: string): Promise<ReadableStream> {
           }))
         }
 
-        let data: any = null
-
-        const chunk = 64 * 1024
-        let idx = 0
-
-        while (!cancel && data === null || data.length && bigInt(file.size).greater(bigInt(idx * chunk))) {
-          // const startDate = Date.now()
-          const getData = async () => await client.downloadMedia(chat['messages'][0].media, {
-            start: idx++ * chunk,
-            end: bigInt.min(bigInt(file.size), bigInt(idx * chunk - 1)).toJSNumber(),
-            workers: 1,   // using 1 for stable
-            progressCallback: (() => {
-              const updateProgess: any = () => {
-                updateProgess.isCanceled = cancel
-              }
-              return updateProgess
-            })()
-          } as any)
-          data = await getData()
-          controller.enqueue(data)
-        }
+        const getData = async () => await client.downloadMedia(chat['messages'][0].media, {
+          outputFile: {
+            write: (chunk: Buffer) => {
+              if (cancel) return false
+              return controller.enqueue(chunk)
+            },
+            close: () => controller.close()
+          },
+          progressCallback: (received, total) => {
+            console.log('progress:', received, '/', total)
+          }
+        })
+        await getData()
       }
-      controller.close()
     },
     cancel() {
       cancel = true
