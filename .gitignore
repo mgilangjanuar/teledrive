@@ -5,6 +5,7 @@ dist/
 build/
 keys
 .env
+*.env
 .vercel
 lab/
 sessions/

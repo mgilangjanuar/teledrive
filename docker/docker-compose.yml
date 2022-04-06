@@ -26,6 +26,7 @@ services:
       - .env
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:13

@@ -63,12 +63,12 @@ docker-compose down
 Upgrade to the latest version of TeleDrive with this command:
 
 ```shell
-git pull origin main   # or, staging for the latest updates
+git pull origin main    # or, staging for the latest updates
 
 cd docker
 docker-compose down
-docker-compose build teledrive
-docker-compose up -d
+docker-compose up --build --force-recreate -d
+docker image prune -f   # remove dangling images
 ```
 
 ## Common Issues
