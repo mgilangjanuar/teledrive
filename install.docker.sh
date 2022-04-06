@@ -9,6 +9,7 @@ then
   echo "Preparing your keys from https://my.telegram.org/"
   read -p "Enter your TG_API_ID: " TG_API_ID
   read -p "Enter your TG_API_HASH: " TG_API_HASH
+  read -p "Enter your ADMIN_USERNAME: " ADMIN_USERNAME
 
   DB_PASSWORD=$(openssl rand -hex 18)
   API_JWT_SECRET=$(openssl rand -base64 36)
@@ -17,6 +18,7 @@ then
   echo "ENV=$ENV" > docker/.env
   echo "TG_API_ID=$TG_API_ID" >> docker/.env
   echo "TG_API_HASH=$TG_API_HASH" >> docker/.env
+  echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> docker/.env
   echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
   echo "API_JWT_SECRET=$API_JWT_SECRET" >> docker/.env
   echo "FILES_JWT_SECRET=$FILES_JWT_SECRET" >> docker/.env

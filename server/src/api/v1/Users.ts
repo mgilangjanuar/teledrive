@@ -52,13 +52,24 @@ export class Users {
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, ...filters } = req.query
     const [users, length] = await Model.createQueryBuilder('users')
-      .select('users.username')
+      .select(req.user.role === 'admin' ? ['users.id', 'users.username', 'users.name', 'users.created_at'] : ['users.username'])
       .where(buildWhereQuery(filters) || 'true')
       .skip(Number(offset) || undefined)
       .take(Number(limit) || undefined)
       .orderBy(buildSort(sort as string))
       .getManyAndCount()
     return res.send({ users, length })
+  }
+
+  @Endpoint.DELETE('/:id', { middlewares: [Auth] })
+  public async delete(req: Request, res: Response): Promise<any> {
+    if (req.user.role !== 'admin') {
+      throw { status: 403, body: { error: 'You are not allowed to do this' } }
+    }
+    const { id } = req.params
+    await Files.delete({ user_id: id })
+    await Model.delete(id)
+    return res.send({})
   }
 
   @Endpoint.PATCH('/me/settings', { middlewares: [Auth] })

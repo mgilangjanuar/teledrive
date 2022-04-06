@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { Endpoint } from '../base/Endpoint'
 import { Auth } from './Auth'
+import { Config } from './Config'
 import { Contact } from './Contact'
 import { Dialogs } from './Dialogs'
 import { Documents } from './Documents'
@@ -25,6 +26,7 @@ export const V1 = Router()
       Documents,
       Contact,
       Subscriptions,
-      Utils
+      Utils,
+      Config
     )
   )

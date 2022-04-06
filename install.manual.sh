@@ -9,6 +9,7 @@ then
   echo "Preparing your keys from https://my.telegram.org/"
   read -p "Enter your TG_API_ID: " TG_API_ID
   read -p "Enter your TG_API_HASH: " TG_API_HASH
+  read -p "Enter your ADMIN_USERNAME: " ADMIN_USERNAME
   read -p "Enter your DATABASE_URL: " DATABASE_URL
 
   API_JWT_SECRET=$(openssl rand -base64 36)
@@ -17,6 +18,7 @@ then
   echo "ENV=$ENV" > server/.env
   echo "TG_API_ID=$TG_API_ID" >> server/.env
   echo "TG_API_HASH=$TG_API_HASH" >> server/.env
+  echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> server/.env
   echo "DATABASE_URL=$DATABASE_URL" >> server/.env
   echo "API_JWT_SECRET=$API_JWT_SECRET" >> server/.env
   echo "FILES_JWT_SECRET=$FILES_JWT_SECRET" >> server/.env

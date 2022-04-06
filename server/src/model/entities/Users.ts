@@ -29,6 +29,9 @@ export class Users extends BaseModelWithID {
   @Column({ default: null })
   plan_expired_at?: Date
 
+  @Column({ default: null })
+  role?: string
+
   @OneToMany(() => Files, files => files.user)
   files?: Files[]
 
