@@ -7,9 +7,9 @@ services:
       traefik.http.routers.server.rule: Host(`teledrive.localhost`)
       traefik.port: 4000
     ports:
-      - "4000:4000"
+      - "${PORT:-4000}:${PORT:-4000}"
     expose:
-      - 4000
+      - ${PORT:-4000}
     build:
       context: ../.
       dockerfile: Dockerfile
