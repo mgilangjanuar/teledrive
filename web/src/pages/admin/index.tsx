@@ -1,5 +1,5 @@
-import { ReloadOutlined, CloseCircleFilled, DeleteOutlined, UserSwitchOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Form, Input, Layout, notification, Popconfirm, Row, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
+import { CloseCircleFilled, DeleteOutlined, ReloadOutlined, UserSwitchOutlined } from '@ant-design/icons'
+import { Button, Col, Form, Input, Layout, notification, Popconfirm, Row, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
 import moment from 'moment'
 import QueryString from 'qs'
 import { FC, useEffect, useState } from 'react'
@@ -59,6 +59,7 @@ const Admin: FC<Props> = ({ me }) => {
       } })
       refetchConfig()
       return notification.success({
+        key: 'update',
         message: 'Updated',
         description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
       })
@@ -76,43 +77,44 @@ const Admin: FC<Props> = ({ me }) => {
         <Row style={{ minHeight: '100vh', marginBottom: '100px', marginTop: '50px', padding: '0 12px' }}>
           <Col xxl={{ span: 16, offset: 4 }} xl={{ span: 18, offset: 3 }} lg={{ span: 20, offset: 2 }} md={{ span: 22, offset: 1 }} span={24}>
             <Typography.Title level={2}>Users Management</Typography.Title>
-            <Card>
-              <Form form={configForm} onFinish={updateConfig}>
-                <Form.Item name="disable_signup" label="Disable Signup" valuePropName="checked">
-                  <Switch onChange={() => updateConfig()} />
-                </Form.Item>
-                {!dataConfig?.config.disable_signup && <Form.Item name="invitation_code" label="Invitation Code">
-                  {dataConfig?.config.invitation_code ? <Input.Search suffix={<Button size="small" type="text" icon={<CloseCircleFilled />} onClick={() => {
-                    setLoading(true)
-                    req.patch('/config', { config: { clear_invitation_code: true } }).then(({ data }) => {
-                      refetchConfig()
-                      notification.success({
-                        message: 'Updated',
-                        description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
-                      })
+            <Form form={configForm} onFinish={updateConfig}>
+              <Form.Item name="disable_signup" label="Disable Signup" valuePropName="checked">
+                <Switch onChange={() => updateConfig()} />
+              </Form.Item>
+              {!dataConfig?.config.disable_signup && <Form.Item name="invitation_code" label="Invitation Code">
+                {dataConfig?.config.invitation_code ? <Input.Search suffix={<Button size="small" type="text" icon={<CloseCircleFilled />} onClick={() => {
+                  setLoading(true)
+                  req.patch('/config', { config: { clear_invitation_code: true } }).then(({ data }) => {
+                    refetchConfig()
+                    notification.success({
+                      key: 'update',
+                      message: 'Updated',
+                      description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
                     })
-                  }} />} loading={loading} enterButton={<><ReloadOutlined /> Generate</>} onSearch={() => {
-                    setLoading(true)
-                    req.post('/config/resetInvitationCode').then(({ data }) => {
-                      refetchConfig()
-                      notification.success({
-                        message: 'Updated',
-                        description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
-                      })
+                  })
+                }} />} loading={loading} enterButton={<><ReloadOutlined /> Generate</>} onSearch={() => {
+                  setLoading(true)
+                  req.post('/config/resetInvitationCode').then(({ data }) => {
+                    refetchConfig()
+                    notification.success({
+                      key: 'update',
+                      message: 'Updated',
+                      description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
                     })
-                  }} /> : <Button loading={loading} type="primary" icon={<ReloadOutlined />} onClick={() => {
-                    setLoading(true)
-                    req.post('/config/resetInvitationCode').then(({ data }) => {
-                      refetchConfig()
-                      notification.success({
-                        message: 'Updated',
-                        description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
-                      })
+                  })
+                }} /> : <Button loading={loading} type="primary" icon={<ReloadOutlined />} onClick={() => {
+                  setLoading(true)
+                  req.post('/config/resetInvitationCode').then(({ data }) => {
+                    refetchConfig()
+                    notification.success({
+                      key: 'update',
+                      message: 'Updated',
+                      description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
                     })
-                  }}>Generate</Button>}
-                </Form.Item>}
-              </Form>
-            </Card>
+                  })
+                }}>Generate</Button>}
+              </Form.Item>}
+            </Form>
 
             <div style={{ marginTop: '20px' }}>
               <Layout.Content>
@@ -125,18 +127,25 @@ const Admin: FC<Props> = ({ me }) => {
                     })
                   }} />
                 </Form.Item>
-                <Button disabled={!selectedRows?.length} danger style={{ float: 'right' }} icon={<DeleteOutlined />} onClick={() => {
+                <Popconfirm title="Are you sure?" onConfirm={() => {
                   Promise.all((selectedRows || [])?.map(async (user: any) => {
-                    await req.delete(`/users/${user.id}`)
-                    refetchUsers()
+                    try {
+                      await req.delete(`/users/${user.id}`)
+                    } catch (error) {
+                      //
+                    }
                   })).then(() => {
+                    refetchUsers()
+                    setSelectedRows(undefined)
                     notification.success({
                       message: `Delete ${selectedRows?.length} users`
                     })
                   })
                 }}>
-                  Delete
-                </Button>
+                  <Button disabled={!selectedRows?.length} danger style={{ float: 'right' }} icon={<DeleteOutlined />}>
+                    Delete
+                  </Button>
+                </Popconfirm>
               </Layout.Content>
               <Table loading={!dataUsers && !error} columns={[
                 {
