@@ -75,7 +75,7 @@ const Admin: FC<Props> = ({ me }) => {
       <Layout.Content>
         <Row style={{ minHeight: '100vh', marginBottom: '100px', marginTop: '50px', padding: '0 12px' }}>
           <Col xxl={{ span: 16, offset: 4 }} xl={{ span: 18, offset: 3 }} lg={{ span: 20, offset: 2 }} md={{ span: 22, offset: 1 }} span={24}>
-
+            <Typography.Title level={2}>Users Management</Typography.Title>
             <Card>
               <Form form={configForm} onFinish={updateConfig}>
                 <Form.Item name="disable_signup" label="Disable Signup" valuePropName="checked">
@@ -137,7 +137,6 @@ const Admin: FC<Props> = ({ me }) => {
                 }}>
                   Delete
                 </Button>
-                {/* <Typography.Title level={2}>Users</Typography.Title> */}
               </Layout.Content>
               <Table loading={!dataUsers && !error} columns={[
                 {
