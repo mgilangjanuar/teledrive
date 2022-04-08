@@ -14,6 +14,7 @@ const Admin: FC<Props> = ({ me }) => {
   const { data: dataConfig, mutate: refetchConfig } = useSWR('/config', fetcher)
   const [configForm] = Form.useForm()
   const [loading, setLoading] = useState<boolean>()
+  const [selectedRows, setSelectedRows] = useState<any[]>()
 
   const PAGE_SIZE = 10
   const [params, setParams] = useState<Record<string, any>>()
@@ -34,6 +35,12 @@ const Admin: FC<Props> = ({ me }) => {
       })
     }
   }, [dataConfig])
+
+  useEffect(() => {
+    if (dataUsers?.users) {
+      dataUsers.users = dataUsers.users.map((user: any) => ({ ...user, key: user.id }))
+    }
+  }, [dataUsers])
 
   useEffect(() => {
     setParams({
@@ -109,15 +116,28 @@ const Admin: FC<Props> = ({ me }) => {
 
             <div style={{ marginTop: '20px' }}>
               <Layout.Content>
-                <Form.Item style={{ float: 'right' }}>
+                <Form.Item style={{ float: 'right', marginLeft: '15px' }}>
                   <Input.Search allowClear placeholder="Search by username or name..."  onSearch={val => {
                     setParams({
                       ...params,
+                      offset: 0,
                       search: val || undefined
                     })
                   }} />
                 </Form.Item>
-                <Typography.Title level={2}>Users</Typography.Title>
+                <Button disabled={!selectedRows?.length} danger style={{ float: 'right' }} icon={<DeleteOutlined />} onClick={() => {
+                  Promise.all((selectedRows || [])?.map(async (user: any) => {
+                    await req.delete(`/users/${user.id}`)
+                    refetchUsers()
+                  })).then(() => {
+                    notification.success({
+                      message: `Delete ${selectedRows?.length} users`
+                    })
+                  })
+                }}>
+                  Delete
+                </Button>
+                {/* <Typography.Title level={2}>Users</Typography.Title> */}
               </Layout.Content>
               <Table loading={!dataUsers && !error} columns={[
                 {
@@ -196,6 +216,12 @@ const Admin: FC<Props> = ({ me }) => {
                   offset: ((page.current || 1) - 1) * PAGE_SIZE,
                   sort: sorter?.order ? `${sorter?.field}:${sorter?.order === 'ascend' ? 'asc' : 'desc'}` : 'created_at:desc',
                 })
+              }}
+              rowSelection={{
+                type: 'checkbox',
+                onChange: (_, selectedRows) => {
+                  setSelectedRows(selectedRows)
+                }
               }} />
             </div>
           </Col>
