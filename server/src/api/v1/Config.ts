@@ -43,12 +43,11 @@ export class Config {
     }
     const model = await ConfigModel.findOne()
     model.disable_signup = config.disable_signup
-    // model.invitation_code = config.invitation_code ? bcrypt.hashSync(config.invitation_code, bcrypt.genSaltSync(10)) : null
+    if (config.clear_invitation_code) {
+      model.invitation_code = null
+    }
     await model.save()
-    return res.send({ config: {
-      ...model,
-      invitation_code: config.invitation_code
-    } })
+    return res.send({ config: model })
   }
 
   @Endpoint.POST('/resetInvitationCode', { middlewares: [Auth] })
@@ -57,7 +56,7 @@ export class Config {
       throw { status: 403, body: { error: 'Forbidden' } }
     }
 
-    const code = crypto.randomBytes(5).toString('base64url')
+    const code = crypto.randomBytes(9).toString('base64url')
     const model = await ConfigModel.findOne()
     model.invitation_code = code
     // model.invitation_code = bcrypt.hashSync(code, bcrypt.genSaltSync(10))
@@ -67,11 +66,11 @@ export class Config {
 
   @Endpoint.POST('/validateInvitationCode')
   public async validateInvitationCode(req: Request, res: Response): Promise<any> {
-    const { code } = req.query
     const model = await ConfigModel.findOne()
     if (!model.invitation_code) {
       return res.send({ valid: true })
     }
+    const { code } = req.query
     return res.send({
       // valid: bcrypt.compareSync(code as string, model.invitation_code)
       valid: model.invitation_code === code

@@ -1,15 +1,16 @@
+import { AES } from 'crypto-js'
+import { Request, Response } from 'express'
+import { sign, verify } from 'jsonwebtoken'
+import { serializeError } from 'serialize-error'
 import { Api, Logger, TelegramClient } from 'teledrive-client'
 import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { generateRandomBytes } from 'teledrive-client/Helpers'
 import { computeCheck } from 'teledrive-client/Password'
 import { StringSession } from 'teledrive-client/sessions'
-import { AES } from 'crypto-js'
-import { Request, Response } from 'express'
-import { sign, verify } from 'jsonwebtoken'
-import { serializeError } from 'serialize-error'
 import { getRepository } from 'typeorm'
-import { Users } from '../../model/entities/Users'
+import { Config } from '../../model/entities/Config'
 import { Files } from '../../model/entities/Files'
+import { Users } from '../../model/entities/Users'
 import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
@@ -60,7 +61,7 @@ export class Auth {
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
   public async login(req: Request, res: Response): Promise<any> {
-    const { phoneNumber, phoneCode, phoneCodeHash, password } = req.body
+    const { phoneNumber, phoneCode, phoneCodeHash, password, invitationCode } = req.body
     if ((!phoneNumber || !phoneCode || !phoneCodeHash) && !password) {
       if (!password) {
         throw { status: 400, body: { error: 'Password is required' } }
@@ -83,8 +84,16 @@ export class Auth {
     }
 
     let user = await Users.findOne({ tg_id: userAuth.id.toString() })
-
+    const config = await Config.findOne()
     if (!user) {
+      if (config.disable_signup) {
+        throw { status: 403, body: { error: 'Signup is disabled' } }
+      }
+
+      if (config.invitation_code && config.invitation_code !== invitationCode) {
+        throw { status: 403, body: { error: 'Invalid invitation code' } }
+      }
+
       const username = userAuth.username || userAuth.phone || phoneNumber
       user = await getRepository<Users>(Users).save({
         username,
@@ -201,7 +210,7 @@ export class Auth {
    */
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
   public async qrCodeSignIn(req: Request, res: Response): Promise<any> {
-    const { password, session: sessionString } = req.body
+    const { password, session: sessionString, invitationCode } = req.body
 
     // handle the 2fa password in the second call
     if (password && sessionString) {
@@ -224,7 +233,16 @@ export class Auth {
       }
 
       let user = await Users.findOne({ tg_id: userAuth.id.toString() })
+      const config = await Config.findOne()
       if (!user) {
+        if (config.disable_signup) {
+          throw { status: 403, body: { error: 'Signup is disabled' } }
+        }
+
+        if (config.invitation_code && config.invitation_code !== invitationCode) {
+          throw { status: 403, body: { error: 'Invalid invitation code' } }
+        }
+
         const username = userAuth.username || userAuth.phone
         user = await getRepository<Users>(Users).save({
           username,
@@ -304,7 +322,16 @@ export class Auth {
         if (result instanceof Api.auth.LoginTokenSuccess && result.authorization instanceof Api.auth.Authorization) {
           const userAuth = result.authorization.user
           let user = await Users.findOne({ tg_id: userAuth.id.toString() })
+          const config = await Config.findOne()
           if (!user) {
+            if (config.disable_signup) {
+              throw { status: 403, body: { error: 'Signup is disabled' } }
+            }
+
+            if (config.invitation_code && config.invitation_code !== invitationCode) {
+              throw { status: 403, body: { error: 'Invalid invitation code' } }
+            }
+
             const username = userAuth['username'] || userAuth['phone']
             user = await getRepository<Users>(Users).save({
               username,
@@ -321,7 +348,16 @@ export class Auth {
       } else if (data instanceof Api.auth.LoginTokenSuccess && data.authorization instanceof Api.auth.Authorization) {
         const userAuth = data.authorization.user
         let user = await Users.findOne({ tg_id: userAuth.id.toString() })
+        const config = await Config.findOne()
         if (!user) {
+          if (config.disable_signup) {
+            throw { status: 403, body: { error: 'Signup is disabled' } }
+          }
+
+          if (config.invitation_code && config.invitation_code !== invitationCode) {
+            throw { status: 403, body: { error: 'Invalid invitation code' } }
+          }
+
           const username = userAuth['username'] || userAuth['phone']
           user = await getRepository<Users>(Users).save({
             username,

@@ -1,5 +1,5 @@
-import { ReloadOutlined } from '@ant-design/icons'
-import { Card, Col, Form, Input, Layout, notification, Row, Switch, Table, Tag, Typography } from 'antd'
+import { ReloadOutlined, CloseCircleFilled, DeleteOutlined, UserSwitchOutlined } from '@ant-design/icons'
+import { Button, Card, Col, Form, Input, Layout, notification, Popconfirm, Row, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
 import moment from 'moment'
 import QueryString from 'qs'
 import { FC, useEffect, useState } from 'react'
@@ -13,10 +13,11 @@ interface Props {
 const Admin: FC<Props> = ({ me }) => {
   const { data: dataConfig, mutate: refetchConfig } = useSWR('/config', fetcher)
   const [configForm] = Form.useForm()
+  const [loading, setLoading] = useState<boolean>()
 
   const PAGE_SIZE = 10
   const [params, setParams] = useState<Record<string, any>>()
-  const { data: dataUsers, error } = useSWR(params ? `/users?${QueryString.stringify(params)}` : null, fetcher)
+  const { data: dataUsers, error, mutate: refetchUsers } = useSWR(params ? `/users?${QueryString.stringify(params)}` : null, fetcher)
 
   useEffect(() => {
     if (me?.user && me.user.role !== 'admin') {
@@ -26,9 +27,10 @@ const Admin: FC<Props> = ({ me }) => {
 
   useEffect(() => {
     if (dataConfig?.config) {
+      setLoading(false)
       configForm.setFieldsValue({
         ...dataConfig.config,
-        invitation_code: `${location.host}/login?code=${dataConfig.config.invitation_code || ''}`
+        invitation_code: dataConfig.config.invitation_code ? `${location.host}/login?code=${dataConfig.config.invitation_code || ''}` : null
       })
     }
   }, [dataConfig])
@@ -44,12 +46,14 @@ const Admin: FC<Props> = ({ me }) => {
   const updateConfig = async () => {
     const values = configForm.getFieldsValue()
     try {
-      await req.patch('/config', { config: {
+      const { data } = await req.patch('/config', { config: {
         ...values,
         invitation_code: values.invitation_code || null
       } })
+      refetchConfig()
       return notification.success({
-        message: 'Updated'
+        message: 'Updated',
+        description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
       })
     } catch (error: any) {
       return notification.error({
@@ -70,11 +74,18 @@ const Admin: FC<Props> = ({ me }) => {
                 <Form.Item name="disable_signup" label="Disable Signup" valuePropName="checked">
                   <Switch onChange={() => updateConfig()} />
                 </Form.Item>
-                <Form.Item name="invitation_code" label="Invitation Code">
-                  <Input.Search enterButton={<><ReloadOutlined /> Reset</>} onSearch={() => {
+                {!dataConfig?.config.disable_signup && <Form.Item name="invitation_code" label="Invitation Code">
+                  {dataConfig?.config.invitation_code ? <Input.Search suffix={<Button size="small" type="text" icon={<CloseCircleFilled />} onClick={() => {
+                    setLoading(true)
+                    req.patch('/config', { config: { clear_invitation_code: true } }).then(refetchConfig)
+                  }} />} loading={loading} enterButton={<><ReloadOutlined /> Generate</>} onSearch={() => {
+                    setLoading(true)
                     req.post('/config/resetInvitationCode').then(refetchConfig)
-                  }} />
-                </Form.Item>
+                  }} /> : <Button loading={loading} type="primary" icon={<ReloadOutlined />} onClick={() => {
+                    setLoading(true)
+                    req.post('/config/resetInvitationCode').then(refetchConfig)
+                  }}>Generate</Button>}
+                </Form.Item>}
               </Form>
             </Card>
 
@@ -118,6 +129,40 @@ const Admin: FC<Props> = ({ me }) => {
                   sorter: true,
                   // responsive: ['md'],
                   render: (value: any) => moment(value).local().format('llll')
+                },
+                {
+                  title: '',
+                  dataIndex: 'actions',
+                  key: 'actions',
+                  // responsive: ['md'],
+                  render: (_, record) => <Space>
+                    <Tooltip title={`Switch to ${record.role === 'admin' ? 'user' : 'admin'}`}>
+                      <Button icon={<UserSwitchOutlined />} size="small" type="link" onClick={() => {
+                        req.patch(`/users/${record.id}`, { user: { role: record.role === 'admin' ? null : 'admin' } }).then(() => {
+                          notification.success({ message: `Switch ${record.username} to ${record.role === 'admin' ? 'user' : 'admin'}` })
+                          refetchUsers()
+                        }).catch(error => {
+                          notification.error({
+                            message: error?.response?.status || 'Something error',
+                            ...error?.response?.data ? { description: error.response.data.error } : {}
+                          })
+                        })
+                      }} />
+                    </Tooltip>
+                    <Popconfirm title="Are you sure?" onConfirm={() => {
+                      req.delete(`/users/${record.id}`).then(() => {
+                        notification.success({ message: `Delete ${record.username} successfully!` })
+                        refetchUsers()
+                      }).catch(error => {
+                        notification.error({
+                          message: error?.response?.status || 'Something error',
+                          ...error?.response?.data ? { description: error.response.data.error } : {}
+                        })
+                      })
+                    }}>
+                      <Button danger icon={<DeleteOutlined />} type="link" size="small" />
+                    </Popconfirm>
+                  </Space>
                 },
               ]}
               dataSource={dataUsers?.users}

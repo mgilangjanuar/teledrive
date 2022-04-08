@@ -35,12 +35,6 @@ const Navbar: React.FC<Props> = ({ user }) => {
             <CrownOutlined />
           </Popover>}
         </Link>
-        <span>
-          &nbsp;
-          {location.host.match(/localhost/gi)
-            ? <Tag color="green">Preview</Tag> : location.host.match(/^teledrive.*\.vercel\.app$/gi)
-              ? <Tag color="blue">Staging</Tag> : !/^(\w*\.)?teledriveapp\.com$/.test(location.host) && <Tag color="red">Unofficial</Tag>}
-        </span>
       </div>
       {user ? <>{/\/dashboard/.test(pathname) || /\/settings/.test(pathname) || /\/admin/.test(pathname) ? <>
         <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
