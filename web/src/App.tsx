@@ -28,9 +28,9 @@ const View = lazy(
 const Login = lazy(
   () => import(/* webpackChunkName: 'LoginPage' */ './pages/Login')
 )
-// const Terms = lazy(
-//   () => import(/* webpackChunkName: 'TermsPage' */ './pages/Terms')
-// )
+const Admin = lazy(
+  () => import(/* webpackChunkName: 'AdminPage' */ './pages/admin/index')
+)
 // const Refund = lazy(
 //   () => import(/* webpackChunkName: 'RefundPage' */ './pages/Refund')
 // )
@@ -123,8 +123,8 @@ function App(): React.ReactElement {
               <Route path="/login" exact>
                 {me?.user && !localStorage.getItem('experimental') ? <Redirect to="/dashboard" /> : <Login me={me} />}
               </Route>
-              {/* <Route path="/terms" exact component={Terms} />
-              <Route path="/refund" exact component={Refund} />
+              <Route path="/admin" exact component={() => <Admin me={me} />} />
+              {/* <Route path="/refund" exact component={Refund} />
               <Route path="/privacy" exact component={Privacy} />
               <Route path="/pricing" exact component={() => <Pricing me={me} />} />
               <Route path="/contact" exact component={() => <Contact me={me} />} />

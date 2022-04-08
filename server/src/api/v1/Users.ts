@@ -1,7 +1,7 @@
-import { Api } from 'teledrive-client'
 import axios from 'axios'
 import { Request, Response } from 'express'
 import moment from 'moment'
+import { Api } from 'teledrive-client'
 import { Files } from '../../model/entities/Files'
 import { Usages } from '../../model/entities/Usages'
 import { Users as Model } from '../../model/entities/Users'
@@ -50,26 +50,15 @@ export class Users {
 
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
-    const { sort, offset, limit, ...filters } = req.query
+    const { sort, offset, limit, search, ...filters } = req.query
     const [users, length] = await Model.createQueryBuilder('users')
-      .select(req.user.role === 'admin' ? ['users.id', 'users.username', 'users.name', 'users.created_at'] : ['users.username'])
-      .where(buildWhereQuery(filters) || 'true')
+      .select(req.user.role === 'admin' ? ['users.id', 'users.username', 'users.name', 'users.role', 'users.created_at'] : ['users.username'])
+      .where(search ? `username ilike '%${search}%' or name ilike '%${search}%'` :  buildWhereQuery(filters) || 'true')
       .skip(Number(offset) || undefined)
       .take(Number(limit) || undefined)
       .orderBy(buildSort(sort as string))
       .getManyAndCount()
     return res.send({ users, length })
-  }
-
-  @Endpoint.DELETE('/:id', { middlewares: [Auth] })
-  public async delete(req: Request, res: Response): Promise<any> {
-    if (req.user.role !== 'admin') {
-      throw { status: 403, body: { error: 'You are not allowed to do this' } }
-    }
-    const { id } = req.params
-    await Files.delete({ user_id: id })
-    await Model.delete(id)
-    return res.send({})
   }
 
   @Endpoint.PATCH('/me/settings', { middlewares: [Auth] })
@@ -196,5 +185,32 @@ export class Users {
     }
 
     return res.send({ user })
+  }
+
+  @Endpoint.DELETE('/:id', { middlewares: [Auth] })
+  public async delete(req: Request, res: Response): Promise<any> {
+    if (req.user.role !== 'admin') {
+      throw { status: 403, body: { error: 'You are not allowed to do this' } }
+    }
+    const { id } = req.params
+    await Files.delete({ user_id: id })
+    await Model.delete(id)
+    return res.send({})
+  }
+
+  @Endpoint.PATCH('/:id', { middlewares: [Auth] })
+  public async update(req: Request, res: Response): Promise<any> {
+    if (req.user.role !== 'admin') {
+      throw { status: 403, body: { error: 'You are not allowed to do this' } }
+    }
+    const { id } = req.params
+    const { user } = req.body
+    if (!user) {
+      throw { status: 400, body: { error: 'User is required' } }
+    }
+    await Model.update(id, {
+      role: user?.role
+    })
+    return res.send({})
   }
 }

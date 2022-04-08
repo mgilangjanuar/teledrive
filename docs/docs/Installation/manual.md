@@ -101,6 +101,7 @@ You need to create and import the database schema.
 
   ```shell
   psql teledrive < ./server/src/model/migrations/dump.sql
+  psql teledrive < ./server/src/model/migrations/dump.20220406.sql
   ```
 
   Sometimes, we need to copy the dump file to the `/var/lib/postgresql` directory first:

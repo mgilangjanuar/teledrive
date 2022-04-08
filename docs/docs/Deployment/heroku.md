@@ -50,6 +50,7 @@ Get started by build all needed services.
 
   ```shell
   heroku pg:psql --app [YOUR_APP_NAME] -f ./server/src/model/migrations/dump.sql
+  heroku pg:psql --app [YOUR_APP_NAME] -f ./server/src/model/migrations/dump.20220406.sql
   ```
 
 ### Provide environment variables

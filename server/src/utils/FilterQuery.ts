@@ -26,7 +26,7 @@ export async function filterQuery<T = any>(base: Record<string, any>, query: Rec
   return result.data
 }
 
-export function buildWhereQuery(data: Record<string, any>, prefix: string = ''): string {
+export function buildWhereQuery(data: Record<string, any>, prefix: string = '',  join: 'and' | 'or' = 'and'): string {
   const res = Object.keys(data).reduce((res, key) => {
     let item = ''
 
@@ -62,7 +62,7 @@ export function buildWhereQuery(data: Record<string, any>, prefix: string = ''):
       item = `${prefix}${column} ${op} ${value.trim()}`
     }
     return [...res, item]
-  }, []).join(' and ')
+  }, []).join(` ${join} `)
   return res
 }
 

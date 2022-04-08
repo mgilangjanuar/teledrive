@@ -1,4 +1,6 @@
 import { Request, Response } from 'express'
+import bcrypt from 'bcrypt'
+import crypto from 'crypto'
 import { Config as ConfigModel } from '../../model/entities/Config'
 import { Users } from '../../model/entities/Users'
 import { Endpoint } from '../base/Endpoint'
@@ -25,7 +27,10 @@ export class Config {
       config.invitation_code = null
       await config.save()
     }
-    return res.send({ config })
+    return res.send({ config: {
+      ...config,
+      invitation_code: config.invitation_code ? '[hidden]' : null
+    } })
   }
 
   @Endpoint.PATCH('/', { middlewares: [Auth] })
@@ -39,8 +44,37 @@ export class Config {
     }
     const model = await ConfigModel.findOne()
     model.disable_signup = config.disable_signup
-    model.invitation_code = config.invitation_code
+    model.invitation_code = config.invitation_code ? bcrypt.hashSync(config.invitation_code, bcrypt.genSaltSync(10)) : null
     await model.save()
-    return res.send({ config: model })
+    return res.send({ config: {
+      ...model,
+      invitation_code: config.invitation_code
+    } })
+  }
+
+  @Endpoint.POST('/resetInvitationCode', { middlewares: [Auth] })
+  public async resetInvitationCode(req: Request, res: Response): Promise<any> {
+    if (req.user.role !== 'admin') {
+      throw { status: 403, body: { error: 'Forbidden' } }
+    }
+
+    const code = crypto.randomBytes(20).toString('base64url')
+    const model = await ConfigModel.findOne()
+    model.invitation_code = bcrypt.hashSync(code, bcrypt.genSaltSync(10))
+    await model.save()
+    return res.send({ config: {
+      ...model,
+      invitation_code: code
+    } })
+  }
+
+  @Endpoint.POST('/validateInvitationCode')
+  public async validateInvitationCode(req: Request, res: Response): Promise<any> {
+    const { code } = req.query
+    const model = await ConfigModel.findOne()
+    if (!model.invitation_code) {
+      return res.send({ valid: true })
+    }
+    return res.send({ valid: bcrypt.compareSync(code as string, model.invitation_code) })
   }
 }
