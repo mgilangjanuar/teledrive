@@ -43,23 +43,29 @@ Get started by build all needed services.
 
   ```shell
   heroku config:set USE_PSQL_HEROKU=1
-  heroku config:set DATABASE_URL=[YOUR_DB_CONNECTION_URI]
+  heroku config:set DATABASE_URL=YOUR_DB_CONNECTION_URI
   ```
+
+  **Note.** *Change `YOUR_DB_CONNECTION_URI` to your database connection URI.*
 
 - Import dump.sql
 
   ```shell
-  heroku pg:psql --app [YOUR_APP_NAME] -f ./server/src/model/migrations/dump.sql
-  heroku pg:psql --app [YOUR_APP_NAME] -f ./server/src/model/migrations/dump.20220406.sql
+  heroku pg:psql --app YOUR_APP_NAME -f ./server/src/model/migrations/dump.sql
+  heroku pg:psql --app YOUR_APP_NAME -f ./server/src/model/migrations/dump.20220406.sql
   ```
+
+  **Note.** *Change `YOUR_APP_NAME` to your application name from Heroku.*
 
 ### Provide environment variables
 
 Set all variables with your own values to Heroku:
 
 ```shell
-heroku config:set [ENV_NAME]=[ENV_VALUE]
+heroku config:set ENV_NAME=ENV_VALUE
 ```
+
+**Note.** *Change `ENV_NAME` and `ENV_VALUE` to your value as defined below.*
 
 - Define all server variables
 

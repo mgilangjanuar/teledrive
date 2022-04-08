@@ -43,6 +43,10 @@ then
   echo "REACT_APP_TG_API_HASH=$TG_API_HASH" >> web/.env
 fi
 
+git reset --hard
+git clean -f
+git pull origin main
+
 export $(cat web/.env | xargs)
 
 echo

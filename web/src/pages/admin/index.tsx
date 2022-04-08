@@ -195,7 +195,7 @@ const Admin: FC<Props> = ({ me }) => {
                         })
                       }} />
                     </Tooltip>
-                    <Popconfirm title="Are you sure?" onConfirm={() => {
+                    <Popconfirm className="normal" title="Are you sure?" onConfirm={() => {
                       req.delete(`/users/${record.id}`).then(() => {
                         notification.success({ message: `Delete ${record.username} successfully!` })
                         refetchUsers()

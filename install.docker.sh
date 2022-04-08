@@ -33,11 +33,17 @@ then
   sleep 2
   docker-compose up -d
 else
+  git reset --hard
+  git clean -f
+  git pull origin main
+
   export $(cat docker/.env | xargs)
+
   cd docker
   docker-compose down
   docker-compose up --build --force-recreate -d
   sleep 2
   docker-compose up -d
+
   docker image prune -f
 fi

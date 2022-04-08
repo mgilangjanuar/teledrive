@@ -25,6 +25,7 @@ Get started by installing all needed services and define all variables.
   | env                    | required | description                                                       |
   | ---------------------- | -------- | ----------------------------------------------------------------- |
   | ENV                    | no       | Hide the logs for production, default: develop                    |
+  | PORT                   | no       | Set custom application port for running, default: 4000            |
   | TG_API_ID              | yes      | Application ID from your Telegram App                             |
   | TG_API_HASH            | yes      | Application hash from Telegram App                                |
   | ADMIN_USERNAME         | yes      | Telegram username of the admin TeleDrive                          |
