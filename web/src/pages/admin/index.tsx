@@ -1,4 +1,5 @@
-import { Button, Card, Col, Form, Input, Layout, notification, Row, Space, Switch, Table, Tag, Typography } from 'antd'
+import { ReloadOutlined } from '@ant-design/icons'
+import { Card, Col, Form, Input, Layout, notification, Row, Switch, Table, Tag, Typography } from 'antd'
 import moment from 'moment'
 import QueryString from 'qs'
 import { FC, useEffect, useState } from 'react'
@@ -10,7 +11,7 @@ interface Props {
 }
 
 const Admin: FC<Props> = ({ me }) => {
-  const { data: dataConfig } = useSWR('/config', fetcher)
+  const { data: dataConfig, mutate: refetchConfig } = useSWR('/config', fetcher)
   const [configForm] = Form.useForm()
 
   const PAGE_SIZE = 10
@@ -25,7 +26,10 @@ const Admin: FC<Props> = ({ me }) => {
 
   useEffect(() => {
     if (dataConfig?.config) {
-      configForm.setFieldsValue(dataConfig.config)
+      configForm.setFieldsValue({
+        ...dataConfig.config,
+        invitation_code: `${location.host}/login?code=${dataConfig.config.invitation_code || ''}`
+      })
     }
   }, [dataConfig])
 
@@ -64,13 +68,12 @@ const Admin: FC<Props> = ({ me }) => {
             <Card>
               <Form form={configForm} onFinish={updateConfig}>
                 <Form.Item name="disable_signup" label="Disable Signup" valuePropName="checked">
-                  <Switch />
+                  <Switch onChange={() => updateConfig()} />
                 </Form.Item>
                 <Form.Item name="invitation_code" label="Invitation Code">
-                  <Input.Password />
-                </Form.Item>
-                <Form.Item style={{ textAlign: 'right' }}>
-                  <Button htmlType="submit" type="primary">Update</Button>
+                  <Input.Search enterButton={<><ReloadOutlined /> Reset</>} onSearch={() => {
+                    req.post('/config/resetInvitationCode').then(refetchConfig)
+                  }} />
                 </Form.Item>
               </Form>
             </Card>

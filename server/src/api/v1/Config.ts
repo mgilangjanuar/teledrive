@@ -1,16 +1,15 @@
-import { Request, Response } from 'express'
-import bcrypt from 'bcrypt'
 import crypto from 'crypto'
+import { Request, Response } from 'express'
 import { Config as ConfigModel } from '../../model/entities/Config'
 import { Users } from '../../model/entities/Users'
 import { Endpoint } from '../base/Endpoint'
-import { Auth } from '../middlewares/Auth'
+import { Auth, AuthMaybe } from '../middlewares/Auth'
 
 @Endpoint.API()
 export class Config {
 
-  @Endpoint.GET('/')
-  public async retrieve(_: Request, res: Response): Promise<any> {
+  @Endpoint.GET('/', { middlewares: [AuthMaybe] })
+  public async retrieve(req: Request, res: Response): Promise<any> {
     // admin creation
     let admin = await Users.findOne({ role: 'admin' })
     if (!admin && process.env.ADMIN_USERNAME) {
@@ -29,7 +28,7 @@ export class Config {
     }
     return res.send({ config: {
       ...config,
-      invitation_code: config.invitation_code ? '[hidden]' : null
+      invitation_code: req.user?.role === 'admin' ? config.invitation_code : undefined
     } })
   }
 
@@ -44,7 +43,7 @@ export class Config {
     }
     const model = await ConfigModel.findOne()
     model.disable_signup = config.disable_signup
-    model.invitation_code = config.invitation_code ? bcrypt.hashSync(config.invitation_code, bcrypt.genSaltSync(10)) : null
+    // model.invitation_code = config.invitation_code ? bcrypt.hashSync(config.invitation_code, bcrypt.genSaltSync(10)) : null
     await model.save()
     return res.send({ config: {
       ...model,
@@ -58,14 +57,12 @@ export class Config {
       throw { status: 403, body: { error: 'Forbidden' } }
     }
 
-    const code = crypto.randomBytes(20).toString('base64url')
+    const code = crypto.randomBytes(5).toString('base64url')
     const model = await ConfigModel.findOne()
-    model.invitation_code = bcrypt.hashSync(code, bcrypt.genSaltSync(10))
+    model.invitation_code = code
+    // model.invitation_code = bcrypt.hashSync(code, bcrypt.genSaltSync(10))
     await model.save()
-    return res.send({ config: {
-      ...model,
-      invitation_code: code
-    } })
+    return res.send({ config: model })
   }
 
   @Endpoint.POST('/validateInvitationCode')
@@ -75,6 +72,9 @@ export class Config {
     if (!model.invitation_code) {
       return res.send({ valid: true })
     }
-    return res.send({ valid: bcrypt.compareSync(code as string, model.invitation_code) })
+    return res.send({
+      // valid: bcrypt.compareSync(code as string, model.invitation_code)
+      valid: model.invitation_code === code
+    })
   }
 }
