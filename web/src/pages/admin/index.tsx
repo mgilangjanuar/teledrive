@@ -77,13 +77,31 @@ const Admin: FC<Props> = ({ me }) => {
                 {!dataConfig?.config.disable_signup && <Form.Item name="invitation_code" label="Invitation Code">
                   {dataConfig?.config.invitation_code ? <Input.Search suffix={<Button size="small" type="text" icon={<CloseCircleFilled />} onClick={() => {
                     setLoading(true)
-                    req.patch('/config', { config: { clear_invitation_code: true } }).then(refetchConfig)
+                    req.patch('/config', { config: { clear_invitation_code: true } }).then(({ data }) => {
+                      refetchConfig()
+                      notification.success({
+                        message: 'Updated',
+                        description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
+                      })
+                    })
                   }} />} loading={loading} enterButton={<><ReloadOutlined /> Generate</>} onSearch={() => {
                     setLoading(true)
-                    req.post('/config/resetInvitationCode').then(refetchConfig)
+                    req.post('/config/resetInvitationCode').then(({ data }) => {
+                      refetchConfig()
+                      notification.success({
+                        message: 'Updated',
+                        description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
+                      })
+                    })
                   }} /> : <Button loading={loading} type="primary" icon={<ReloadOutlined />} onClick={() => {
                     setLoading(true)
-                    req.post('/config/resetInvitationCode').then(refetchConfig)
+                    req.post('/config/resetInvitationCode').then(({ data }) => {
+                      refetchConfig()
+                      notification.success({
+                        message: 'Updated',
+                        description: data.config.disable_signup ? 'Signup is disabled for everyone' : data.config.invitation_code ? 'Signup is enabled by invitation code' : 'Signup is enabled for everyone',
+                      })
+                    })
                   }}>Generate</Button>}
                 </Form.Item>}
               </Form>
