@@ -14762,10 +14762,10 @@ tar@^6.0.2, tar@^6.1.11:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-teledrive-client@^2.5.47:
-  version "2.5.47"
-  resolved "https://registry.yarnpkg.com/teledrive-client/-/teledrive-client-2.5.47.tgz#eecf3fc43502292c3b31638fa45996b9af0abf22"
-  integrity sha512-uVEYAa66bhInaOfxm1YyfFINZDffOOrCyxPkOiFXjp/PHWN0BsV4DYhkfXHsJsEcrRnjCd5rewyw0Qi8EwFQyg==
+teledrive-client@^2.5.55:
+  version "2.5.55"
+  resolved "https://registry.yarnpkg.com/teledrive-client/-/teledrive-client-2.5.55.tgz#e8ed93b8c1a54e34a4602b3af12cd9b1b243bd2b"
+  integrity sha512-jch7D3qqdPJkdJix7cALrPm6vmuFqvCLcnFgZzMRr5Zatep0BeobG7673mcV67nVllFsO55L9+uUUGmvcNFYjA==
   dependencies:
     "@cryptography/aes" "^0.1.1"
     async-mutex "^0.3.0"
