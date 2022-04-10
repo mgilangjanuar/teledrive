@@ -104,6 +104,11 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   } })
 
   useEffect(() => {
+    // init config
+    req.get('/config')
+  }, [])
+
+  useEffect(() => {
     if (errorMe) {
       window.localStorage.clear()
       history.replace('/login')
