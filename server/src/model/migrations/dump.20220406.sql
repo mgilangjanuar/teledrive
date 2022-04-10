@@ -7,3 +7,5 @@ CREATE TABLE public.config (
 );
 
 ALTER TABLE public.users ADD role character varying DEFAULT NULL;
+
+ALTER TABLE public.config ADD allow_server_storage_use boolean DEFAULT false NOT NULL;
