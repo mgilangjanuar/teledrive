@@ -1,4 +1,4 @@
-import { CrownOutlined, DashboardOutlined, GithubOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, UserSwitchOutlined, WarningOutlined } from '@ant-design/icons'
+import { DashboardOutlined, GithubOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, UserSwitchOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Checkbox, Form, Layout, Menu, Modal, Popover, Tag, Typography } from 'antd'
 import Avatar from 'antd/lib/avatar/avatar'
 import React, { useState } from 'react'
@@ -31,9 +31,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
     <Layout.Header style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 20px' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
         <Link to="/dashboard" style={{ color: '#fff' }}>
-          <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> {user?.plan === 'premium' && <Popover placement="bottom" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
-            <CrownOutlined />
-          </Popover>}
+          <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} />
         </Link>
       </div>
       {user ? <>{/\/dashboard/.test(pathname) || /\/settings/.test(pathname) || /\/admin/.test(pathname) ? <>
