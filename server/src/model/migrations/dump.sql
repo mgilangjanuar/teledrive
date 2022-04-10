@@ -27,7 +27,7 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
 -- Name: EXTENSION pg_stat_statements; Type: COMMENT; Schema: -; Owner:
 --
 
-COMMENT ON EXTENSION pg_stat_statements IS 'track execution statistics of all SQL statements executed';
+-- COMMENT ON EXTENSION pg_stat_statements IS 'track execution statistics of all SQL statements executed';
 
 
 --
@@ -41,7 +41,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner:
 --
 
-COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+-- COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
 SET default_tablespace = '';
@@ -74,7 +74,7 @@ CREATE TABLE public.files (
 );
 
 
-ALTER TABLE public.files OWNER TO postgres;
+-- ALTER TABLE public.files OWNER TO postgres;
 
 --
 -- Name: rate_limits; Type: TABLE; Schema: public; Owner: postgres
@@ -87,7 +87,7 @@ CREATE TABLE public.rate_limits (
 );
 
 
-ALTER TABLE public.rate_limits OWNER TO postgres;
+-- ALTER TABLE public.rate_limits OWNER TO postgres;
 
 --
 -- Name: usages; Type: TABLE; Schema: public; Owner: postgres
@@ -102,7 +102,7 @@ CREATE TABLE public.usages (
 );
 
 
-ALTER TABLE public.usages OWNER TO postgres;
+-- ALTER TABLE public.usages OWNER TO postgres;
 
 --
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
@@ -124,7 +124,7 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
+-- ALTER TABLE public.users OWNER TO postgres;
 
 --
 -- Name: waitings; Type: TABLE; Schema: public; Owner: postgres
@@ -138,7 +138,7 @@ CREATE TABLE public.waitings (
 );
 
 
-ALTER TABLE public.waitings OWNER TO postgres;
+-- ALTER TABLE public.waitings OWNER TO postgres;
 
 --
 -- Name: files PK_6c16b9093a142e0e7613b04a3d9; Type: CONSTRAINT; Schema: public; Owner: postgres
