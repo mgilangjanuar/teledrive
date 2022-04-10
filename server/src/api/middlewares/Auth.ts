@@ -69,7 +69,8 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
     try {
       data = verify(authkey, process.env.API_JWT_SECRET) as { session: string }
     } catch (error) {
-      throw { status: 401, body: { error: 'Access token is invalid' } }
+      // throw { status: 401, body: { error: 'Access token is invalid' } }
+      return next()
     }
 
     try {
@@ -80,13 +81,14 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
         ...process.env.ENV === 'production' ? { baseLogger: new Logger(LogLevel.NONE) } : {}
       })
     } catch (error) {
-      throw { status: 401, body: { error: 'Invalid key' } }
+      // throw { status: 401, body: { error: 'Invalid key' } }
+      return next()
     }
     await req.tg.connect()
     req.authKey = authkey
 
     const [userAuth, user] = await Redis.connect().getFromCacheFirst(`auth:${authkey}`, async () => {
-      let userAuth: any
+      let userAuth: any = null
       try {
         userAuth = await req.tg.getMe()
       } catch (error) {
@@ -103,7 +105,8 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
 
       const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
       if (!user) {
-        throw { status: 401, body: { error: 'User not found' } }
+        // throw { status: 401, body: { error: 'User not found' } }
+        return [userAuth, null]
       }
       return [userAuth, user]
     }, 54000)
