@@ -1,7 +1,4 @@
 import { ArrowRightOutlined, LoginOutlined } from '@ant-design/icons'
-import { Api } from 'teledrive-client'
-import { generateRandomBytes } from 'teledrive-client/Helpers'
-import { computeCheck } from 'teledrive-client/Password'
 import { Button, Card, Col, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
@@ -13,6 +10,9 @@ import OtpInput from 'react-otp-input'
 import QRCode from 'react-qr-code'
 import { useHistory } from 'react-router'
 import useSWRImmutable from 'swr/immutable'
+import { Api } from 'teledrive-client'
+import { generateRandomBytes } from 'teledrive-client/Helpers'
+import { computeCheck } from 'teledrive-client/Password'
 import en from 'world_countries_lists/data/en/world.json'
 import { fetcher, req } from '../utils/Fetcher'
 import { anonymousTelegramClient, telegramClient } from '../utils/Telegram'
@@ -73,7 +73,8 @@ const Login: React.FC<Props> = ({ me }) => {
           data = { phoneCodeHash }
         }
       } else {
-        const resp = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash }) : await req.post('/auth/sendCode', { phoneNumber })
+        const invitationCode = location.search.replace('?code=', '')
+        const resp = phoneCodeHash ? await req.post('/auth/reSendCode', { phoneNumber, phoneCodeHash, invitationCode }) : await req.post('/auth/sendCode', { phoneNumber, invitationCode })
         data = resp.data
       }
       setPhoneCodeHash(data.phoneCodeHash)
@@ -134,7 +135,8 @@ const Login: React.FC<Props> = ({ me }) => {
           // ignore
         }
       } else {
-        const resp = await req.post('/auth/login', { ...needPassword ? { password } : { phoneNumber, phoneCode, phoneCodeHash } })
+        const invitationCode = location.search.replace('?code=', '')
+        const resp = await req.post('/auth/login', { ...needPassword ? { password, invitationCode } : { phoneNumber, phoneCode, phoneCodeHash, invitationCode } })
         data = resp.data
       }
       try {
@@ -187,7 +189,7 @@ const Login: React.FC<Props> = ({ me }) => {
       }
       return notification.error({
         message: 'Error',
-        description: 'Something error'
+        description: error?.response?.data?.error || error.message || 'Something error'
       })
     }
   }
@@ -277,7 +279,8 @@ const Login: React.FC<Props> = ({ me }) => {
     try {
       const { password } = formLoginQRCode.getFieldsValue()
       setLoadingLogin(true)
-      const data = localStorage.getItem('experimental') ? await _qrCodeSignIn(password) : (await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session }))?.data
+      const invitationCode = location.search.replace('?code=', '')
+      const data = localStorage.getItem('experimental') ? await _qrCodeSignIn(password) : (await req.post('/auth/qrCodeSignIn', { password, session: qrCode?.session, invitationCode }))?.data
       try {
         // req.post('/users/me/paymentSync')
         if (localStorage.getItem('files')) {
@@ -376,7 +379,8 @@ const Login: React.FC<Props> = ({ me }) => {
             if (localStorage.getItem('experimental')) {
               _qrCodeSignIn().then(resolve).catch(reject)
             } else {
-              req.post('/auth/qrCodeSignIn', {}, { headers: {
+              const invitationCode = location.search.replace('?code=', '')
+              req.post('/auth/qrCodeSignIn', { invitationCode }, { headers: {
                 'Authorization': `Bearer ${qrCode.accessToken}`
               } }).then(({ data }) => resolve(data)).catch(reject)
             }
@@ -453,70 +457,6 @@ const Login: React.FC<Props> = ({ me }) => {
     <Layout.Content className="container">
       <Row style={{ marginTop: '30px' }}>
         <Col xxl={{ span: 8, offset: 8 }} xl={{ span: 8, offset: 8 }} lg={{ span: 10, offset: 7 }} md={{ span: 14, offset: 5 }} span={22} offset={1}>
-          {/* {!localStorage.getItem('experimental') && <Collapse>
-            <Collapse.Panel key="1" showArrow={false} header={<Typography.Text>
-              <GlobalOutlined /> Data center region
-            </Typography.Text>}>
-              <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
-                This will affect your upload and download speed, choose the nearest datacenter region to you.
-              </Typography.Paragraph>
-              <Row gutter={12} justify="center">
-                <Col span={24} md={8} style={{ textAlign: 'center' }}>
-                  <Card hoverable style={{ marginBottom: '12px' }} onClick={() => {
-                    setDc('sg')
-                    localStorage.setItem('dc', 'sg')
-                    return window.location.replace('https://teledriveapp.com/login')
-                  }}>
-                    <Typography.Paragraph style={dc === 'sg' || !dc ? {} : { visibility: 'hidden' }}>
-                      <CheckCircleTwoTone />
-                    </Typography.Paragraph>
-                    <Typography.Paragraph>
-                      <img style={{ width: '100%', maxWidth: '80px' }} src="https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Singapore.svg" />
-                    </Typography.Paragraph>
-                    <Typography.Paragraph>
-                      Singapore
-                    </Typography.Paragraph>
-                  </Card>
-                </Col>
-                <Col span={24} md={8} style={{ textAlign: 'center' }}>
-                  <Card hoverable style={{ marginBottom: '12px' }} onClick={() => {
-                    setDc('ge')
-                    localStorage.setItem('dc', 'ge')
-                    return window.location.replace('https://ge.teledriveapp.com/login')
-                  }}>
-                    <Typography.Paragraph style={dc === 'ge' ? {} : { visibility: 'hidden' }}>
-                      <CheckCircleTwoTone />
-                    </Typography.Paragraph>
-                    <Typography.Paragraph>
-                      <img style={{ width: '100%', maxWidth: '80px' }} src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Flag_of_Germany.svg" />
-                    </Typography.Paragraph>
-                    <Typography.Paragraph>
-                      Frankfurt
-                    </Typography.Paragraph>
-                  </Card>
-                </Col>
-                <Col span={24} md={8} style={{ textAlign: 'center' }}>
-                  <Card hoverable style={{ marginBottom: '12px' }} onClick={() => {
-                    setDc('us')
-                    localStorage.setItem('dc', 'us')
-                    return window.location.replace('https://us.teledriveapp.com/login')
-                  }}>
-                    <Typography.Paragraph style={dc === 'us' ? {} : { visibility: 'hidden' }}>
-                      <CheckCircleTwoTone />
-                    </Typography.Paragraph>
-                    <Typography.Paragraph>
-                      <img style={{ width: '100%', maxWidth: '80px' }} src="https://upload.wikimedia.org/wikipedia/commons/0/05/US_flag_51_stars.svg" />
-                    </Typography.Paragraph>
-                    <Typography.Paragraph>
-                      New York
-                    </Typography.Paragraph>
-                  </Card>
-                </Col>
-              </Row>
-            </Collapse.Panel>
-          </Collapse>}
-          <br /><br /> */}
-
           <Typography.Title level={2}>
             Login with Telegram
           </Typography.Title>

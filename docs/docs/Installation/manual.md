@@ -54,6 +54,7 @@ Get started by installing all needed services and define all variables.
   | PORT                   | no       | Port for running API, default: 4000                   |
   | TG_API_ID              | yes      | Application ID from your Telegram App                 |
   | TG_API_HASH            | yes      | Application hash from Telegram App                    |
+  | ADMIN_USERNAME         | yes      | Telegram username of the admin TeleDrive              |
   | DATABASE_URL           | yes      | PostgreSQL connection URI, format: `postgresql://[user]:[password]@[host]:[port][/dbname][?paramspec]` |
   | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token               |
   | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
@@ -100,6 +101,7 @@ You need to create and import the database schema.
 
   ```shell
   psql teledrive < ./server/src/model/migrations/dump.sql
+  psql teledrive < ./server/src/model/migrations/dump.20220406.sql
   ```
 
   Sometimes, we need to copy the dump file to the `/var/lib/postgresql` directory first:

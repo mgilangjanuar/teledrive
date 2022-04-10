@@ -7,9 +7,9 @@ services:
       traefik.http.routers.server.rule: Host(`teledrive.localhost`)
       traefik.port: 4000
     ports:
-      - "4000:4000"
+      - "${PORT:-4000}:${PORT:-4000}"
     expose:
-      - 4000
+      - ${PORT:-4000}
     build:
       context: ../.
       dockerfile: Dockerfile
@@ -26,6 +26,7 @@ services:
       - .env
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:13
@@ -37,6 +38,7 @@ services:
     volumes:
       - teledrive_data:/var/lib/postgresql/data
       - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+      - ../server/src/model/migrations/dump.20220406.sql:/docker-entrypoint-initdb.d/dump.20220406.sql
 
   redis:
     image: redis:6

@@ -85,7 +85,7 @@ html, body {
   font-size: 12px;
 }
 
-.ant-popover-inner-content {
+.ant-popover-placement-bottomRight .ant-popover-inner-content {
   padding: 0 !important;
 }
 

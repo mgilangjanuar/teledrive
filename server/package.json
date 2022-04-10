@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
@@ -13,6 +13,7 @@
     "@sentry/tracing": "^6.14.1",
     "@types/moment": "^2.13.0",
     "axios": "^0.21.4",
+    "bcrypt": "^5.0.1",
     "big-integer": "^1.6.48",
     "compression": "^1.7.4",
     "content-disposition": "^0.5.3",
@@ -46,13 +47,14 @@
     "redis": "^4.0.1",
     "serialize-error": "^8.1.0",
     "source-map-support": "^0.5.19",
-    "teledrive-client": "^2.5.47",
+    "teledrive-client": "^2.5.55",
     "typeorm": "^0.2.41",
     "typeorm-naming-strategies": "^2.0.0",
     "uuid-random": "^1.3.2"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/bcrypt": "^5.0.0",
     "@types/big-integer": "^0.0.31",
     "@types/compression": "^1.7.2",
     "@types/content-disposition": "^0.5.4",

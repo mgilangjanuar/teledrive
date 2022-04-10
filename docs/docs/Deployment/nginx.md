@@ -27,7 +27,7 @@ upstream teledrive {
 }
 
 server{
-  server_name [your-domain-name.com];    # your domain name
+  server_name your-domain-name.com;      # change to your domain name
 
   send_timeout                60m;
   client_header_timeout       60m;

@@ -1,4 +1,4 @@
-import { CrownOutlined, DashboardOutlined, GithubOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, WarningOutlined } from '@ant-design/icons'
+import { DashboardOutlined, GithubOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingOutlined, UserOutlined, UserSwitchOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Checkbox, Form, Layout, Menu, Modal, Popover, Tag, Typography } from 'antd'
 import Avatar from 'antd/lib/avatar/avatar'
 import React, { useState } from 'react'
@@ -30,19 +30,11 @@ const Navbar: React.FC<Props> = ({ user }) => {
   return <>
     <Layout.Header style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 20px' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
-        <Link to="/" style={{ color: '#fff' }}>
-          <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> {user?.plan === 'premium' && <Popover placement="bottom" content={<Layout style={{ padding: '7px 13px' }}>Premium</Layout>}>
-            <CrownOutlined />
-          </Popover>}
+        <Link to="/dashboard" style={{ color: '#fff' }}>
+          <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} />
         </Link>
-        <span>
-          &nbsp;
-          {location.host.match(/localhost/gi)
-            ? <Tag color="green">Preview</Tag> : location.host.match(/^teledrive.*\.vercel\.app$/gi)
-              ? <Tag color="blue">Staging</Tag> : !/^(\w*\.)?teledriveapp\.com$/.test(location.host) && <Tag color="red">Unofficial</Tag>}
-        </span>
       </div>
-      {user ? <>{/\/dashboard/.test(pathname) ? <>
+      {user ? <>{/\/dashboard/.test(pathname) || /\/settings/.test(pathname) || /\/admin/.test(pathname) ? <>
         <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
           <div style={{ padding: '10px' }}>
             Bandwidth: { }
@@ -50,12 +42,15 @@ const Navbar: React.FC<Props> = ({ user }) => {
           </div>
           <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
             setPopoverVisibility(false)
-            if (key === 'settings') {
+            if (key === 'admin' && user?.role === 'admin') {
+              history.push('/admin')
+            } else if (key === 'settings') {
               history.push('/settings')
             } else if (key === 'logout') {
               setLogoutConfirmation(true)
             }
           }}>
+            {user?.role === 'admin' && <Menu.Item key="admin" icon={<UserSwitchOutlined />}>Admin</Menu.Item>}
             <Menu.Item key="settings" icon={<SettingOutlined />}>Settings</Menu.Item>
             <Menu.Item danger key="logout" icon={<LogoutOutlined />}>Logout</Menu.Item>
           </Menu>

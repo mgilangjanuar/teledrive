@@ -25,8 +25,10 @@ Get started by installing all needed services and define all variables.
   | env                    | required | description                                                       |
   | ---------------------- | -------- | ----------------------------------------------------------------- |
   | ENV                    | no       | Hide the logs for production, default: develop                    |
+  | PORT                   | no       | Set custom application port for running, default: 4000            |
   | TG_API_ID              | yes      | Application ID from your Telegram App                             |
   | TG_API_HASH            | yes      | Application hash from Telegram App                                |
+  | ADMIN_USERNAME         | yes      | Telegram username of the admin TeleDrive                          |
   | DB_PASSWORD            | yes      | Database password                                                 |
   | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token                           |
   | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                            |
@@ -63,12 +65,12 @@ docker-compose down
 Upgrade to the latest version of TeleDrive with this command:
 
 ```shell
-git pull origin main   # or, staging for the latest updates
+git pull origin main    # or, staging for the latest updates
 
 cd docker
 docker-compose down
-docker-compose build teledrive
-docker-compose up -d
+docker-compose up --build --force-recreate -d
+docker image prune -f   # remove dangling images
 ```
 
 ## Common Issues

@@ -43,22 +43,29 @@ Get started by build all needed services.
 
   ```shell
   heroku config:set USE_PSQL_HEROKU=1
-  heroku config:set DATABASE_URL=[YOUR_DB_CONNECTION_URI]
+  heroku config:set DATABASE_URL=YOUR_DB_CONNECTION_URI
   ```
+
+  **Note.** *Change `YOUR_DB_CONNECTION_URI` to your database connection URI.*
 
 - Import dump.sql
 
   ```shell
-  heroku pg:psql --app [YOUR_APP_NAME] -f ./server/src/model/migrations/dump.sql
+  heroku pg:psql --app YOUR_APP_NAME -f ./server/src/model/migrations/dump.sql
+  heroku pg:psql --app YOUR_APP_NAME -f ./server/src/model/migrations/dump.20220406.sql
   ```
+
+  **Note.** *Change `YOUR_APP_NAME` to your application name from Heroku.*
 
 ### Provide environment variables
 
 Set all variables with your own values to Heroku:
 
 ```shell
-heroku config:set [ENV_NAME]=[ENV_VALUE]
+heroku config:set ENV_NAME=ENV_VALUE
 ```
+
+**Note.** *Change `ENV_NAME` and `ENV_VALUE` to your value as defined below.*
 
 - Define all server variables
 
@@ -67,6 +74,7 @@ heroku config:set [ENV_NAME]=[ENV_VALUE]
   | ENV                    | no       | Hide the logs for production, default: develop        |
   | TG_API_ID              | yes      | Application ID from your Telegram App                 |
   | TG_API_HASH            | yes      | Application hash from Telegram App                    |
+  | ADMIN_USERNAME         | yes      | Telegram username of the admin TeleDrive              |
   | DATABASE_URL           | yes      | PostgreSQL connection URI, format: `postgresql://[user]:[password]@[host]:[port][/dbname][?paramspec]` |
   | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token               |
   | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
