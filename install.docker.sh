@@ -15,9 +15,9 @@ then
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
 
-  DB_PASSWORD=$(openssl rand -hex 18)
-  API_JWT_SECRET=$(openssl rand -base64 36)
-  FILES_JWT_SECRET=$(openssl rand -base64 36)
+  DB_PASSWORD=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=18\&x\=7\&_\=1649668152866)
+  API_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866)
+  FILES_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866)
 
   echo "ENV=$ENV" > docker/.env
   echo "PORT=$PORT" >> docker/.env
@@ -32,6 +32,7 @@ then
   docker-compose up -d
   sleep 2
   docker-compose up -d
+  docker container exec -i $(docker-compose ps -q db) psql -U postgres teledrive < ../server/src/model/migrations/dump.20220406.sql
 else
   git reset --hard
   git clean -f

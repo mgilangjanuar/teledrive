@@ -38,7 +38,6 @@ services:
     volumes:
       - teledrive_data:/var/lib/postgresql/data
       - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
-      - ../server/src/model/migrations/dump.20220406.sql:/docker-entrypoint-initdb.d/dump.20220406.sql
 
   redis:
     image: redis:6

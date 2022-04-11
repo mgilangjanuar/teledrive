@@ -7,10 +7,11 @@ import useSWR from 'swr'
 import { fetcher, req } from '../../utils/Fetcher'
 
 interface Props {
-  me?: any
+  me?: any,
+  errorMe?: any
 }
 
-const Admin: FC<Props> = ({ me }) => {
+const Admin: FC<Props> = ({ me, errorMe }) => {
   const { data: dataConfig, mutate: refetchConfig } = useSWR('/config', fetcher)
   const [configForm] = Form.useForm()
   const [loading, setLoading] = useState<boolean>()
@@ -25,6 +26,13 @@ const Admin: FC<Props> = ({ me }) => {
       window.location.replace('/dashboard')
     }
   }, [me])
+
+  useEffect(() => {
+    if (errorMe) {
+      window.localStorage.clear()
+      window.location.replace('/login')
+    }
+  }, [errorMe])
 
   useEffect(() => {
     if (dataConfig?.config) {
