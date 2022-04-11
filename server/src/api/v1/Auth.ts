@@ -86,11 +86,11 @@ export class Auth {
     let user = await Users.findOne({ tg_id: userAuth.id.toString() })
     const config = await Config.findOne()
     if (!user) {
-      if (config.disable_signup) {
+      if (config?.disable_signup) {
         throw { status: 403, body: { error: 'Signup is disabled' } }
       }
 
-      if (config.invitation_code && config.invitation_code !== invitationCode) {
+      if (config?.invitation_code && config?.invitation_code !== invitationCode) {
         throw { status: 403, body: { error: 'Invalid invitation code' } }
       }
 
@@ -235,11 +235,11 @@ export class Auth {
       let user = await Users.findOne({ tg_id: userAuth.id.toString() })
       const config = await Config.findOne()
       if (!user) {
-        if (config.disable_signup) {
+        if (config?.disable_signup) {
           throw { status: 403, body: { error: 'Signup is disabled' } }
         }
 
-        if (config.invitation_code && config.invitation_code !== invitationCode) {
+        if (config?.invitation_code && config?.invitation_code !== invitationCode) {
           throw { status: 403, body: { error: 'Invalid invitation code' } }
         }
 
@@ -324,11 +324,11 @@ export class Auth {
           let user = await Users.findOne({ tg_id: userAuth.id.toString() })
           const config = await Config.findOne()
           if (!user) {
-            if (config.disable_signup) {
+            if (config?.disable_signup) {
               throw { status: 403, body: { error: 'Signup is disabled' } }
             }
 
-            if (config.invitation_code && config.invitation_code !== invitationCode) {
+            if (config?.invitation_code && config?.invitation_code !== invitationCode) {
               throw { status: 403, body: { error: 'Invalid invitation code' } }
             }
 
@@ -350,11 +350,11 @@ export class Auth {
         let user = await Users.findOne({ tg_id: userAuth.id.toString() })
         const config = await Config.findOne()
         if (!user) {
-          if (config.disable_signup) {
+          if (config?.disable_signup) {
             throw { status: 403, body: { error: 'Signup is disabled' } }
           }
 
-          if (config.invitation_code && config.invitation_code !== invitationCode) {
+          if (config?.invitation_code && config?.invitation_code !== invitationCode) {
             throw { status: 403, body: { error: 'Invalid invitation code' } }
           }
 
