@@ -38,10 +38,10 @@ const Login: React.FC<Props> = ({ me }) => {
   const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken?: string, session?: string }>()
   const { currentTheme } = useThemeSwitcher()
 
-  useEffect(() => {
-    // init config
-    req.get('/config')
-  }, [])
+  // useEffect(() => {
+  //   // init config
+  //   req.get('/config')
+  // }, [])
 
   const sendCode = async (phoneNumber?: string) => {
     phoneNumber = phoneNumber || phoneData.phone ? `+${phoneData.code}${phoneData.phone}` : ''
