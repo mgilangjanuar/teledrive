@@ -15,9 +15,9 @@ then
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
 
-  DB_PASSWORD=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=18\&x\=7\&_\=1649668152866)
-  API_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866)
-  FILES_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866)
+  DB_PASSWORD=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=18\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
+  API_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
+  FILES_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
 
   echo "ENV=$ENV" > docker/.env
   echo "PORT=$PORT" >> docker/.env
