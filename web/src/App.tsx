@@ -123,7 +123,7 @@ function App(): React.ReactElement {
               <Route path="/login" exact>
                 {me?.user && !localStorage.getItem('experimental') ? <Redirect to="/dashboard" /> : <Login me={me} />}
               </Route>
-              <Route path="/admin" exact component={() => <Admin me={me} />} />
+              <Route path="/admin" exact component={() => <Admin me={me} errorMe={errorMe} />} />
               {/* <Route path="/refund" exact component={Refund} />
               <Route path="/privacy" exact component={Privacy} />
               <Route path="/pricing" exact component={() => <Pricing me={me} />} />

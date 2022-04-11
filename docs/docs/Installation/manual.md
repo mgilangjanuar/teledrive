@@ -10,6 +10,17 @@ Install TeleDrive with manual installation.
 
 Get started by installing all needed services and define all variables.
 
+### ⚠️ Experimental ⚠️
+
+You can directly build and run the application with bash script.
+
+```shell
+chmod +x ./install.manual.sh
+./install.manual.sh
+```
+
+If it's succeed you don't need to follow the steps below.
+
 ### What you'll need
 
 - [PostgreSQL](https://www.postgresql.org/) version 14.2 or above:

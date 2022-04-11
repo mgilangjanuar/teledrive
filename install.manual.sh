@@ -16,8 +16,8 @@ then
   read -p "Enter your PORT: [4000]" PORT
   PORT="${PORT:=4000}"
 
-  API_JWT_SECRET=$(openssl rand -base64 36)
-  FILES_JWT_SECRET=$(openssl rand -base64 36)
+  API_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866)
+  FILES_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866)
 
   echo "ENV=$ENV" > server/.env
   echo "PORT=$PORT" >> server/.env

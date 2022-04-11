@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import { Request, Response } from 'express'
 import { Config as ConfigModel } from '../../model/entities/Config'
 import { Users } from '../../model/entities/Users'
+import { Redis } from '../../service/Cache'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 
@@ -14,8 +15,12 @@ export class Config {
     let admin = await Users.findOne({ role: 'admin' })
     if (!admin && process.env.ADMIN_USERNAME) {
       admin = await Users.findOne({ username: process.env.ADMIN_USERNAME })
+      if (!admin) {
+        throw { status: 404, body: { error: 'Admin user not found' } }
+      }
       admin.role = 'admin'
       await admin.save()
+      await Redis.connect().del(`auth:${req.authKey}`)
     }
 
     // get or create base config

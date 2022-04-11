@@ -10,6 +10,17 @@ Install TeleDrive with docker-compose.
 
 Get started by installing all needed services and define all variables.
 
+### ⚠️ Experimental ⚠️
+
+You can directly build and run the application with bash script.
+
+```shell
+chmod +x ./install.docker.sh
+./install.docker.sh
+```
+
+If it's succeed you don't need to follow the steps below.
+
 ### What you'll need
 
 - [Docker](https://docs.docker.com/engine/install/) version 20.10.13 or above
@@ -46,7 +57,6 @@ Done! You can now open [localhost:4000](http://localhost:4000) in your browser �
 View the app logs with this command:
 
 ```shell
-cd docker
 docker-compose logs teledrive --follow
 ```
 
@@ -55,10 +65,14 @@ docker-compose logs teledrive --follow
 Stop the services by:
 
 ```shell
-cd docker
 docker-compose down
 ```
 
+### Updating database
+
+```shell
+docker container exec -i $(docker-compose ps -q db) psql -U postgres teledrive < ../server/src/model/migrations/dump.20220406.sql
+```
 
 ## Upgrade
 
@@ -67,7 +81,6 @@ Upgrade to the latest version of TeleDrive with this command:
 ```shell
 git pull origin main    # or, staging for the latest updates
 
-cd docker
 docker-compose down
 docker-compose up --build --force-recreate -d
 docker image prune -f   # remove dangling images
@@ -80,7 +93,6 @@ docker image prune -f   # remove dangling images
   Try to up the services again with command:
 
   ```shell
-  cd docker
   docker-compose up -d
   ```
 
