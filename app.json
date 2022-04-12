@@ -10,7 +10,7 @@
     "unlimited"
   ],
   "website": "https://teledriveapp.com",
-  "repository": "https://github.com/starpunjabi/teledrive",
+  "repository": "https://github.com/mgilangjanuar/teledrive",
   
   "addons": [
     "heroku-postgresql"
