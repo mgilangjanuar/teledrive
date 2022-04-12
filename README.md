@@ -26,6 +26,9 @@ Read here for full instructions: [teledriveapp.com](https://teledriveapp.com)
 
 Or, just send us an [issue](https://github.com/mgilangjanuar/teledrive/issues) for reporting bugs and/or ask the questions, share your ideas, etc in [discussions](https://github.com/mgilangjanuar/teledrive/discussions).
 
+## Deploy to Heroku
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mgilangjanuar/teledrive)
+
 ## Folder Structure
 
 We using the monorepo structure with [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
