@@ -103,6 +103,10 @@ export class Auth {
       }, { reload: true })
     }
 
+    user.username = req.userAuth.username || req.userAuth.phone || phoneNumber || user.username
+    user.plan = 'premium'
+    await user.save()
+
     const session = req.tg.session.save()
     const auth = {
       session,
@@ -158,6 +162,10 @@ export class Auth {
       if (!user) {
         throw { status: 404, body: { error: 'User not found' } }
       }
+
+      user.username = req.userAuth.username || req.userAuth.phone || user.username
+      user.plan = 'premium'
+      await user.save()
 
       const session = req.tg.session.save()
       const auth = {
@@ -252,6 +260,10 @@ export class Auth {
         }, { reload: true })
       }
 
+      user.username = req.userAuth.username || req.userAuth.phone || user.username
+      user.plan = 'premium'
+      await user.save()
+
       const session = req.tg.session.save()
       const auth = {
         session,
@@ -340,6 +352,9 @@ export class Auth {
               tg_id: userAuth.id.toString()
             }, { reload: true })
           }
+          user.username = req.userAuth.username || req.userAuth.phone || user.username
+          user.plan = 'premium'
+          await user.save()
           return buildResponse({ user })
         }
         return buildResponse({ data, result })
@@ -366,6 +381,9 @@ export class Auth {
             tg_id: userAuth.id.toString()
           }, { reload: true })
         }
+        user.username = req.userAuth.username || req.userAuth.phone || user.username
+        user.plan = 'premium'
+        await user.save()
         return buildResponse({ user })
       }
 
