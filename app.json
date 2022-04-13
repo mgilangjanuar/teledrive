@@ -11,51 +11,51 @@
   ],
   "website": "https://teledriveapp.com",
   "repository": "https://github.com/mgilangjanuar/teledrive",
-  
+
   "addons": [
     "heroku-postgresql"
   ],
   "env": {
-    "API_JWT_SECRET": {
-      "description": "Random string for encrypt JWT web token. Read more at: https://teledriveapp.com/docs/Deployment/heroku",
-	  "required": true
-    },
     "ENV": {
       "description": "Hide the logs for production, default: develop. Read more at: https://teledriveapp.com/docs/Deployment/heroku",
-	  "required": false
+      "required": false
+    },
+    "API_JWT_SECRET": {
+      "description": "Random string for encrypt JWT web token. Read more at: https://teledriveapp.com/docs/Deployment/heroku",
+      "required": true
     },
     "FILES_JWT_SECRET": {
       "description": "Random string for encrypt public files.",
-	  "required": true
+      "required": true
     },
     "REACT_APP_API_URL": {
       "description": "Base URL for the API, default: '' (empty string).",
-	  "required": false
+      "required": false
     },
     "REACT_APP_TG_API_HASH": {
       "description": "Application hash from Telegram App (for experimental features).",
-	  "required": true
+      "required": true
     },
     "REACT_APP_TG_API_ID": {
       "description": "Application ID from your Telegram App (for experimental features).",
-	  "required": true
+      "required": true
     },
     "TG_API_HASH": {
       "description": "Application hash from Telegram App.",
-	  "required": true
+      "required": true
     },
     "TG_API_ID": {
-      "description": "Application ID from your Telegram App. ",
-	  "required": true
+      "description": "Application ID from your Telegram App.",
+      "required": true
+    },
+    "ADMIN_USERNAME": {
+      "description": "Username Telegram for admin account.",
+      "required": true
     },
     "USE_PSQL_HEROKU": {
       "description": "If we are using Heroku PSQL",
-	  "required": true,
-	  "value": "1"
+      "required": true,
+      "value": "1"
     }
   }
 }
-
-
-
-
