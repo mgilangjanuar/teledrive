@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ ! -f docker/.env ]
 then
   echo "Generating .env file..."

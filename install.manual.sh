@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ ! -f server/.env ]
 then
   echo "Generating server/.env file..."
