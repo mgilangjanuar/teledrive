@@ -9,6 +9,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@prisma/client": "^3.12.0",
     "@sentry/node": "^6.14.1",
     "@sentry/tracing": "^6.14.1",
     "@types/moment": "^2.13.0",
@@ -43,6 +44,7 @@
     "node-mailjet": "^3.3.4",
     "pg": "^8.7.1",
     "pg-connection-string": "^2.5.0",
+    "prisma": "^3.12.0",
     "rate-limiter-flexible": "^2.3.1",
     "redis": "^4.0.1",
     "serialize-error": "^8.1.0",

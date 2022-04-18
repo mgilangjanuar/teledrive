@@ -1,4 +1,5 @@
 
+import { PrismaClient } from '@prisma/client'
 import { readFileSync } from 'fs'
 import * as PostgressConnectionStringParser from 'pg-connection-string'
 import {
@@ -75,3 +76,5 @@ export const runDB = async (): Promise<void> => {
 
 // hacky way for parse the value in int8 type columns
 // types.setTypeParser(types.builtins.INT8, (value: string) => bigInt(value))
+
+export const prisma = new PrismaClient()

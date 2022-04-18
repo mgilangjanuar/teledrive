@@ -7,10 +7,7 @@ import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { generateRandomBytes } from 'teledrive-client/Helpers'
 import { computeCheck } from 'teledrive-client/Password'
 import { StringSession } from 'teledrive-client/sessions'
-import { getRepository } from 'typeorm'
-import { Config } from '../../model/entities/Config'
-import { Files } from '../../model/entities/Files'
-import { Users } from '../../model/entities/Users'
+import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
@@ -83,8 +80,8 @@ export class Auth {
       throw { status: 400, body: { error: 'User not found/authorized' } }
     }
 
-    let user = await Users.findOne({ tg_id: userAuth.id.toString() })
-    const config = await Config.findOne()
+    let user = await prisma.users.findFirst({ where: { tg_id: userAuth.id.toString() } })
+    const config = await prisma.config.findFirst()
     if (!user) {
       if (config?.disable_signup) {
         throw { status: 403, body: { error: 'Signup is disabled' } }
@@ -95,17 +92,22 @@ export class Auth {
       }
 
       const username = userAuth.username || userAuth.phone || phoneNumber
-      user = await getRepository<Users>(Users).save({
-        username,
-        plan: 'premium',
-        name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
-        tg_id: userAuth.id.toString()
-      }, { reload: true })
+      user = await prisma.users.create({
+        data: {
+          username,
+          plan: 'premium',
+          name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
+          tg_id: userAuth.id.toString()
+        }
+      })
     }
-
-    user.username = req.userAuth.username || req.userAuth.phone || phoneNumber || user.username
-    user.plan = 'premium'
-    await user.save()
+    await prisma.users.update({
+      data: {
+        username: req.userAuth.username || req.userAuth.phone || phoneNumber || user.username,
+        plan: 'premium'
+      },
+      where: { id: user.id }
+    })
 
     const session = req.tg.session.save()
     const auth = {
@@ -121,13 +123,22 @@ export class Auth {
       .send({ user, ...auth })
 
     // sync all shared files in background, if any
-    Files.createQueryBuilder('files')
-      .where('user_id = :user_id and signed_key is not null', { user_id: user.id })
-      .getMany()
-      .then(files => files?.map(file => {
-        const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
-        Files.update(file.id, { signed_key: signedKey })
-      }))
+    prisma.files.findMany({
+      where: {
+        AND: [
+          { user_id: user.id },
+          {
+            NOT: { signed_key: null }
+          }
+        ]
+      }
+    }).then(files => files?.map(file => {
+      const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+      prisma.files.update({
+        data: { signed_key: signedKey },
+        where: { id: file.id }
+      })
+    }))
   }
 
   @Endpoint.POST()
@@ -158,14 +169,17 @@ export class Auth {
     try {
       await req.tg.connect()
       const userAuth = await req.tg.getMe()
-      const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+      const user = await prisma.users.findFirst({ where: { tg_id: userAuth['id'].toString() } })
       if (!user) {
         throw { status: 404, body: { error: 'User not found' } }
       }
-
-      user.username = req.userAuth.username || req.userAuth.phone || user.username
-      user.plan = 'premium'
-      await user.save()
+      await prisma.users.update({
+        data: {
+          username: req.userAuth.username || req.userAuth.phone || user.username,
+          plan: 'premium'
+        },
+        where: { id: user.id }
+      })
 
       const session = req.tg.session.save()
       const auth = {
@@ -240,8 +254,8 @@ export class Auth {
         throw { status: 400, body: { error: 'User not found/authorized' } }
       }
 
-      let user = await Users.findOne({ tg_id: userAuth.id.toString() })
-      const config = await Config.findOne()
+      let user = await prisma.users.findFirst({ where: { tg_id: userAuth.id.toString() } })
+      const config = await prisma.config.findFirst()
       if (!user) {
         if (config?.disable_signup) {
           throw { status: 403, body: { error: 'Signup is disabled' } }
@@ -252,17 +266,24 @@ export class Auth {
         }
 
         const username = userAuth.username || userAuth.phone
-        user = await getRepository<Users>(Users).save({
-          username,
-          plan: 'premium',
-          name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
-          tg_id: userAuth.id.toString()
-        }, { reload: true })
+        user = await prisma.users.create({
+          data: {
+            username,
+            plan: 'premium',
+            name: `${userAuth.firstName || ''} ${userAuth.lastName || ''}`.trim() || username,
+            tg_id: userAuth.id.toString()
+          }
+        })
       }
 
-      user.username = req.userAuth.username || req.userAuth.phone || user.username
-      user.plan = 'premium'
-      await user.save()
+      await prisma.users.update({
+        data: {
+          username: req.userAuth.username || req.userAuth.phone || user.username,
+          plan: 'premium'
+        },
+        where: { id: user.id }
+      })
+
 
       const session = req.tg.session.save()
       const auth = {
@@ -278,13 +299,22 @@ export class Auth {
         .send({ user, ...auth })
 
       // sync all shared files in background, if any
-      Files.createQueryBuilder('files')
-        .where('user_id = :user_id and signed_key is not null', { user_id: user.id })
-        .getMany()
-        .then(files => files?.map(file => {
-          const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
-          Files.update(file.id, { signed_key: signedKey })
-        }))
+      prisma.files.findMany({
+        where: {
+          AND: [
+            { user_id: user.id },
+            {
+              NOT: { signed_key: null }
+            }
+          ]
+        }
+      }).then(files => files?.map(file => {
+        const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+        prisma.files.update({
+          data: { signed_key: signedKey },
+          where: { id: file.id }
+        })
+      }))
       return
     }
 
@@ -312,13 +342,22 @@ export class Auth {
 
         if (data.user?.id) {
           // sync all shared files in background, if any
-          Files.createQueryBuilder('files')
-            .where('user_id = :user_id and signed_key is not null', { user_id: data.user.id })
-            .getMany()
-            .then(files => files?.map(file => {
-              const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
-              Files.update(file.id, { signed_key: signedKey })
-            }))
+          prisma.files.findMany({
+            where: {
+              AND: [
+                { user_id: data.user.id },
+                {
+                  NOT: { signed_key: null }
+                }
+              ]
+            }
+          }).then(files => files?.map(file => {
+            const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+            prisma.files.update({
+              data: { signed_key: signedKey },
+              where: { id: file.id }
+            })
+          }))
         }
         return
       }
@@ -333,8 +372,8 @@ export class Auth {
         // result import login token success
         if (result instanceof Api.auth.LoginTokenSuccess && result.authorization instanceof Api.auth.Authorization) {
           const userAuth = result.authorization.user
-          let user = await Users.findOne({ tg_id: userAuth.id.toString() })
-          const config = await Config.findOne()
+          let user = await prisma.users.findFirst({ where: { tg_id: userAuth.id.toString() } })
+          const config = await prisma.config.findFirst()
           if (!user) {
             if (config?.disable_signup) {
               throw { status: 403, body: { error: 'Signup is disabled' } }
@@ -345,16 +384,22 @@ export class Auth {
             }
 
             const username = userAuth['username'] || userAuth['phone']
-            user = await getRepository<Users>(Users).save({
-              username,
-              plan: 'premium',
-              name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
-              tg_id: userAuth.id.toString()
-            }, { reload: true })
+            user = await prisma.users.create({
+              data: {
+                username,
+                plan: 'premium',
+                name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
+                tg_id: userAuth.id.toString()
+              }
+            })
           }
-          user.username = req.userAuth.username || req.userAuth.phone || user.username
-          user.plan = 'premium'
-          await user.save()
+          await prisma.users.update({
+            data: {
+              username: req.userAuth.username || req.userAuth.phone || user.username,
+              plan: 'premium'
+            },
+            where: { id: user.id }
+          })
           return buildResponse({ user })
         }
         return buildResponse({ data, result })
@@ -362,8 +407,8 @@ export class Auth {
         // handle if success
       } else if (data instanceof Api.auth.LoginTokenSuccess && data.authorization instanceof Api.auth.Authorization) {
         const userAuth = data.authorization.user
-        let user = await Users.findOne({ tg_id: userAuth.id.toString() })
-        const config = await Config.findOne()
+        let user = await prisma.users.findFirst({ where: { tg_id: userAuth.id.toString() } })
+        const config = await prisma.config.findFirst()
         if (!user) {
           if (config?.disable_signup) {
             throw { status: 403, body: { error: 'Signup is disabled' } }
@@ -374,16 +419,22 @@ export class Auth {
           }
 
           const username = userAuth['username'] || userAuth['phone']
-          user = await getRepository<Users>(Users).save({
-            username,
-            plan: 'premium',
-            name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
-            tg_id: userAuth.id.toString()
-          }, { reload: true })
+          user = await prisma.users.create({
+            data: {
+              username,
+              plan: 'premium',
+              name: `${userAuth['firstName'] || ''} ${userAuth['lastName'] || ''}`.trim() || username,
+              tg_id: userAuth.id.toString()
+            }
+          })
         }
-        user.username = req.userAuth.username || req.userAuth.phone || user.username
-        user.plan = 'premium'
-        await user.save()
+        await prisma.users.update({
+          data: {
+            username: req.userAuth.username || req.userAuth.phone || user.username,
+            plan: 'premium'
+          },
+          where: { id: user.id }
+        })
         return buildResponse({ user })
       }
 
