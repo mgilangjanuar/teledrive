@@ -49,6 +49,11 @@ import { markdownSafe } from './utils/StringParser'
 // }
 
 
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString()
+}
+
+
 Redis.connect()
 // runDB()
 

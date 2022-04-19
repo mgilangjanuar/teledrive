@@ -21,8 +21,8 @@ export class Files {
   @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, shared, exclude_parts: excludeParts, full_properties: fullProperties, no_cache: noCache, t: _t, ...filters } = req.query
-    const parent = filters?.parent_id ? await prisma.files.findFirst({ where: { id: filters.parent_id as string } }) : null
-    if (filters?.parent_id && !parent) {
+    const parent = filters?.parent_id !== 'null' ? await prisma.files.findFirst({ where: { id: filters.parent_id as string } }) : null
+    if (filters?.parent_id !== 'null' && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
     if (!req.user && !parent?.sharing_options?.includes('*')) {
@@ -95,7 +95,22 @@ export class Files {
       const whereQuery: Prisma.filesWhereInput = {
         AND: [
           where,
-          filters,
+          ...Object.keys(filters).reduce((res, k) => {
+            let obj = { [k]: filters[k] }
+            if (filters[k] === 'null') {
+              obj = { [k]: null }
+            }
+            if (/\.in$/.test(k)) {
+              obj = { [k.replace(/\.in$/, '')]: {
+                in: (filters[k] as string)
+                  .replace(/^\(/, '')
+                  .replace(/\'/g, '')
+                  .replace(/\)$/, '')
+                  .split(',')
+              } }
+            }
+            return [...res, obj]
+          }, []),
           ...excludeParts === 'true' || excludeParts === '1' ? [
             {
               OR: [   // (files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')
@@ -532,7 +547,7 @@ export class Files {
         data: {
           name: name,
           mime_type: mimetype,
-          size: size as any,
+          size: Number(size),
           user_id: req.user.id,
           type: type,
           parent_id: currentParentId || null,
@@ -951,7 +966,7 @@ export class Files {
 
     usage = await prisma.usages.update({
       data: {
-        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toString() as any
+        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
       },
       where: { key: usage.key }
     })
@@ -1024,7 +1039,7 @@ export class Files {
     }
     usage = await prisma.usages.update({
       data: {
-        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toString() as any
+        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
       },
       where: { key: usage.key }
     })

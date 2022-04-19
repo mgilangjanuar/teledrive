@@ -194,8 +194,8 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   const fetch = (pagination?: TablePaginationConfig, filters?: Record<string, FilterValue | null>, sorter?: SorterResult<any> | SorterResult<any>[], actions?: TableCurrentDataSource<any>) => {
     setLoading(true)
     setParams({
-      ...parent?.id ? { parent_id: parent.link_id || parent.id } : { 'parent_id.is': 'null' },
-      ...keyword ? { 'name.ilike': `%${keyword}%` } : {},
+      ...parent?.id ? { parent_id: parent.link_id || parent.id } : { parent_id: 'null' },
+      ...keyword ? { 'name[contains]': keyword } : {},
       ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
       limit: PAGE_SIZE,
       offset: pagination?.current === 1 || actions?.action || keyword && params?.offset ? 0 : data?.length,

@@ -82,6 +82,7 @@ export class Auth {
 
     let user = await prisma.users.findFirst({ where: { tg_id: userAuth.id.toString() } })
     const config = await prisma.config.findFirst()
+    const username = userAuth.username || userAuth.phone || phoneNumber
     if (!user) {
       if (config?.disable_signup) {
         throw { status: 403, body: { error: 'Signup is disabled' } }
@@ -91,7 +92,6 @@ export class Auth {
         throw { status: 403, body: { error: 'Invalid invitation code' } }
       }
 
-      const username = userAuth.username || userAuth.phone || phoneNumber
       user = await prisma.users.create({
         data: {
           username,
@@ -103,7 +103,7 @@ export class Auth {
     }
     await prisma.users.update({
       data: {
-        username: req.userAuth.username || req.userAuth.phone || phoneNumber || user.username,
+        username,
         plan: 'premium'
       },
       where: { id: user.id }
