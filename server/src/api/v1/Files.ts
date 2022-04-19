@@ -29,7 +29,7 @@ export class Files {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
 
-    const getFiles = async () => {
+    const getFiles = async (): Promise<[files[], number]> => {
       let where: Record<string, any> = { user_id: req.user.id }   // 'files.user_id = :user'
       if (shared) {
         if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
@@ -91,36 +91,41 @@ export class Files {
       if (shared && Object.keys(where).length) {
         select['parent'] = true
       }
-      return await prisma.files.findMany({
-        ...select ? { select } : {},
-        where: {
-          AND: [
-            where,
-            filters,
-            ...excludeParts === 'true' || excludeParts === '1' ? [
-              {
-                OR: [   // (files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')
-                  {
-                    AND: [
-                      { name: { contains: '.part0' } },
-                      { name: { endsWith: '1' } },
-                      { NOT: { name: { endsWith: '11' } } },
-                      { NOT: { name: { endsWith: '111' } } },
-                      { NOT: { name: { endsWith: '1111' } } },
-                    ]
-                  },
-                  {
-                    NOT: { name: { contains: '.part' } }
-                  }
-                ]
-              }
-            ] : []
-          ],
-        },
-        skip: Number(offset) || 0,
-        take: Number(limit) || 10,
-        orderBy: buildSort(sort as string)
-      })
+
+      const whereQuery: Prisma.filesWhereInput = {
+        AND: [
+          where,
+          filters,
+          ...excludeParts === 'true' || excludeParts === '1' ? [
+            {
+              OR: [   // (files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')
+                {
+                  AND: [
+                    { name: { contains: '.part0' } },
+                    { name: { endsWith: '1' } },
+                    { NOT: { name: { endsWith: '11' } } },
+                    { NOT: { name: { endsWith: '111' } } },
+                    { NOT: { name: { endsWith: '1111' } } },
+                  ]
+                },
+                {
+                  NOT: { name: { contains: '.part' } }
+                }
+              ]
+            }
+          ] : []
+        ],
+      }
+      return [
+        await prisma.files.findMany({
+          ...select ? { select } : {},
+          where: whereQuery,
+          skip: Number(offset) || 0,
+          take: Number(limit) || 10,
+          orderBy: buildSort(sort as string)
+        }),
+        await prisma.files.count({ where })
+      ]
     }
 
     const [files, length] = noCache === 'true' || noCache === '1' ? await getFiles() : await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, getFiles, 2)
