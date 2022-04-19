@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import uuid from 'uuid-random'
-import { Users } from '../../model/entities/Users'
+import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
 import { Midtrans } from '../../service/Midtrans'
 import { PayPal } from '../../service/PayPal'
@@ -29,7 +29,10 @@ export class Subscriptions {
       if (req.body.email) {
         req.user.email = req.body.email
       }
-      await Users.update(req.user.id, req.user)
+      await prisma.users.update({
+        where: { id: req.user.id },
+        data: req.user
+      })
       await Redis.connect().del(`auth:${req.authKey}`)
       const result = await new Midtrans().getPaymentLink(req.user, 144_000)
       return res.send({ link: result.redirect_url })
@@ -46,7 +49,10 @@ export class Subscriptions {
     }
 
     const result = await new PayPal().createSubscription(req.user)
-    await Users.update(req.user.id, { subscription_id: result.id })
+    await prisma.users.update({
+      where: { id: req.user.id },
+      data: { subscription_id: result.id }
+    })
     await Redis.connect().del(`auth:${req.authKey}`)
     return res.send({ link: result.links.find(link => link.rel === 'approve').href })
   }
