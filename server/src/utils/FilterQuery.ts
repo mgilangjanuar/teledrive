@@ -69,6 +69,6 @@ export function buildWhereQuery(data: Record<string, any>, prefix: string = '', 
 export function buildSort(sort?: string, prefix: string = ''): Record<string, any> {
   return sort?.split(',').reduce((res, data) => {
     const [column, order] = data.split(':')
-    return { ...res, [`${prefix}${column}`]: order?.toUpperCase() || 'ASC' }
+    return { ...res, [`${prefix}${column}`]: order?.toLowerCase() || 'asc' }
   }, {}) || {}
 }

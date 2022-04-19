@@ -1,3 +1,4 @@
+import { files } from '@prisma/client'
 import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
@@ -7,11 +8,10 @@ import multer from 'multer'
 import { Api, Logger, TelegramClient } from 'teledrive-client'
 import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
-import { Files as Model } from '../../model/entities/Files'
-import { Usages } from '../../model/entities/Usages'
+import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, PROCESS_RETRY, TG_CREDS } from '../../utils/Constant'
-import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
+import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 
@@ -21,7 +21,7 @@ export class Files {
   @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, shared, exclude_parts: excludeParts, full_properties: fullProperties, no_cache: noCache, t: _t, ...filters } = req.query
-    const parent = filters?.parent_id ? await Model.findOne(filters.parent_id as string) : null
+    const parent = filters?.parent_id ? await prisma.files.findFirst({ where: { id: filters.parent_id as string } }) : null
     if (filters?.parent_id && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
@@ -30,44 +30,97 @@ export class Files {
     }
 
     const getFiles = async () => {
-      let where = 'files.user_id = :user'
+      let where: Record<string, any> = { user_id: req.user.id }   // 'files.user_id = :user'
       if (shared) {
         if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
-          where = 'true'
+          where = {}
         } else {
-          where = ':user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))'
+          // :user = any(files.sharing_options) and (files.parent_id is null or parent.sharing_options is null or cardinality(parent.sharing_options) = 0 or not :user = any(parent.sharing_options))
+          where = {
+            AND: [
+              {
+                sharing_options: {
+                  has: req.user?.username
+                }
+              },
+              {
+                OR: [
+                  { parent_id: null },
+                  { parent: {
+                    sharing_options: null }
+                  },
+                  {
+                    parent: {
+                      sharing_options: {
+                        isEmpty: true
+                      }
+                    }
+                  },
+                  {
+                    NOT: {
+                      parent: {
+                        sharing_options: {
+                          has: req.user?.username
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         }
       }
-      let query = Model.createQueryBuilder('files')
-        .where(where, {
-          user: shared ? req.user?.username : req.user?.id  })
-        .andWhere(buildWhereQuery(filters, 'files.') || 'true')
+
+      let select = null
       if (fullProperties !== 'true' && fullProperties !== '1') {
-        query = query.select([
-          'files.id',
-          'files.name',
-          'files.type',
-          'files.size',
-          'files.sharing_options',
-          'files.upload_progress',
-          'files.link_id',
-          'files.user_id',
-          'files.parent_id',
-          'files.uploaded_at',
-          'files.created_at'
-        ])
+        select = {
+          id: true,
+          name: true,
+          type: true,
+          size: true,
+          sharing_options: true,
+          upload_progress: true,
+          link_id: true,
+          user_id: true,
+          parent_id: true,
+          uploaded_at: true,
+          created_at: true
+        }
       }
-      if (excludeParts === 'true' || excludeParts === '1') {
-        query = query.andWhere('(files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')')
+      if (shared && Object.keys(where).length) {
+        select['parent'] = true
       }
-      if (shared && where !== 'true') {
-        query = query.leftJoin('files.parent', 'parent')
-      }
-      return await query
-        .skip(Number(offset) || 0)
-        .take(Number(limit) || 10)
-        .orderBy(buildSort(sort as string, 'files.'))
-        .getManyAndCount()
+      return await prisma.files.findMany({
+        ...select ? { select } : {},
+        where: {
+          AND: [
+            where,
+            filters,
+            ...excludeParts === 'true' || excludeParts === '1' ? [
+              {
+                OR: [   // (files.name ~ \'.part0*1$\' or files.name !~ \'.part[0-9]+$\')
+                  {
+                    AND: [
+                      { name: { contains: '.part0' } },
+                      { name: { endsWith: '1' } },
+                      { NOT: { name: { endsWith: '11' } } },
+                      { NOT: { name: { endsWith: '111' } } },
+                      { NOT: { name: { endsWith: '1111' } } },
+                    ]
+                  },
+                  {
+                    NOT: { name: { contains: '.part' } }
+                  }
+                ]
+              }
+            ] : []
+          ],
+        },
+        skip: Number(offset) || 0,
+        take: Number(limit) || 10,
+        orderBy: buildSort(sort as string)
+      })
     }
 
     const [files, length] = noCache === 'true' || noCache === '1' ? await getFiles() : await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, getFiles, 2)
@@ -135,55 +188,57 @@ export class Files {
         type
       }
     }
-
-    const { raw } = await Model.createQueryBuilder('files').insert().values({
-      ...file,
-      ...message
-    }).returning('*').execute()
-    return res.send({ file: raw[0] })
+    return res.send({ file: await prisma.files.create({
+      data: {
+        ...file,
+        ...message
+      }
+    }) })
   }
 
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
-    const count = data?.name ? null : await Model.createQueryBuilder('files').where(
-      `type = :type and user_id = :userId and name like 'New Folder%' and parent_id ${data?.parent_id ? '= :parentId' : 'is null'}`, {
-        type: 'folder',
-        userId: req.user.id,
-        parentId: data?.parent_id
-      }).getCount()
-    const parent = data?.parent_id ? await Model.createQueryBuilder('files')
-      .where('id = :id', { id: data.parent_id })
-      .addSelect('files.signed_key')
-      .getOne() : null
+    const count = data?.name ? null : await prisma.files.count({
+      where: {
+        AND: [
+          { type: 'folder' },
+          { user_id: req.user.id },
+          { name: { startsWith: 'New Folder' } },
+          { parent_id: data?.parent_id || null }
+        ]
+      }
+    })
+    const parent = data?.parent_id ? await prisma.files.findUnique({
+      where: { id: data.parent_id }
+    }) : null
 
-    const { raw } = await Model.createQueryBuilder('files').insert().values({
-      name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
-      mime_type: 'teledrive/folder',
-      user_id: req.user.id,
-      type: 'folder',
-      uploaded_at: new Date(),
-      ...parent ? {
-        parent_id: parent.id,
-        sharing_options: parent.sharing_options,
-        signed_key: parent.signed_key
-      } : {}
-    }).returning('*').execute()
-    return res.send({ file: raw[0] })
+    return res.send({ file: await prisma.files.create({
+      data: {
+        name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
+        mime_type: 'teledrive/folder',
+        user_id: req.user.id,
+        type: 'folder',
+        uploaded_at: new Date(),
+        ...parent ? {
+          parent_id: parent.id,
+          sharing_options: parent.sharing_options,
+          signed_key: parent.signed_key
+        } : {}
+      }
+    }) })
   }
 
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    const file = await Model.createQueryBuilder('files')
-      .where('id = :id', { id })
-      .addSelect('files.signed_key')
-      .getOne()
+    const file = await prisma.files.findUnique({
+      where: { id }
+    })
 
-    const parent = file?.parent_id ? await Model.createQueryBuilder('files')
-      .where('id = :id', { id: file.parent_id })
-      .addSelect('files.signed_key')
-      .getOne() : null
+    const parent = file?.parent_id ? await prisma.files.findUnique({
+      where: { id: file.parent_id }
+    }) : null
     if (!file || file.user_id !== req.user?.id && !file.sharing_options?.includes('*') && !file.sharing_options?.includes(req.user?.username)) {
       if (!parent?.sharing_options?.includes(req.user?.username) && !parent?.sharing_options?.includes('*')) {
         throw { status: 404, body: { error: 'File not found' } }
@@ -196,13 +251,20 @@ export class Files {
       // if (req.user?.plan !== 'premium') {
       //   throw { status: 402, body: { error: 'Please upgrade your plan for view this file' } }
       // }
-      files = await Model.createQueryBuilder('files')
-        .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
-          id, user_id: file.user_id, parent_id: file.parent_id
-        })
-        .addSelect('files.signed_key')
-        .orderBy('name')
-        .getMany()
+      files = await prisma.files.findMany({
+        where: {
+          AND: [
+            {
+              OR: [
+                { id },
+                { name: { startsWith: file.name.replace(/\.part0*1$/gi, '') } }
+              ]
+            },
+            { user_id: file.user_id },
+            { parent_id: file.parent_id || null }
+          ]
+        }
+      })
       files[0].signed_key = file.signed_key = file.signed_key || parent?.signed_key
     }
 
@@ -218,16 +280,16 @@ export class Files {
   public async remove(req: Request, res: Response): Promise<any> {
     const { id } = req.params
     const { deleteMessage } = req.query
-    const { affected, raw } = await Model.createQueryBuilder('files')
-      .delete()
-      .where({ id, user_id: req.user.id })
-      .returning('*')
-      .execute()
-    if (!affected) {
+    const file = await prisma.files.findFirst({
+      where: {
+        AND: [{ id }, { user_id: req.user.id }]
+      },
+    })
+    if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
     }
+    await prisma.files.delete({ where: { id } })
 
-    const file = raw[0]
     if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
       try {
         await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
@@ -241,14 +303,22 @@ export class Files {
     }
 
     if (/.*\.part0*1$/gi.test(file?.name)) {
-      const { raw: files } = await Model.createQueryBuilder('files')
-        .delete()
-        .where(`(id = :id or name like '${file.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${file.parent_id ? '= :parent_id' : 'is null'}`, {
-          id, user_id: file.user_id, parent_id: file.parent_id
-        })
-        .returning('*')
-        .execute()
-      files.map(async (file: any) => {
+      const files = await prisma.files.findMany({
+        where: {
+          AND: [
+            {
+              OR: [
+                { id },
+                { name: { startsWith: file.name.replace(/\.part0*1$/gi, '') } }
+              ],
+            },
+            { user_id: file.user_id },
+            { parent_id: file.parent_id || null }
+          ]
+        }
+      })
+      files.map(async (file: files) => {
+        await prisma.files.delete({ where: { id: file.id } })
         if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
           try {
             await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
@@ -273,10 +343,11 @@ export class Files {
       throw { status: 400, body: { error: 'File is required in body' } }
     }
 
-    const currentFile = await Model.createQueryBuilder('files')
-      .where({ id, user_id: req.user.id })
-      .addSelect('files.signed_key')
-      .getOne()
+    const currentFile = await prisma.files.findFirst({
+      where: {
+        AND: [{ id }, { user_id: req.user.id }]
+      }
+    })
     if (!currentFile) {
       throw { status: 404, body: { error: 'File not found' } }
     }
@@ -287,10 +358,9 @@ export class Files {
     //   }
     // }
 
-    const parent = file.parent_id ? await Model.createQueryBuilder('files')
-      .where('id = :id', { id: file.parent_id })
-      .addSelect('files.signed_key')
-      .getOne() : null
+    const parent = file.parent_id ? await prisma.files.findUnique({
+      where: { id: file.parent_id }
+    }) : null
 
     let key: string = currentFile.signed_key || parent?.signed_key
     if (file.sharing_options?.length && !key) {
@@ -302,14 +372,23 @@ export class Files {
     }
 
     if (/.*\.part0*1$/gi.test(currentFile?.name)) {
-      const files = await Model.createQueryBuilder('files')
-        .where(`(id = :id or name like '${currentFile.name.replace(/\.part0*1$/gi, '')}%') and user_id = :user_id and parent_id ${currentFile.parent_id ? '= :parent_id' : 'is null'}`, {
-          id, user_id: currentFile.user_id, parent_id: currentFile.parent_id
-        })
-        .addSelect('files.signed_key')
-        .getMany()
-      await Promise.all(files.map(async current => await Model.createQueryBuilder('files')
-        .update({
+      const files = await prisma.files.findMany({
+        where: {
+          AND: [
+            {
+              OR: [
+                { id },
+                { name: { startsWith: currentFile.name.replace(/\.part0*1$/gi, '') } }
+              ]
+            },
+            { user_id: currentFile.user_id },
+            { parent_id: currentFile.parent_id || null }
+          ]
+        }
+      })
+      await Promise.all(files.map(async current => await prisma.files.update({
+        where: { id: current.id },
+        data: {
           ...file.name ? { name: current.name.replace(current.name.replace(/\.part0*\d+$/gi, ''), file.name) } : {},
           ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
           ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
@@ -317,12 +396,17 @@ export class Files {
             sharing_options: parent.sharing_options
           } : {},
           signed_key: key
-        })
-        .where({ id: current.id })
-        .execute()))
+        }
+      })))
     } else {
-      await Model.createQueryBuilder('files')
-        .update({
+      await prisma.files.updateMany({
+        where: {
+          AND: [
+            { id },
+            { user_id: req.user.id }
+          ],
+        },
+        data: {
           ...file.name ? { name: currentFile.name.replace(currentFile.name.replace(/\.part0*1$/gi, ''), file.name) } : {},
           ...file.sharing_options !== undefined ? { sharing_options: file.sharing_options } : {},
           ...file.parent_id !== undefined ? { parent_id: file.parent_id } : {},
@@ -330,22 +414,33 @@ export class Files {
             sharing_options: parent.sharing_options
           } : {},
           signed_key: key
-        })
-        .where({ id, user_id: req.user.id })
-        .execute()
+        }
+      })
     }
 
     if (file.sharing_options !== undefined && currentFile.type === 'folder') {
-      const updateSharingOptions = async (currentFile: Model) => {
-        const children = await Model.createQueryBuilder('files')
-          .where('parent_id = :parent_id and type = \'folder\'', { parent_id: currentFile.id })
-          .addSelect('files.signed_key')
-          .getMany()
+      const updateSharingOptions = async (currentFile: files) => {
+        const children = await prisma.files.findMany({
+          where: {
+            AND: [
+              { parent_id: currentFile.id },
+              { type: 'folder' }
+            ]
+          }
+        })
         for (const child of children) {
-          await Model.createQueryBuilder('files')
-            .update({ sharing_options: file.sharing_options, signed_key: key || child.signed_key })
-            .where({ id: child.id, user_id: req.user.id })
-            .execute()
+          await prisma.files.updateMany({
+            where: {
+              AND: [
+                { id: child.id },
+                { user_id: req.user.id }
+              ]
+            },
+            data: {
+              sharing_options: file.sharing_options,
+              signed_key: key || child.signed_key
+            }
+          })
           await updateSharingOptions(child)
         }
       }
@@ -375,12 +470,11 @@ export class Files {
     //   throw { status: 402, body: { error: 'Payment required' } }
     // }
 
-    let model: Model
+    let model: files
     if (req.params?.id) {
-      model = await Model.createQueryBuilder('files')
-        .where('id = :id', { id: req.params.id })
-        .addSelect('files.file_id')
-        .getOne()
+      model = await prisma.files.findUnique({
+        where: { id: req.params.id }
+      })
       if (!model) {
         throw { status: 404, body: { error: 'File not found' } }
       }
@@ -403,43 +497,45 @@ export class Files {
         const paths = relativePath.split('/').slice(0, -1) || []
         for (const i in paths) {
           const path = paths[i]
-          const findFolder = await Model.createQueryBuilder('files')
-            .where(`type = :type and name = :name and user_id = :user_id and parent_id ${currentParentId ? '= :parent_id' : 'is null'}`, {
-              type: 'folder',
-              name: path,
-              user_id: req.user.id,
-              parent_id: currentParentId
-            })
-            .getOne()
+          const findFolder = await prisma.files.findFirst({
+            where: {
+              AND: [
+                { type: 'folder' },
+                { name: path },
+                { parent_id: currentParentId || null }
+              ]
+            }
+          })
           if (findFolder) {
             currentParentId = findFolder.id
           } else {
-            const newFolder = new Model()
-            newFolder.name = path
-            newFolder.type = 'folder'
-            newFolder.user_id = req.user.id
-            newFolder.mime_type = 'teledrive/folder'
-            if (currentParentId) {
-              newFolder.parent_id = currentParentId
-            }
-            await newFolder.save()
+            const newFolder = await prisma.files.create({
+              data: {
+                name: path,
+                type: 'folder',
+                user_id: req.user.id,
+                mime_type: 'teledrive/folder',
+                ...currentParentId ? { parent_id: currentParentId } : {}
+              }
+            })
             currentParentId = newFolder.id
           }
         }
       }
 
-      model = new Model()
-      model.name = name,
-      model.mime_type = mimetype
-      // model.size = '0'
-      model.size = size
-      model.user_id = req.user.id
-      model.type = type
-      model.parent_id = currentParentId || null
-      model.upload_progress = 0
-      model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
-      model.forward_info = req.user.settings?.saved_location || null
-      await model.save()
+      model = await prisma.files.create({
+        data: {
+          name: name,
+          mime_type: mimetype,
+          size: size as any,
+          user_id: req.user.id,
+          type: type,
+          parent_id: currentParentId || null,
+          upload_progress: 0,
+          file_id: bigInt.randBetween('-1e100', '1e100').toString(),
+          forward_info: req.user.settings?.saved_location || null,
+        }
+      })
     }
 
     // upload per part
@@ -466,8 +562,12 @@ export class Files {
     }
 
     // model.size = bigInt(model.size).add(file.buffer.length).toString()
-    model.upload_progress = (Number(part) + 1) / Number(totalPart)
-    await model.save()
+    await prisma.files.update({
+      where: { id: model.id },
+      data: {
+        upload_progress: (Number(part) + 1) / Number(totalPart)
+      }
+    })
 
     if (Number(part) < Number(totalPart) - 1) {
       return res.status(202).send({ accepted: true, file: { id: model.id }, uploadPartStatus })
@@ -513,14 +613,22 @@ export class Files {
       data = await sendData(true)
     }
 
-    model.message_id = data.id?.toString()
-    model.uploaded_at = data.date ? new Date(data.date * 1000) : null
-    model.upload_progress = null
+    let forwardInfo = null
     if (req.user.settings?.saved_location) {
       const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
-      model.forward_info = `${type}/${peerId}/${data.id?.toString()}/${accessHash}`
+      forwardInfo = `${type}/${peerId}/${data.id?.toString()}/${accessHash}`
     }
-    await model.save()
+
+    await prisma.files.update({
+      data: {
+        message_id: data.id?.toString(),
+        uploaded_at: data.date ? new Date(data.date * 1000) : null,
+        upload_progress: null,
+        ...forwardInfo ? { forward_info: forwardInfo } : {}
+      },
+      where: { id: model.id }
+    })
+
     return res.status(202).send({ accepted: true, file: { id: model.id } })
   }
 
@@ -537,12 +645,11 @@ export class Files {
       message
     } = req.body as Record<string, any>
 
-    let model: Model
+    let model: files
     if (req.params?.id) {
-      model = await Model.createQueryBuilder('files')
-        .where('id = :id', { id: req.params.id })
-        .addSelect('files.file_id')
-        .getOne()
+      model = await prisma.files.findUnique({
+        where: { id: req.params.id }
+      })
       if (!model) {
         throw { status: 404, body: { error: 'File not found' } }
       }
@@ -572,47 +679,55 @@ export class Files {
           const paths = relativePath.split('/').slice(0, -1) || []
           for (const i in paths) {
             const path = paths[i]
-            const findFolder = await Model.createQueryBuilder('files')
-              .where(`type = :type and name = :name and user_id = :user_id and parent_id ${currentParentId ? '= :parent_id' : 'is null'}`, {
-                type: 'folder',
-                name: path,
-                user_id: req.user.id,
-                parent_id: currentParentId
-              })
-              .getOne()
+            const findFolder = await prisma.files.findFirst({
+              where: {
+                AND: [
+                  { type: 'folder' },
+                  { name: path },
+                  { user_id: req.user.id },
+                  { parent_id: currentParentId || null }
+                ]
+              }
+            })
             if (findFolder) {
               currentParentId = findFolder.id
             } else {
-              const newFolder = new Model()
-              newFolder.name = path
-              newFolder.type = 'folder'
-              newFolder.user_id = req.user.id
-              newFolder.mime_type = 'teledrive/folder'
-              if (currentParentId) {
-                newFolder.parent_id = currentParentId
-              }
-              await newFolder.save()
+              const newFolder = await prisma.files.create({
+                data: {
+                  name: path,
+                  type: 'folder',
+                  user_id: req.user.id,
+                  mime_type: 'teledrive/folder',
+                  ...currentParentId ? { parent_id: currentParentId } : {}
+                }
+              })
               currentParentId = newFolder.id
             }
           }
         }
 
-        model = new Model()
-        model.name = name,
-        model.mime_type = mimetype
-        model.size = size
-        model.user_id = req.user.id
-        model.type = type
-        model.parent_id = currentParentId || null
-        model.upload_progress = 0
-        model.file_id = bigInt.randBetween('-1e100', '1e100').toString()
-        model.forward_info = req.user.settings?.saved_location || null
-        await model.save()
+        model = await prisma.files.create({
+          data: {
+            name: name,
+            mime_type: mimetype,
+            size: size,
+            user_id: req.user.id,
+            type: type,
+            parent_id: currentParentId || null,
+            upload_progress: 0,
+            file_id: bigInt.randBetween('-1e100', '1e100').toString(),
+            forward_info: req.user.settings?.saved_location || null,
+          }
+        })
       }
 
       // model.size = bigInt(model.size).add(file.buffer.length).toString()
-      model.upload_progress = (Number(part) + 1) / Number(totalPart)
-      await model.save()
+      await prisma.files.update({
+        data: {
+          upload_progress: (Number(part) + 1) / Number(totalPart)
+        },
+        where: { id: model.id }
+      })
 
       // if (Number(part) < Number(totalPart) - 1) {
       if (!message) {
@@ -620,21 +735,28 @@ export class Files {
       }
     }
 
-    model.message_id = message.id?.toString()
-    model.uploaded_at = message.date ? new Date(message.date * 1000) : null
-    model.upload_progress = null
+    let forwardInfo: string
     if (req.user.settings?.saved_location) {
       const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
-      model.forward_info = `${type}/${peerId}/${message.id?.toString()}/${accessHash}`
+      forwardInfo = `${type}/${peerId}/${message.id?.toString()}/${accessHash}`
     }
-    await model.save()
+
+    await prisma.files.update({
+      data: {
+        message_id: message.id?.toString(),
+        uploaded_at: message.date ? new Date(message.date * 1000) : null,
+        upload_progress: null,
+        ...forwardInfo ? { forward_info: forwardInfo } : {}
+      },
+      where: { id: model.id }
+    })
     return res.status(202).send({ accepted: true, file: { id: model.id, file_id: model.file_id, name: model.name, size: model.size, type: model.type } })
   }
 
   @Endpoint.GET('/breadcrumbs/:id', { middlewares: [AuthMaybe] })
   public async breadcrumbs(req: Request, res: Response): Promise<any> {
     const { id } = req.params
-    let folder = await Model.findOne(id)
+    let folder = await prisma.files.findUnique({ where: { id } })
     if (!folder) {
       throw { status: 404, body: { error: 'File not found' } }
     }
@@ -646,7 +768,7 @@ export class Files {
 
     const breadcrumbs = [folder]
     while (folder.parent_id) {
-      folder = await Model.findOne(folder.parent_id)
+      folder = await prisma.files.findUnique({ where: { id: folder.parent_id } })
       if (!req.user && folder.sharing_options?.includes('*') || folder.sharing_options?.includes(req.user?.username) || folder.user_id === req.user?.id) {
         breadcrumbs.push(folder)
       }
@@ -701,18 +823,23 @@ export class Files {
     files = files.slice(0, Number(limit) || 10)
 
     if (files?.length) {
-      const existFiles = await Model
-        .createQueryBuilder('files')
-        .where(`message_id IN (:...ids) AND parent_id ${parentId ? '= :parentId' : 'IS NULL'} and forward_info IS NULL`, {
-          ids: files.map(file => file.id),
-          parentId
-        })
-        .getMany()
+      const existFiles = await prisma.files.findMany({
+        where: {
+          AND: [
+            {
+              message_id: {
+                in: files.map(file => file.id)
+              }
+            },
+            { parent_id: parentId as string || null },
+            { forward_info: null }
+          ]
+        }
+      })
       const filesWantToSave = files.filter(file => !existFiles.find(e => e.message_id == file.id))
       if (filesWantToSave?.length) {
-        await Model.createQueryBuilder('files')
-          .insert()
-          .values(filesWantToSave.map(file => {
+        await prisma.files.createMany({
+          data: filesWantToSave.map(file => {
             const mimeType = file.media.photo ? 'image/jpeg' : file.media.document.mimeType || 'unknown'
             const name = file.media.photo ? `${file.media.photo.id}.jpg` : file.media.document.attributes?.find((atr: any) => atr.fileName)?.fileName || `${file.media?.document.id}.${mimeType.split('/').pop()}`
 
@@ -737,8 +864,8 @@ export class Files {
               type,
               parent_id: parentId ? parentId.toString() : null
             }
-          }))
-          .execute()
+          })
+        })
       }
     }
     return res.send({ files })
@@ -748,16 +875,25 @@ export class Files {
   public async filesSync(req: Request, res: Response): Promise<any> {
     const { files } = req.body
     for (const file of files) {
-      const existFile = await Model.createQueryBuilder('files')
-        .where('name = :name and type = :type', { name: file.name, type: file.type })
-        .andWhere(`size ${file.size ? `= ${file.size}` : 'is null'}`)
-        .andWhere(`parent_id is ${file.parent_id ? 'not' : ''} null`)
-        .getOne()
+      const existFile = await prisma.files.findFirst({
+        where: {
+          AND: [
+            { name: file.name },
+            { type: file.type },
+            { size: file.size || null },
+            {
+              parent_id: file.parent_id ? { not: null } : null
+            }
+          ]
+        }
+      })
       if (!existFile) {
         try {
-          await Model.insert({
-            ...file,
-            user_id: req.user.id
+          await prisma.files.create({
+            data: {
+              ...file,
+              user_id: req.user.id,
+            }
           })
         } catch (error) {
           // ignore
@@ -767,29 +903,32 @@ export class Files {
     return res.status(202).send({ accepted: true })
   }
 
-  public static async download(req: Request, res: Response, files: Model[], onlyHeaders?: boolean): Promise<any> {
+  public static async download(req: Request, res: Response, files: files[], onlyHeaders?: boolean): Promise<any> {
     const { raw, dl, thumb, as_array: asArray } = req.query
 
-    let usage = await Usages.createQueryBuilder('usages')
-      .where('key = :key', {
+    let usage = await prisma.usages.findFirst({
+      where: {
         key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
-      }).getOne()
-    if (!usage) {
-      usage = new Usages()
-      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
-      usage.usage = '0'
-      usage.expire = moment().add(1, 'day').toDate()
-      try {
-        await usage.save()
-      } catch (error) {
-        // ignore
       }
+    })
+    if (!usage) {
+      usage = await prisma.usages.create({
+        data: {
+          key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`,
+          usage: 0,
+          expire: moment().add(1, 'day').toDate()
+        }
+      })
     }
 
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
-      usage.expire = moment().add(1, 'day').toDate()
-      usage.usage = '0'
-      await usage.save()
+      usage = await prisma.usages.update({
+        data: {
+          expire: moment().add(1, 'day').toDate(),
+          usage: 0
+        },
+        where: { key: usage.key }
+      })
     }
 
     const totalFileSize = files.reduce((res, file) => res.add(file.size || 0), bigInt(0))
@@ -805,8 +944,12 @@ export class Files {
       return res.send({ file: result })
     }
 
-    usage.usage = bigInt(totalFileSize).add(bigInt(usage.usage)).toString()
-    await usage.save()
+    usage = await prisma.usages.update({
+      data: {
+        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toString() as any
+      },
+      where: { key: usage.key }
+    })
     if (asArray === '1') {
       return res.send({ files })
     }
@@ -874,13 +1017,17 @@ export class Files {
       }
 
     }
-    usage.usage = bigInt(totalFileSize).add(bigInt(usage.usage)).toString()
-    await usage.save()
+    usage = await prisma.usages.update({
+      data: {
+        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toString() as any
+      },
+      where: { key: usage.key }
+    })
 
     res.end()
   }
 
-  public static async initiateSessionTG(req: Request, files?: Model[]): Promise<Model[]> {
+  public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
     }
