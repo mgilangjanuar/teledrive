@@ -1,6 +1,6 @@
+import { users } from '@prisma/client'
 import axios from 'axios'
 import QueryString from 'qs'
-import { Users } from '../model/entities/Users'
 
 interface AccessToken {
   scope: string,
@@ -96,7 +96,7 @@ export class PayPal {
     return data
   }
 
-  public async createSubscription(user: Users): Promise<CreateSubscription> {
+  public async createSubscription(user: users): Promise<CreateSubscription> {
     if (!process.env.PAYPAL_PLAN_PREMIUM_ID) {
       throw new Error('Please define PayPal plan ID first')
     }

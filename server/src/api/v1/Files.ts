@@ -1,4 +1,4 @@
-import { files } from '@prisma/client'
+import { files, Prisma } from '@prisma/client'
 import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
@@ -533,7 +533,7 @@ export class Files {
           parent_id: currentParentId || null,
           upload_progress: 0,
           file_id: bigInt.randBetween('-1e100', '1e100').toString(),
-          forward_info: req.user.settings?.saved_location || null,
+          forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
         }
       })
     }
@@ -576,8 +576,8 @@ export class Files {
     // begin to send
     const sendData = async (forceDocument: boolean) => {
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      if (req.user.settings?.saved_location) {
-        const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+      if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+        const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
@@ -614,8 +614,8 @@ export class Files {
     }
 
     let forwardInfo = null
-    if (req.user.settings?.saved_location) {
-      const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+    if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
       forwardInfo = `${type}/${peerId}/${data.id?.toString()}/${accessHash}`
     }
 
@@ -716,7 +716,7 @@ export class Files {
             parent_id: currentParentId || null,
             upload_progress: 0,
             file_id: bigInt.randBetween('-1e100', '1e100').toString(),
-            forward_info: req.user.settings?.saved_location || null,
+            forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
           }
         })
       }
@@ -736,8 +736,8 @@ export class Files {
     }
 
     let forwardInfo: string
-    if (req.user.settings?.saved_location) {
-      const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+    if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
       forwardInfo = `${type}/${peerId}/${message.id?.toString()}/${accessHash}`
     }
 
@@ -786,8 +786,8 @@ export class Files {
     // }
 
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-    if (req.user.settings?.saved_location) {
-      const [type, peerId, _, accessHash] = req.user.settings?.saved_location.split('/')
+    if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
       if (type === 'channel') {
         peer = new Api.InputPeerChannel({
           channelId: bigInt(peerId),

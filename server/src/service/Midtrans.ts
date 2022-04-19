@@ -1,5 +1,5 @@
+import { users } from '@prisma/client'
 import axios from 'axios'
-import { Users } from '../model/entities/Users'
 
 type Status = 'authorize' | 'partial_refund' | 'refund' | 'cancel' | 'expire' | 'pending' | 'settlement' | 'deny' | 'capture'
 
@@ -25,7 +25,7 @@ export class Midtrans {
     }
   }
 
-  public async getPaymentLink(user: Users, amount: number): Promise<{ token: string, redirect_url: string }> {
+  public async getPaymentLink(user: users, amount: number): Promise<{ token: string, redirect_url: string }> {
     if (!user.midtrans_id) {
       throw new Error('Please generate order ID first')
     }

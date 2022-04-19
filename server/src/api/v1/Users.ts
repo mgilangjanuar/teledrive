@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import axios from 'axios'
 import { Request, Response } from 'express'
 import moment from 'moment'
@@ -88,7 +89,7 @@ export class Users {
     //   throw { status: 402, body: { error: 'You need to upgrade your plan to use this feature' } }
     // }
     req.user.settings = {
-      ...req.user.settings || {},
+      ...req.user.settings as Prisma.JsonObject || {},
       ...settings
     }
     await prisma.users.update({
