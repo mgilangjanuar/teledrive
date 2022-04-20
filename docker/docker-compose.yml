@@ -16,6 +16,7 @@ services:
       args:
         REACT_APP_TG_API_ID: ${TG_API_ID}
         REACT_APP_TG_API_HASH: ${TG_API_HASH}
+        DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/teledrive
     environment:
       DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/teledrive
       REDIS_URI: redis://redis:6379
