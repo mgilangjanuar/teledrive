@@ -47,7 +47,7 @@ export class Files {
                 OR: [
                   { parent_id: null },
                   { parent: {
-                    sharing_options: null }
+                    sharing_options: undefined }
                   },
                   {
                     parent: {

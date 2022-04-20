@@ -202,7 +202,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
     setParams({
       ...parent?.id ? { parent_id: parent.link_id || parent.id } : { parent_id: 'null' },
       ...keyword ? { 'name[contains]': keyword } : {},
-      ...tab === 'shared' ? { shared: 1, 'parent_id.is': undefined } : {},
+      ...tab === 'shared' ? { shared: 1, parent_id: undefined } : {},
       limit: PAGE_SIZE,
       offset: pagination?.current === 1 || actions?.action || keyword && params?.offset ? 0 : data?.length,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {
@@ -235,10 +235,10 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
       }
       const filters = {
         ...dataChanges?.filters,
-        ...(parent as any)?.id ? { parent_id: [(parent as any).id] } : { 'parent_id.is': ['null'] },
+        ...(parent as any)?.id ? { parent_id: [(parent as any).id] } : { parent_id: ['null'] },
         ...key === 'shared' ? {
           shared: [1],
-          'parent_id.is': [undefined as any]
+          parent_id: [undefined as any]
         } : {
           shared: [undefined as any]
         }

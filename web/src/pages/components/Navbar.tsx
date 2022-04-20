@@ -68,6 +68,7 @@ const Navbar: React.FC<Props> = ({ user }) => {
         {/* <Menu.Item onClick={() => history.push('/terms')} key="terms">Terms</Menu.Item> */}
         {/* <Menu.Item onClick={() => history.push('/refund')} key="refund">Refund Policy</Menu.Item> */}
         {/* <Menu.Item onClick={() => window.open('https://mgilangjanuar.notion.site/TeleDrive-Blog-ea8c422dfa8046cda6655cddec0cd8e8', '_blank')} key="blog">Blog</Menu.Item> */}
+        <Menu.Item onClick={() => history.push('/dashboard')} key="dashboard">Dashboard</Menu.Item>
         <Menu.Item onClick={() => window.open('https://github.com/mgilangjanuar/teledrive', '_blank')} key="github" icon={<GithubOutlined />}>GitHub</Menu.Item>
       </Menu>
     </Layout.Header>
