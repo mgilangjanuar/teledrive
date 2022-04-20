@@ -68,12 +68,6 @@ Stop the services by:
 docker-compose down
 ```
 
-### Updating database
-
-```shell
-docker container exec -i $(docker-compose ps -q db) psql -U postgres teledrive < ../server/src/model/migrations/dump.20220406.sql
-```
-
 ## Upgrade
 
 Upgrade to the latest version of TeleDrive with this command:
