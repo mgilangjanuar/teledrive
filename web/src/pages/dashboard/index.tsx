@@ -109,6 +109,12 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   }, [])
 
   useEffect(() => {
+    if (window.localStorage.getItem('session')) {
+      window.localStorage.setItem('experimental', 'true')
+    }
+  }, [window.localStorage])
+
+  useEffect(() => {
     if (errorMe) {
       window.localStorage.clear()
       history.replace('/login')
