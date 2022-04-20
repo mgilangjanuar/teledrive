@@ -17,7 +17,7 @@ services:
         REACT_APP_TG_API_ID: ${TG_API_ID}
         REACT_APP_TG_API_HASH: ${TG_API_HASH}
     environment:
-      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@localhost:5432/teledrive
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/teledrive?connect_timeout=30&pool_timeout=30&socket_timeout=30
       REDIS_URI: redis://redis:6379
     env_file:
       - .env
@@ -36,7 +36,6 @@ services:
       POSTGRES_DB: teledrive
     volumes:
       - teledrive_data:/var/lib/postgresql/data
-      - ../server/src/model/migrations/dump.sql:/docker-entrypoint-initdb.d/dump.sql
 
   redis:
     image: redis:6
