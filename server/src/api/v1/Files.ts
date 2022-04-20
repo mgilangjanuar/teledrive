@@ -21,8 +21,8 @@ export class Files {
   @Endpoint.GET('/', { middlewares: [AuthMaybe] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, shared, exclude_parts: excludeParts, full_properties: fullProperties, no_cache: noCache, t: _t, ...filters } = req.query
-    const parent = filters?.parent_id !== 'null' ? await prisma.files.findFirst({ where: { id: filters.parent_id as string } }) : null
-    if (filters?.parent_id !== 'null' && !parent) {
+    const parent = filters?.parent_id && filters.parent_id !== 'null' ? await prisma.files.findFirst({ where: { id: filters.parent_id as string } }) : null
+    if (filters?.parent_id && filters.parent_id !== 'null' && !parent) {
       throw { status: 404, body: { error: 'Parent not found' } }
     }
     if (!req.user && !parent?.sharing_options?.includes('*')) {
