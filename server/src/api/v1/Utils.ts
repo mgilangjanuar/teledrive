@@ -1,8 +1,7 @@
 import { Request, Response } from 'express'
 import { readFileSync } from 'fs'
 import { lookup } from 'geoip-lite'
-import { Files } from '../../model/entities/Files'
-import { Users } from '../../model/entities/Users'
+import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
 import { Endpoint } from '../base/Endpoint'
 
@@ -28,9 +27,11 @@ export class Utils {
   public async simpleAnalytics(_: Request, res: Response): Promise<any> {
     const analytics = await Redis.connect().getFromCacheFirst('simpleAnalytics', async () => {
       return {
-        users: await Users.count(),
-        files: await Files.count(),
-        premiumUsers: await Users.count({ where: { plan: 'premium' } }),
+        users: await prisma.users.count(),
+        files: await prisma.files.count(),
+        premiumUsers: await prisma.users.count({ where: {
+          plan: 'premium'
+        } }),
       }
     }, 86400)
     return res.send({ analytics })

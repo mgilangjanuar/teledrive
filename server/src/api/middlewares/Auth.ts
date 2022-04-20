@@ -3,9 +3,9 @@ import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
-import { Users } from '../../model/entities/Users'
 import { Redis } from '../../service/Cache'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
+import { prisma } from '../../model'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {
   const authkey = (req.headers.authorization || req.cookies.authorization)?.replace(/^Bearer\ /gi, '')
@@ -49,7 +49,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
       }
     }
 
-    const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+    const user = await prisma.users.findFirst({ where: { tg_id: userAuth['id'].toString() } })
     if (!user) {
       throw { status: 401, body: { error: 'User not found' } }
     }
@@ -103,7 +103,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
         }
       }
 
-      const user = await Users.findOne({ tg_id: userAuth['id'].toString() })
+      const user = await prisma.users.findFirst({ where: { tg_id: userAuth['id'].toString() } })
       if (!user) {
         // throw { status: 401, body: { error: 'User not found' } }
         return [userAuth, null]

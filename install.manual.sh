@@ -1,6 +1,10 @@
 #!/bin/bash
 
 set -e
+echo "Node Version: $(node -v)"
+echo "Yarn Version: $(yarn -v)"
+echo "cURL Version: $(curl -V)"
+echo "cURL Version: $(psql -V)"
 
 if [ ! -f server/.env ]
 then
