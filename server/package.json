@@ -6,8 +6,8 @@
   "private": true,
   "scripts": {
     "start": "nodemon dist/index.js --watch",
-    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc",
-    "postbuild": "prisma migrate deploy"
+    "prebuild": "prisma generate",
+    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc"
   },
   "dependencies": {
     "@prisma/client": "^3.12.0",

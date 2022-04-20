@@ -126,6 +126,7 @@ yarn workspaces run build
 ## Run:
 
 ```shell
+yarn server prisma migrate deploy
 cd server && node dist/index.js
 ```
 
@@ -140,6 +141,8 @@ git pull origin main             # or, staging for the latest updates
 
 yarn install                     # install
 yarn workspaces run build        # build
+
+yarn server prisma migrate deploy
 cd server && node dist/index.js  # run
 ```
 
