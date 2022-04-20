@@ -7,8 +7,7 @@
   "scripts": {
     "start": "nodemon dist/index.js --watch",
     "prebuild": "prisma generate",
-    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc",
-    "postbuild": "prisma migrate deploy"
+    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc"
   },
   "dependencies": {
     "@prisma/client": "^3.12.0",

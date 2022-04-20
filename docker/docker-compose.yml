@@ -2,7 +2,7 @@ version: '3'
 
 services:
   teledrive:
-    command: node server/dist/index.js
+    command: yarn server prisma migrate deploy && node server/dist/index.js
     labels:
       traefik.http.routers.server.rule: Host(`teledrive.localhost`)
       traefik.port: 4000
@@ -16,9 +16,8 @@ services:
       args:
         REACT_APP_TG_API_ID: ${TG_API_ID}
         REACT_APP_TG_API_HASH: ${TG_API_HASH}
-        DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/teledrive
     environment:
-      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/teledrive
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@localhost:5432/teledrive
       REDIS_URI: redis://redis:6379
     env_file:
       - .env
@@ -29,6 +28,8 @@ services:
   db:
     image: postgres:13
     restart: always
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}

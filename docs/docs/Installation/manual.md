@@ -126,6 +126,7 @@ yarn workspaces run build
 ## Run:
 
 ```shell
+yarn server prisma migrate deploy
 cd server && node dist/index.js
 ```
 

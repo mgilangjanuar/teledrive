@@ -9,7 +9,7 @@
     "web": "yarn workspace web",
     "server": "yarn workspace server",
     "build": "yarn workspaces run build",
-    "start": "cd server && node dist/index.js",
+    "start": "yarn server prisma migrate deploy && cd server && node dist/index.js",
     "docs": "USE_SSH=true cd docs && yarn deploy"
   },
   "workspaces": [
