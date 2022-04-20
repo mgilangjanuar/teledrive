@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model config {
+  created_at               DateTime @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime @default(now()) @db.Timestamptz(6)
+  id                       String   @id(map: "pk_af2ddc24176f1572cbdd4b45992") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  invitation_code          String?  @db.VarChar
+  disable_signup           Boolean  @default(false)
+  allow_server_storage_use Boolean  @default(false)
+}
+
+model files {
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
+  id                  String    @id(map: "PK_6c16b9093a142e0e7613b04a3d9") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                String    @db.VarChar
+  type                String?   @db.VarChar
+  message_id          String?   @db.VarChar
+  mime_type           String?   @db.VarChar
+  size                BigInt?
+  uploaded_at         DateTime? @db.Timestamptz(6)
+  upload_progress     Float?
+  user_id             String    @db.Uuid
+  parent_id           String?   @db.Uuid
+  deleted_at          DateTime? @db.Timestamptz(6)
+  sharing_options     String[]  @db.VarChar
+  signed_key          String?   @db.VarChar
+  file_id             String?   @db.VarChar
+  link_id             String?   @db.Uuid
+  forward_info        String?   @db.VarChar
+  link                files?    @relation("filesTofiles_link_id", fields: [link_id], references: [id], onDelete: Cascade, map: "files_links_fkey")
+  parent              files?    @relation("filesTofiles_parent_id", fields: [parent_id], references: [id], onDelete: Cascade, map: "files_files_fkey")
+  users               users     @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "files_users_fkey")
+  links               files[]   @relation("filesTofiles_link_id")
+  parents             files[]   @relation("filesTofiles_parent_id")
+
+  @@index([link_id])
+  @@index([message_id])
+  @@index([parent_id])
+  @@index([user_id])
+}
+
+model rate_limits {
+  key    String  @id @db.VarChar(255)
+  points Int     @default(0)
+  expire BigInt?
+}
+
+model usages {
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  key        String   @id(map: "PK_7d8e95b6dd4c0e87cad4972da13") @db.VarChar
+  usage      BigInt
+  expire     DateTime @db.Timestamptz(6)
+}
+
+model users {
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @default(now()) @db.Timestamptz(6)
+  id              String    @id(map: "PK_a3ffb1c0c8416b9fc6f907b7433") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username        String    @db.VarChar
+  name            String?   @db.VarChar
+  email           String?   @db.VarChar
+  tg_id           String?   @db.VarChar
+  plan            String?   @db.VarChar
+  settings        Json?
+  role            String?   @db.VarChar
+  files           files[]
+
+  @@index([tg_id], map: "tg_id")
+}
+
+model waitings {
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  id         String   @id(map: "PK_f0cfe98441cf0fb92db66ae71c4") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email      String   @db.VarChar
+}

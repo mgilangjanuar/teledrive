@@ -70,7 +70,6 @@ const TableFiles: React.FC<Props> = ({ me, data }) => {
       parent_id: parent?.link_id || parent?.id || data?.file.id,
       ...keyword ? { 'name.ilike': `%${keyword}%` } : {},
       shared: 1,
-      'parent_id.is': undefined,
       limit: PAGE_SIZE,
       offset: pagination?.current === 1 || actions?.action || keyword && params?.offset ? 0 : filesData?.length,
       ...Object.keys(filters || {})?.reduce((res, key: string) => {

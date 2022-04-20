@@ -20,7 +20,6 @@ import morgan from 'morgan'
 import path from 'path'
 import { serializeError } from 'serialize-error'
 import { API } from './api'
-import { runDB } from './model'
 import { Redis } from './service/Cache'
 import { markdownSafe } from './utils/StringParser'
 
@@ -50,8 +49,12 @@ import { markdownSafe } from './utils/StringParser'
 // }
 
 
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString()
+}
+
+
 Redis.connect()
-runDB()
 
 const curl = cURL({ attach: true })
 

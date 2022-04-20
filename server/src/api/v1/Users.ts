@@ -1,16 +1,14 @@
+import { Prisma } from '@prisma/client'
 import axios from 'axios'
 import { Request, Response } from 'express'
 import moment from 'moment'
 import { Api } from 'teledrive-client'
-import { Files } from '../../model/entities/Files'
-import { Usages } from '../../model/entities/Usages'
-import { Users as Model } from '../../model/entities/Users'
+import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
-import { buildSort, buildWhereQuery } from '../../utils/FilterQuery'
+import { buildSort } from '../../utils/FilterQuery'
 import { markdownSafe } from '../../utils/StringParser'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-import { AuthKey } from '../middlewares/Key'
 
 @Endpoint.API()
 export class Users {
@@ -30,19 +28,25 @@ export class Users {
 
   @Endpoint.GET('/me/usage', { middlewares: [AuthMaybe] })
   public async usage(req: Request, res: Response): Promise<any> {
-    let usage = await Usages.findOne({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
+    let usage = await prisma.usages.findUnique({ where: { key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}` } })
     if (!usage) {
-      usage = new Usages()
-      usage.key = req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
-      usage.usage = '0'
-      usage.expire = moment().add(1, 'day').toDate()
-      await usage.save()
+      usage = await prisma.usages.create({
+        data: {
+          key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`,
+          usage: 0,
+          expire: moment().add(1, 'day').toDate()
+        }
+      })
     }
 
     if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
-      usage.expire = moment().add(1, 'day').toDate()
-      usage.usage = '0'
-      await usage.save()
+      await prisma.usages.update({
+        where: { key: usage.key },
+        data: {
+          expire: moment().add(1, 'day').toDate(),
+          usage: 0,
+        }
+      })
     }
 
     return res.send({ usage })
@@ -51,14 +55,27 @@ export class Users {
   @Endpoint.GET('/', { middlewares: [Auth] })
   public async find(req: Request, res: Response): Promise<any> {
     const { sort, offset, limit, search, ...filters } = req.query
-    const [users, length] = await Model.createQueryBuilder('users')
-      .select(req.user.role === 'admin' ? ['users.id', 'users.username', 'users.name', 'users.role', 'users.created_at'] : ['users.username'])
-      .where(search ? `username ilike '%${search}%' or name ilike '%${search}%'` :  buildWhereQuery(filters) || 'true')
-      .skip(Number(offset) || undefined)
-      .take(Number(limit) || undefined)
-      .orderBy(buildSort(sort as string))
-      .getManyAndCount()
-    return res.send({ users, length })
+    const where = {
+      ...search ? {
+        OR: [
+          { username: { contains: search } },
+          { name: { contains: search } },
+        ]
+      } : filters
+    }
+    return res.send({ users: await prisma.users.findMany({
+      where,
+      select: req.user.role === 'admin' ? {
+        id: true,
+        username: true,
+        name: true,
+        role: true,
+        created_at: true,
+      } : { username: true },
+      skip: Number(offset) || undefined,
+      take: Number(limit) || undefined,
+      orderBy: buildSort(sort as string)
+    }), length: await prisma.users.count({ where }) })
   }
 
   @Endpoint.PATCH('/me/settings', { middlewares: [Auth] })
@@ -71,10 +88,13 @@ export class Users {
     //   throw { status: 402, body: { error: 'You need to upgrade your plan to use this feature' } }
     // }
     req.user.settings = {
-      ...req.user.settings || {},
+      ...req.user.settings as Prisma.JsonObject || {},
       ...settings
     }
-    await Model.update(req.user.id, req.user)
+    await prisma.users.update({
+      where: { id: req.user.id },
+      data: req.user
+    })
     await Redis.connect().del(`auth:${req.authKey}`)
     return res.send({ settings: req.user?.settings })
   }
@@ -89,76 +109,81 @@ export class Users {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_OWNER_ID,
         parse_mode: 'Markdown',
-        text: `😭 ${markdownSafe(req.user.name)} (@${markdownSafe(req.user.username)}) removed their account.\n\nReason: ${markdownSafe(reason)}\n\nfrom: \`${markdownSafe(req.headers['cf-connecting-ip'] as string || req.ip)}\`\ndomain: \`${req.headers['authority'] || req.headers.origin}\`${req.user ? `\nplan: ${req.user.plan}${req.user.subscription_id ? `\npaypal: ${req.user.subscription_id}` : ''}${req.user.midtrans_id ? `\nmidtrans: ${req.user.midtrans_id}` : ''}` : ''}`
+        text: `😭 ${markdownSafe(req.user.name)} (@${markdownSafe(req.user.username)}) removed their account.\n\nReason: ${markdownSafe(reason)}\n\nfrom: \`${markdownSafe(req.headers['cf-connecting-ip'] as string || req.ip)}\`\ndomain: \`${req.headers['authority'] || req.headers.origin}\`${req.user ? `\nplan: ${req.user.plan}` : ''}`
       })
     }
-    await Files.delete({ user_id: req.user.id })
-    await Model.delete(req.user.id)
+    await prisma.files.deleteMany({
+      where: { user_id: req.user.id }
+    })
+    await prisma.users.delete({ where: { id: req.user.id } })
     const success = await req.tg.invoke(new Api.auth.LogOut())
     return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
   }
 
-  @Endpoint.POST('/me/paymentSync', { middlewares: [Auth] })
-  public async paymentSync(req: Request, res: Response): Promise<any> {
-    type Payment = { subscription_id?: string, midtrans_id?: string, plan?: string }
-    let result: Payment = null
-    try {
-      const { data } = await axios.get<{ payment: Payment }>(`https://teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
-        headers: { token: process.env.UTILS_API_KEY }
-      })
-      if (data.payment.plan && data.payment.plan !== 'free') {
-        result = data.payment
-      }
-    } catch (error) {
-      // ignore
-    }
-    if (!result) {
-      try {
-        const { data } = await axios.get<{ payment: Payment }>(`https://us.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
-          headers: { token: process.env.UTILS_API_KEY }
-        })
-        if (data.payment.plan && data.payment.plan !== 'free') {
-          result = data.payment
-        }
-      } catch (error) {
-        // ignore
-      }
-    }
-    if (!result) {
-      try {
-        const { data } = await axios.get<{ payment: Payment }>(`https://ge.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
-          headers: { token: process.env.UTILS_API_KEY }
-        })
-        if (data.payment.plan && data.payment.plan !== 'free') {
-          result = data.payment
-        }
-      } catch (error) {
-        // ignore
-      }
-    }
-    if (result) {
-      req.user.subscription_id = result?.subscription_id
-      req.user.midtrans_id = result?.midtrans_id
-      req.user.plan = result?.plan as any
-      await Model.update(req.user.id, req.user)
-      await Redis.connect().del(`auth:${req.authKey}`)
-    }
-    return res.status(202).send({ accepted: true })
-  }
+  // @Endpoint.POST('/me/paymentSync', { middlewares: [Auth] })
+  // public async paymentSync(req: Request, res: Response): Promise<any> {
+  //   type Payment = { subscription_id?: string, midtrans_id?: string, plan?: string }
+  //   let result: Payment = null
+  //   try {
+  //     const { data } = await axios.get<{ payment: Payment }>(`https://teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+  //       headers: { token: process.env.UTILS_API_KEY }
+  //     })
+  //     if (data.payment.plan && data.payment.plan !== 'free') {
+  //       result = data.payment
+  //     }
+  //   } catch (error) {
+  //     // ignore
+  //   }
+  //   if (!result) {
+  //     try {
+  //       const { data } = await axios.get<{ payment: Payment }>(`https://us.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+  //         headers: { token: process.env.UTILS_API_KEY }
+  //       })
+  //       if (data.payment.plan && data.payment.plan !== 'free') {
+  //         result = data.payment
+  //       }
+  //     } catch (error) {
+  //       // ignore
+  //     }
+  //   }
+  //   if (!result) {
+  //     try {
+  //       const { data } = await axios.get<{ payment: Payment }>(`https://ge.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+  //         headers: { token: process.env.UTILS_API_KEY }
+  //       })
+  //       if (data.payment.plan && data.payment.plan !== 'free') {
+  //         result = data.payment
+  //       }
+  //     } catch (error) {
+  //       // ignore
+  //     }
+  //   }
+  //   if (result) {
+  //     req.user.subscription_id = result?.subscription_id
+  //     req.user.midtrans_id = result?.midtrans_id
+  //     req.user.plan = result?.plan as any
+  //     await prisma.users.update({
+  //       where: { id: req.user.id },
+  //       data: req.user
+  //     })
+  //     await Redis.connect().del(`auth:${req.authKey}`)
+  //   }
+  //   return res.status(202).send({ accepted: true })
+  // }
 
-  @Endpoint.GET('/:tgId/payment', { middlewares: [AuthKey] })
-  public async payment(req: Request, res: Response): Promise<any> {
-    const { tgId } = req.params
-    const user = await Model.findOne({ where: { tg_id: tgId } })
-    if (!user) {
-      throw { status: 404, body: { error: 'User not found' } }
-    }
-    return res.send({ payment: {
-      subscription_id: user.subscription_id,
-      midtrans_id: user.midtrans_id,
-      plan: user.plan
-    } })
-  }
+  // @Endpoint.GET('/:tgId/payment', { middlewares: [AuthKey] })
+  // public async payment(req: Request, res: Response): Promise<any> {
+  //   const { tgId } = req.params
+  //   const user = await prisma.users.findFirst({ where: { tg_id: tgId } })
+  //   if (!user) {
+  //     throw { status: 404, body: { error: 'User not found' } }
+  //   }
+  //   return res.send({ payment: {
+  //     subscription_id: user.subscription_id,
+  //     midtrans_id: user.midtrans_id,
+  //     plan: user.plan
+  //   } })
+  // }
 
   @Endpoint.GET('/:username/:param?', { middlewares: [Auth] })
   public async retrieve(req: Request, res: Response): Promise<any> {
@@ -177,9 +202,14 @@ export class Users {
       return res.end()
     }
 
-    const user = username === 'me' || username === req.user.username ? req.user : await Model.findOne({ where: [
-      { username },
-      { id: username }] })
+    const user = username === 'me' || username === req.user.username ? req.user : await prisma.users.findFirst({
+      where: {
+        OR: [
+          { username },
+          { id: username }
+        ]
+      }
+    })
     if (!user) {
       throw { status: 404, body: { error: 'User not found' } }
     }
@@ -193,8 +223,10 @@ export class Users {
       throw { status: 403, body: { error: 'You are not allowed to do this' } }
     }
     const { id } = req.params
-    await Files.delete({ user_id: id })
-    await Model.delete(id)
+    await prisma.files.deleteMany({
+      where: { user_id: req.user.id }
+    })
+    await prisma.users.delete({ where: { id } })
     return res.send({})
   }
 
@@ -208,8 +240,9 @@ export class Users {
     if (!user) {
       throw { status: 400, body: { error: 'User is required' } }
     }
-    await Model.update(id, {
-      role: user?.role
+    await prisma.users.update({
+      where: { id },
+      data: { role: user?.role }
     })
     return res.send({})
   }

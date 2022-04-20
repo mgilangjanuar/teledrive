@@ -48,15 +48,6 @@ Get started by build all needed services.
 
   **Note.** *Change `YOUR_DB_CONNECTION_URI` to your database connection URI.*
 
-- Import dump.sql
-
-  ```shell
-  heroku pg:psql --app YOUR_APP_NAME -f ./server/src/model/migrations/dump.sql
-  heroku pg:psql --app YOUR_APP_NAME -f ./server/src/model/migrations/dump.20220406.sql
-  ```
-
-  **Note.** *Change `YOUR_APP_NAME` to your application name from Heroku.*
-
 ### Provide environment variables
 
 Set all variables with your own values to Heroku:
