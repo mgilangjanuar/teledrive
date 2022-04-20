@@ -70,7 +70,7 @@ function App(): React.ReactElement {
     pwaInstallHandler.addListener(canInstall => {
       if (canInstall && (!localStorage.getItem('install') || new Date().getTime() - Number(localStorage.getItem('install')) > 5 * 8.64e+7)) {
         notification.info({
-          duration: null,
+          key: 'appInstallInfo',
           message: 'Install App',
           description: <>
             <Typography.Paragraph>
@@ -85,6 +85,9 @@ function App(): React.ReactElement {
           onClose: () => localStorage.setItem('install', new Date().getTime().toString())
         })
       }
+    })
+    pwaInstallHandler.removeListener(canInstall => {
+      notification.close('appInstallInfo')
     })
   }, [])
 
