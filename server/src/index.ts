@@ -55,7 +55,6 @@ import { markdownSafe } from './utils/StringParser'
 
 
 Redis.connect()
-// runDB()
 
 const curl = cURL({ attach: true })
 
