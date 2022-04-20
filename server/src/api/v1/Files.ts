@@ -848,7 +848,7 @@ export class Files {
           AND: [
             {
               message_id: {
-                in: files.map(file => file.id)
+                in: files.map(file => file.id.toString())
               }
             },
             { parent_id: parentId as string || null },
@@ -876,7 +876,7 @@ export class Files {
 
             return {
               name,
-              message_id: file.id,
+              message_id: file.id.toString(),
               mime_type: mimeType,
               size,
               user_id: req.user.id,

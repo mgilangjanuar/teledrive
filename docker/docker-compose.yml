@@ -2,7 +2,7 @@ version: '3'
 
 services:
   teledrive:
-    command: bash -c "yarn server prisma migrate deploy && node server/dist/index.js"
+    command: bash -c "(yarn server prisma migrate deploy || yarn server prisma migrate resolve --applied 20220420012853_init) && node server/dist/index.js"
     labels:
       traefik.http.routers.server.rule: Host(`teledrive.localhost`)
       traefik.port: 4000
