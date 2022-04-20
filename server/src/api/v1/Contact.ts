@@ -13,14 +13,12 @@ export class Contact {
     const user = await prisma.users.findFirst({
       where: { username: from },
       select: {
-        subscription_id: true,
-        midtrans_id: true,
         plan: true
       }
     })
     await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
       chat_id: process.env.TG_BOT_OWNER_ID,
-      text: `🛎 @${markdownSafe(from)} wants to contact you!\n\n${markdownSafe(message)}\n\nfrom: \`${markdownSafe(req.headers['cf-connecting-ip'] as string || req.ip)}\`\nemail: \`${markdownSafe(email)}\`\ndomain: \`${req.headers['authority'] || req.headers.origin}\`${user ? `\nplan: ${user?.plan}${user?.subscription_id ? `\npaypal: ${user?.subscription_id}` : ''}${user?.midtrans_id ? `\nmidtrans: ${user?.midtrans_id}` : ''}` : ''}`,
+      text: `🛎 @${markdownSafe(from)} wants to contact you!\n\n${markdownSafe(message)}\n\nfrom: \`${markdownSafe(req.headers['cf-connecting-ip'] as string || req.ip)}\`\nemail: \`${markdownSafe(email)}\`\ndomain: \`${req.headers['authority'] || req.headers.origin}\`${user ? `\nplan: ${user?.plan}` : ''}`,
       parse_mode: 'Markdown'
     })
     return res.send({ success: true })

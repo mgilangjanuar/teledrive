@@ -71,9 +71,6 @@ model users {
   email           String?   @db.VarChar
   tg_id           String?   @db.VarChar
   plan            String?   @db.VarChar
-  subscription_id String?   @db.VarChar
-  midtrans_id     String?   @db.VarChar
-  plan_expired_at DateTime? @db.Timestamp(6)
   settings        Json?
   role            String?   @db.VarChar
   files           files[]

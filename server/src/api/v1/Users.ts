@@ -9,7 +9,6 @@ import { buildSort } from '../../utils/FilterQuery'
 import { markdownSafe } from '../../utils/StringParser'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-import { AuthKey } from '../middlewares/Key'
 
 @Endpoint.API()
 export class Users {
@@ -110,7 +109,7 @@ export class Users {
       await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
         chat_id: process.env.TG_BOT_OWNER_ID,
         parse_mode: 'Markdown',
-        text: `😭 ${markdownSafe(req.user.name)} (@${markdownSafe(req.user.username)}) removed their account.\n\nReason: ${markdownSafe(reason)}\n\nfrom: \`${markdownSafe(req.headers['cf-connecting-ip'] as string || req.ip)}\`\ndomain: \`${req.headers['authority'] || req.headers.origin}\`${req.user ? `\nplan: ${req.user.plan}${req.user.subscription_id ? `\npaypal: ${req.user.subscription_id}` : ''}${req.user.midtrans_id ? `\nmidtrans: ${req.user.midtrans_id}` : ''}` : ''}`
+        text: `😭 ${markdownSafe(req.user.name)} (@${markdownSafe(req.user.username)}) removed their account.\n\nReason: ${markdownSafe(reason)}\n\nfrom: \`${markdownSafe(req.headers['cf-connecting-ip'] as string || req.ip)}\`\ndomain: \`${req.headers['authority'] || req.headers.origin}\`${req.user ? `\nplan: ${req.user.plan}` : ''}`
       })
     }
     await prisma.files.deleteMany({
@@ -121,70 +120,70 @@ export class Users {
     return res.clearCookie('authorization').clearCookie('refreshToken').send({ success })
   }
 
-  @Endpoint.POST('/me/paymentSync', { middlewares: [Auth] })
-  public async paymentSync(req: Request, res: Response): Promise<any> {
-    type Payment = { subscription_id?: string, midtrans_id?: string, plan?: string }
-    let result: Payment = null
-    try {
-      const { data } = await axios.get<{ payment: Payment }>(`https://teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
-        headers: { token: process.env.UTILS_API_KEY }
-      })
-      if (data.payment.plan && data.payment.plan !== 'free') {
-        result = data.payment
-      }
-    } catch (error) {
-      // ignore
-    }
-    if (!result) {
-      try {
-        const { data } = await axios.get<{ payment: Payment }>(`https://us.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
-          headers: { token: process.env.UTILS_API_KEY }
-        })
-        if (data.payment.plan && data.payment.plan !== 'free') {
-          result = data.payment
-        }
-      } catch (error) {
-        // ignore
-      }
-    }
-    if (!result) {
-      try {
-        const { data } = await axios.get<{ payment: Payment }>(`https://ge.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
-          headers: { token: process.env.UTILS_API_KEY }
-        })
-        if (data.payment.plan && data.payment.plan !== 'free') {
-          result = data.payment
-        }
-      } catch (error) {
-        // ignore
-      }
-    }
-    if (result) {
-      req.user.subscription_id = result?.subscription_id
-      req.user.midtrans_id = result?.midtrans_id
-      req.user.plan = result?.plan as any
-      await prisma.users.update({
-        where: { id: req.user.id },
-        data: req.user
-      })
-      await Redis.connect().del(`auth:${req.authKey}`)
-    }
-    return res.status(202).send({ accepted: true })
-  }
+  // @Endpoint.POST('/me/paymentSync', { middlewares: [Auth] })
+  // public async paymentSync(req: Request, res: Response): Promise<any> {
+  //   type Payment = { subscription_id?: string, midtrans_id?: string, plan?: string }
+  //   let result: Payment = null
+  //   try {
+  //     const { data } = await axios.get<{ payment: Payment }>(`https://teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+  //       headers: { token: process.env.UTILS_API_KEY }
+  //     })
+  //     if (data.payment.plan && data.payment.plan !== 'free') {
+  //       result = data.payment
+  //     }
+  //   } catch (error) {
+  //     // ignore
+  //   }
+  //   if (!result) {
+  //     try {
+  //       const { data } = await axios.get<{ payment: Payment }>(`https://us.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+  //         headers: { token: process.env.UTILS_API_KEY }
+  //       })
+  //       if (data.payment.plan && data.payment.plan !== 'free') {
+  //         result = data.payment
+  //       }
+  //     } catch (error) {
+  //       // ignore
+  //     }
+  //   }
+  //   if (!result) {
+  //     try {
+  //       const { data } = await axios.get<{ payment: Payment }>(`https://ge.teledriveapp.com/api/v1/users/${req.user.tg_id}/payment`, {
+  //         headers: { token: process.env.UTILS_API_KEY }
+  //       })
+  //       if (data.payment.plan && data.payment.plan !== 'free') {
+  //         result = data.payment
+  //       }
+  //     } catch (error) {
+  //       // ignore
+  //     }
+  //   }
+  //   if (result) {
+  //     req.user.subscription_id = result?.subscription_id
+  //     req.user.midtrans_id = result?.midtrans_id
+  //     req.user.plan = result?.plan as any
+  //     await prisma.users.update({
+  //       where: { id: req.user.id },
+  //       data: req.user
+  //     })
+  //     await Redis.connect().del(`auth:${req.authKey}`)
+  //   }
+  //   return res.status(202).send({ accepted: true })
+  // }
 
-  @Endpoint.GET('/:tgId/payment', { middlewares: [AuthKey] })
-  public async payment(req: Request, res: Response): Promise<any> {
-    const { tgId } = req.params
-    const user = await prisma.users.findFirst({ where: { tg_id: tgId } })
-    if (!user) {
-      throw { status: 404, body: { error: 'User not found' } }
-    }
-    return res.send({ payment: {
-      subscription_id: user.subscription_id,
-      midtrans_id: user.midtrans_id,
-      plan: user.plan
-    } })
-  }
+  // @Endpoint.GET('/:tgId/payment', { middlewares: [AuthKey] })
+  // public async payment(req: Request, res: Response): Promise<any> {
+  //   const { tgId } = req.params
+  //   const user = await prisma.users.findFirst({ where: { tg_id: tgId } })
+  //   if (!user) {
+  //     throw { status: 404, body: { error: 'User not found' } }
+  //   }
+  //   return res.send({ payment: {
+  //     subscription_id: user.subscription_id,
+  //     midtrans_id: user.midtrans_id,
+  //     plan: user.plan
+  //   } })
+  // }
 
   @Endpoint.GET('/:username/:param?', { middlewares: [Auth] })
   public async retrieve(req: Request, res: Response): Promise<any> {

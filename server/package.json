@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "nodemon dist/index.js --watch",
-    "build": "tsc"
+    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc && prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^3.12.0",
@@ -49,7 +49,7 @@
     "redis": "^4.0.1",
     "serialize-error": "^8.1.0",
     "source-map-support": "^0.5.19",
-    "teledrive-client": "^2.5.55",
+    "teledrive-client": "^2.6.13",
     "uuid-random": "^1.3.2"
   },
   "devDependencies": {
