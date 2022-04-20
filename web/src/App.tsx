@@ -86,7 +86,7 @@ function App(): React.ReactElement {
         })
       }
     })
-    pwaInstallHandler.removeListener(canInstall => {
+    pwaInstallHandler.removeListener(_canInstall => {
       notification.close('appInstallInfo')
     })
   }, [])
