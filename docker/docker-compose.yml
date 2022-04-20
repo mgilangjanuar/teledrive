@@ -17,10 +17,7 @@ services:
         REACT_APP_TG_API_ID: ${TG_API_ID}
         REACT_APP_TG_API_HASH: ${TG_API_HASH}
     environment:
-      DB_NAME: teledrive
-      DB_HOST: db
-      DB_USERNAME: postgres
-      DB_PASSWORD: ${DB_PASSWORD}
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/teledrive
       REDIS_URI: redis://redis:6379
     env_file:
       - .env

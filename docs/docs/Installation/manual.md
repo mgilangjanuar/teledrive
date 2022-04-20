@@ -106,27 +106,6 @@ You need to create and import the database schema.
   CREATE DATABASE teledrive;
   ```
 
-- Import schema
-
-  Exit from psql (with `\q`) and run this command:
-
-  ```shell
-  psql teledrive < ./server/src/model/migrations/dump.sql
-  psql teledrive < ./server/src/model/migrations/dump.20220406.sql
-  ```
-
-  Sometimes, we need to copy the dump file to the `/var/lib/postgresql` directory first:
-
-  ```shell
-  sudo cp ./server/src/model/migrations/dump.sql /var/lib/postgresql/
-
-  # change owner
-  sudo su - postgres
-
-  # import dump file
-  psql teledrive < dump.sql
-  ```
-
 **Note.** *If you follow the instructions above then you need to fill the server variables:*
 - `DATABASE_URL`: postgresql://postgres@localhost:5432/teledrive
 
