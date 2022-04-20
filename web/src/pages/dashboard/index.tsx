@@ -116,7 +116,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
 
   useEffect(() => {
     if (errorMe) {
-      window.localStorage.clear()
+      window.localStorage.removeItem('experimental')
       history.replace('/login')
     }
   }, [errorMe])
