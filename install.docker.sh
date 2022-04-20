@@ -2,6 +2,10 @@
 
 set -e
 
+echo "Node Version: $(git --version)"
+echo "cURL Version: $(docker -v)"
+echo "cURL Version: $(docker-compose -v)"
+
 if [ ! -f docker/.env ]
 then
   echo "Generating .env file..."
