@@ -1,0 +1,8 @@
+Todo list created by greengeckowizard
+##Start##
+1.Add text input in SecondFragment to go to Dasboard.kt (use this as function to connect later on base)
+2.In Dashboard create sidebar(layout)
+3.Settings in menu add goto somewhere another portion called settings (layout)
+4.Settings tell settings to change stuff actually alter(this would be later)
+##End##
+
