@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ad9a53a6-5db4-4c94-86f1-5f25208cf814" name="Default Changelist" comment="" />
+    <list default="true" id="ad9a53a6-5db4-4c94-86f1-5f25208cf814" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Teledrive/app/src/main/java/com/example/teledrive/Dashboard.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Teledrive/app/src/main/java/com/example/teledrive/SecondFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Teledrive/app/src/main/java/com/example/teledrive/SecondFragment.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
