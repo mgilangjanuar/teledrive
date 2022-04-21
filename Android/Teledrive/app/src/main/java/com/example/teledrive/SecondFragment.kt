@@ -1,5 +1,5 @@
 package com.example.teledrive
-//aka this is the login page
+
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
