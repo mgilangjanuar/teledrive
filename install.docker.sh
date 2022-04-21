@@ -38,7 +38,6 @@ then
   docker-compose up -d
   sleep 2
   docker-compose up -d
-  docker container exec -i $(docker-compose ps -q db) psql -U postgres teledrive < ../server/src/model/migrations/dump.20220406.sql
 else
   git reset --hard
   git clean -f
