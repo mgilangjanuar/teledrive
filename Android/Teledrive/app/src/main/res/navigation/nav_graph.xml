@@ -28,4 +28,18 @@
             android:id="@+id/action_SecondFragment_self"
             app:destination="@id/SecondFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.teledrive.SettingsFragment"
+        android:label="settingsfragment"
+        tools:layout="@layout/settingsfragment" />
+    <fragment
+        android:id="@+id/dashboard"
+        android:name="com.example.teledrive.Dashboard"
+        android:label="Dashboard" />
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.teledrive.ui.login.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" />
 </navigation>

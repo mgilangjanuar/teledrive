@@ -5,10 +5,12 @@
       <map>
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.173" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.173" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/content_main.xml" value="0.12512664640324214" />
+        <entry key="app/src/main/res/drawable/messages.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/sync.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.478125" />
+        <entry key="app/src/main/res/layout/content_main.xml" value="0.2390625" />
         <entry key="app/src/main/res/layout/dashboard.xml" value="0.28541666666666665" />
-        <entry key="app/src/main/res/layout/fragment_first.xml" value="0.15526849037487336" />
+        <entry key="app/src/main/res/layout/fragment_first.xml" value="0.13972602739726028" />
         <entry key="app/src/main/res/layout/fragment_login.xml" value="0.22447916666666667" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.15526849037487336" />
         <entry key="app/src/main/res/layout/settingsfragment.xml" value="0.2708333333333333" />

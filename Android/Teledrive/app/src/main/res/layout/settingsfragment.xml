@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SettingsFragment">
+    tools:context=".SettingsFragment"
+    android:background="@color/tblack"
+    >
 
     <TextView
         android:id="@+id/textview_second"
@@ -31,6 +33,8 @@
         android:layout_width="307dp"
         android:layout_height="101dp"
         android:text="Dark Mode"
+        android:textColor="@color/white"
+        android:textColorLink="@color/white"
         tools:checked="true"
         tools:layout_editor_absoluteX="32dp"
         tools:layout_editor_absoluteY="99dp" />
@@ -40,6 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Teledrive Settings"
+        android:textColor="@color/white"
         tools:layout_editor_absoluteX="68dp"
         tools:layout_editor_absoluteY="18dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
