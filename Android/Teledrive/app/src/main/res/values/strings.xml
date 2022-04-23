@@ -6,6 +6,7 @@
     <string name="second_fragment_label">Connect to Server</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
+    <string name="logout">Logout</string>
 
     <string name="hello_first_fragment">Welcome to Teledrive</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
