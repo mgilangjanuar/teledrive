@@ -21,4 +21,8 @@
     <string name="login_failed">"Login failed"</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="ok" />
+    <string name="login_canceled" />
+    <string name="error" />
+    <string name="login_successful" />
 </resources>

@@ -11,8 +11,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import org.telegram.passport.PassportScope
-import org.telegram.passport.PassportScopeElementOne
-import org.telegram.passport.PassportScopeElementOneOfSeveral
+
 import org.telegram.passport.TelegramPassport
 import java.util.UUID
 
@@ -21,7 +20,7 @@ class TdriveLoginFragment : AppCompatActivity() {
     private val payload: String = UUID.randomUUID().toString()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.tdrivelogin)
         val button: Button = findViewById(R.id.telegram)
         button.setOnLongClickListener(loginLongClickListener)
         button.setOnClickListener {
@@ -58,7 +57,7 @@ class TdriveLoginFragment : AppCompatActivity() {
                 // PassportScope.INTERNAL_PASSPORT
             )
             val tgPassportResult = 352 // this can be any integer less than 0xFFFF
-            TelegramPassport.request(this@MainActivity, req, tgPassportResult)
+            TelegramPassport.request(this@TdriveLoginFragment, req, tgPassportResult)
         }
     }
 
@@ -68,10 +67,11 @@ class TdriveLoginFragment : AppCompatActivity() {
     }
 
     private val loginLongClickListener = OnLongClickListener {
-        TelegramPassport.showAppInstallAlert(this@MainActivity)
+        TelegramPassport.showAppInstallAlert(this@TdriveLoginFragment)
         true
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 352) {
