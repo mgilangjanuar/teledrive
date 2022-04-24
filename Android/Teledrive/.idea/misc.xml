@@ -15,9 +15,11 @@
         <entry key="app/src/main/res/layout/fragment_login.xml" value="0.22447916666666667" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.15526849037487336" />
         <entry key="app/src/main/res/layout/settingsfragment.xml" value="0.2708333333333333" />
+        <entry key="app/src/main/res/layout/tdrivelogin.xml" value="0.1" />
         <entry key="app/src/main/res/menu/menu_main.xml" value="0.26851851851851855" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.173" />
         <entry key="app/src/main/res/xml/preferences.xml" value="0.25" />
+        <entry key="app/src/main/res/xml/telegramloginbutton.xml" value="0.2390625" />
       </map>
     </option>
   </component>
