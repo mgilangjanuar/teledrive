@@ -16,5 +16,7 @@
     "web",
     "server"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "electron": "^18.1.0"
+  }
 }
