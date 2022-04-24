@@ -21,16 +21,11 @@
         app:barrierDirection="top" />
 
     <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <TextView
         android:id="@+id/textView2"
         android:layout_width="126dp"
         android:layout_height="28dp"
         android:text="@string/dashboard"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="20sp"
         tools:layout_editor_absoluteX="61dp"
         tools:layout_editor_absoluteY="16dp" />
