@@ -12,7 +12,6 @@
         android:id="@+id/textview_second"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/button_second"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -45,6 +44,7 @@
         android:layout_height="wrap_content"
         android:text="Teledrive Settings"
         android:textColor="@color/white"
-        tools:layout_editor_absoluteX="68dp"
-        tools:layout_editor_absoluteY="18dp" />
+        android:textSize="20sp"
+        tools:layout_editor_absoluteX="39dp"
+        tools:layout_editor_absoluteY="29dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

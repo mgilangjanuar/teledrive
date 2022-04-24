@@ -1,5 +1,5 @@
 package com.example.teledrive.ui.login
-
+///PLACEHOLDER NOT ACTUAL IMPLEMENTATION OF LOGIN FOR TELEDRIVE
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.annotation.StringRes
