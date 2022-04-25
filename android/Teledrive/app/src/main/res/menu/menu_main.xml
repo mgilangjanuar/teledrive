@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.teledrive.MainActivity">
+    <item
+        android:id="@+id/action_settings"
+        android:checkable="false"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        android:visible="true"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_logout"
+        android:checkable="false"
+        android:enabled="true"
+        android:orderInCategory="100"
+        android:title="Logout"
+        app:showAsAction="never">
+
+        <menu />
+    </item>
+
+</menu>
