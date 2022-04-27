@@ -30,7 +30,7 @@ export class Files {
     }
 
     const getFiles = async (): Promise<[files[], number]> => {
-      let where: Record<string, any> = { user_id: req.user.id }   // 'files.user_id = :user'
+      let where: Record<string, any> = { user_id: req.user?.id }   // 'files.user_id = :user'
       if (shared) {
         if (parent?.sharing_options?.includes(req.user?.username) || parent?.sharing_options?.includes('*')) {
           where = {}
