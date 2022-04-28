@@ -175,7 +175,7 @@ export class Auth {
       }
       await prisma.users.update({
         data: {
-          username: req.userAuth.username || req.userAuth.phone || user.username,
+          username: req.userAuth?.username || req.userAuth?.phone || user.username,
           plan: 'premium'
         },
         where: { id: user.id }
@@ -278,7 +278,7 @@ export class Auth {
 
       await prisma.users.update({
         data: {
-          username: req.userAuth.username || req.userAuth.phone || user.username,
+          username: userAuth.username || userAuth.phone,
           plan: 'premium'
         },
         where: { id: user.id }
@@ -395,7 +395,7 @@ export class Auth {
           }
           await prisma.users.update({
             data: {
-              username: req.userAuth.username || req.userAuth.phone || user.username,
+              username: userAuth['username'] || userAuth['phone'],
               plan: 'premium'
             },
             where: { id: user.id }
@@ -430,7 +430,7 @@ export class Auth {
         }
         await prisma.users.update({
           data: {
-            username: req.userAuth.username || req.userAuth.phone || user.username,
+            username: userAuth['username'] || userAuth['phone'],
             plan: 'premium'
           },
           where: { id: user.id }
