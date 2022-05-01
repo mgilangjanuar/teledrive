@@ -1,0 +1,88 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.search {
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    background: var(--panel-background);
+    padding: 0 8px;
+}
+
+.search-content {
+    width: 100%;
+    height: 100%;
+    min-height: 800px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    position: relative;
+}
+
+.search-enter {
+    opacity: 0;
+    transform: scale(1.1);
+    will-change: transform, opacity;
+}
+
+.search-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 200ms, transform 200ms;
+}
+
+.search-exit {
+    opacity: 1;
+    will-change: transform, opacity;
+}
+
+.search-exit-active {
+    opacity: 0;
+    transform: scale(1.1);
+    transition: opacity 200ms, transform 200ms;
+}
+
+.search-chat-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.search-chat-control {
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 10px 22px;
+    overflow: hidden;
+}
+
+.search-top-chats {
+    min-height: 110px;
+    overflow: hidden;
+    position: relative;
+}
+
+.search-top-chats-list {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    /*position: absolute;*/
+    left: 0;
+    top: 28px;
+    right: 0;
+    bottom: -17px;
+    margin: 0 -8px;
+}
+
+.search-top-chats-placeholder {
+    min-width: 10px;
+}

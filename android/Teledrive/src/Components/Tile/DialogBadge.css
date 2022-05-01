@@ -1,0 +1,100 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.dialog-badge {
+    font-size: 14px;
+    line-height: normal;
+    padding: 0 6px;
+    border-radius: 12px;
+    min-width: 24px;
+    min-height: 24px;
+    box-sizing: border-box;
+    text-align: center;
+    margin-top: -3px;
+    margin-left: 6px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--badge-unmuted);
+    vertical-align: baseline;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dialog-badge-muted {
+    background: var(--badge-muted);
+}
+
+.dialog-badge-text {
+}
+
+.dialog-badge-mention {
+    min-width: 24px;
+    transform: translateY(-1px);
+    margin: 0 -6px;
+}
+
+.dialog-badge-pinned {
+    border-radius: 12px;
+    margin-top: -3px;
+    margin-left: 6px;
+    color: #fff;
+    background: var(--badge-muted);
+    vertical-align: baseline;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-small .dialog-badge-pinned {
+    display: none;
+}
+
+.page-small .dialog-badge,
+.page-small .dialog-badge-pinned,
+.page-small .dialog-badge-unread {
+    margin: 0;
+    position: absolute;
+    right: 9px;
+    bottom: 9px;
+}
+
+.item-selected .dialog-badge,
+.item-selected .dialog-badge-pinned {
+    /*background: var(--badge-item-selected);*/
+}
+
+.dialog-badge-pinned-icon {
+    stroke: currentColor;
+    font-size: 24px;
+}
+
+.dialog-badge-unread {
+    display: inline-block;
+    float: right;
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 3px 0 0;
+    min-width: 8px;
+    transform: translateY(3px);
+    background: var(--color-accent-light);
+}
+
+.dialog.item-selected .dialog-badge-unread {
+    background: #ffffff77;
+}
+
+.dialog-badge-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-left: 6px;
+    height: 48px;
+}

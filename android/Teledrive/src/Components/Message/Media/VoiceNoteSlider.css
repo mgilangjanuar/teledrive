@@ -1,0 +1,75 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.voice-note-slider {
+    transform: translate(0, 14px);
+    position: relative;
+    min-height: 32px;
+}
+
+.voice-note-slider-component {
+    color: var(--color-accent-main);
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.voice-note-slider-buffered {
+    pointer-events: none;
+    background: var(--color-accent-main);
+    opacity: 0.4;
+    margin: 13px 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+}
+
+.voice-note-slider-component-hidden {
+    opacity: 0;
+}
+
+.voice-note-slider-rail {
+    opacity: 0.2;
+}
+
+.voice-note-slider-track {
+    transition: width 0ms linear 0ms, height 0ms linear 0ms, transform 0ms linear 0ms;
+}
+
+.voice-note-slider-thumb {
+    transition: transform 0ms linear 0ms, box-shadow 0ms linear 0ms;
+    box-shadow: 0 0 0 0 transparent !important;
+}
+
+.voice-note-slider-thumb::after{
+    display: none !important;
+}
+
+.voice-note-slider-thumb:hover {
+    box-shadow: 0 0 0 0 transparent;
+}
+
+.voice-note-slider-thumb.voice-note-slider-active {
+    box-shadow: 0 0 0 0 transparent;
+}
+
+.voice-note-slider-thumb-wrapper {
+    transition: transform 0ms linear 0ms;
+}
+
+.message-bubble-out .voice-note-slider-component {
+    color: var(--message-out-meta-color);
+}
+
+.message-bubble-out .voice-note-slider-buffered {
+    background: var(--message-out-meta-color);
+}

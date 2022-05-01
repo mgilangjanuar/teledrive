@@ -1,0 +1,104 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.chat-tile {
+    z-index: 1;
+    position: relative;
+    height: var(--tile-size-normal);
+    width: var(--tile-size-normal);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.chat-tile.tile-small {
+    height: var(--tile-size-small);
+    width: var(--tile-size-small);
+}
+
+.chat-tile.tile-dialog {
+    height: var(--tile-size);
+    width: var(--tile-size);
+}
+
+.chat-tile.tile-big {
+    height: var(--tile-size-big);
+    width: var(--tile-size-big);
+}
+
+.tile_color_0 {
+    background: var(--color-grey);
+}
+
+.tile_color_1 {
+    background: #e36f74;
+}
+.tile_color_2 {
+    background: #fca76f;
+}
+.tile_color_3 {
+    background: #a693e9;
+}
+.tile_color_4 {
+    background: #78ca5c;
+}
+.tile_color_5 {
+    background: #6ac9cc;
+}
+.tile_color_6 {
+    background: #50a2e9;
+}
+.tile_color_7 {
+    background: #f078ae;
+}
+
+.tile-text {
+    font-size: 19px;
+    line-height: normal;
+    display: block;
+    color: #fff;
+    text-align: center;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.tile-small .tile-text,
+.tile-small .tile-saved-messages svg {
+    font-size: 14px;
+    line-height: normal;
+}
+
+.tile-big .tile-text {
+    font-size: 42px;
+    line-height: normal;
+}
+
+.tile-poll .tile-text {
+    font-size: 8px;
+    line-height: normal;
+}
+
+.tile-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tile-saved-messages {
+    transform: translate(0, 7%);
+    color: #ffffff;
+}

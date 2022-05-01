@@ -1,0 +1,116 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.create-poll-option {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 0 0 0 24px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.create-poll-option-button {
+    padding: 4px;
+}
+
+.create-poll-option-subtitle {
+    position: absolute;
+    right: 24px;
+    bottom: 6px;
+    min-width: 28px;
+    user-select: none;
+}
+
+.create-quiz-dialog .create-poll-option-wrapper {
+    margin-right: 0;
+    transform: translateX(0);
+}
+
+.create-quiz-dialog .create-poll-option-bottom-border {
+    transform: translateX(46px);
+}
+
+.create-poll-option-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    transform: translateX(-46px);
+    box-sizing: border-box;
+    margin-right: -46px;
+    transition: transform 250ms, margin-right 250ms;
+}
+
+.create-poll-option-delete-button {
+    flex-grow: 0;
+    flex-shrink: 0;
+    position: absolute;
+    right: 24px;
+    top: 10px;
+}
+
+.create-poll-option-bottom-border {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-bottom: 1px solid var(--border);
+    margin-left: 24px;
+    transform: translateX(0);
+    transition: transform 250ms;
+}
+
+.create-poll-option-text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 0 0 -14px;
+    box-shadow: 0 0 0 0;
+    max-height: 150px;
+    max-width: 324px;
+    min-height: 24px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 64px 12px 24px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+.create-poll-radio-root {
+    padding: 6px;
+    transform: translate(-6px, 0);
+}
+
+.create-poll-option-text::before {
+    /*content: attr(placeholder);*/
+    color: #8e9396;
+    pointer-events: none;
+    transform: translateX(20px);
+    will-change: transform;
+    opacity: 0;
+    /*position: absolute;*/
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.create-poll-option-text:empty::before {
+    content: attr(placeholder);
+    transform: translateX(0px);
+    opacity: 0.75;
+}
+
+.create-poll-option-text:empty:active::before,
+.create-poll-option-text:empty:focus::before {
+    opacity: 0.75;
+}
+
+.create-poll-option-text:focus {
+    border: 0;
+    outline: none;
+    box-shadow: 0 0 0 0;
+}

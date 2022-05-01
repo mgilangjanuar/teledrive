@@ -1,0 +1,52 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.instant-viewer {
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    background: var(--panel-background);
+    color: var(--text-primary);
+}
+
+.instant-viewer-left-column {
+    min-width: 105px;
+}
+
+.instant-viewer-left-button {
+    color: var(--dialog-subtle-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+}
+
+.instant-viewer-content-column {
+    flex-shrink: 1;
+    flex-grow: 1;
+    padding: 0 18px;
+}
+
+.instant-viewer-right-column {
+    color: white;
+    min-width: 105px;
+    display: flex;
+    flex-direction: column;
+}
+
+.instant-viewer-right-button {
+    color: var(--dialog-subtle-color);
+    position: fixed;
+    top: 0;
+    right: 0;
+}

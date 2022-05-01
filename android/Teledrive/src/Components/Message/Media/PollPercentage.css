@@ -1,0 +1,23 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.poll-percentage {
+    width: 38px;
+    /*position: fixed;*/
+    transform: translateX(-4px);
+    text-align: right;
+    transition: opacity 0.2s linear;
+    font-weight: bold;
+}
+
+.poll-percentage-action {
+    color: inherit;
+}
+
+.poll-option-unselected .poll-percentage {
+    opacity: 0;
+}

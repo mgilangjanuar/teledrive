@@ -1,0 +1,33 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.playlist {
+    position: relative;
+    top: 21px;
+    box-sizing: border-box;
+    /*z-index: 2;*/
+}
+
+.playlist-wrapper {
+    border: 1px solid var(--border);
+    background: var(--panel-background);
+    position: absolute;
+}
+
+.playlist-items {
+    width: 300px;
+    max-height: 330px;
+    padding: 0 12px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+}
+
+.playlist-item {
+    padding: 6px 0;
+}

@@ -1,0 +1,46 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.app-inactive {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.app-inactive-wrapper {
+    max-width: 420px;
+    margin: auto auto;
+    padding: 24px;
+    text-align: center;
+}
+
+.app-inactive-image {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+.app-inactive-title {
+    font-size: 18px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.app-inactive-description {
+    color: #666;
+    font-size: 15px;
+    line-height: 150%;
+}
+
+.app-inactive-actions {
+    margin: 20px;
+}

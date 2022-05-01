@@ -1,0 +1,84 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.video-note {
+    border-radius: 4px;
+    transform: translateZ(0);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    color: white;
+}
+
+.video-note-player {
+    width: 200px;
+    height: 200px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translateZ(0);
+}
+
+.video-note-round {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: black;
+    position: relative;
+}
+
+.video-note-video {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.video-note-playing .video-note-progress {
+    opacity: 1;
+    visibility: visible;
+}
+
+.video-note-progress {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.video-note-progress-circle {
+    stroke-linecap: round;
+    stroke-opacity: 0.75;
+    color: #ffffff;
+    transition: stroke-dashoffset 250ms linear 0ms !important;
+}
+
+.video-note-muted {
+    position: absolute;
+    left: 50%;
+    margin-left: -15px;
+    margin-bottom: 6px;
+    bottom: 0;
+    width: 30px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 50%;
+    padding: 3px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.video-note-playing .video-note-muted {
+    transform: scale3d(0, 0, 0);
+    visibility: hidden;
+    opacity: 0;
+}

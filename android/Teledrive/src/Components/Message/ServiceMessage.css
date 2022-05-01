@@ -1,0 +1,49 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.service-message {
+    display: flex;
+    flex-direction: column;
+}
+
+.service-message-wrapper {
+    max-width: 500px;
+    padding: 5px 12px;
+    margin: 0 auto;
+}
+
+.service-message-content {
+    font-size: 15px;
+    /*line-height: normal;*/
+    border-radius: 12px;
+    text-align: center;
+    color: var(--message-service-color);
+    background: var(--message-service-background);
+    padding: 0 6px;
+    min-height: 24px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.service-message-content .message-author,
+.service-message-content .message-author:hover {
+    color: var(--message-service-color);
+}
+
+.service-message-content div {
+    /*transform: translate(0, 1px);*/
+    overflow: hidden;
+}
+
+.service-message-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin: 0 auto 5px;
+}

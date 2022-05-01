@@ -1,0 +1,83 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.document {
+    margin: 2px 0;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    min-width: 270px;
+    max-width: 370px;
+}
+
+.document-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 48px;
+    height: 48px;
+    margin: 3px;
+    animation: spin 4s linear infinite;
+}
+
+.document-progress-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    border-radius: 50%;
+    background: rgba(26, 26, 26, 0.7);
+}
+
+.document-progress-circle {
+    stroke-linecap: round;
+    color: #ffffff;
+}
+
+.document-content {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 9px;
+    overflow: hidden;
+    /*max-height: 48px;*/
+}
+
+.document-title {
+    word-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    line-height: 21px;
+    margin-top: 7px;
+    text-align: start;
+}
+
+.document-name {
+    max-width: 110px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.document-title a,
+.document-title a:hover,
+.message .document-title a,
+.message .document-title a:hover {
+    color: var(--text-primary);
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(-90deg);
+    }
+    100% {
+        transform: rotate(270deg);
+    }
+}

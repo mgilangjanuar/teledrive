@@ -1,0 +1,28 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.chat {
+    width: 100%;
+    height: 100%;
+}
+
+.chat-wrapper {
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+.chat-big .chat-wrapper {
+    flex-direction: column;
+}
+
+.chat-inner-wrapper {
+    margin-left: 12px;
+    overflow: hidden;
+    flex-grow: 1;
+    z-index: 1;
+}

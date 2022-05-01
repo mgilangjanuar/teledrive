@@ -1,0 +1,83 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.reply {
+    margin: 2px 0 5px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.message-content:not(.message-bubble) .reply {
+    background: var(--message-service-background);
+    color: var(--message-service-color);
+    border-radius: 6px;
+    padding: 2px 6px;
+    max-width: 200px;
+    margin: 0 9px;
+    align-self: flex-start;
+}
+
+.message-content:not(.message-bubble) .reply-border {
+    background: var(--message-service-color);
+}
+
+.message-content:not(.message-bubble) .reply-content-title {
+    color: var(--message-service-color);
+}
+
+.reply-wrapper {
+    pointer-events: none;
+    flex-direction: row;
+    align-items: center;
+    display: flex;
+    width: 100%;
+    height: 38px;
+}
+
+.border {
+    border-radius: 1px;
+    min-width: 2px;
+    background: var(--color-accent-main);
+}
+
+.message-bubble-out .border {
+    background: var(--message-out-reply-border);
+}
+
+.reply-border {
+    height: 32px;
+}
+
+.reply-photo {
+    margin-left: 12px;
+}
+
+.reply-content {
+    font-size: 14px;
+    line-height: 19px;
+    margin-left: 8px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.reply-content-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--color-accent-main);
+}
+
+.message-bubble-out .reply-content-title {
+    color: var(--message-out-reply-title);
+}
+
+.reply-content-subtitle {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

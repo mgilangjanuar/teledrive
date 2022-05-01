@@ -1,0 +1,105 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.search-input {
+    overflow: hidden;
+    flex-grow: 1;
+    flex-shrink: 1;
+    position: relative;
+}
+
+.search-input:focus-within .search-input-icon {
+    color: var(--color-accent-main);
+}
+
+.search-input:focus-within .search-input-wrapper {
+    border-color: var(--color-accent-main);
+    background: transparent;
+}
+
+.search-input-wrapper {
+    background: var(--search-input-background);
+    border: 2px solid var(--search-input-background);
+    border-radius: 22px;
+    margin: 8px 12px 8px 14px;
+    padding: 0 12px 0 10px;
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.page-small .search-input {
+    display: none;
+}
+
+[contenteditable='true']#search-inputbox {
+    white-space: nowrap;
+    overflow: hidden;
+}
+[contenteditable='true']#search-inputbox br {
+    display: none;
+}
+[contenteditable='true']#search-inputbox * {
+    display: inline;
+    white-space: nowrap;
+}
+
+#search-inputbox {
+    margin-top: -1px;
+    white-space: pre-wrap;
+    margin-left: 6px;
+    flex: 1 1 auto;
+}
+
+#search-inputbox::before {
+    /*content: attr(placeholder);*/
+    color: var(--text-secondary);
+    pointer-events: none;
+    transform: translateX(20px);
+    will-change: transform;
+    opacity: 0;
+    /*position: absolute;*/
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+#search-inputbox:empty::before {
+    content: attr(placeholder);
+    transform: translateX(0px);
+    opacity: 0.75;
+}
+
+#search-inputbox:empty:active::before,
+#search-inputbox:empty:focus::before {
+    opacity: 0.75;
+}
+
+#search-inputbox:focus {
+    outline: none;
+}
+
+.search-input-icon {
+    color: var(--search-input-icon);
+}
+
+.animated-wrap-panel .search-input {
+    margin: 4px;
+}
+
+.animated-wrap-panel .search-input-wrapper {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 100px;
+    height: 33px;
+}
+
+.animated-wrap-panel .search-input-icon {
+    display: none;
+}

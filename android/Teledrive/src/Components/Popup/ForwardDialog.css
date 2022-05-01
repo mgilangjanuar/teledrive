@@ -1,0 +1,122 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.forward-dialog {
+    color: var(--text-primary);
+}
+
+.forward-dialog-list {
+    max-width: 336px;
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    padding: 12px 24px;
+    overflow-y: auto;
+}
+
+.forward-dialog-search-list {
+    background: var(--background-paper);
+    max-width: 336px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    align-content: start;
+    padding: 12px 24px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.forward-dialog-content {
+    flex: 1 1 auto;
+    display: flex;
+    position: relative;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-color: var(--border);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.forward-dialog-message {
+    min-height: 48px;
+    max-height: 96px;
+}
+
+#forward-dialog-message {
+    box-shadow: 0 0 0 0;
+    max-height: 150px;
+    max-width: 324px;
+    min-height: 24px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 24px 12px 24px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+#forward-dialog-search {
+    box-shadow: 0 0 0 0;
+    max-height: 150px;
+    max-width: 324px;
+    min-height: 24px;
+    padding: 12px 24px 12px 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    flex: 1 1 auto;
+}
+
+[contenteditable='true']#forward-dialog-search br {
+    display: none;
+}
+
+[contenteditable='true']#forward-dialog-search * {
+    display: inline;
+    white-space: nowrap;
+}
+
+#forward-dialog-message::before,
+#forward-dialog-search::before {
+    /*content: attr(placeholder);*/
+    color: #8e9396;
+    pointer-events: none;
+    transform: translateX(20px);
+    will-change: transform;
+    opacity: 0;
+    /*position: absolute;*/
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+#forward-dialog-message:empty::before,
+#forward-dialog-search:empty::before {
+    content: attr(placeholder);
+    transform: translateX(0px);
+    opacity: 0.75;
+}
+
+#forward-dialog-message:empty:active::before,
+#forward-dialog-message:empty:focus::before,
+#forward-dialog-search:empty:active::before,
+#forward-dialog-search:empty:focus::before {
+    opacity: 0.75;
+}
+
+#forward-dialog-message:focus,
+#forward-dialog-search:focus {
+    border: 0;
+    outline: none;
+    box-shadow: 0 0 0 0;
+}

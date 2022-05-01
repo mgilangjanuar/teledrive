@@ -1,0 +1,16 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.poll-results-content {
+    padding: 0 8px 8px;
+}
+
+.poll-results-question {
+    margin: 0 12px;
+    font-size: 20px;
+    line-height: normal;
+}

@@ -1,0 +1,70 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.meta {
+    user-select: none;
+    font-size: 12px;
+    line-height: 14px;
+    flex-shrink: 0;
+    color: var(--message-in-meta-color);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.meta-text {
+    position: absolute;
+    right: 4px;
+    bottom: 3px;
+}
+
+.message:not(.message-out) .meta-text:not(.meta-bubble) {
+    right: 7px;
+}
+
+.meta-bubble {
+    height: 18px;
+    align-items: center;
+    border-radius: 9px;
+    padding: 0 5px 0 0;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.message .meta.meta-bubble,
+.message .meta.meta-bubble a {
+    color: var(--message-service-color);
+}
+
+.meta-hidden {
+    opacity: 0;
+    display: inline-flex;
+}
+
+.message .meta a {
+    color: var(--message-in-meta-color);
+}
+
+.message-out .meta {
+    color: var(--message-out-meta-color);
+}
+
+.message-out .meta a {
+    color: var(--message-out-meta-color);
+}
+
+.meta-views {
+}
+
+.meta-views-icon {
+    font-size: 14px;
+    /*transform: translateY(2px);*/
+}
+
+.meta-pin-icon {
+    font-size: 12px;
+    transform: rotate(45deg) translateY(2px);
+}

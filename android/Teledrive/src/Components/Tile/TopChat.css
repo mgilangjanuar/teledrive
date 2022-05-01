@@ -1,0 +1,32 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.top-chat {
+    padding: 12px 12px 8px;
+    box-sizing: border-box;
+    max-width: 72px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    margin-right: 5px;
+}
+
+.top-chat:hover .online-status-icon,
+.top-chat:hover .group-call-status-icon {
+    background: var(--color-hover);
+}
+
+.top-chat-title {
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 8px -12px 2px;
+    font-size: 12px;
+    line-height: normal;
+    user-select: none;
+}

@@ -1,0 +1,58 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.call-button-root {
+    font-size: 32px;
+    padding: 8px;
+    color: var(--color-accent-main);
+}
+
+ .light .message-out .call-button-root {
+    color: var(--message-out-subtle-color);
+}
+
+.call-tile {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.call.document {
+    align-items: center;
+}
+
+.call .document-title {
+    margin-top: 0;
+}
+
+.call .meta-text {
+    position: static;
+    display: inline;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.call-outgoing {
+    display: inline-block;
+    transform: rotate(-45deg);
+    color: #00B700;
+}
+
+.call-incoming {
+    display: inline-block;
+    transform: rotate(135deg);
+    color: #00B700;
+}
+
+.call-incoming-missed {
+    color: #ED5041;
+}

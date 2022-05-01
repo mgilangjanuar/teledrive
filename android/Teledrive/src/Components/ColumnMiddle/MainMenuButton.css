@@ -1,0 +1,24 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.main-menu-button {
+    /*margin: 6px 12px 6px 0;*/
+}
+
+.delete-dialog-content {
+    display: flex;
+    flex-direction: row;
+}
+
+#delete-dialog-description {
+    margin-left: 12px;
+}
+
+.progress-button {
+    margin-right: 12px !important;
+    padding: 0 !important;
+}

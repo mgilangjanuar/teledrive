@@ -1,0 +1,56 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.sticker-set-title {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: var(--panel-background);
+    color: var(--text-primary);
+}
+
+.sticker-set-title-wrapper {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.sticker-set-title-wrapper span {
+    display: block;
+    width: 100%;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+.sticker-set-content {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.sticker-set-item {
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /*padding: 3px;*/
+    box-sizing: border-box;
+    border-radius: 6px;
+}
+
+.sticker-set-item:hover {
+    background: var(--shared-media-background);
+}
+
+.sticker-set-icon-root {
+    font-size: 16px;
+    line-height: normal;
+    padding: 4px;
+    margin: 4px 8px 4px 4px;
+}

@@ -1,0 +1,47 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.user-tile {
+    width: var(--tile-size-normal);
+    height: var(--tile-size-normal);
+    z-index: 1;
+    position: relative;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tile-small {
+    align-self: flex-end;
+}
+
+.user-tile.tile-small {
+    height: var(--tile-size-small);
+    width: var(--tile-size-small);
+}
+
+.user-tile.tile-dialog {
+    height: var(--tile-size);
+    width: var(--tile-size);
+}
+
+.user-tile.tile-big {
+    height: var(--tile-size-big);
+    width: var(--tile-size-big);
+}
+
+.user-tile.tile-poll {
+    height: var(--tile-size-extra-small);
+    width: var(--tile-size-extra-small);
+    font-size: 8px;
+    line-height: normal;
+    border: 2px solid var(--message-in-background);
+    margin: -2px 0 -2px -4px;
+}
+
+.message-bubble-out .user-tile.tile-poll {
+    border-color: var(--message-out-background);
+}

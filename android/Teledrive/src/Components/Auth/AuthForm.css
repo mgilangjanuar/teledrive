@@ -1,0 +1,43 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.authorization-form {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+.authorization-form-content {
+    margin: 0 auto 0;
+    max-width: 360px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.authorization-form-content .footer-wrapper {
+    margin-top: auto;
+}
+
+.authorization-header {
+    font-size: 22px;
+    font-family: 'Product Sans', 'Roboto', sans-serif;
+    padding: 22px 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.authorization-header-content {
+    word-wrap: break-word;
+    white-space: nowrap;
+}
+
+.authorization-actions {
+    text-align: center;
+    display: flex;
+}

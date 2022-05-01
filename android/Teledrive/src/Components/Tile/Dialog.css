@@ -1,0 +1,118 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/*.dialog:hover {*/
+/*background: #f2f6fa;*/
+/*}*/
+
+.dialog {
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 10px;
+    margin-bottom: 4px;
+}
+
+.dialog:hover {
+    background: var(--color-hover);
+}
+
+.dialog:hover .online-status-icon,
+.dialog:hover .group-call-status-icon {
+    background: var(--color-hover);
+}
+
+.dialog.item-selected .online-status-icon,
+.dialog.item-selected .group-call-status-icon {
+    background: var(--color-hover);
+}
+
+.dialog-hidden {
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.dialog-tile {
+    height: 48px;
+    position: relative;
+}
+
+.dialog.item-selected {
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--color-hover);
+}
+
+.dialog-bottom-separator {
+    background: var(--border);
+    height: 1px;
+    margin: 6px -9px;
+}
+
+.item-selected .online-status {
+    /*background: var(--color-hover);*/
+}
+
+.item-selected .online-status-indicator {
+    /*background: #fff;*/
+}
+
+.item-selected .dialog-title,
+.item-selected .dialog-title-icon,
+.item-selected .dialog-content,
+.item-selected .dialog-content-accent,
+.item-selected .dialog-meta,
+.item-selected .dialog-status,
+.item-selected .status {
+    /*color: #fff;*/
+}
+
+.tile-first-row {
+    display: flex;
+}
+
+.tile-second-row {
+    margin: 3px 0 0 0;
+    display: flex;
+}
+
+.chat-big .chat-inner-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 22px 20px;
+    box-sizing: border-box;
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+.chat-big .tile-first-row {
+    max-width: 100%;
+}
+
+.dialog-inner-wrapper {
+    /*width: 48px;*/
+    overflow: hidden;
+    flex-grow: 1;
+    margin-left: 9px;
+    z-index: 1;
+}
+
+.dialog-wrapper {
+    padding: 9px 12px 9px 9px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.page-small .dialog-inner-wrapper {
+    /*display: none;*/
+}

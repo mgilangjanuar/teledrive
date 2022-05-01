@@ -1,0 +1,83 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.divider {
+    margin: 8px -24px;
+}
+
+.create-poll-dialog {
+    color: var(--text-primary);
+}
+
+.create-poll-dialog-root {
+    width: 300px;
+}
+
+.create-poll-dialog-list {
+    margin: 0 -24px;
+}
+
+.create-quiz-dialog {
+}
+
+.create-poll-dialog-question-title {
+    display: flex;
+}
+
+.create-poll-add-option {
+    padding: 11px 24px;
+    color: var(--dialog-subtle-color);
+    height: 48px;
+    transition: padding 250ms;
+}
+
+.create-quiz-dialog .create-poll-add-option {
+    padding-left: 72px;
+}
+
+#create-poll-dialog-question {
+    margin: 0 -24px;
+    box-shadow: 0 0 0 0;
+    max-height: 150px;
+    max-width: 324px;
+    min-height: 24px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 24px 12px 24px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+#create-poll-dialog-question::before {
+    /*content: attr(placeholder);*/
+    color: #8e9396;
+    pointer-events: none;
+    transform: translateX(20px);
+    will-change: transform;
+    opacity: 0;
+    /*position: absolute;*/
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+#create-poll-dialog-question:empty::before {
+    content: attr(placeholder);
+    transform: translateX(0px);
+    opacity: 0.75;
+}
+
+#create-poll-dialog-question:empty:active::before,
+#create-poll-dialog-question:empty:focus::before {
+    opacity: 0.75;
+}
+
+#create-poll-dialog-question:focus {
+    border: 0;
+    outline: none;
+    box-shadow: 0 0 0 0;
+}

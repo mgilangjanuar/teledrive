@@ -1,0 +1,70 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.poll {
+    min-width: 300px;
+    background: transparent;
+    user-select: none;
+}
+
+.poll-question {
+    display: flex;
+    flex-direction: column;
+}
+
+.poll-question-title {
+    margin-top: 2px;
+    font-weight: bold;
+    white-space: pre-wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.poll-question-subtitle {
+    margin-top: 2px;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--message-in-subtle-color);
+    white-space: pre-wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.message-bubble-out .poll-question-subtitle {
+    color: var(--message-out-subtle-color);
+}
+
+.poll-options {
+    padding: 9px 3px 10px;
+}
+
+.poll-total-count {
+    font-size: 14px;
+    line-height: normal;
+    color: var(--message-in-subtle-color);
+    white-space: pre-wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    /*justify-content: center;*/
+}
+
+.poll-button {
+    border-radius: 0;
+    margin: 0 -9px -6px;
+    width: calc(100% + 18px);
+    padding: 6px 8px 12px 8px;
+}
+
+.message-bubble-out .poll-total-count {
+    color: var(--message-out-subtle-color);
+}

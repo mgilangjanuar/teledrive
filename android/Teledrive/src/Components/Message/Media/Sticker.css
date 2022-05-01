@@ -1,0 +1,47 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.dev_page_tgsticker {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: block;
+    max-width: 256px;
+}
+
+.dev_page_tgsticker img,
+.dev_page_tgsticker canvas {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.sticker {
+    display: block;
+    border-radius: 8px;
+    user-select: none;
+    background: transparent;
+    position: relative;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.sticker-image {
+    user-select: none;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}

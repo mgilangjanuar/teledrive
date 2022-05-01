@@ -1,0 +1,28 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.media-info {
+    min-width: 256px;
+    opacity: 0.5;
+}
+
+.media-info-wrapper {
+    padding: 8px 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.media-info-content {
+    margin-left: 12px;
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.media-info-row {
+    overflow: hidden;
+}

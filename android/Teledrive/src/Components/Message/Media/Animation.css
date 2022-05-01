@@ -1,0 +1,94 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.animation {
+    border-radius: 4px;
+    transform: translateZ(0);
+    overflow: hidden;
+    position: relative;
+    color: white;
+    user-select: none;
+}
+
+.animation-message {
+    /*border-radius: 10px;*/
+    margin: -6px -9px;
+}
+
+.animation-picker {
+
+}
+
+.animation-title {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.animation-caption {
+    margin-bottom: 6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.animation-preview {
+    object-fit: cover;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.animation-thumbnail {
+    object-fit: cover;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.animation-player {
+    object-fit: cover;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.animation-picker .animation-player,
+.animation-picker .animation-thumbnail {
+    object-fit: cover;
+}
+
+.animation-play {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px;
+    box-sizing: border-box;
+    line-height: 24px;
+    text-align: center;
+    user-select: none;
+}
+
+.animation-meta {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    border-radius: 13px;
+    padding: 0 5px;
+    background: rgba(0, 0, 0, 0.25);
+    font-size: 13px;
+    line-height: normal;
+    user-select: none;
+}

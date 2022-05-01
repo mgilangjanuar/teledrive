@@ -1,0 +1,172 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.header-master {
+    /*height: 60px;*/
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    padding: 0 8px;
+}
+
+.header-details {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    /*box-sizing: border-box;*/
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    background: var(--panel-background);
+    border-color: var(--border);
+    padding: 0 8px;
+    z-index: 1;
+}
+
+.header-details-content {
+    display: flex;
+    flex-direction: column;
+    height: 120px;
+    width: 100%;
+    align-self: flex-end;
+    will-change: transform;
+    transition: transform 0.15s ease-in-out;
+    transform: translateY(0);
+}
+
+.header-details-selection .header-details-content {
+    transform: translateY(60px);
+}
+
+.header-details-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 60px;
+}
+
+.header-title {
+    padding: 15px 19px 15px;
+}
+
+.header-status {
+    font: 20px / normal 'Product Sans', 'Roboto', sans-serif;
+    padding: 0 24px;
+    user-select: none;
+    background: transparent;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.header-status-content {
+    word-wrap: break-word;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: var(--header-color);
+}
+
+.header-status-title {
+    font-size: 14px;
+    line-height: normal;
+    word-wrap: break-word;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-left: 8px;
+    color: var(--header-subtle-color);
+}
+
+.header-status-accent {
+    color: var(--color-accent-dark);
+}
+
+.header-status-tail {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.header-left-button {
+    margin: 6px -2px 6px 6px;
+}
+
+.header-right-button {
+    margin: 6px 6px 6px 0;
+}
+
+.header-right-second-button {
+    margin: 6px 0 6px 20px;
+}
+
+.header-right-buttons {
+    margin: 6px 6px 6px 20px;
+    display: flex;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-default {
+    cursor: default;
+}
+
+.grow {
+    flex-grow: 1;
+}
+
+.header-search-input {
+    padding: 0 0 0 24px;
+    overflow: hidden;
+}
+
+[contenteditable='true']#header-search-inputbox {
+    white-space: nowrap;
+    overflow: hidden;
+}
+[contenteditable='true']#header-search-inputbox br {
+    display: none;
+}
+[contenteditable='true']#header-search-inputbox * {
+    display: inline;
+    white-space: nowrap;
+}
+
+#header-search-inputbox {
+    box-shadow: 0 0 0 0;
+    padding: 19px 0 20px 0;
+    white-space: pre-wrap;
+}
+
+#header-search-inputbox::before {
+    /*content: attr(placeholder);*/
+    color: #8e9396;
+    pointer-events: none;
+    transform: translateX(20px);
+    will-change: transform;
+    opacity: 0;
+    /*position: absolute;*/
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+#header-search-inputbox:empty::before {
+    content: attr(placeholder);
+    transform: translateX(0px);
+    opacity: 0.75;
+}
+
+#header-search-inputbox:empty:active::before,
+#header-search-inputbox:empty:focus::before {
+    opacity: 0.75;
+}
+
+#header-search-inputbox:focus {
+    border: 0;
+    outline: none;
+    box-shadow: 0 0 0 0;
+}

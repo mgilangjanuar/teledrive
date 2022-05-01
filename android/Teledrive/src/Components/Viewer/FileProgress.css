@@ -1,0 +1,52 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+.file-progress {
+    color: white;
+    position: absolute;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    left: 50%;
+    top: 50%;
+    margin: calc(var(--tile-size) / -2) 0 0 calc(var(--tile-size) / -2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-progress-background {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.file-progress-icon {
+    margin: 12px;
+    color: white;
+}
+
+.file-progress-indicator {
+    position: absolute;
+    animation: spin 4s linear infinite;
+}
+
+.file-progress-circle {
+    stroke-linecap: round;
+    color: #ffffff;
+    transition: stroke-dashoffset 300ms linear 0ms !important;
+}
+
+.file-progress-cancel-button {
+    height: 18px;
+    width: 18px;
+    stroke: #ffffff;
+    stroke-width: 2px;
+    stroke-linecap: round;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -9px;
+    margin-top: -9px;
+}

@@ -1,0 +1,71 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.header-player {
+    min-height: 43px;
+    display: flex;
+    align-items: center;
+    /*overflow: hidden;*/
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-background);
+    padding: 0 12px;
+    z-index: 2;
+
+    /*position: absolute;*/
+    /*left: 0;*/
+    /*right: 0;*/
+    /*top: 65px;*/
+}
+
+.header-player-button {
+    padding: 4px;
+}
+
+.header-player-video {
+    visibility: hidden;
+    position: absolute;
+}
+
+.header-player-content {
+    flex: 1 1 auto;
+    display: flex;
+    padding: 4px 12px;
+    user-select: none;
+    font-size: 16px;
+    overflow: hidden;
+    background: transparent;
+}
+
+.header-player-title {
+    flex: 1 1 auto;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.header-player-playback-icon {
+    width: 14px;
+    height: 12px;
+    margin: 2px 1px;
+    font-size: 8px;
+    line-height: normal;
+    font-weight: bold;
+    border: 2px solid;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-player-play-icon {
+    width: 24px;
+    height: 24px;
+    background: red;
+    /*transform: scale(1.5);*/
+}

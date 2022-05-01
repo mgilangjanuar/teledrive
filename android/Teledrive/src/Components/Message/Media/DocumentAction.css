@@ -1,0 +1,17 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.document-action {
+    margin-top: 2px;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--message-in-subtle-color);
+}
+
+.message-out .document-action {
+    color: var(--message-out-subtle-color);
+}

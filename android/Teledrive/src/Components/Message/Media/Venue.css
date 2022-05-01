@@ -1,0 +1,29 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.venue {
+    display: flex;
+    flex-direction: column;
+}
+
+.venue-content {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: normal;
+}
+
+.venue-title {
+    display: inline-block;
+    max-width: 300px;
+    overflow: hidden;
+    vertical-align: text-top;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.venue-subtitle {
+}

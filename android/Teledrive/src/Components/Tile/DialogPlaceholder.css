@@ -1,0 +1,56 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.dialog-placeholder {
+    opacity: 0.2;
+    will-change: opacity;
+    animation: dialog-placeholder-animation 2s ease-in-out infinite;
+}
+
+.dialog-placeholder-wrapper {
+    padding: 9px 12px 9px 9px;
+    display: flex;
+    align-items: center;
+}
+
+.dialog-placeholder-tile {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--dialog-subtle-color);
+}
+
+.dialog-placeholder-inner-wrapper {
+    flex-grow: 1;
+    margin-left: 9px;
+}
+
+.dialog-placeholder-title {
+    height: 17px;
+    border-radius: 4px;
+    background: var(--dialog-subtle-color);
+}
+
+.dialog-placeholder-content {
+    margin-top: 3px;
+    height: 15px;
+    border-radius: 4px;
+    background: var(--dialog-subtle-color);
+}
+
+@keyframes dialog-placeholder-animation {
+    0% {
+        opacity: 0.2;
+    }
+    50% {
+        opacity: 0.1;
+    }
+    100% {
+        opacity: 0.2;
+    }
+}

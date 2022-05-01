@@ -1,0 +1,26 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.media-viewer-footer-button {
+    cursor: pointer;
+    opacity: 0.5;
+    padding: 20px;
+}
+
+.media-viewer-footer-button-checked {
+    color: var(--color-accent-main);
+}
+
+.media-viewer-footer-button-disabled {
+    cursor: default;
+    opacity: 0.25;
+}
+
+.media-viewer-footer-button:hover:not(.media-viewer-footer-button-disabled) {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.2);
+}

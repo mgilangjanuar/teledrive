@@ -1,0 +1,42 @@
+/*
+ *  Copyright (c) 2018-present, Evgeny Nadymov
+ *
+ * This source code is licensed under the GPL v.3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.files-drop-target{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: transparent;
+    padding: 12px;
+}
+
+.files-drop-target-wrapper{
+    background: var(--panel-background);
+    border-radius: 10px;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.files-drop-target-text{
+    text-align: center;
+}
+
+.files-drop-target-title{
+    font-size: 48px;
+    line-height: normal;
+}
+
+.files-drop-target-subtitle{
+    font-size: 24px;
+    line-height: normal;
+}
