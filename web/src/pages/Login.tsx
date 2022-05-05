@@ -57,11 +57,11 @@ const Login: React.FC<Props> = ({ me }) => {
       if (localStorage.getItem('experimental')) {
         const client = await anonymousTelegramClient.connect()
         if (phoneCodeHash) {
-          const { phoneCodeHash: newPhoneCodeHash } = await client.invoke(new Api.auth.ResendCode({
+          const { phoneCodeHash: newPhoneCodeHash, timeout } = await client.invoke(new Api.auth.ResendCode({
             phoneNumber, phoneCodeHash }))
           const session = client.session.save() as any
           localStorage.setItem('session', session)
-          data = { phoneCodeHash: newPhoneCodeHash }
+          data = { phoneCodeHash: newPhoneCodeHash, timeout }
         } else {
           const { phoneCodeHash } = await client.invoke(new Api.auth.SendCode({
             apiId: Number(process.env.REACT_APP_TG_API_ID),
@@ -83,7 +83,7 @@ const Login: React.FC<Props> = ({ me }) => {
         data = resp.data
       }
       setPhoneCodeHash(data.phoneCodeHash)
-      setCountdown(170)
+      setCountdown(data.timeout)
       notification.info({
         message: 'Sent!',
         description: 'Please check your Telegram app and input the code'
