@@ -25,7 +25,7 @@ export class Auth {
     }
 
     await req.tg.connect()
-    const { phoneCodeHash } = await req.tg.invoke(new Api.auth.SendCode({
+    const { phoneCodeHash, timeout } = await req.tg.invoke(new Api.auth.SendCode({
       ...TG_CREDS,
       phoneNumber,
       settings: new Api.CodeSettings({
@@ -37,7 +37,7 @@ export class Auth {
     const session = req.tg.session.save()
     const accessToken = sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '3h' })
     return res.cookie('authorization', `Bearer ${accessToken}`)
-      .send({ phoneCodeHash, accessToken })
+      .send({ phoneCodeHash, timeout, accessToken })
   }
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
@@ -48,12 +48,12 @@ export class Auth {
     }
 
     await req.tg.connect()
-    const { phoneCodeHash: newPhoneCodeHash } = await req.tg.invoke(new Api.auth.ResendCode({
+    const { phoneCodeHash: newPhoneCodeHash, timeout } = await req.tg.invoke(new Api.auth.ResendCode({
       phoneNumber, phoneCodeHash }))
     const session = req.tg.session.save()
     const accessToken = sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '3h' })
     return res.cookie('authorization', `Bearer ${accessToken}`)
-      .send({ phoneCodeHash: newPhoneCodeHash, accessToken })
+      .send({ phoneCodeHash: newPhoneCodeHash, timeout, accessToken })
   }
 
   @Endpoint.POST({ middlewares: [TGSessionAuth] })
