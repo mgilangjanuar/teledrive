@@ -5,7 +5,10 @@
     {
       "src": "server/dist/index.js",
       "use": "@vercel/node",
-      "config": { "includeFiles": ["server/dist/**"] }
+      "config": {
+        "includeFiles": ["server/dist/**"],
+        "excludeFiles": ["server/src/**"]
+      }
     },
     {
       "src": "web/build/**",

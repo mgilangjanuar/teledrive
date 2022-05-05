@@ -77,38 +77,12 @@ if (process.env.ENV !== 'production') {
   app.use(morgan('tiny'))
 }
 app.use(curl)
-// app.use((req, _, next) => {
-//   req['ip'] = req.headers['cf-connecting-ip'] as string || req.ip
-//   return next()
-// })
-
-// const rateLimiter = new RateLimiterPostgres({
-//   storeClient: new Pool({
-//     host: process.env.DB_HOST,
-//     port: Number(process.env.DB_PORT) || 5432,
-//     database: process.env.DB_NAME,
-//     user: process.env.DB_USERNAME,
-//     password: process.env.DB_PASSWORD
-//   }),
-//   points: Number(process.env.RPS) || 20,
-//   duration: 1,
-//   tableName: 'rate_limits',
-//   tableCreated: false
-// })
 
 app.get('/ping', (_, res) => res.send({ pong: true }))
 app.get('/security.txt', (_, res) => {
   res.setHeader('Content-Type', 'text/plain')
   res.send('Contact: security@teledriveapp.com\nPreferred-Languages: en, id')
 })
-// app.use('/api', (req, res, next) => {
-//   rateLimiter.consume(req.headers['cf-connecting-ip'] as string || req.ip).then(() => next()).catch(error => {
-//     if (error.msBeforeNext) {
-//       return res.status(429).setHeader('retry-after', error.msBeforeNext).send({ error: 'Too many requests', retryAfter: error.msBeforeNext })
-//     }
-//     throw error
-//   })
-// }, API)
 app.use('/api', API)
 
 // error handler
