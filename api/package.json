@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "api",
   "version": "2.2.3",
   "main": "dist/index.js",
   "license": "MIT",

@@ -3,11 +3,16 @@
   "env": {},
   "builds": [
     {
-      "src": "server/dist/index.js",
+      "src": "api/dist/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["server/dist/**"],
-        "excludeFiles": ["server/src/**"]
+        "includeFiles": ["api/dist/**"],
+        "excludeFiles": [
+          "web/**",
+          "node_modules/**",
+          "api/node_modules/**",
+          "web/node_modules/**"
+        ]
       }
     },
     {
@@ -16,18 +21,18 @@
       "config": { "includeFiles": ["web/build/**"] }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "server/dist/index.js"
+      "source": "/(.*)",
+      "destination": "api/dist/index.js"
     },
     {
-      "src": "/",
-      "dest": "web/build/index.html"
+      "source": "/",
+      "destination": "web/build/index.html"
     },
     {
-      "src": "/(.+)",
-      "dest": "web/build/$1"
+      "source": "/(.+)",
+      "destination": "web/build/$1"
     }
   ]
 }

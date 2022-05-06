@@ -7,14 +7,15 @@
   "private": true,
   "scripts": {
     "web": "yarn workspace web",
-    "server": "yarn workspace server",
+    "server": "yarn workspace api",
+    "api": "yarn workspace api",
     "build": "yarn workspaces run build",
     "start": "cd server && node dist/index.js",
     "docs": "USE_SSH=true cd docs && yarn deploy"
   },
   "workspaces": [
     "web",
-    "server"
+    "api"
   ],
   "dependencies": {}
 }
