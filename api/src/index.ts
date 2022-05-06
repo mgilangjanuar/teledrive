@@ -23,32 +23,6 @@ import { API } from './api'
 import { Redis } from './service/Cache'
 import { markdownSafe } from './utils/StringParser'
 
-// import bigInt from 'json-bigint'
-// const parse = JSON.parse
-// JSON.parse = str => {
-//   if (!str) return str
-//   try {
-//     const res = bigInt({ storeAsString: true }).parse(str)
-//     return parse(JSON.stringify(res))
-//   } catch (error) {
-//     console.error('FATAL JSON.parse:', str)
-//     return parse(str)
-//   }
-// }
-
-// const stringify = JSON.stringify
-// JSON.stringify = str => {
-//   if (!str) return str
-//   try {
-//     const res = bigInt({ storeAsString: true }).stringify(str)
-//     return stringify(JSON.stringify(res))
-//   } catch (error) {
-//     console.error('FATAL JSON.stringify:', str)
-//     return stringify(str)
-//   }
-// }
-
-
 (BigInt.prototype as any).toJSON = function () {
   return this.toString()
 }
