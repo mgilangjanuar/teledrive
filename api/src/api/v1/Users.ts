@@ -159,7 +159,7 @@ export class Users {
     }
     const { id } = req.params
     await prisma.files.deleteMany({
-      where: { user_id: req.user.id }
+      where: { user_id: id }
     })
     await prisma.users.delete({ where: { id } })
     return res.send({})
