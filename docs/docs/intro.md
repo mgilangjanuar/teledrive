@@ -5,7 +5,7 @@ sidebar_position: 1
 # Introduction
 
  - version: 2.2.x
- - updated: 2022-04-20
+ - updated: 2022-05-08
 
 If you ever heard about cloud storage services like Google Drive, OneDrive, iCloud, Dropbox &mdash; **TeleDrive** is one of them, you can upload photos, videos, documents, or any files for free. But, what makes **TeleDrive** different? We're using the <a href="https://core.telegram.org/api#telegram-api" target="_blank">Telegram API</a>, so you can do uploads without limit and free.
 
@@ -59,16 +59,15 @@ Next, you can select where you want to install TeleDrive.
     - Daemonize the application with [pm2](/docs/deoployment/pm2)
     - Then, setup domain with reverse proxy ([nginx](/docs/deoployment/nginx))
 
+- Heroku *(difficulty level: low)*
 
-- Vercel *(difficulty level: low)*
+  - Clone repository to your local machine
+  - Deploy to [Heroku](/docs/deployment/heroku)
+
+- Vercel *(difficulty level: low)* [Build failed, last update: [#336](https://github.com/mgilangjanuar/teledrive/issues/336#issuecomment-1120316455)]
 
   - Clone repository to your local machine
   - Build with [manual](/docs/installation/manual) method
   - Deploy to [Vercel](/docs/deployment/vercel)
 
   **Note.** *Vercel doesn't have database service. So, you need to create a database manually in [Supabase](https://supabase.com/), [Heroku Postgres](https://elements.heroku.com/addons/heroku-postgresql), [ElephantSQL](https://www.elephantsql.com/), or any other database service.*
-
-- Heroku *(difficulty level: low)*
-
-  - Clone repository to your local machine
-  - Deploy to [Heroku](/docs/deployment/heroku)
