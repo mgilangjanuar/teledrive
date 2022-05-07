@@ -6,10 +6,10 @@ const rootObj = JSON.parse(root)
 rootObj.version = process.argv[2]
 fs.writeFileSync('./package.json', JSON.stringify(rootObj, null, 2))
 
-const api = fs.readFileSync('./server/package.json', 'utf-8')
+const api = fs.readFileSync('./api/package.json', 'utf-8')
 const apiObj = JSON.parse(api)
 apiObj.version = process.argv[2]
-fs.writeFileSync('./server/package.json', JSON.stringify(apiObj, null, 2))
+fs.writeFileSync('./api/package.json', JSON.stringify(apiObj, null, 2))
 // execSync('cd ./server && yarn install && cd ..')
 
 const web = fs.readFileSync('./web/package.json', 'utf-8')
