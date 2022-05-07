@@ -6,28 +6,14 @@
       "src": "api/dist/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["api/dist/**"],
-        "excludeFiles": [
-          "web/**",
-          "android/**",
-          "docs/**",
-          "docker/**",
-          "press/**"
-        ]
+        "includeFiles": ["api/dist/**"]
       }
     },
     {
       "src": "web/build/**",
       "use": "@vercel/static",
       "config": {
-        "includeFiles": ["web/build/**"],
-        "excludeFiles": [
-          "api/**",
-          "android/**",
-          "docs/**",
-          "docker/**",
-          "press/**"
-        ]
+        "includeFiles": ["web/build/**"]
       }
     }
   ],

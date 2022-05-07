@@ -19,9 +19,6 @@ const Dashboard = lazy(
 const Settings = lazy(
   () => import(/* webpackChunkName: 'SettingsPage' */ './pages/Settings')
 )
-// const Home = lazy(
-//   () => import(/* webpackChunkName: 'HomePage' */ './pages/Home')
-// )
 const View = lazy(
   () => import(/* webpackChunkName: 'ViewPage' */ './pages/view/index')
 )
@@ -31,21 +28,6 @@ const Login = lazy(
 const Admin = lazy(
   () => import(/* webpackChunkName: 'AdminPage' */ './pages/admin/index')
 )
-// const Refund = lazy(
-//   () => import(/* webpackChunkName: 'RefundPage' */ './pages/Refund')
-// )
-// const Privacy = lazy(
-//   () => import(/* webpackChunkName: 'PrivacyPage'  */ './pages/Privacy')
-// )
-// const Pricing = lazy(
-//   () => import(/* webpackChunkName: 'PricingPage'  */ './pages/Pricing')
-// )
-// const Contact = lazy(
-//   () => import(/* webpackChunkName: 'ContactPage'  */ './pages/Contact')
-// )
-// const Faq = lazy(
-//   () => import(/* webpackChunkName: 'FaqPage' */ './pages/Faq')
-// )
 const NotFound = lazy(
   () => import(/* webpackChunkName: 'NotFoundPage' */ './pages/errors/NotFound')
 )
@@ -127,11 +109,6 @@ function App(): React.ReactElement {
                 {me?.user && !localStorage.getItem('experimental') ? <Redirect to="/dashboard" /> : <Login me={me} />}
               </Route>
               <Route path="/admin" exact component={() => <Admin me={me} errorMe={errorMe} />} />
-              {/* <Route path="/refund" exact component={Refund} />
-              <Route path="/privacy" exact component={Privacy} />
-              <Route path="/pricing" exact component={() => <Pricing me={me} />} />
-              <Route path="/contact" exact component={() => <Contact me={me} />} />
-              <Route path="/faq" exact component={Faq} /> */}
               <Route path="/" exact>
                 <Redirect to="/dashboard" />
               </Route>
