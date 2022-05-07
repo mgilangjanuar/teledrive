@@ -6,14 +6,16 @@
       "src": "dist/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["dist/**"]
+        "excludeFiles": [
+          "src/**"
+        ]
       }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "dist/index.js"
+      "src": "/(.*)",
+      "dest": "dist/index.js"
     }
   ]
 }

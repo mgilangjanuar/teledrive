@@ -10,7 +10,7 @@
     "server": "yarn workspace api",
     "api": "yarn workspace api",
     "build": "yarn workspaces run build",
-    "start": "cd server && node dist/index.js",
+    "start": "cd api && node dist/index.js",
     "docs": "USE_SSH=true cd docs && yarn deploy"
   },
   "workspaces": [

@@ -9,30 +9,40 @@
         "includeFiles": ["api/dist/**"],
         "excludeFiles": [
           "web/**",
-          "node_modules/**",
-          "api/node_modules/**",
-          "web/node_modules/**"
+          "android/**",
+          "docs/**",
+          "docker/**",
+          "press/**"
         ]
       }
     },
     {
       "src": "web/build/**",
       "use": "@vercel/static",
-      "config": { "includeFiles": ["web/build/**"] }
+      "config": {
+        "includeFiles": ["web/build/**"],
+        "excludeFiles": [
+          "api/**",
+          "android/**",
+          "docs/**",
+          "docker/**",
+          "press/**"
+        ]
+      }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "api/dist/index.js"
+      "src": "/(.*)",
+      "dest": "api/dist/index.js"
     },
     {
-      "source": "/",
-      "destination": "web/build/index.html"
+      "src": "/",
+      "dest": "web/build/index.html"
     },
     {
-      "source": "/(.+)",
-      "destination": "web/build/$1"
+      "src": "/(.+)",
+      "dest": "web/build/$1"
     }
   ]
 }
