@@ -3,20 +3,38 @@
   "env": {},
   "builds": [
     {
-      "src": "server/dist/index.js",
+      "src": "api/dist/index.js",
       "use": "@vercel/node",
-      "config": { "includeFiles": ["server/dist/**"] }
+      "config": {
+        "includeFiles": ["api/dist/**"],
+        "excludeFiles": [
+          "web/**",
+          "android/**",
+          "docs/**",
+          "docker/**",
+          "press/**"
+        ]
+      }
     },
     {
       "src": "web/build/**",
       "use": "@vercel/static",
-      "config": { "includeFiles": ["web/build/**"] }
+      "config": {
+        "includeFiles": ["web/build/**"],
+        "excludeFiles": [
+          "api/**",
+          "android/**",
+          "docs/**",
+          "docker/**",
+          "press/**"
+        ]
+      }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server/dist/index.js"
+      "dest": "api/dist/index.js"
     },
     {
       "src": "/",
