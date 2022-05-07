@@ -6,7 +6,11 @@
       "src": "api/dist/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["api/dist/**"]
+        "includeFiles": ["api/dist/**"],
+        "excludeFiles": [
+          "web/**",
+          "api/src/**"
+        ]
       }
     },
     {
