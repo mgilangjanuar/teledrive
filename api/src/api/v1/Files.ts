@@ -979,7 +979,7 @@ export class Files {
     // res.status(206)
     // res.setHeader('Cache-Control', 'public, max-age=604800')
     // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
-    res.setHeader('Content-Range', `bytes */${totalFileSize}`)
+    // res.setHeader('Content-Range', `bytes */${totalFileSize}`)
     res.setHeader('Accept-Ranges', 'bytes')
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
@@ -1007,6 +1007,7 @@ export class Files {
         }))
       }
 
+      // let downloaded: number = 0
       const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { thumb: 0 } : {},
         outputFile: {
@@ -1014,11 +1015,16 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
+              // downloaded += buffer.length
+              // console.log(`${new Date()}: ${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size}`)
               res.write(buffer)
-              res.flush()
+              // res.flush()
             }
           },
-          close: res.end
+          close: () => {
+            // console.log('end', chat['messages'][0].id)
+            res.end()
+          }
         }
       })
 

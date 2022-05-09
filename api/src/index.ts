@@ -4,7 +4,7 @@ require('dotenv').config({ path: '.env' })
 import axios from 'axios'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import compression from 'compression'
+// import compression from 'compression'
 import { cURL } from 'curly-express'
 import express, {
   json,
@@ -42,7 +42,7 @@ app.use(cors({
     /.*/
   ]
 }))
-app.use(compression())
+// app.use(compression())
 app.use(json())
 app.use(urlencoded({ extended: true }))
 app.use(raw())
