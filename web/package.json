@@ -28,6 +28,7 @@
     "react-dom": "^17.0.2",
     "react-github-btn": "^1.2.1",
     "react-helmet": "^6.1.0",
+    "react-loading-screen": "^0.0.17",
     "react-markdown": "^7.0.1",
     "react-otp-input": "^2.4.0",
     "react-paypal-button-v2": "^2.6.3",

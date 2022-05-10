@@ -2,9 +2,10 @@ import { MobileOutlined, TwitterOutlined } from '@ant-design/icons'
 import { Button, Layout, notification, Result, Typography } from 'antd'
 import 'antd-country-phone-input/dist/index.css'
 import pwaInstallHandler from 'pwa-install-handler'
-import React, { lazy, Suspense, useEffect } from 'react'
+import React, { lazy, Suspense, useEffect, useState } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { Helmet } from 'react-helmet'
+import LoadingScreen from 'react-loading-screen'
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
@@ -39,6 +40,7 @@ function App(): React.ReactElement {
   const { switcher } = useThemeSwitcher()
   const { data } = useSWR('/utils/maintenance', fetcher)
   const { data: me, error: errorMe, mutate: mutateMe } = useSWRImmutable('/users/me', fetcher)
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => document.querySelector('.App')?.scrollIntoView(), [pathname])
 
@@ -89,45 +91,56 @@ function App(): React.ReactElement {
     }
   }, [])
 
+  useEffect(() => {
+    window.addEventListener('load', () => setLoading(false))
+  }, [])
+
   return (
-    <Layout className="App">
-      <Helmet>
-        <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#1F1F1F' : '#0088CC'} />
-      </Helmet>
-      {data?.maintenance ? <div style={{ minHeight: '100vh', paddingTop: '20vh' }}>
-        <Result
-          status="warning"
-          title="This site is under maintenance"
-          subTitle="We're preparing to serve you better."
-          extra={
-            <Button shape="round" type="primary" icon={<TwitterOutlined />} href="https://twitter.com/teledriveapp">
-              Follow us for updates
-            </Button>
-          }
-        />
-      </div> : <>
-        {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
-        <div style={{ minHeight: '88vh' }}>
-          <Suspense fallback={<></>}>
-            <Switch>
-              <Route path="/startup" exact component={Startup} />
-              <Route path="/dashboard/:type?" exact component={Dashboard} />
-              <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
-              <Route path="/view/:id" exact component={View} />
-              <Route path="/login" exact>
-                {me?.user && !localStorage.getItem('experimental') ? <Redirect to="/dashboard" /> : <Login me={me} />}
-              </Route>
-              <Route path="/admin" exact component={() => <Admin me={me} errorMe={errorMe} />} />
-              <Route path="/" exact>
-                <Redirect to="/dashboard" />
-              </Route>
-              <Route component={NotFound} />
-            </Switch>
-          </Suspense>
-        </div>
-        {/^\/view\/.*/gi.test(window.location.pathname) ? <></> : <Footer me={me} />}
-      </>}
-    </Layout>
+    <LoadingScreen
+      loading={loading}
+      bgColor='#141414'
+      spinnerColor='#9ee5f8'
+      textColor='#676767'
+      logoSrc='/logo512.png'>
+      <Layout className="App">
+        <Helmet>
+          <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#1F1F1F' : '#0088CC'} />
+        </Helmet>
+        {data?.maintenance ? <div style={{ minHeight: '100vh', paddingTop: '20vh' }}>
+          <Result
+            status="warning"
+            title="This site is under maintenance"
+            subTitle="We're preparing to serve you better."
+            extra={
+              <Button shape="round" type="primary" icon={<TwitterOutlined />} href="https://twitter.com/teledriveapp">
+                Follow us for updates
+              </Button>
+            }
+          />
+        </div> : <>
+          {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
+          <div style={{ minHeight: '88vh' }}>
+            <Suspense fallback={<></>}>
+              <Switch>
+                <Route path="/startup" exact component={Startup} />
+                <Route path="/dashboard/:type?" exact component={Dashboard} />
+                <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
+                <Route path="/view/:id" exact component={View} />
+                <Route path="/login" exact>
+                  {me?.user && !localStorage.getItem('experimental') ? <Redirect to="/dashboard" /> : <Login me={me} />}
+                </Route>
+                <Route path="/admin" exact component={() => <Admin me={me} errorMe={errorMe} />} />
+                <Route path="/" exact>
+                  <Redirect to="/dashboard" />
+                </Route>
+                <Route component={NotFound} />
+              </Switch>
+            </Suspense>
+          </div>
+          {/^\/view\/.*/gi.test(window.location.pathname) ? <></> : <Footer me={me} />}
+        </>}
+      </Layout>
+    </LoadingScreen>
   )
 }
 
