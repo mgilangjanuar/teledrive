@@ -6,8 +6,12 @@ const Startup: React.FC = () => {
   const [form] = Form.useForm()
 
   const finish = () => {
-    localStorage.setItem('BASE_URL', form.getFieldValue('baseUrl'))
-    return location.replace(form.getFieldValue('baseUrl'))
+    let value = form.getFieldValue('baseUrl')
+    if (!/^http/.test(value)) {
+      value = `https://${value}`
+    }
+    localStorage.setItem('BASE_URL', value)
+    return window.location.replace(value)
   }
 
   return <Layout.Content className="container">
