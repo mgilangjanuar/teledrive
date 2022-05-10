@@ -3,6 +3,7 @@ import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
+import { appendFileSync, createReadStream, existsSync, mkdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
 import moment from 'moment'
 import multer from 'multer'
 import { Api, Logger, TelegramClient } from 'teledrive-client'
@@ -10,7 +11,7 @@ import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
 import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
-import { CONNECTION_RETRIES, PROCESS_RETRY, TG_CREDS } from '../../utils/Constant'
+import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -952,12 +953,6 @@ export class Files {
     }
 
     const totalFileSize = files.reduce((res, file) => res.add(file.size || 0), bigInt(0))
-    if (!req.user || !req.user.plan || req.user.plan === 'free') {      // not expired and free plan
-      // check quota
-      // if (bigInt(usage.usage).add(bigInt(totalFileSize)).greater(1_500_000_000)) {
-      //   throw { status: 402, body: { error: 'You just hit the daily bandwidth limit' } }
-      // }
-    }
 
     if (!raw || Number(raw) === 0) {
       const { signed_key: _, ...result } = files[0]
@@ -974,18 +969,75 @@ export class Files {
       return res.send({ files })
     }
 
+    console.log(req.headers.range)
+
     let cancel = false
     req.on('close', () => cancel = true)
-    // res.status(206)
     // res.setHeader('Cache-Control', 'public, max-age=604800')
     // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
+    // res.setHeader('Content-Range', `bytes */${totalFileSize}`)
+    // res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
+    // res.setHeader('Content-Type', files[0].mime_type)
+    // res.setHeader('Content-Length', totalFileSize.toString())
+    // res.setHeader('Accept-Ranges', 'bytes')
+
+    // res.writeHead(206, {
+    //   'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
+    //   'Content-Type': files[0].mime_type,
+    //   'Content-Length': totalFileSize.toString(),
+    //   'Accept-Ranges': 'bytes',
+    //   // 'Content-Range': `bytes ${downloaded - buffer.length}-${downloaded}/${buffer.length}`
+    // })
+
+    const ranges = req.headers.range ? req.headers.range.replace(/bytes\=/gi, '').split('-').map(Number) : null
+
+    if (onlyHeaders) return res.status(200)
+
+    const filename = (prefix: string = '') => `${__dirname}/../../../../.cached/${prefix}${totalFileSize.toString()}_${files[0].name}`
+    try {
+      mkdirSync(`${__dirname}/../../../../.cached`, { recursive: true })
+    } catch (error) {
+      // ignore
+    }
+
+    if (existsSync(filename())) {
+      if (ranges) {
+        const start = ranges[0]
+        const end = ranges[1] ? ranges[1] : totalFileSize.toJSNumber() - 1
+
+        const readStream = createReadStream(filename(), { start, end })
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
+          'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
+          'Content-Type': files[0].mime_type,
+          'Content-Length': end - start + 1,
+          'Accept-Ranges': 'bytes',
+        })
+        readStream.pipe(res)
+      } else {
+        res.writeHead(206, {
+          'Content-Range': `bytes */${totalFileSize}`,
+          'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
+          'Content-Type': files[0].mime_type,
+          'Content-Length': totalFileSize.toString(),
+          'Accept-Ranges': 'bytes',
+        })
+        const readStream = createReadStream(filename())
+        readStream
+          .on('open', () => readStream.pipe(res))
+          .on('error', msg => res.end(msg))
+      }
+      return
+    }
+
     res.setHeader('Content-Range', `bytes */${totalFileSize}`)
-    res.setHeader('Accept-Ranges', 'bytes')
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
+    res.setHeader('Accept-Ranges', 'bytes')
 
-    if (onlyHeaders) return res.status(200)
+    let downloaded: number = 0
+    writeFileSync(filename('process-'), '')
 
     for (const file of files) {
       let chat: any
@@ -1007,34 +1059,58 @@ export class Files {
         }))
       }
 
+      // const readableStream = new Readable()
       const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { thumb: 0 } : {},
         outputFile: {
           write: (buffer: Buffer) => {
+            downloaded += buffer.length
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
+              // if (downloaded > start) {
+              //   return res.end()
+              // }
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
+              appendFileSync(filename('process-'), buffer)
               res.write(buffer)
-              res.flush()
             }
           },
-          close: res.end
+          close: () => {
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
+            const { size } = statSync(filename('process-'))
+            if (totalFileSize.gt(bigInt(size))) {
+              rmSync(filename('process-'))
+            } else {
+              renameSync(filename('process-'), filename())
+            }
+            res.end()
+          }
         }
       })
 
-      let trial = 0
-      while (trial < PROCESS_RETRY) {
-        try {
-          await getData()
-          trial = PROCESS_RETRY
-        } catch (error) {
-          if (trial >= PROCESS_RETRY) {
-            throw error
-          }
-          await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
-          await req.tg?.connect()
-        }
+      try {
+        await getData()
+      } catch (error) {
+        console.log(error)
       }
+
+      // let trial = 0
+      // while (trial < PROCESS_RETRY) {
+      //   try {
+      //     await getData()
+      //     trial = PROCESS_RETRY
+      //   } catch (error) {
+      //     console.log(error)
+      //     if (error.status !== 422) {
+      //       if (trial >= PROCESS_RETRY) {
+      //         throw error
+      //       }
+      //       await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
+      //       await req.tg?.connect()
+      //     }
+      //   }
+      // }
 
     }
     usage = await prisma.usages.update({
@@ -1044,7 +1120,7 @@ export class Files {
       where: { key: usage.key }
     })
 
-    res.end()
+    // res.end()
   }
 
   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {

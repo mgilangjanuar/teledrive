@@ -19,8 +19,8 @@ export const telegramClient = {
 }
 
 export const anonymousTelegramClient = {
-  connect: async (): Promise<TelegramClient> => {
-    const client = new TelegramClient(new StringSession(localStorage.getItem('session') || ''), Number(process.env.REACT_APP_TG_API_ID), process.env.REACT_APP_TG_API_HASH as string, {
+  connect: async (session = localStorage.getItem('session') || ''): Promise<TelegramClient> => {
+    const client = new TelegramClient(new StringSession(session), Number(process.env.REACT_APP_TG_API_ID), process.env.REACT_APP_TG_API_HASH as string, {
       connectionRetries: 10,
       useWSS: true,
       // baseLogger: new Logger(LogLevel.NONE)

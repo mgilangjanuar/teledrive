@@ -63,7 +63,7 @@ const Login: React.FC<Props> = ({ me }) => {
           localStorage.setItem('session', session)
           data = { phoneCodeHash: newPhoneCodeHash, timeout }
         } else {
-          const { phoneCodeHash } = await client.invoke(new Api.auth.SendCode({
+          const { phoneCodeHash, timeout } = await client.invoke(new Api.auth.SendCode({
             apiId: Number(process.env.REACT_APP_TG_API_ID),
             apiHash: process.env.REACT_APP_TG_API_HASH,
             phoneNumber,
@@ -75,7 +75,7 @@ const Login: React.FC<Props> = ({ me }) => {
           }))
           const session = client.session.save() as any
           localStorage.setItem('session', session)
-          data = { phoneCodeHash }
+          data = { phoneCodeHash, timeout }
         }
       } else {
         const invitationCode = location.search.replace('?code=', '')

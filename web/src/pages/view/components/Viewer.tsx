@@ -22,6 +22,7 @@ import * as clipboardy from 'clipboardy'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
 import React, { useEffect, useState } from 'react'
+import ReactPlayer from 'react-player'
 import { useHistory } from 'react-router'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
@@ -163,17 +164,18 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   return <>
     <Layout style={{ minHeight: '100vh', overflow: 'hidden', background: '#2a2a2a', color: 'rgb(251,251,254)' }}>
       <Layout.Content>
-        {data?.file.type === 'image' ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} /> : data?.file.type === 'video' ? <video style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} controls>
-          <source src={links?.raw} type={data?.file.mime_type} />
-          Your browser does not support HTML video.
-        </video> : <iframe onLoad={(e: any) => {
-          try {
-            e.target.contentWindow.document.body.style.margin = 0
-            e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
-          } catch (error) {
-            // ignore
-          }
-        }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> }
+        {data?.file.type === 'image'
+          ? <img style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} src={links?.raw} />
+          : data?.file.type === 'video'
+            ? <ReactPlayer url={links?.raw} controls width='100%' height='100%' playing />
+            : <iframe onLoad={(e: any) => {
+              try {
+                e.target.contentWindow.document.body.style.margin = 0
+                e.target.contentWindow.document.body.style.color = 'rgb(251,251,254)'
+              } catch (error) {
+                // ignore
+              }
+            }} className="viewContent" style={{ height: '100%', width: '100%', position: 'absolute' }} src={links?.raw} frameBorder={0}>Browser not compatible.</iframe> }
 
         {/* !blobURL ? <Spin style={{ maxHeight: '100%', maxWidth: '100%', position: 'absolute', margin: 'auto', top: 0, right: 0, bottom: 0, left: 0, imageOrientation: 'from-image' }} /> */}
         {/* {data?.file.type === 'video' ? <video src={blobURL} controls><source src={blobURL} type="video/mp4" /></video> : <iframe ref={iframe} onLoad={async (e: any) => {
