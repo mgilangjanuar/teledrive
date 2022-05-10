@@ -1036,6 +1036,7 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
+    let downloaded: number = 0
     writeFileSync(filename('process-'), '')
 
     for (const file of files) {
@@ -1059,7 +1060,6 @@ export class Files {
       }
 
       // const readableStream = new Readable()
-      let downloaded: number = 0
       const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { thumb: 0 } : {},
         outputFile: {
@@ -1071,13 +1071,13 @@ export class Files {
               // if (downloaded > start) {
               //   return res.end()
               // }
-              console.log(`${new Date()}: ${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size}`)
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
               appendFileSync(filename('process-'), buffer)
               res.write(buffer)
             }
           },
           close: () => {
-            console.log(`${new Date()}: ${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size}`, '-end-')
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
             const { size } = statSync(filename('process-'))
             if (totalFileSize.gt(bigInt(size))) {
               rmSync(filename('process-'))
@@ -1089,30 +1089,28 @@ export class Files {
         }
       })
 
-      // try {
-      //   res.end(await getData())
-      // } catch (error) {
-      //   console.log(error)
-      // }
-
-      let trial = 0
-      while (trial < PROCESS_RETRY) {
-        try {
-          await getData()
-          trial = PROCESS_RETRY
-        } catch (error) {
-          console.log(error)
-          if (error.status !== 422) {
-            if (trial >= PROCESS_RETRY) {
-              throw error
-            }
-            await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
-            await req.tg?.connect()
-          } else {
-            throw error
-          }
-        }
+      try {
+        await getData()
+      } catch (error) {
+        console.log(error)
       }
+
+      // let trial = 0
+      // while (trial < PROCESS_RETRY) {
+      //   try {
+      //     await getData()
+      //     trial = PROCESS_RETRY
+      //   } catch (error) {
+      //     console.log(error)
+      //     if (error.status !== 422) {
+      //       if (trial >= PROCESS_RETRY) {
+      //         throw error
+      //       }
+      //       await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
+      //       await req.tg?.connect()
+      //     }
+      //   }
+      // }
 
     }
     usage = await prisma.usages.update({
