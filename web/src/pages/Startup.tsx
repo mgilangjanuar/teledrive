@@ -1,3 +1,4 @@
+import { RocketOutlined } from '@ant-design/icons'
 import { Button, Col, Form, Input, Layout, Row, Typography } from 'antd'
 import React, { useEffect } from 'react'
 
@@ -29,8 +30,8 @@ const Startup: React.FC = () => {
             <Input />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Save
+            <Button type="primary" htmlType="submit" icon={<RocketOutlined />}>
+              Start
             </Button>
           </Form.Item>
         </Form>
