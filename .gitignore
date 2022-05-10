@@ -12,3 +12,4 @@ sessions/
 *.crt
 dump\.rdb
 *.log
+.cached/
