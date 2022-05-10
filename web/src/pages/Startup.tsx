@@ -1,15 +1,19 @@
-import { Col, Form, Input, Layout, Row, Typography } from 'antd'
-import React from 'react'
-import { useEffect } from 'react'
+import { Button, Col, Form, Input, Layout, Row, Typography } from 'antd'
+import React, { useEffect } from 'react'
 
 const Startup: React.FC = () => {
   const [form] = Form.useForm()
 
   useEffect(() => {
     form.setFieldsValue({
-      apiUrl: `${window.location.origin}`,
+      baseUrl: localStorage.getItem('BASE_URL') || window.location.origin,
     })
   }, [])
+
+  const finish = () => {
+    localStorage.setItem('BASE_URL', form.getFieldValue('baseUrl'))
+    return location.replace(form.getFieldValue('baseUrl'))
+  }
 
   return <Layout.Content className="container">
     <Row style={{ marginTop: '30px' }}>
@@ -18,17 +22,16 @@ const Startup: React.FC = () => {
           Welcome!
         </Typography.Title>
         <Typography.Paragraph type="secondary" style={{ fontSize: '14px' }}>
-          We'll setup the TeleDrive Web on-premise variant for you first.
+          We'll redirect you to your TeleDrive application.
         </Typography.Paragraph>
-        <Form form={form} layout="vertical">
-          <Form.Item label="API Base URL" name="apiUrl">
+        <Form form={form} layout="vertical" onFinish={finish}>
+          <Form.Item label="Base URL" name="baseUrl">
             <Input />
           </Form.Item>
-          <Form.Item label="API Key" name="apiKey">
-            <Input />
-          </Form.Item>
-          <Form.Item label="API Hash" name="apiHash">
-            <Input.Password />
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Save
+            </Button>
           </Form.Item>
         </Form>
       </Col>

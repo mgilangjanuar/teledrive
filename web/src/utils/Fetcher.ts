@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { RETRY_COUNT } from './Constant'
 
-export const apiUrl = `${localStorage.getItem('API_URL') || process.env.REACT_APP_API_URL || ''}/api/v1`
+export const apiUrl = `${localStorage.getItem('BASE_URL') || process.env.REACT_APP_API_URL || ''}/api/v1`
 
 export const req = axios.create({
   baseURL: apiUrl,

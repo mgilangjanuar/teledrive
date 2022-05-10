@@ -83,6 +83,12 @@ function App(): React.ReactElement {
     })
   }, [])
 
+  useEffect(() => {
+    if (localStorage.getItem('BASE_URL') && localStorage.getItem('BASE_URL') !== window.location.origin) {
+      window.location.replace(localStorage.getItem('BASE_URL') as string)
+    }
+  }, [])
+
   return (
     <Layout className="App">
       <Helmet>
