@@ -92,7 +92,9 @@ function App(): React.ReactElement {
   }, [])
 
   useEffect(() => {
-    window.addEventListener('load', () => setLoading(false))
+    window.addEventListener('load', () => setTimeout(() => {
+      setLoading(false)
+    }, 1500))
   }, [])
 
   return (
