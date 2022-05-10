@@ -101,7 +101,7 @@ function App(): React.ReactElement {
       bgColor='#141414'
       spinnerColor='#9ee5f8'
       textColor='#676767'
-      logoSrc='/logo512.png'>
+      logoSrc='/logo192.png'>
       <Layout className="App">
         <Helmet>
           <meta name="theme-color" content={me?.user.settings?.theme === 'dark' ? '#1F1F1F' : '#0088CC'} />

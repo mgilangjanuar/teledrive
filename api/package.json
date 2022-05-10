@@ -1,6 +1,6 @@
 {
   "name": "api",
-  "version": "2.2.4",
+  "version": "2.3.0",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
