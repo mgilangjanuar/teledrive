@@ -11,7 +11,7 @@ import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
 import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
-import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
+import { CONNECTION_RETRIES, PROCESS_RETRY, TG_CREDS } from '../../utils/Constant'
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -1089,28 +1089,30 @@ export class Files {
         }
       })
 
-      try {
-        res.end(await getData())
-      } catch (error) {
-        console.log(error)
-      }
-
-      // let trial = 0
-      // while (trial < PROCESS_RETRY) {
-      //   try {
-      //     await getData()
-      //     trial = PROCESS_RETRY
-      //   } catch (error) {
-      //     console.log(error)
-      //     if (error.status !== 422) {
-      //       if (trial >= PROCESS_RETRY) {
-      //         throw error
-      //       }
-      //       await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
-      //       await req.tg?.connect()
-      //     }
-      //   }
+      // try {
+      //   res.end(await getData())
+      // } catch (error) {
+      //   console.log(error)
       // }
+
+      let trial = 0
+      while (trial < PROCESS_RETRY) {
+        try {
+          await getData()
+          trial = PROCESS_RETRY
+        } catch (error) {
+          console.log(error)
+          if (error.status !== 422) {
+            if (trial >= PROCESS_RETRY) {
+              throw error
+            }
+            await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
+            await req.tg?.connect()
+          } else {
+            throw error
+          }
+        }
+      }
 
     }
     usage = await prisma.usages.update({

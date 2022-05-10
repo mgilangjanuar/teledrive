@@ -12,16 +12,15 @@ import Footer from './pages/components/Footer'
 import Navbar from './pages/components/Navbar'
 import { fetcher } from './utils/Fetcher'
 
-
+const Startup = lazy(
+  () => import(/* webpackChunkName: 'StartupPage' */ './pages/Startup')
+)
 const Dashboard = lazy(
   () => import(/* webpackChunkName: 'DashboardPage' */ './pages/dashboard')
 )
 const Settings = lazy(
   () => import(/* webpackChunkName: 'SettingsPage' */ './pages/Settings')
 )
-// const Home = lazy(
-//   () => import(/* webpackChunkName: 'HomePage' */ './pages/Home')
-// )
 const View = lazy(
   () => import(/* webpackChunkName: 'ViewPage' */ './pages/view/index')
 )
@@ -31,21 +30,6 @@ const Login = lazy(
 const Admin = lazy(
   () => import(/* webpackChunkName: 'AdminPage' */ './pages/admin/index')
 )
-// const Refund = lazy(
-//   () => import(/* webpackChunkName: 'RefundPage' */ './pages/Refund')
-// )
-// const Privacy = lazy(
-//   () => import(/* webpackChunkName: 'PrivacyPage'  */ './pages/Privacy')
-// )
-// const Pricing = lazy(
-//   () => import(/* webpackChunkName: 'PricingPage'  */ './pages/Pricing')
-// )
-// const Contact = lazy(
-//   () => import(/* webpackChunkName: 'ContactPage'  */ './pages/Contact')
-// )
-// const Faq = lazy(
-//   () => import(/* webpackChunkName: 'FaqPage' */ './pages/Faq')
-// )
 const NotFound = lazy(
   () => import(/* webpackChunkName: 'NotFoundPage' */ './pages/errors/NotFound')
 )
@@ -120,6 +104,7 @@ function App(): React.ReactElement {
         <div style={{ minHeight: '88vh' }}>
           <Suspense fallback={<></>}>
             <Switch>
+              <Route path="/startup" exact component={Startup} />
               <Route path="/dashboard/:type?" exact component={Dashboard} />
               <Route path="/settings" exact component={() => <Settings me={me} error={errorMe} mutate={mutateMe} />} />
               <Route path="/view/:id" exact component={View} />
@@ -127,11 +112,6 @@ function App(): React.ReactElement {
                 {me?.user && !localStorage.getItem('experimental') ? <Redirect to="/dashboard" /> : <Login me={me} />}
               </Route>
               <Route path="/admin" exact component={() => <Admin me={me} errorMe={errorMe} />} />
-              {/* <Route path="/refund" exact component={Refund} />
-              <Route path="/privacy" exact component={Privacy} />
-              <Route path="/pricing" exact component={() => <Pricing me={me} />} />
-              <Route path="/contact" exact component={() => <Contact me={me} />} />
-              <Route path="/faq" exact component={Faq} /> */}
               <Route path="/" exact>
                 <Redirect to="/dashboard" />
               </Route>
