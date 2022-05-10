@@ -1,15 +1,9 @@
 import { RocketOutlined } from '@ant-design/icons'
 import { Button, Col, Form, Input, Layout, Row, Typography } from 'antd'
-import React, { useEffect } from 'react'
+import React from 'react'
 
 const Startup: React.FC = () => {
   const [form] = Form.useForm()
-
-  useEffect(() => {
-    form.setFieldsValue({
-      baseUrl: localStorage.getItem('BASE_URL') || window.location.origin,
-    })
-  }, [])
 
   const finish = () => {
     localStorage.setItem('BASE_URL', form.getFieldValue('baseUrl'))
