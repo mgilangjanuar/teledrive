@@ -1,8 +1,8 @@
 {
-  "name": "electron-webview",
-  "productName": "Electron webview",
+  "name": "Teledrive",
+  "productName": "Teledrive",
   "version": "1.0.0",
-  "description": "A simple Electron webview application",
+  "description": "Teledrive Cloud Storage",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -11,12 +11,12 @@
     "package-linux": "electron-packager . --overwrite --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds",
     "create-installer-mac": "electron-installer-dmg ./release-builds/Electron\\ webview-darwin-x64/Electron\\ webview.app electron-webview --out=release-builds --overwrite --icon=assets/icons/mac/icon.icns"
   },
-  "repository": "https://github.com/cba85/electron-webview",
+  "repository": "https://github.com/mgilangjanuar/teledrive",
   "keywords": [
-    "Electron",
+    "Cloud Storage",
     "webview",
-    "tutorial",
-    "demo"
+    "app",
+    "storage"
   ],
   "author": "GitHub",
   "license": "MIT",

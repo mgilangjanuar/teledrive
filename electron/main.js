@@ -11,12 +11,12 @@ app.on("ready", () => {
   const window = require("./src/window");
   mainWindow = window.createBrowserWindow(app);
   remoteMain.enable(mainWindow.webContents);
-
+  icon: 'assets\icons\win.icon.ico'
   // Option 1: Uses Webtag and load a custom html file with external content
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
   // Option 2: Load directly an URL if you don't need interface customization
-  //mainWindow.loadURL("https://github.com");
+  //mainWindow.loadURL("");
 
   // Option 3: Uses BrowserView to load an URL
   //const view = require("./src/view");
