@@ -1007,6 +1007,8 @@ export class Files {
 
         const readStream = createReadStream(filename(), { start, end })
         res.writeHead(206, {
+          'Cache-Control': 'public, max-age=604800',
+          'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
           'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
           'Content-Type': files[0].mime_type,
@@ -1016,6 +1018,8 @@ export class Files {
         readStream.pipe(res)
       } else {
         res.writeHead(206, {
+          'Cache-Control': 'public, max-age=604800',
+          'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes */${totalFileSize}`,
           'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
           'Content-Type': files[0].mime_type,
@@ -1030,6 +1034,8 @@ export class Files {
       return
     }
 
+    res.setHeader('Cache-Control', 'public, max-age=604800')
+    res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Range', `bytes */${totalFileSize}`)
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
