@@ -7,7 +7,7 @@ export default function App() {
   return (
     <WebView 
       style={styles.container}
-      source={{ uri: 'https://androidteledrive.herokuapp.com'}}
+      source={{ uri: 'https://teledrive-web.vercel.app/startup'}}
     />
   );
 }
