@@ -19,6 +19,7 @@ import listEndpoints from 'express-list-endpoints'
 import morgan from 'morgan'
 import path from 'path'
 import { serializeError } from 'serialize-error'
+import serverless from 'serverless-http'
 import { API } from './api'
 import { Redis } from './service/Cache'
 import { markdownSafe } from './utils/StringParser'
@@ -99,3 +100,6 @@ app.use((req: Request, res: Response) => {
 app.listen(process.env.PORT || 4000, () => console.log(`Running at :${process.env.PORT || 4000}...`))
 
 console.log(listEndpoints(app))
+
+module.exports = app
+module.exports.handler = serverless(app)
