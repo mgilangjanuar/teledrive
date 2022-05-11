@@ -1037,7 +1037,11 @@ export class Files {
     res.setHeader('Accept-Ranges', 'bytes')
 
     let downloaded: number = 0
-    writeFileSync(filename('process-'), '')
+    try {
+      writeFileSync(filename('process-'), '')
+    } catch (error) {
+      // ignore
+    }
 
     for (const file of files) {
       let chat: any
@@ -1068,21 +1072,26 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
-              // if (downloaded > start) {
-              //   return res.end()
-              // }
               console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
-              appendFileSync(filename('process-'), buffer)
+              try {
+                appendFileSync(filename('process-'), buffer)
+              } catch (error) {
+                // ignore
+              }
               res.write(buffer)
             }
           },
           close: () => {
             console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
-            const { size } = statSync(filename('process-'))
-            if (totalFileSize.gt(bigInt(size))) {
-              rmSync(filename('process-'))
-            } else {
-              renameSync(filename('process-'), filename())
+            try {
+              const { size } = statSync(filename('process-'))
+              if (totalFileSize.gt(bigInt(size))) {
+                rmSync(filename('process-'))
+              } else {
+                renameSync(filename('process-'), filename())
+              }
+            } catch (error) {
+              // ignore
             }
             res.end()
           }
