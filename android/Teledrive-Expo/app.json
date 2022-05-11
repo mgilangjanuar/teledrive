@@ -2,7 +2,7 @@
   "expo": {
     "name": "Teledrive",
     "slug": "snack-6b33518d-2b5e-46c5-beb5-d37aa4f26f80",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -20,10 +20,12 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.mgilangjanuar.teledrive"
     },
     "web": {
       "favicon": "./assets/favicon.png"

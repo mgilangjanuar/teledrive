@@ -40,8 +40,10 @@
     "nanoid": "^3.1.25",
     "pg": "^8.7.1",
     "pg-connection-string": "^2.5.0",
+    "prisma": "^3.14.0",
     "redis": "^4.0.1",
     "serialize-error": "^8.1.0",
+    "serverless-http": "^3.0.1",
     "source-map-support": "^0.5.19",
     "teledrive-client": "^2.7.23",
     "uuid-random": "^1.3.2"
@@ -76,7 +78,6 @@
     "@typescript-eslint/parser": "^4.29.3",
     "eslint": "^7.32.0",
     "nodemon": "^2.0.12",
-    "prisma": "^3.14.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "typescript": "^4.4.2"

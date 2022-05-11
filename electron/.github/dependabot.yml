@@ -1,0 +1,13 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: electron
+    versions:
+    - 11.2.1
+    - 11.2.2
+    - 12.0.0

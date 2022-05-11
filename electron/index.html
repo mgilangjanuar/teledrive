@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/topbar.css" />
+    <!-- <link rel="stylesheet" href="assets/css/no-topbar.css"> -->
+    <script defer src="assets/js/renderer.js"></script>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline';"
+    />
+  </head>
+  <body>
+    <!-- Topbar -->
+    <div id="controls">
+      <button id="home" title="Go Home">Home</button>
+     
+    </div>
+    <!-- End topbar -->
+
+    <!-- Webview -->
+    <webview
+      id="webview"
+      autosize="on"
+      src="https://teledrive-web.vercel.app/startup"
+      data-home="https://teledrive-web.vercel.app/startup"
+    ></webview>
+
+    
+      
+  </body>
+</html>
