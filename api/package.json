@@ -7,7 +7,8 @@
   "scripts": {
     "start": "nodemon dist/index.js --watch",
     "prebuild": "prisma generate",
-    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc"
+    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc",
+    "postbuild": "test -f keys || (node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" > keys && node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" >> keys)"
   },
   "dependencies": {
     "@prisma/client": "^3.14.0",

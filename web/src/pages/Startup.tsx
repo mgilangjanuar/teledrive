@@ -37,10 +37,10 @@ const Startup: React.FC = () => {
         </Typography.Paragraph>
         <Form form={form} layout="vertical" onFinish={finish}>
           <Form.Item label="Web URL" name="baseUrl">
-            <Input size="large" />
+            <Input />
           </Form.Item>
           <Form.Item label="Server URL" name="apiUrl">
-            <Input size="large" />
+            <Input />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" icon={<RocketOutlined />}>

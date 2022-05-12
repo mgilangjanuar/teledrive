@@ -11,7 +11,7 @@ import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
 import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
-import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
+import { CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } from '../../utils/Constant'
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -385,7 +385,7 @@ export class Files {
 
     let key: string = currentFile.signed_key || parent?.signed_key
     if (file.sharing_options?.length && !key) {
-      key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+      key = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), FILES_JWT_SECRET).toString()
     }
 
     if (!file.sharing_options?.length && !currentFile.sharing_options?.length && !parent?.sharing_options?.length) {
@@ -1145,7 +1145,7 @@ export class Files {
 
     let data: { file: { id: string }, session: string }
     try {
-      data = JSON.parse(AES.decrypt(files[0].signed_key, process.env.FILES_JWT_SECRET).toString(enc.Utf8))
+      data = JSON.parse(AES.decrypt(files[0].signed_key, FILES_JWT_SECRET).toString(enc.Utf8))
     } catch (error) {
       throw { status: 401, body: { error: 'Invalid token' } }
     }

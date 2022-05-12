@@ -12882,10 +12882,10 @@ react-progress-bar.js@^0.2.3:
     lodash.isequal "^4.1.4"
     progressbar.js "^1.0.1"
 
-react-qr-code@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.3.tgz#cc80785e08f817d1ab066ca4035262f77d049648"
-  integrity sha512-6GDH0l53lksf2JgZwwcoS0D60a1OAal/GQRyNFkMBW19HjSqvtD5S20scmSQsKl+BgWM85Wd5DCcUYoHd+PZnQ==
+react-qr-code@^2.0.7:
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.7.tgz#508304e031e82426a044f5e9490aca87d7c3de38"
+  integrity sha512-NpknL80p7dWbLdHfBSIxQIqLCu3+kBlyzYD692rO0UnVwfCSziIxc1xn/p3JhPEv1RV1lRD8j0w+hR3L7tawTQ==
   dependencies:
     prop-types "^15.7.2"
     qr.js "0.0.0"
@@ -16148,10 +16148,10 @@ worker-rpc@^0.1.0:
   dependencies:
     microevent.ts "~0.1.1"
 
-world_countries_lists@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/world_countries_lists/-/world_countries_lists-2.3.0.tgz#8eca03dc6b77c5314cd43e01c2ba5c1c50f3910e"
-  integrity sha512-8ZaWCBBZyZ/hQjRgUMaifF2qt7XlVQseYMXozc/r6WO7ONZPo6xlcQmB7wTMUDM7paqZqvxUcvNSewY3LTrvrA==
+world_countries_lists@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/world_countries_lists/-/world_countries_lists-2.5.1.tgz#515fbafc90a3f75e7837b8dabce46303cb79bf47"
+  integrity sha512-pOxfcXJmoXREpk2O01jrLySzF7dth5phPB0AmEFkSis3ImAUffnMpWdRHomvH+NC+7NE5G3dWN9Ty5yyQ/5YmQ==
 
 wrap-ansi@^2.0.0:
   version "2.1.0"
