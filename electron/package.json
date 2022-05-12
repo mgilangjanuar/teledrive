@@ -1,8 +1,8 @@
 {
-  "name": "Teledrive",
-  "productName": "Teledrive",
+  "name": "teledrive",
+  "productName": "TeleDrive",
   "version": "1.0.0",
-  "description": "Teledrive Cloud Storage",
+  "description": "Cloud Storage Service",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
