@@ -123,7 +123,7 @@ function App(): React.ReactElement {
             }
           />
         </div> : <>
-          {!/^\/view\/.*/gi.test(window.location.pathname) && <Navbar user={me?.user} />}
+          {!/^\/view\/.*/gi.test(pathname) && <Navbar user={me?.user} />}
           <div style={{ minHeight: '88vh' }}>
             <Suspense fallback={<></>}>
               <Switch>
@@ -142,7 +142,7 @@ function App(): React.ReactElement {
               </Switch>
             </Suspense>
           </div>
-          {/^\/view\/.*/gi.test(window.location.pathname) ? <></> : <Footer me={me} />}
+          {/^\/view\/.*/gi.test(pathname) || /\/startup/.test(pathname) ? <></> : <Footer me={me} />}
         </>}
       </Layout>
     </LoadingScreen>

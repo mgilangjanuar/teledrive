@@ -30,40 +30,42 @@ const Navbar: React.FC<Props> = ({ user }) => {
   return <>
     <Layout.Header style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', padding: '0 20px' }}>
       <div key="logo" className="logo" style={{ marginRight: '30px' }}>
-        <Link to="/dashboard" style={{ color: '#fff' }}>
+        {/\/startup/.test(pathname) ? <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} /> : <Link to="/dashboard" style={{ color: '#fff' }}>
           <img src="/teledrive-logo/logoteledrive-white.png" style={{ height: '24px' }} />
-        </Link>
+        </Link>}
       </div>
-      {user ? <>{/\/dashboard/.test(pathname) || /\/settings/.test(pathname) || /\/admin/.test(pathname) || /\/startup/.test(pathname) ? <>
-        <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
-          <div style={{ padding: '10px' }}>
-            Bandwidth: { }
-            <Tag color="green">Unlimited</Tag>
-          </div>
-          <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
-            setPopoverVisibility(false)
-            if (key === 'admin' && user?.role === 'admin') {
-              history.push('/admin')
-            } else if (key === 'settings') {
-              history.push('/settings')
-            } else if (key === 'logout') {
-              setLogoutConfirmation(true)
-            }
-          }}>
-            {user?.role === 'admin' && <Menu.Item key="admin" icon={<UserSwitchOutlined />}>Admin</Menu.Item>}
-            <Menu.Item key="settings" icon={<SettingOutlined />}>Settings</Menu.Item>
-            <Menu.Item danger key="logout" icon={<LogoutOutlined />}>Logout</Menu.Item>
-          </Menu>
-        </div>}>
-          <Button type="link" style={{ color: '#ffff', float: 'right', top: '12px' }} icon={<Avatar src={`${apiUrl}/users/me/photo`} icon={<UserOutlined />} />} />
-        </Popover>
-      </> : <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>{window.innerWidth > 359 && 'Dashboard'}</Button>}</> :
-        <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
-      <Menu selectable={false} overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" theme={currentTheme === 'dark' ? 'light' : 'dark'}
-        style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
-        <Menu.Item onClick={() => history.push('/dashboard')} key="dashboard">Dashboard</Menu.Item>
-        <Menu.Item onClick={() => window.open('https://github.com/mgilangjanuar/teledrive', '_blank')} key="github" icon={<GithubOutlined />}>GitHub</Menu.Item>
-      </Menu>
+      {!/\/startup/.test(pathname) && <>
+        {user ? <>{/\/dashboard/.test(pathname) || /\/settings/.test(pathname) || /\/admin/.test(pathname) ? <>
+          <Popover visible={popoverVisibility} onVisibleChange={setPopoverVisibility} placement="bottomRight" trigger={['click']} content={<div>
+            <div style={{ padding: '10px' }}>
+              Bandwidth: { }
+              <Tag color="green">Unlimited</Tag>
+            </div>
+            <Menu selectable={false} triggerSubMenuAction="click" onClick={({ key }) => {
+              setPopoverVisibility(false)
+              if (key === 'admin' && user?.role === 'admin') {
+                history.push('/admin')
+              } else if (key === 'settings') {
+                history.push('/settings')
+              } else if (key === 'logout') {
+                setLogoutConfirmation(true)
+              }
+            }}>
+              {user?.role === 'admin' && <Menu.Item key="admin" icon={<UserSwitchOutlined />}>Admin</Menu.Item>}
+              <Menu.Item key="settings" icon={<SettingOutlined />}>Settings</Menu.Item>
+              <Menu.Item danger key="logout" icon={<LogoutOutlined />}>Logout</Menu.Item>
+            </Menu>
+          </div>}>
+            <Button type="link" style={{ color: '#ffff', float: 'right', top: '12px' }} icon={<Avatar src={`${apiUrl}/users/me/photo`} icon={<UserOutlined />} />} />
+          </Popover>
+        </> : <Button type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<DashboardOutlined />} onClick={() => history.push('/dashboard')}>{window.innerWidth > 359 && 'Dashboard'}</Button>}</> :
+          <Button onClick={() => history.push('/login')} type="link" style={{ color: '#ffff', float: 'right', top: '16px' }} icon={<LoginOutlined />}>Login</Button>}
+        <Menu selectable={false} overflowedIndicator={<MenuOutlined />} mode="horizontal" triggerSubMenuAction="click" theme={currentTheme === 'dark' ? 'light' : 'dark'}
+          style={{ background: currentTheme === 'dark' ? '#1f1f1f' : '#0088CC', position: 'relative', display: 'flex', justifyContent: 'right' }}>
+          <Menu.Item onClick={() => history.push('/dashboard')} key="dashboard">Dashboard</Menu.Item>
+          <Menu.Item onClick={() => window.open('https://github.com/mgilangjanuar/teledrive', '_blank')} key="github" icon={<GithubOutlined />}>GitHub</Menu.Item>
+        </Menu>
+      </>}
     </Layout.Header>
 
     <Modal title={<Typography.Text>
