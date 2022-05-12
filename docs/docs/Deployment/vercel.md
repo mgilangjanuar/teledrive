@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# Vercel
+# Vercel **[Broken]**
 
 For deployment to [Vercel](https://vercel.com/) you need to create an account first.
 

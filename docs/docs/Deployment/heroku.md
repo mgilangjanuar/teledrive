@@ -31,8 +31,6 @@ Get started by build all needed services.
   | TG_API_HASH            | yes      | Application hash from Telegram App                    |
   | ADMIN_USERNAME         | yes      | Telegram username of the admin TeleDrive              |
   | DATABASE_URL           | yes      | PostgreSQL connection URI, format: `postgresql://[user]:[password]@[host]:[port][/dbname][?paramspec]` |
-  | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token               |
-  | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                |
 
 - Web variables
 
