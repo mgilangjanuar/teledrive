@@ -3,7 +3,7 @@ import bigInt from 'big-integer'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import { appendFileSync, createReadStream, existsSync, mkdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
+import { appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
 import moment from 'moment'
 import multer from 'multer'
 import { Api, Logger, TelegramClient } from 'teledrive-client'
@@ -11,7 +11,7 @@ import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
 import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
-import { CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } from '../../utils/Constant'
+import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } from '../../utils/Constant'
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
@@ -973,21 +973,6 @@ export class Files {
 
     let cancel = false
     req.on('close', () => cancel = true)
-    // res.setHeader('Cache-Control', 'public, max-age=604800')
-    // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
-    // res.setHeader('Content-Range', `bytes */${totalFileSize}`)
-    // res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
-    // res.setHeader('Content-Type', files[0].mime_type)
-    // res.setHeader('Content-Length', totalFileSize.toString())
-    // res.setHeader('Accept-Ranges', 'bytes')
-
-    // res.writeHead(206, {
-    //   'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
-    //   'Content-Type': files[0].mime_type,
-    //   'Content-Length': totalFileSize.toString(),
-    //   'Accept-Ranges': 'bytes',
-    //   // 'Content-Range': `bytes ${downloaded - buffer.length}-${downloaded}/${buffer.length}`
-    // })
 
     const ranges = req.headers.range ? req.headers.range.replace(/bytes\=/gi, '').split('-').map(Number) : null
 
@@ -999,6 +984,15 @@ export class Files {
     } catch (error) {
       // ignore
     }
+
+    const cachedFiles = () => readdirSync(`${__dirname}/../../../../.cached`)
+      .filter(filename =>
+        statSync(`${__dirname}/../../../../.cached/${filename}`).isFile()
+      ).sort((a, b) =>
+        new Date(statSync(`${__dirname}/../../../../.cached/${a}`).birthtime).getTime()
+          - new Date(statSync(`${__dirname}/../../../../.cached/${b}`).birthtime).getTime()
+      )
+    const getCachedFilesSize = () => cachedFiles().reduce((res, file) => res + statSync(`${__dirname}/../../../../.cached/${file}`).size, 0)
 
     if (existsSync(filename())) {
       if (ranges) {
@@ -1034,8 +1028,8 @@ export class Files {
       return
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=604800')
-    res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
+    // res.setHeader('Cache-Control', 'public, max-age=604800')
+    // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Range', `bytes */${totalFileSize}`)
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
@@ -1109,24 +1103,6 @@ export class Files {
       } catch (error) {
         console.log(error)
       }
-
-      // let trial = 0
-      // while (trial < PROCESS_RETRY) {
-      //   try {
-      //     await getData()
-      //     trial = PROCESS_RETRY
-      //   } catch (error) {
-      //     console.log(error)
-      //     if (error.status !== 422) {
-      //       if (trial >= PROCESS_RETRY) {
-      //         throw error
-      //       }
-      //       await new Promise(resolve => setTimeout(resolve, ++trial * 3000))
-      //       await req.tg?.connect()
-      //     }
-      //   }
-      // }
-
     }
     usage = await prisma.usages.update({
       data: {
@@ -1134,6 +1110,14 @@ export class Files {
       },
       where: { key: usage.key }
     })
+
+    while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
+      try {
+        rmSync(`${__dirname}/../../../../.cached/${cachedFiles()[0]}`)
+      } catch {
+        // ignore
+      }
+    }
 
     // res.end()
   }
