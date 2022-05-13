@@ -4,8 +4,8 @@ sidebar_position: 1
 
 # Introduction
 
- - version: 2.2.x
- - updated: 2022-05-08
+ - version: 2.3.x
+ - updated: 2022-05-13
 
 If you ever heard about cloud storage services like Google Drive, OneDrive, iCloud, Dropbox &mdash; **TeleDrive** is one of them, you can upload photos, videos, documents, or any files for free. But, what makes **TeleDrive** different? We're using the <a href="https://core.telegram.org/api#telegram-api" target="_blank">Telegram API</a>, so you can do uploads without limit and free.
 
