@@ -1,9 +1,9 @@
+import { NextFunction, Request, Response } from 'express'
+import { verify } from 'jsonwebtoken'
 import { Logger, TelegramClient } from 'teledrive-client'
 import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
-import { NextFunction, Request, Response } from 'express'
-import { verify } from 'jsonwebtoken'
-import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
+import { API_JWT_SECRET, CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function TGSessionAuth(req: Request, _: Response, next: NextFunction): Promise<any> {
   const authkey = (req.headers.authorization || req.cookies.authorization)?.replace(/^Bearer\ /gi, '')
@@ -13,7 +13,7 @@ export async function TGSessionAuth(req: Request, _: Response, next: NextFunctio
 
   let data: { session: string }
   try {
-    data = verify(authkey, process.env.API_JWT_SECRET) as { session: string }
+    data = verify(authkey, API_JWT_SECRET) as { session: string }
   } catch (error) {
     throw { status: 401, body: { error: 'Access token is invalid' } }
   }

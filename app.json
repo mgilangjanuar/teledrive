@@ -20,14 +20,6 @@
       "description": "Hide the logs for production, default: develop. Read more at: https://teledriveapp.com/docs/Deployment/heroku",
       "required": false
     },
-    "API_JWT_SECRET": {
-      "description": "Random string for encrypt JWT web token. Read more at: https://teledriveapp.com/docs/Deployment/heroku",
-      "required": true
-    },
-    "FILES_JWT_SECRET": {
-      "description": "Random string for encrypt public files.",
-      "required": true
-    },
     "REACT_APP_API_URL": {
       "description": "Base URL for the API, default: '' (empty string).",
       "required": false

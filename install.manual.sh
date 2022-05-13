@@ -8,9 +8,9 @@ echo "Yarn Version: $(yarn -v)"
 echo "cURL Version: $(curl -V)"
 echo "cURL Version: $(psql -V)"
 
-if [ ! -f server/.env ]
+if [ ! -f api/.env ]
 then
-  echo "Generating server/.env file..."
+  echo "Generating api/.env file..."
 
   ENV="develop"
 
@@ -24,22 +24,17 @@ then
   read -p "Enter your PORT: [4000]" PORT
   PORT="${PORT:=4000}"
 
-  API_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
-  FILES_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
-
-  echo "ENV=$ENV" > server/.env
-  echo "PORT=$PORT" >> server/.env
-  echo "TG_API_ID=$TG_API_ID" >> server/.env
-  echo "TG_API_HASH=$TG_API_HASH" >> server/.env
-  echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> server/.env
-  echo "DATABASE_URL=$DATABASE_URL" >> server/.env
-  echo "API_JWT_SECRET=$API_JWT_SECRET" >> server/.env
-  echo "FILES_JWT_SECRET=$FILES_JWT_SECRET" >> server/.env
+  echo "ENV=$ENV" > api/.env
+  echo "PORT=$PORT" >> api/.env
+  echo "TG_API_ID=$TG_API_ID" >> api/.env
+  echo "TG_API_HASH=$TG_API_HASH" >> api/.env
+  echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> api/.env
+  echo "DATABASE_URL=$DATABASE_URL" >> api/.env
 fi
 
 if [ ! -f web/.env ]
 then
-  export $(cat server/.env | xargs)
+  export $(cat api/.env | xargs)
   echo
   echo "Generating web/.env file..."
 
@@ -67,4 +62,4 @@ yarn workspaces run build
 
 echo
 echo "Run server..."
-cd server && node dist/index.js
+cd api && node dist/index.js

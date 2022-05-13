@@ -7459,6 +7459,11 @@ https-proxy-agent@^5.0.0:
     agent-base "6"
     debug "4"
 
+human-format@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/human-format/-/human-format-1.0.0.tgz#bb5ecc618062581f0442769529c553367507e8fe"
+  integrity sha512-ZfSxF/LHVDb5Un52AguYkZArbiuMbJQwpOpZ0MBuj3pYDmLt7pkCEws9L8xKbgnaKrfMgGd6qc+PHBbKO97AaA==
+
 human-signals@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-1.1.1.tgz#c5b1cd14f50aeae09ab6c59fe63ba3395fe4dfa3"
@@ -12882,10 +12887,10 @@ react-progress-bar.js@^0.2.3:
     lodash.isequal "^4.1.4"
     progressbar.js "^1.0.1"
 
-react-qr-code@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.3.tgz#cc80785e08f817d1ab066ca4035262f77d049648"
-  integrity sha512-6GDH0l53lksf2JgZwwcoS0D60a1OAal/GQRyNFkMBW19HjSqvtD5S20scmSQsKl+BgWM85Wd5DCcUYoHd+PZnQ==
+react-qr-code@^2.0.7:
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.7.tgz#508304e031e82426a044f5e9490aca87d7c3de38"
+  integrity sha512-NpknL80p7dWbLdHfBSIxQIqLCu3+kBlyzYD692rO0UnVwfCSziIxc1xn/p3JhPEv1RV1lRD8j0w+hR3L7tawTQ==
   dependencies:
     prop-types "^15.7.2"
     qr.js "0.0.0"
@@ -16148,10 +16153,10 @@ worker-rpc@^0.1.0:
   dependencies:
     microevent.ts "~0.1.1"
 
-world_countries_lists@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/world_countries_lists/-/world_countries_lists-2.3.0.tgz#8eca03dc6b77c5314cd43e01c2ba5c1c50f3910e"
-  integrity sha512-8ZaWCBBZyZ/hQjRgUMaifF2qt7XlVQseYMXozc/r6WO7ONZPo6xlcQmB7wTMUDM7paqZqvxUcvNSewY3LTrvrA==
+world_countries_lists@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/world_countries_lists/-/world_countries_lists-2.5.1.tgz#515fbafc90a3f75e7837b8dabce46303cb79bf47"
+  integrity sha512-pOxfcXJmoXREpk2O01jrLySzF7dth5phPB0AmEFkSis3ImAUffnMpWdRHomvH+NC+7NE5G3dWN9Ty5yyQ/5YmQ==
 
 wrap-ansi@^2.0.0:
   version "2.1.0"

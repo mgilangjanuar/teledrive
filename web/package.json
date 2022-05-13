@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "private": true,
   "dependencies": {
     "@ideasio/add-to-homescreen-react": "^1.0.10",
@@ -33,7 +33,7 @@
     "react-otp-input": "^2.4.0",
     "react-paypal-button-v2": "^2.6.3",
     "react-player": "^2.10.1",
-    "react-qr-code": "^2.0.3",
+    "react-qr-code": "^2.0.7",
     "react-router-dom": "^5.3.0",
     "react-scripts": "^4.0.3",
     "react-twitter-widgets": "^1.10.0",
@@ -49,7 +49,7 @@
     "typescript": "^4.0.3",
     "use-debounce": "^7.0.1",
     "web-vitals": "^0.2.4",
-    "world_countries_lists": "^2.3.0"
+    "world_countries_lists": "^2.5.1"
   },
   "scripts": {
     "start": "react-scripts start",

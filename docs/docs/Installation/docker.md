@@ -41,8 +41,6 @@ If it's succeed you don't need to follow the steps below.
   | TG_API_HASH            | yes      | Application hash from Telegram App                                |
   | ADMIN_USERNAME         | yes      | Telegram username of the admin TeleDrive                          |
   | DB_PASSWORD            | yes      | Database password                                                 |
-  | API_JWT_SECRET         | yes      | Random string for encrypt JWT web token                           |
-  | FILES_JWT_SECRET       | yes      | Random string for encrypt public files                            |
 ## Build and Run
 
 Build and run with this command:

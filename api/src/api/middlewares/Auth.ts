@@ -1,11 +1,11 @@
+import { NextFunction, Request, Response } from 'express'
+import { verify } from 'jsonwebtoken'
 import { Logger, TelegramClient } from 'teledrive-client'
 import { LogLevel } from 'teledrive-client/extensions/Logger'
 import { StringSession } from 'teledrive-client/sessions'
-import { NextFunction, Request, Response } from 'express'
-import { verify } from 'jsonwebtoken'
-import { Redis } from '../../service/Cache'
-import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 import { prisma } from '../../model'
+import { Redis } from '../../service/Cache'
+import { API_JWT_SECRET, CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function Auth(req: Request, _: Response, next: NextFunction): Promise<any> {
   const authkey = (req.headers.authorization || req.cookies.authorization)?.replace(/^Bearer\ /gi, '')
@@ -15,7 +15,7 @@ export async function Auth(req: Request, _: Response, next: NextFunction): Promi
 
   let data: { session: string }
   try {
-    data = verify(authkey, process.env.API_JWT_SECRET) as { session: string }
+    data = verify(authkey, API_JWT_SECRET) as { session: string }
   } catch (error) {
     throw { status: 401, body: { error: 'Access token is invalid' } }
   }
@@ -67,7 +67,7 @@ export async function AuthMaybe(req: Request, _: Response, next: NextFunction): 
   if (authkey) {
     let data: { session: string }
     try {
-      data = verify(authkey, process.env.API_JWT_SECRET) as { session: string }
+      data = verify(authkey, API_JWT_SECRET) as { session: string }
     } catch (error) {
       // throw { status: 401, body: { error: 'Access token is invalid' } }
       return next()

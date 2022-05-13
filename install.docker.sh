@@ -21,9 +21,7 @@ then
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
 
-  DB_PASSWORD=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=18\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
-  API_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
-  FILES_JWT_SECRET=$(curl https://random.justyy.workers.dev/api/random/\?cached\&n\=36\&x\=7\&_\=1649668152866 | sed 's/\"//gi')
+  DB_PASSWORD=$(node -e "console.log(require('crypto').randomBytes(48).toString('base64'));")
 
   echo "ENV=$ENV" > docker/.env
   echo "PORT=$PORT" >> docker/.env
@@ -31,8 +29,6 @@ then
   echo "TG_API_HASH=$TG_API_HASH" >> docker/.env
   echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> docker/.env
   echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
-  echo "API_JWT_SECRET=$API_JWT_SECRET" >> docker/.env
-  echo "FILES_JWT_SECRET=$FILES_JWT_SECRET" >> docker/.env
 
   cd docker
   docker-compose up -d

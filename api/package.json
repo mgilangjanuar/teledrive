@@ -1,13 +1,14 @@
 {
   "name": "api",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
   "scripts": {
     "start": "nodemon dist/index.js --watch",
     "prebuild": "prisma generate",
-    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc"
+    "build": "rimraf dist && eslint -c .eslintrc.js --ext .ts . && tsc",
+    "postbuild": "test -f keys || (node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" > keys && node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" >> keys)"
   },
   "dependencies": {
     "@prisma/client": "^3.14.0",
@@ -29,6 +30,7 @@
     "express-rate-limit": "^5.3.0",
     "flatted": "^3.2.2",
     "geoip-lite": "^1.4.2",
+    "human-format": "^1.0.0",
     "input": "^1.0.1",
     "ioredis": "^4.28.2",
     "is-uuid": "^1.0.2",

@@ -9,7 +9,7 @@ import { computeCheck } from 'teledrive-client/Password'
 import { StringSession } from 'teledrive-client/sessions'
 import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
-import { CONNECTION_RETRIES, COOKIE_AGE, TG_CREDS } from '../../utils/Constant'
+import { API_JWT_SECRET, CONNECTION_RETRIES, COOKIE_AGE, FILES_JWT_SECRET, TG_CREDS } from '../../utils/Constant'
 import { Endpoint } from '../base/Endpoint'
 import { TGClient } from '../middlewares/TGClient'
 import { TGSessionAuth } from '../middlewares/TGSessionAuth'
@@ -35,7 +35,7 @@ export class Auth {
       })
     }))
     const session = req.tg.session.save()
-    const accessToken = sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '3h' })
+    const accessToken = sign({ session }, API_JWT_SECRET, { expiresIn: '3h' })
     return res.cookie('authorization', `Bearer ${accessToken}`)
       .send({ phoneCodeHash, timeout, accessToken })
   }
@@ -51,7 +51,7 @@ export class Auth {
     const { phoneCodeHash: newPhoneCodeHash, timeout } = await req.tg.invoke(new Api.auth.ResendCode({
       phoneNumber, phoneCodeHash }))
     const session = req.tg.session.save()
-    const accessToken = sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '3h' })
+    const accessToken = sign({ session }, API_JWT_SECRET, { expiresIn: '3h' })
     return res.cookie('authorization', `Bearer ${accessToken}`)
       .send({ phoneCodeHash: newPhoneCodeHash, timeout, accessToken })
   }
@@ -112,8 +112,8 @@ export class Auth {
     const session = req.tg.session.save()
     const auth = {
       session,
-      accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
+      accessToken: sign({ session }, API_JWT_SECRET, { expiresIn: '15h' }),
+      refreshToken: sign({ session }, API_JWT_SECRET, { expiresIn: '1y' }),
       expiredAfter: Date.now() + COOKIE_AGE
     }
 
@@ -133,7 +133,7 @@ export class Auth {
         ]
       }
     }).then(files => files?.map(file => {
-      const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+      const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), FILES_JWT_SECRET).toString()
       prisma.files.update({
         data: { signed_key: signedKey },
         where: { id: file.id }
@@ -150,7 +150,7 @@ export class Auth {
 
     let data: { session: string }
     try {
-      data = verify(refreshToken, process.env.API_JWT_SECRET) as { session: string }
+      data = verify(refreshToken, API_JWT_SECRET) as { session: string }
     } catch (error) {
       throw { status: 400, body: { error: 'Refresh token is invalid' } }
     }
@@ -184,8 +184,8 @@ export class Auth {
       const session = req.tg.session.save()
       const auth = {
         session,
-        accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-        refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+        accessToken: sign({ session }, API_JWT_SECRET, { expiresIn: '15h' }),
+        refreshToken: sign({ session }, API_JWT_SECRET, { expiresIn: '100y' }),
         expiredAfter: Date.now() + COOKIE_AGE
       }
       return res
@@ -214,8 +214,8 @@ export class Auth {
     const session = req.tg.session.save()
     const auth = {
       session,
-      accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-      refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '100y' }),
+      accessToken: sign({ session }, API_JWT_SECRET, { expiresIn: '15h' }),
+      refreshToken: sign({ session }, API_JWT_SECRET, { expiresIn: '100y' }),
       expiredAfter: Date.now() + COOKIE_AGE
     }
     return res
@@ -288,8 +288,8 @@ export class Auth {
       const session = req.tg.session.save()
       const auth = {
         session,
-        accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-        refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
+        accessToken: sign({ session }, API_JWT_SECRET, { expiresIn: '15h' }),
+        refreshToken: sign({ session }, API_JWT_SECRET, { expiresIn: '1y' }),
         expiredAfter: Date.now() + COOKIE_AGE
       }
 
@@ -309,7 +309,7 @@ export class Auth {
           ]
         }
       }).then(files => files?.map(file => {
-        const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+        const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), FILES_JWT_SECRET).toString()
         prisma.files.update({
           data: { signed_key: signedKey },
           where: { id: file.id }
@@ -331,8 +331,8 @@ export class Auth {
         const session = req.tg.session.save()
         const auth = {
           session,
-          accessToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '15h' }),
-          refreshToken: sign({ session }, process.env.API_JWT_SECRET, { expiresIn: '1y' }),
+          accessToken: sign({ session }, API_JWT_SECRET, { expiresIn: '15h' }),
+          refreshToken: sign({ session }, API_JWT_SECRET, { expiresIn: '1y' }),
           expiredAfter: Date.now() + COOKIE_AGE
         }
         res
@@ -352,7 +352,7 @@ export class Auth {
               ]
             }
           }).then(files => files?.map(file => {
-            const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), process.env.FILES_JWT_SECRET).toString()
+            const signedKey = AES.encrypt(JSON.stringify({ file: { id: file.id }, session: req.tg.session.save() }), FILES_JWT_SECRET).toString()
             prisma.files.update({
               data: { signed_key: signedKey },
               where: { id: file.id }

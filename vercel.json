@@ -12,7 +12,9 @@
           "android/**",
           "docs/**",
           "docker/**",
-          "press/**"
+          "press/**",
+          "electron/**",
+          "integrations/**"
         ]
       }
     },
@@ -26,7 +28,9 @@
           "android/**",
           "docs/**",
           "docker/**",
-          "press/**"
+          "press/**",
+          "electron/**",
+          "integrations/**"
         ]
       }
     }
