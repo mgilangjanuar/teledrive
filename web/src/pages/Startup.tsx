@@ -14,15 +14,15 @@ const Startup: React.FC = () => {
   }, [])
 
   const finish = () => {
-    let { baseUrl, apiUrl } = form.getFieldsValue()
+    let { baseUrl } = form.getFieldsValue()
     if (!/^http/.test(baseUrl)) {
       baseUrl = `https://${baseUrl}`
     }
-    if (!/^http/.test(apiUrl)) {
-      apiUrl = `https://${apiUrl}`
-    }
+    // if (!/^http/.test(apiUrl)) {
+    //   apiUrl = `https://${apiUrl}`
+    // }
     localStorage.setItem('BASE_URL', baseUrl)
-    localStorage.setItem('API_URL', apiUrl)
+    // localStorage.setItem('API_URL', apiUrl)
     return window.location.replace(baseUrl)
   }
 
@@ -39,9 +39,9 @@ const Startup: React.FC = () => {
           <Form.Item label="Web URL" name="baseUrl">
             <Input />
           </Form.Item>
-          <Form.Item label="Server URL" name="apiUrl">
+          {/* <Form.Item label="Server URL" name="apiUrl">
             <Input />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item>
             <Button type="primary" htmlType="submit" icon={<RocketOutlined />}>
               Start
