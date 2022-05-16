@@ -35,6 +35,10 @@ const Footer: React.FC<Props> = () => {
                   <img src="https://opencollective.com/teledrive/contribute/button@2x.png?color=blue" style={{ width: '100%', maxWidth: '240px' }} />
                 </a>
               </Typography.Paragraph>
+              </Typography.Paragraph type="secondary">
+                  <a> Or, become <a href="https://opencollective.com/teledrive">a sponsor</a>
+              </Typography.Paragraph>
+
             </Col>
             <Col md={8} sm={12} span={24} style={{ marginBottom: '30px' }}>
               <Typography.Title level={5}>Social Media</Typography.Title>
