@@ -21,7 +21,7 @@ services:
       REDIS_URI: redis://redis:6379
     env_file:
       - .env
-    restart: always
+    restart: on-failure
     depends_on:
       - db
       - redis
