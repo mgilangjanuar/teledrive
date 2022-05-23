@@ -61,5 +61,9 @@ echo "Build..."
 yarn workspaces run build
 
 echo
+echo "Run migrations..."
+yarn api prisma migrate deploy
+
+echo
 echo "Run server..."
 cd api && node dist/index.js
