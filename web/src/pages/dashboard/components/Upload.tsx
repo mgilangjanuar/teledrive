@@ -139,6 +139,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                           parts: Number(parts),
                           name: response.file.name
                         }),
+                        caption: response.file.name,
                         forceDocument,
                         fileSize: Number(fileBlob.length),
                         attributes: forceDocument ? [

@@ -676,6 +676,7 @@ export class Files {
           name: model.name
         }),
         forceDocument,
+        caption: model.name,
         fileSize: Number(model.size),
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
