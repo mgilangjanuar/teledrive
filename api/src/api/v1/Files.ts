@@ -1,5 +1,6 @@
 import { files, Prisma } from '@prisma/client'
 import bigInt from 'big-integer'
+import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
@@ -15,6 +16,8 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
+
+const CACHE_DIR = `${__dirname}/../../../../.cached`
 
 @Endpoint.API()
 export class Files {
@@ -146,6 +149,29 @@ export class Files {
 
     const [files, length] = noCache === 'true' || noCache === '1' ? await getFiles() : await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, getFiles, 2)
     return res.send({ files, length })
+  }
+
+  @Endpoint.GET('/stats', { middlewares: [Auth] })
+  public async stats(_: Request, res: Response): Promise<any> {
+    const totalFilesSize = await prisma.files.aggregate({
+      _sum: { size: true }
+    })
+
+    try {
+      mkdirSync(`${CACHE_DIR}`, { recursive: true })
+    } catch (error) {
+      // ignore
+    }
+    const cachedSize = readdirSync(`${CACHE_DIR}`)
+      .filter(filename => statSync(`${CACHE_DIR}/${filename}`).isFile())
+      .reduce((res, file) => res + statSync(`${CACHE_DIR}/${file}`).size, 0)
+    return res.send({
+      stats: {
+        system: await checkDiskSpace(__dirname),
+        totalFilesSize: totalFilesSize._sum.size,
+        cachedSize
+      }
+    })
   }
 
   @Endpoint.POST('/', { middlewares: [Auth] })
@@ -1002,21 +1028,21 @@ export class Files {
 
     if (onlyHeaders) return res.status(200)
 
-    const filename = (prefix: string = '') => `${__dirname}/../../../../.cached/${prefix}${totalFileSize.toString()}_${files[0].name}`
+    const filename = (prefix: string = '') => `${CACHE_DIR}/${prefix}${totalFileSize.toString()}_${files[0].name}`
     try {
-      mkdirSync(`${__dirname}/../../../../.cached`, { recursive: true })
+      mkdirSync(`${CACHE_DIR}`, { recursive: true })
     } catch (error) {
       // ignore
     }
 
-    const cachedFiles = () => readdirSync(`${__dirname}/../../../../.cached`)
+    const cachedFiles = () => readdirSync(`${CACHE_DIR}`)
       .filter(filename =>
-        statSync(`${__dirname}/../../../../.cached/${filename}`).isFile()
+        statSync(`${CACHE_DIR}/${filename}`).isFile()
       ).sort((a, b) =>
-        new Date(statSync(`${__dirname}/../../../../.cached/${a}`).birthtime).getTime()
-          - new Date(statSync(`${__dirname}/../../../../.cached/${b}`).birthtime).getTime()
+        new Date(statSync(`${CACHE_DIR}/${a}`).birthtime).getTime()
+          - new Date(statSync(`${CACHE_DIR}/${b}`).birthtime).getTime()
       )
-    const getCachedFilesSize = () => cachedFiles().reduce((res, file) => res + statSync(`${__dirname}/../../../../.cached/${file}`).size, 0)
+    const getCachedFilesSize = () => cachedFiles().reduce((res, file) => res + statSync(`${CACHE_DIR}/${file}`).size, 0)
 
     if (existsSync(filename())) {
       if (ranges) {
@@ -1137,7 +1163,7 @@ export class Files {
 
     while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
       try {
-        rmSync(`${__dirname}/../../../../.cached/${cachedFiles()[0]}`)
+        rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
       } catch {
         // ignore
       }

@@ -16,6 +16,7 @@
     "axios": "^0.21.4",
     "bcrypt": "^5.0.1",
     "big-integer": "^1.6.48",
+    "check-disk-space": "^3.3.0",
     "compression": "^1.7.4",
     "content-disposition": "^0.5.3",
     "cookie-parser": "^1.4.5",
