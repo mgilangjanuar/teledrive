@@ -152,9 +152,15 @@ export class Files {
   }
 
   @Endpoint.GET('/stats', { middlewares: [Auth] })
-  public async stats(_: Request, res: Response): Promise<any> {
+  public async stats(req: Request, res: Response): Promise<any> {
     const totalFilesSize = await prisma.files.aggregate({
       _sum: { size: true }
+    })
+    const totalUserFilesSize = await prisma.files.aggregate({
+      _sum: { size: true },
+      where: {
+        user_id: req.user.id
+      }
     })
 
     try {
@@ -169,6 +175,7 @@ export class Files {
       stats: {
         system: await checkDiskSpace(__dirname),
         totalFilesSize: totalFilesSize._sum.size,
+        totalUserFilesSize: totalUserFilesSize._sum.size,
         cachedSize
       }
     })
