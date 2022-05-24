@@ -234,7 +234,7 @@ export class Files {
 
       message = {
         name,
-        message_id: chat['messages'][0].id,
+        message_id: chat['messages'][0].id.toString(),
         mime_type: mimeType,
         size,
         user_id: req.user.id,
