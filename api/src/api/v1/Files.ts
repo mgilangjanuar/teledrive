@@ -492,6 +492,7 @@ export class Files {
     // }
 
     let model: files
+
     if (req.params?.id) {
       model = await prisma.files.findUnique({
         where: { id: req.params.id }
@@ -536,6 +537,7 @@ export class Files {
                 type: 'folder',
                 user_id: req.user.id,
                 mime_type: 'teledrive/folder',
+                uploaded_at: new Date(),
                 ...currentParentId ? { parent_id: currentParentId } : {}
               }
             })
@@ -544,19 +546,41 @@ export class Files {
         }
       }
 
-      model = await prisma.files.create({
-        data: {
+      model = await prisma.files.findFirst({
+        where: {
           name: name,
           mime_type: mimetype,
           size: Number(size),
           user_id: req.user.id,
           type: type,
           parent_id: currentParentId || null,
-          upload_progress: 0,
-          file_id: bigInt.randBetween('-1e100', '1e100').toString(),
-          forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
         }
       })
+
+      if (model) {
+        await prisma.files.update({
+          data: {
+            message_id: null,
+            uploaded_at: null,
+            upload_progress: 0
+          },
+          where: { id: model.id }
+        })
+      } else {
+        model = await prisma.files.create({
+          data: {
+            name: name,
+            mime_type: mimetype,
+            size: Number(size),
+            user_id: req.user.id,
+            type: type,
+            parent_id: currentParentId || null,
+            upload_progress: 0,
+            file_id: bigInt.randBetween('-1e100', '1e100').toString(),
+            forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
+          }
+        })
+      }
     }
 
     // upload per part
