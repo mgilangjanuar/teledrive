@@ -235,7 +235,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
             </Col>
           </Row>]}>
             <Form form={form} layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
-              {stats?.stats && <List header="Info Stats" bordered={false}>
+              {stats?.stats && <List header="Stats Info" bordered={false}>
                 <List.Item key="system">
                   <List.Item.Meta title="System Disk Usage" description={<Tooltip title={`Available ${prettyBytes(stats.stats.system.free)}/${prettyBytes(stats.stats.system.size)}`}>
                     <Progress status="active" percent={Number((stats.stats.system.free / stats.stats.system.size * 100).toFixed(1))} />
