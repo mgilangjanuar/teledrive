@@ -59,8 +59,8 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   useEffect(() => {
     if (data?.file) {
       setLinks({
-        raw: `${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${pageParams.id}?raw=1`,
-        download: `${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${pageParams.id}?raw=1&dl=1`,
+        raw: `${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${pageParams.id}?raw=1&password=${sessionStorage.getItem(`pass-${pageParams.id}`)}`,
+        download: `${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${pageParams.id}?raw=1&dl=1&password=${sessionStorage.getItem(`pass-${pageParams.id}`)}`,
         share: `${window.location.origin}/view/${pageParams.id}`
       })
       // setBlobURL(undefined)

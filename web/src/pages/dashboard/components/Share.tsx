@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, CopyOutlined, InfoCircleOutlined, LinkOutlined, MinusCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons'
+import { KeyOutlined, ArrowRightOutlined, CopyOutlined, InfoCircleOutlined, LinkOutlined, MinusCircleOutlined, PlusOutlined, WarningOutlined } from '@ant-design/icons'
 import { AutoComplete, Button, Col, Divider, Empty, Form, Input, message, Modal, notification, Row, Spin, Switch, Typography } from 'antd'
 import { useForm } from 'antd/lib/form/Form'
 import * as clipboardy from 'clipboardy'
@@ -59,7 +59,7 @@ const Share: React.FC<Props> = ({
 
   const share = async () => {
     setLoadingShare(true)
-    const { id, public: isPublic, sharing_options: sharingOpts, username } = formShare.getFieldsValue()
+    const { id, public: isPublic, sharing_options: sharingOpts, username, password } = formShare.getFieldsValue()
 
     const sharing = (sharingOpts || sharingOptions)?.length || isPublic ? [
       ...new Set([
@@ -71,7 +71,7 @@ const Share: React.FC<Props> = ({
 
     try {
       if (selectShare?.action === 'share') {
-        await req.patch(`/files/${id}`, { file: { sharing_options: sharing } })
+        await req.patch(`/files/${id}`, { file: { sharing_options: sharing, password: password || null } })
         dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
       } else {
         const [type, peerId, _id, accessHash] = selectShare.row.forward_info?.split('/') || [null, null, null, null]
@@ -159,9 +159,11 @@ const Share: React.FC<Props> = ({
           <Button htmlType="submit" shape="round" loading={loadingShare} icon={<ArrowRightOutlined />}>Send</Button>
         </Form.Item>
       </>}
-      {selectShare?.action === 'share' && <Typography.Paragraph type="secondary">
-        <WarningOutlined /> Your encrypted session will be saved for downloading this file
-      </Typography.Paragraph>}
+      {selectShare?.action === 'share' && <>
+        <Typography.Paragraph type="secondary">
+          <WarningOutlined /> Your encrypted session will be saved for downloading this file
+        </Typography.Paragraph>
+      </>}
       <Divider />
       <Spin spinning={loadingShare}>
         {selectShare?.action === 'share' ? <>
@@ -176,6 +178,12 @@ const Share: React.FC<Props> = ({
         </> : <Typography.Paragraph type="secondary">
           <InfoCircleOutlined /> You will send this file to the user directly
         </Typography.Paragraph>}
+        {selectShare?.action === 'share' && <>
+          <Divider />
+          <Form.Item name="password" label={<><KeyOutlined /> &nbsp;Create password</>}>
+            <Input.Password allowClear onBlur={share} value={selectShare?.row.password} />
+          </Form.Item>
+        </>}
       </Spin>
     </Form>
   </Modal>

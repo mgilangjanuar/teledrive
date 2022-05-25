@@ -1,6 +1,6 @@
 import { files, Prisma } from '@prisma/client'
-import bcrypt from 'bcrypt'
 import bigInt from 'big-integer'
+import { compareSync, hashSync } from 'bcryptjs'
 import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
@@ -90,7 +90,8 @@ export class Files {
           user_id: true,
           parent_id: true,
           uploaded_at: true,
-          created_at: true
+          created_at: true,
+          password: true
         }
       }
       if (shared && Object.keys(where).length) {
@@ -149,7 +150,7 @@ export class Files {
     }
 
     const [files, length] = noCache === 'true' || noCache === '1' ? await getFiles() : await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, getFiles, 2)
-    return res.send({ files, length })
+    return res.send({ files: files.map(file => ({ ...file, password: file.password ? '[REDACTED]' : null })), length })
   }
 
   @Endpoint.GET('/stats', { middlewares: [Auth] })
@@ -302,12 +303,12 @@ export class Files {
     }
     file.signed_key = file.signed_key || parent?.signed_key
 
-    if (file.password) {
+    if (file.password && req.user?.id !== file.user_id) {
       if (!password) {
-        throw { status: 401, body: { error: 'Unauthorized' } }
+        throw { status: 400, body: { error: 'Unauthorized' } }
       }
-      if (!await bcrypt.compare(password, file.password)) {
-        throw { status: 401, body: { error: 'Wrong passphrase' } }
+      if (!compareSync(password as string, file.password)) {
+        throw { status: 400, body: { error: 'Wrong passphrase' } }
       }
     }
 
@@ -456,7 +457,7 @@ export class Files {
           } : {},
           signed_key: key,
           ...file.password !== undefined ? {
-            password: file.password !== null ? await bcrypt.hash(file.password, await bcrypt.genSalt(10)) : null
+            password: file.password !== null ? hashSync(file.password, 10) : null
           } : {}
         }
       })))
@@ -477,7 +478,7 @@ export class Files {
           } : {},
           signed_key: key,
           ...file.password !== undefined ? {
-            password: file.password !== null ? await bcrypt.hash(file.password, await bcrypt.genSalt(10)) : null
+            password: file.password !== null ? hashSync(file.password, 10) : null
           } : {}
         }
       })
@@ -505,7 +506,7 @@ export class Files {
               sharing_options: file.sharing_options,
               signed_key: key || child.signed_key,
               ...file.password !== undefined ? {
-                password: file.password !== null ? await bcrypt.hash(file.password, await bcrypt.genSalt(10)) : null
+                password: file.password !== null ? hashSync(file.password, 10) : null
               } : {}
             }
           })
