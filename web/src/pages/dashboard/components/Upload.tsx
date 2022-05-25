@@ -1,8 +1,8 @@
 import { CloudUploadOutlined } from '@ant-design/icons'
-import { Api } from 'teledrive-client'
 import { notification, Upload as BaseUpload } from 'antd'
 import mime from 'mime-types'
 import React, { useEffect, useRef } from 'react'
+import { Api } from 'teledrive-client'
 import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 import { telegramClient } from '../../../utils/Telegram'
@@ -45,7 +45,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   }
 
   const upload = async ({ onSuccess, onError, onProgress, file }: any) => {
-    filesWantToUpload.current.push(file)
+    filesWantToUpload.current = [...filesWantToUpload.current, file]
     notification.warn({
       key: 'preparingUpload',
       message: 'Warning',
@@ -54,6 +54,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     window.onbeforeunload = () => {
       return 'Are you sure you want to leave?'
     }
+
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
 
@@ -61,13 +62,16 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     let deleted = false
 
     try {
-      await new Promise(res => setTimeout(res, 1000 * filesWantToUpload.current?.findIndex(f => f.uid === file.uid)))
+      while (filesWantToUpload.current?.findIndex(f => f.uid === file.uid) !== 0) {
+        await new Promise(res => setTimeout(res, 1000))
+      }
+      console.log('Uploading idx:', filesWantToUpload.current?.findIndex(f => f.uid === file.uid))
 
       const responses: any[] = []
       let totalParts: number = 0
       const totalAllParts = Math.ceil(file.size % MAX_UPLOAD_SIZE / CHUNK_SIZE) + (fileParts - 1) * Math.ceil(MAX_UPLOAD_SIZE / CHUNK_SIZE)
 
-      if (localStorage.getItem('session')) {
+      if (localStorage.getItem('experimental')) {
         let client = await telegramClient.connect()
         await Promise.all(Array.from(Array(fileParts).keys()).map(async j => {
           const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
@@ -135,6 +139,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                           parts: Number(parts),
                           name: response.file.name
                         }),
+                        caption: response.file.name,
                         forceDocument,
                         fileSize: Number(fileBlob.length),
                         attributes: forceDocument ? [
@@ -262,7 +267,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           description: `File ${file.name} uploaded successfully`
         })
       }
-      filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
+      // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
+      filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
       return onSuccess(responses[0], file)
     } catch (error: any) {
       console.error(error)
@@ -272,6 +278,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         message: error?.response?.status || 'Something error',
         ...error?.response?.data ? { description: error.response.data.error } : {}
       })
+      // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
+      filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
       return onError(error.response?.data || error.response || { error: error.message }, file)
     }
   }
@@ -279,16 +287,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   const params = {
     multiple: true,
     customRequest: upload,
-    beforeUpload: (_file: any) => {
-      // if (file.size > 2_000_000_000 && (!me?.user.plan || me?.user.plan === 'free')) {
-      //   notification.error({
-      //     message: 'Error',
-      //     description: 'Maximum file size is 2 GB. Upgrade your plan to upload larger files.'
-      //   })
-      //   return false
-      // }
-      return true
-    },
+    beforeUpload: (_file: any) => true,
     fileList: fileList,
     onRemove: (file: any) => {
       if (!file.response?.file) {

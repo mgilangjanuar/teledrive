@@ -32,10 +32,12 @@ import {
   Modal,
   notification,
   Popover,
+  Progress,
   Row,
   Select,
   Space,
   Switch,
+  Tooltip,
   Typography
 } from 'antd'
 import { useForm } from 'antd/es/form/Form'
@@ -48,6 +50,7 @@ import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
 import { VERSION } from '../utils/Constant'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
 import { telegramClient } from '../utils/Telegram'
+import prettyBytes from 'pretty-bytes'
 
 interface Props {
   me?: any,
@@ -72,6 +75,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [formRemoval] = useForm()
   const { currentTheme } = useThemeSwitcher()
   const { data: dialogs } = useSWR('/dialogs?limit=75&offset=0', fetcher)
+  const { data: stats } = useSWR('/files/stats', fetcher)
 
   const save = async (settings: any): Promise<void> => {
     try {
@@ -231,6 +235,25 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
             </Col>
           </Row>]}>
             <Form form={form} layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
+              {stats?.stats && <List header="Stats Info" bordered={false}>
+                <List.Item key="system">
+                  <List.Item.Meta title="System Disk Usage" description={<Tooltip title={`Available ${prettyBytes(stats.stats.system.free)}/${prettyBytes(stats.stats.system.size)}`}>
+                    <Progress status="active" percent={Number((stats.stats.system.free / stats.stats.system.size * 100).toFixed(1))} />
+                  </Tooltip>} />
+                </List.Item>
+
+                <List.Item key="fileTotalSize">
+                  <List.Item.Meta title="Files Uploaded Size" description={<Tooltip title={`You take ${prettyBytes(Number(stats.stats.totalUserFilesSize))}/${prettyBytes(Number(stats.stats.totalFilesSize))} from total uploaded files`}>
+                    <Progress status="active" percent={Number((Number(stats.stats.totalUserFilesSize) / Number(stats.stats.totalFilesSize) * 100).toFixed(1))} />
+                  </Tooltip>} />
+                </List.Item>
+
+                <List.Item key="cached">
+                  <List.Item.Meta title="Cached Total Size" description={<Tooltip title={prettyBytes(stats.stats.cachedSize)}>
+                    <Progress status="active" percent={Number((stats.stats.cachedSize / stats.stats.system.size * 100).toFixed(1))} />
+                  </Tooltip>} />
+                </List.Item>
+              </List>}
               <List header="Interface" bordered={false}>
                 {pwa?.canInstall && <List.Item key="install" actions={[<Form.Item>
                   <Button shape="round" icon={<MobileOutlined />} onClick={pwa?.install}>Install</Button>

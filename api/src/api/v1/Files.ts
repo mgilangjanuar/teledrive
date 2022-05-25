@@ -1,5 +1,7 @@
 import { files, Prisma } from '@prisma/client'
 import bigInt from 'big-integer'
+import { compareSync, hashSync } from 'bcryptjs'
+import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
@@ -15,6 +17,8 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
+
+const CACHE_DIR = `${__dirname}/../../../../.cached`
 
 @Endpoint.API()
 export class Files {
@@ -86,7 +90,8 @@ export class Files {
           user_id: true,
           parent_id: true,
           uploaded_at: true,
-          created_at: true
+          created_at: true,
+          password: true
         }
       }
       if (shared && Object.keys(where).length) {
@@ -145,7 +150,37 @@ export class Files {
     }
 
     const [files, length] = noCache === 'true' || noCache === '1' ? await getFiles() : await Redis.connect().getFromCacheFirst(`files:${req.user?.id || 'null'}:${JSON.stringify(req.query)}`, getFiles, 2)
-    return res.send({ files, length })
+    return res.send({ files: files.map(file => ({ ...file, password: file.password ? '[REDACTED]' : null })), length })
+  }
+
+  @Endpoint.GET('/stats', { middlewares: [Auth] })
+  public async stats(req: Request, res: Response): Promise<any> {
+    const totalFilesSize = await prisma.files.aggregate({
+      _sum: { size: true }
+    })
+    const totalUserFilesSize = await prisma.files.aggregate({
+      _sum: { size: true },
+      where: {
+        user_id: req.user.id
+      }
+    })
+
+    try {
+      mkdirSync(`${CACHE_DIR}`, { recursive: true })
+    } catch (error) {
+      // ignore
+    }
+    const cachedSize = readdirSync(`${CACHE_DIR}`)
+      .filter(filename => statSync(`${CACHE_DIR}/${filename}`).isFile())
+      .reduce((res, file) => res + statSync(`${CACHE_DIR}/${file}`).size, 0)
+    return res.send({
+      stats: {
+        system: await checkDiskSpace(__dirname),
+        totalFilesSize: totalFilesSize._sum.size,
+        totalUserFilesSize: totalUserFilesSize._sum.size,
+        cachedSize
+      }
+    })
   }
 
   @Endpoint.POST('/', { middlewares: [Auth] })
@@ -201,7 +236,7 @@ export class Files {
 
       message = {
         name,
-        message_id: chat['messages'][0].id,
+        message_id: chat['messages'][0].id.toString(),
         mime_type: mimeType,
         size,
         user_id: req.user.id,
@@ -253,6 +288,7 @@ export class Files {
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
+    const { password } = req.query
     const file = await prisma.files.findUnique({
       where: { id }
     })
@@ -266,6 +302,15 @@ export class Files {
       }
     }
     file.signed_key = file.signed_key || parent?.signed_key
+
+    if (file.password && req.user?.id !== file.user_id) {
+      if (!password) {
+        throw { status: 400, body: { error: 'Unauthorized' } }
+      }
+      if (!compareSync(password as string, file.password)) {
+        throw { status: 400, body: { error: 'Wrong passphrase' } }
+      }
+    }
 
     let files = [file]
     if (/.*\.part0*1$/gi.test(file?.name)) {
@@ -373,12 +418,6 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    // if (file.sharing_options?.length && currentFile.type === 'folder') {
-    //   if (req.user.plan === 'free' || !req.user.plan) {
-    //     throw { status: 402, body: { error: 'Payment required' } }
-    //   }
-    // }
-
     const parent = file.parent_id ? await prisma.files.findUnique({
       where: { id: file.parent_id }
     }) : null
@@ -416,7 +455,10 @@ export class Files {
           ...parent && current.type === 'folder' ? {
             sharing_options: parent.sharing_options
           } : {},
-          signed_key: key
+          signed_key: key,
+          ...file.password !== undefined ? {
+            password: file.password !== null ? hashSync(file.password, 10) : null
+          } : {}
         }
       })))
     } else {
@@ -434,7 +476,10 @@ export class Files {
           ...parent && currentFile.type === 'folder' ? {
             sharing_options: parent.sharing_options
           } : {},
-          signed_key: key
+          signed_key: key,
+          ...file.password !== undefined ? {
+            password: file.password !== null ? hashSync(file.password, 10) : null
+          } : {}
         }
       })
     }
@@ -459,7 +504,10 @@ export class Files {
             },
             data: {
               sharing_options: file.sharing_options,
-              signed_key: key || child.signed_key
+              signed_key: key || child.signed_key,
+              ...file.password !== undefined ? {
+                password: file.password !== null ? hashSync(file.password, 10) : null
+              } : {}
             }
           })
           await updateSharingOptions(child)
@@ -492,6 +540,7 @@ export class Files {
     // }
 
     let model: files
+
     if (req.params?.id) {
       model = await prisma.files.findUnique({
         where: { id: req.params.id }
@@ -536,6 +585,7 @@ export class Files {
                 type: 'folder',
                 user_id: req.user.id,
                 mime_type: 'teledrive/folder',
+                uploaded_at: new Date(),
                 ...currentParentId ? { parent_id: currentParentId } : {}
               }
             })
@@ -544,19 +594,41 @@ export class Files {
         }
       }
 
-      model = await prisma.files.create({
-        data: {
+      model = await prisma.files.findFirst({
+        where: {
           name: name,
           mime_type: mimetype,
           size: Number(size),
           user_id: req.user.id,
           type: type,
           parent_id: currentParentId || null,
-          upload_progress: 0,
-          file_id: bigInt.randBetween('-1e100', '1e100').toString(),
-          forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
         }
       })
+
+      if (model) {
+        await prisma.files.update({
+          data: {
+            message_id: null,
+            uploaded_at: null,
+            upload_progress: 0
+          },
+          where: { id: model.id }
+        })
+      } else {
+        model = await prisma.files.create({
+          data: {
+            name: name,
+            mime_type: mimetype,
+            size: Number(size),
+            user_id: req.user.id,
+            type: type,
+            parent_id: currentParentId || null,
+            upload_progress: 0,
+            file_id: bigInt.randBetween('-1e100', '1e100').toString(),
+            forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
+          }
+        })
+      }
     }
 
     // upload per part
@@ -619,6 +691,7 @@ export class Files {
           name: model.name
         }),
         forceDocument,
+        caption: model.name,
         fileSize: Number(model.size),
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
@@ -727,19 +800,41 @@ export class Files {
           }
         }
 
-        model = await prisma.files.create({
-          data: {
+        model = await prisma.files.findFirst({
+          where: {
             name: name,
             mime_type: mimetype,
-            size: size,
+            size: Number(size),
             user_id: req.user.id,
             type: type,
             parent_id: currentParentId || null,
-            upload_progress: 0,
-            file_id: bigInt.randBetween('-1e100', '1e100').toString(),
-            forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
           }
         })
+
+        if (model) {
+          await prisma.files.update({
+            data: {
+              message_id: null,
+              uploaded_at: null,
+              upload_progress: 0
+            },
+            where: { id: model.id }
+          })
+        } else {
+          model = await prisma.files.create({
+            data: {
+              name: name,
+              mime_type: mimetype,
+              size: Number(size),
+              user_id: req.user.id,
+              type: type,
+              parent_id: currentParentId || null,
+              upload_progress: 0,
+              file_id: bigInt.randBetween('-1e100', '1e100').toString(),
+              forward_info: (req.user.settings as Prisma.JsonObject)?.saved_location as string || null,
+            }
+          })
+        }
       }
 
       // model.size = bigInt(model.size).add(file.buffer.length).toString()
@@ -956,7 +1051,7 @@ export class Files {
 
     if (!raw || Number(raw) === 0) {
       const { signed_key: _, ...result } = files[0]
-      return res.send({ file: result })
+      return res.send({ file: { ...result, password: result.password ? '[REDACTED]' : null } })
     }
 
     usage = await prisma.usages.update({
@@ -978,21 +1073,21 @@ export class Files {
 
     if (onlyHeaders) return res.status(200)
 
-    const filename = (prefix: string = '') => `${__dirname}/../../../../.cached/${prefix}${totalFileSize.toString()}_${files[0].name}`
+    const filename = (prefix: string = '') => `${CACHE_DIR}/${prefix}${totalFileSize.toString()}_${files[0].name}`
     try {
-      mkdirSync(`${__dirname}/../../../../.cached`, { recursive: true })
+      mkdirSync(`${CACHE_DIR}`, { recursive: true })
     } catch (error) {
       // ignore
     }
 
-    const cachedFiles = () => readdirSync(`${__dirname}/../../../../.cached`)
+    const cachedFiles = () => readdirSync(`${CACHE_DIR}`)
       .filter(filename =>
-        statSync(`${__dirname}/../../../../.cached/${filename}`).isFile()
+        statSync(`${CACHE_DIR}/${filename}`).isFile()
       ).sort((a, b) =>
-        new Date(statSync(`${__dirname}/../../../../.cached/${a}`).birthtime).getTime()
-          - new Date(statSync(`${__dirname}/../../../../.cached/${b}`).birthtime).getTime()
+        new Date(statSync(`${CACHE_DIR}/${a}`).birthtime).getTime()
+          - new Date(statSync(`${CACHE_DIR}/${b}`).birthtime).getTime()
       )
-    const getCachedFilesSize = () => cachedFiles().reduce((res, file) => res + statSync(`${__dirname}/../../../../.cached/${file}`).size, 0)
+    const getCachedFilesSize = () => cachedFiles().reduce((res, file) => res + statSync(`${CACHE_DIR}/${file}`).size, 0)
 
     if (existsSync(filename())) {
       if (ranges) {
@@ -1113,7 +1208,7 @@ export class Files {
 
     while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
       try {
-        rmSync(`${__dirname}/../../../../.cached/${cachedFiles()[0]}`)
+        rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
       } catch {
         // ignore
       }

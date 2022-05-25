@@ -41,6 +41,7 @@ model files {
   users               users     @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "files_users_fkey")
   links               files[]   @relation("filesTofiles_link_id")
   parents             files[]   @relation("filesTofiles_parent_id")
+  password            String?   @db.VarChar
 
   @@index([link_id])
   @@index([message_id])
