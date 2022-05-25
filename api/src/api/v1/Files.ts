@@ -1051,7 +1051,7 @@ export class Files {
 
     if (!raw || Number(raw) === 0) {
       const { signed_key: _, ...result } = files[0]
-      return res.send({ file: result })
+      return res.send({ file: { ...result, password: result.password ? '[REDACTED]' : null } })
     }
 
     usage = await prisma.usages.update({

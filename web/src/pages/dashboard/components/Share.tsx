@@ -41,17 +41,21 @@ const Share: React.FC<Props> = ({
 
   useEffect(() => {
     if (selectShare) {
-      const isPublic = (selectShare.row.sharing_options || [])?.includes('*')
-      setIsPublic(isPublic)
-      setSharingOptions(selectShare.row.sharing_options)
-      formShare.setFieldsValue({
-        id: selectShare.row.id,
-        message: 'Hey, please check this out! 👆',
-        public: isPublic,
-        sharing_options: selectShare.row.sharing_options?.length ? selectShare.row.sharing_options.filter((opt: string) => opt !== '*') : [''],
-        link: `${window.location.origin}/view/${selectShare.row.id}`,
-        username: null
-      })
+      req.get(`/files/${selectShare.row.id}`)
+        .then(({ data }) => {
+          const isPublic = (data.file.sharing_options || [])?.includes('*')
+          setIsPublic(isPublic)
+          setSharingOptions(data.file.sharing_options)
+          formShare.setFieldsValue({
+            id: data.file.id,
+            message: 'Hey, please check this out! 👆',
+            public: isPublic,
+            sharing_options: data.file.sharing_options?.length ? data.file.sharing_options.filter((opt: string) => opt !== '*') : [''],
+            link: `${window.location.origin}/view/${data.file.id}`,
+            username: null,
+            password: data.file.password
+          })
+        })
     } else {
       formShare.resetFields()
     }
@@ -71,7 +75,12 @@ const Share: React.FC<Props> = ({
 
     try {
       if (selectShare?.action === 'share') {
-        await req.patch(`/files/${id}`, { file: { sharing_options: sharing, password: password || null } })
+        await req.patch(`/files/${id}`, {
+          file: {
+            sharing_options: sharing,
+            password: password === '[REDACTED]' ? undefined : password === '' ? null : password
+          }
+        })
         dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
       } else {
         const [type, peerId, _id, accessHash] = selectShare.row.forward_info?.split('/') || [null, null, null, null]
@@ -181,7 +190,7 @@ const Share: React.FC<Props> = ({
         {selectShare?.action === 'share' && <>
           <Divider />
           <Form.Item name="password" label={<><KeyOutlined /> &nbsp;Create password</>}>
-            <Input.Password allowClear onBlur={share} value={selectShare?.row.password} />
+            <Input.Password allowClear onBlur={share} />
           </Form.Item>
         </>}
       </Spin>
