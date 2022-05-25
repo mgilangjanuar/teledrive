@@ -1,4 +1,5 @@
 import { files, Prisma } from '@prisma/client'
+import bcrypt from 'bcrypt'
 import bigInt from 'big-integer'
 import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
@@ -286,6 +287,7 @@ export class Files {
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
+    const { password } = req.query
     const file = await prisma.files.findUnique({
       where: { id }
     })
@@ -299,6 +301,15 @@ export class Files {
       }
     }
     file.signed_key = file.signed_key || parent?.signed_key
+
+    if (file.password) {
+      if (!password) {
+        throw { status: 401, body: { error: 'Unauthorized' } }
+      }
+      if (!await bcrypt.compare(password, file.password)) {
+        throw { status: 401, body: { error: 'Wrong passphrase' } }
+      }
+    }
 
     let files = [file]
     if (/.*\.part0*1$/gi.test(file?.name)) {
@@ -406,12 +417,6 @@ export class Files {
       throw { status: 404, body: { error: 'File not found' } }
     }
 
-    // if (file.sharing_options?.length && currentFile.type === 'folder') {
-    //   if (req.user.plan === 'free' || !req.user.plan) {
-    //     throw { status: 402, body: { error: 'Payment required' } }
-    //   }
-    // }
-
     const parent = file.parent_id ? await prisma.files.findUnique({
       where: { id: file.parent_id }
     }) : null
@@ -449,7 +454,10 @@ export class Files {
           ...parent && current.type === 'folder' ? {
             sharing_options: parent.sharing_options
           } : {},
-          signed_key: key
+          signed_key: key,
+          ...file.password !== undefined ? {
+            password: file.password !== null ? await bcrypt.hash(file.password, await bcrypt.genSalt(10)) : null
+          } : {}
         }
       })))
     } else {
@@ -467,7 +475,10 @@ export class Files {
           ...parent && currentFile.type === 'folder' ? {
             sharing_options: parent.sharing_options
           } : {},
-          signed_key: key
+          signed_key: key,
+          ...file.password !== undefined ? {
+            password: file.password !== null ? await bcrypt.hash(file.password, await bcrypt.genSalt(10)) : null
+          } : {}
         }
       })
     }
@@ -492,7 +503,10 @@ export class Files {
             },
             data: {
               sharing_options: file.sharing_options,
-              signed_key: key || child.signed_key
+              signed_key: key || child.signed_key,
+              ...file.password !== undefined ? {
+                password: file.password !== null ? await bcrypt.hash(file.password, await bcrypt.genSalt(10)) : null
+              } : {}
             }
           })
           await updateSharingOptions(child)
