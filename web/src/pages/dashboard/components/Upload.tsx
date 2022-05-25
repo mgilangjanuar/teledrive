@@ -287,16 +287,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   const params = {
     multiple: true,
     customRequest: upload,
-    beforeUpload: (_file: any) => {
-      // if (file.size > 2_000_000_000 && (!me?.user.plan || me?.user.plan === 'free')) {
-      //   notification.error({
-      //     message: 'Error',
-      //     description: 'Maximum file size is 2 GB. Upgrade your plan to upload larger files.'
-      //   })
-      //   return false
-      // }
-      return true
-    },
+    beforeUpload: (_file: any) => true,
     fileList: fileList,
     onRemove: (file: any) => {
       if (!file.response?.file) {
