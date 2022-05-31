@@ -996,7 +996,7 @@ export class Files {
           AND: [
             { name: file.name },
             { type: file.type },
-            { size: file.size || null },
+            { size: Number(file.size) || null },
             {
               parent_id: file.parent_id ? { not: null } : null
             }
@@ -1008,6 +1008,7 @@ export class Files {
           await prisma.files.create({
             data: {
               ...file,
+              size: Number(file.size),
               user_id: req.user.id,
             }
           })

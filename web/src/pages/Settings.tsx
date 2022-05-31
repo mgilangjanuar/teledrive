@@ -10,12 +10,13 @@ import {
   ExperimentOutlined,
   FrownOutlined,
   InfoOutlined,
+  ImportOutlined,
   LoginOutlined,
   LogoutOutlined,
   MobileOutlined,
   MonitorOutlined,
   ReloadOutlined,
-  SaveOutlined,
+  ExportOutlined,
   SkinOutlined,
   SyncOutlined,
   WarningOutlined
@@ -39,7 +40,8 @@ import {
   Space,
   Switch,
   Tooltip,
-  Typography
+  Typography,
+  Upload
 } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import prettyBytes from 'pretty-bytes'
@@ -299,6 +301,30 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><MonitorOutlined /><>Report Bug</></Space>} description="Send your activities for reporting" />
                 </List.Item>
+
+                <List.Item key="export" actions={[<Form.Item>
+                  <Button shape="round" loading={loadingChangeServer} icon={<CloudDownloadOutlined />} onClick={exportFilesData}>Export</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><ExportOutlined /><>Save Data</></Space>} description="Export your files ref data as JSON" />
+                </List.Item>
+
+                <List.Item key="import" actions={[<Form.Item>
+                  <Button shape="round" icon={<CloudUploadOutlined />}>
+                    <Upload name="upload" fileList={[]} multiple={false} beforeUpload={file => {
+                      const fileReader = new FileReader()
+                      fileReader.readAsText(file, 'UTF-8')
+                      fileReader.onload = async ({ target }) => {
+                        await req.post('/files/filesSync', { files: JSON.parse(target?.result as string || '[]') })
+                        notification.success({
+                          message: 'Import Successfully',
+                          description: 'Your files has been imported successfully but you need to reshare your files again to update your shared files',
+                        })
+                      }
+                    }}>Import</Upload>
+                  </Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><ImportOutlined /><>Import Data</></Space>} description="Import your files.json" />
+                </List.Item>
               </List>
 
               <List header="Danger Zone">
@@ -320,11 +346,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                   }}>{localStorage.getItem('experimental') && localStorage.getItem('session') ? 'Revoke' : 'Join'}</Button>
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><ExperimentOutlined /><>Experimental</></Space>} description="Join to the experimental features" />
-                </List.Item>
-                <List.Item key="change-server" actions={[<Form.Item>
-                  <Button shape="round" loading={loadingChangeServer} icon={<CloudDownloadOutlined />} onClick={exportFilesData}>Export</Button>
-                </Form.Item>]}>
-                  <List.Item.Meta title={<Space><SaveOutlined /><>Save Data</></Space>} description="Export your files ref data as JSON" />
                 </List.Item>
 
                 <List.Item key="delete-account" actions={[<Form.Item>
