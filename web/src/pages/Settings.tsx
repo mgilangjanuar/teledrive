@@ -301,7 +301,9 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><MonitorOutlined /><>Report Bug</></Space>} description="Send your activities for reporting" />
                 </List.Item>
+              </List>
 
+              <List header="Data">
                 <List.Item key="export" actions={[<Form.Item>
                   <Button shape="round" loading={loadingChangeServer} icon={<CloudDownloadOutlined />} onClick={exportFilesData}>Export</Button>
                 </Form.Item>]}>
@@ -323,7 +325,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                     }}>Import</Upload>
                   </Button>
                 </Form.Item>]}>
-                  <List.Item.Meta title={<Space><ImportOutlined /><>Import Data</></Space>} description="Import your files.json" />
+                  <List.Item.Meta title={<Space><ImportOutlined /><>Import Data</></Space>} description="Import your files ref data" />
                 </List.Item>
               </List>
 
