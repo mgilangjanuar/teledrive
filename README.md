@@ -53,7 +53,7 @@ We using the monorepo structure with [yarn workspaces](https://classic.yarnpkg.c
 └── yarn.lock
 ```
 
-Teledrive Discord Server
+
    <a href="https://discord.gg/PKNVJwAZnR"> <img src="https://user-images.githubusercontent.com/34012548/172031316-60d858c7-8401-42f3-9c73-0b75e80c8292.png" alt="discord"></a>
 
 
