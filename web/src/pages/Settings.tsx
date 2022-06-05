@@ -234,15 +234,22 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
           </Row>]}>
             <Form form={form} layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
               {stats?.stats && <List header="Stats Info" bordered={false}>
+                <List.Item key="fileTotalSize">
+                  <List.Item.Meta title="Uploaded Files" description={<Space direction="horizontal" align="center" style={{ marginTop: '13px' }}>
+                    <Progress width={150} type="circle" status="active" format={() => <>
+                      <Typography.Title level={3}>{prettyBytes(Number(stats.stats.totalUserFilesSize))}</Typography.Title>
+                      <Typography.Paragraph style={{ fontSize: '12px' }} type="secondary">User Files Size</Typography.Paragraph>
+                    </>} percent={Number((Number(stats.stats.totalUserFilesSize) / Number(stats.stats.totalFilesSize) * 100).toFixed(1))} />
+                    <Progress width={150} type="circle" status="success" format={() => <>
+                      <Typography.Title level={3}>{prettyBytes(Number(stats.stats.totalFilesSize))}</Typography.Title>
+                      <Typography.Paragraph style={{ fontSize: '12px' }} type="secondary">Total Files Size</Typography.Paragraph>
+                    </>} percent={100} />
+                  </Space>} />
+                </List.Item>
+
                 <List.Item key="system">
                   <List.Item.Meta title="System Disk Usage" description={<Tooltip title={`Available ${prettyBytes(stats.stats.system.free)}/${prettyBytes(stats.stats.system.size)}`}>
                     <Progress status="active" percent={Number((stats.stats.system.free / stats.stats.system.size * 100).toFixed(1))} />
-                  </Tooltip>} />
-                </List.Item>
-
-                <List.Item key="fileTotalSize">
-                  <List.Item.Meta title="Files Uploaded Size" description={<Tooltip title={`You take ${prettyBytes(Number(stats.stats.totalUserFilesSize))}/${prettyBytes(Number(stats.stats.totalFilesSize))} from total uploaded files`}>
-                    <Progress status="active" percent={Number((Number(stats.stats.totalUserFilesSize) / Number(stats.stats.totalFilesSize) * 100).toFixed(1))} />
                   </Tooltip>} />
                 </List.Item>
 

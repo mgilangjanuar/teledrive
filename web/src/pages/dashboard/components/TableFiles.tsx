@@ -246,7 +246,7 @@ const TableFiles: React.FC<Props> = ({
       responsive: ['md'],
       width: 250,
       align: 'center',
-      render: (value: any, row: any) => row.upload_progress !== null ? <>Uploading {Number((row.upload_progress * 100).toFixed(2))}%</> : moment(value).local().format('llll')
+      render: (value: any, row: any) => row.upload_progress !== null ? <>Uploading...</> : moment(value).local().format('llll')
     }
   ]
 
