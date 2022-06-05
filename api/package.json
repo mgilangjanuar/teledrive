@@ -48,7 +48,7 @@
     "serialize-error": "^8.1.0",
     "serverless-http": "^3.0.1",
     "source-map-support": "^0.5.19",
-    "teledrive-client": "^2.7.23",
+    "teledrive-client": "^2.8.2",
     "uuid-random": "^1.3.2"
   },
   "devDependencies": {
