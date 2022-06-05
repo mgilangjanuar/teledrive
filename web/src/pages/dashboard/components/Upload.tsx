@@ -73,7 +73,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
       if (localStorage.getItem('experimental')) {
         let client = await telegramClient.connect()
-        await Promise.all(Array.from(Array(fileParts).keys()).map(async j => {
+        for (let j = 0; j < fileParts; j++) {
           const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
           const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
@@ -186,10 +186,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               await retry(async () => await uploadPart(parts - 1), async () => client = await telegramClient.connect())
             }
           }
-
-        }))
+        }
       } else {
-        await Promise.all(Array.from(Array(fileParts).keys()).map(async j => {
+        for (let j = 0; j < fileParts; j++) {
           const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
           const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
@@ -255,7 +254,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               await uploadPart(parts - 1)
             }
           }
-        }))
+        }
       }
 
       // notification.close(`upload-${file.uid}`)

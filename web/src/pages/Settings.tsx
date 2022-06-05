@@ -1,6 +1,7 @@
 import {
   ArrowLeftOutlined,
   BugOutlined,
+  CloudDownloadOutlined,
   CloudUploadOutlined,
   CrownOutlined,
   DeleteOutlined,
@@ -8,17 +9,18 @@ import {
   ExpandAltOutlined,
   ExperimentOutlined,
   FrownOutlined,
-  LoginOutlined,
   InfoOutlined,
+  ImportOutlined,
+  LoginOutlined,
   LogoutOutlined,
   MobileOutlined,
   MonitorOutlined,
   ReloadOutlined,
+  ExportOutlined,
   SkinOutlined,
   SyncOutlined,
   WarningOutlined
 } from '@ant-design/icons'
-import { Api } from 'teledrive-client'
 import {
   Avatar,
   Button,
@@ -38,19 +40,21 @@ import {
   Space,
   Switch,
   Tooltip,
-  Typography
+  Typography,
+  Upload
 } from 'antd'
 import { useForm } from 'antd/es/form/Form'
+import prettyBytes from 'pretty-bytes'
 import pwaInstallHandler from 'pwa-install-handler'
 import React, { useEffect, useState } from 'react'
 import { useThemeSwitcher } from 'react-css-theme-switcher'
 import { useHistory } from 'react-router-dom'
 import useSWR from 'swr'
+import { Api } from 'teledrive-client'
 import * as serviceWorkerRegistration from '../serviceWorkerRegistration'
 import { VERSION } from '../utils/Constant'
 import { apiUrl, fetcher, req } from '../utils/Fetcher'
 import { telegramClient } from '../utils/Telegram'
-import prettyBytes from 'pretty-bytes'
 
 interface Props {
   me?: any,
@@ -64,7 +68,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
   const [logoutConfirmation, setLogoutConfirmation] = useState<boolean>(false)
   const [removeConfirmation, setRemoveConfirmation] = useState<boolean>(false)
   const [expFeatures, setExpFeatures] = useState<boolean>(false)
-  const [changeDCConfirmation, setChangeDCConfirmation] = useState<string>()
   const [loadingChangeServer, setLoadingChangeServer] = useState<boolean>(false)
   const [loadingRemove, setLoadingRemove] = useState<boolean>(false)
   const [destroySession, setDestroySession] = useState<boolean>(false)
@@ -156,7 +159,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
     }
   }
 
-  const changeServer = async () => {
+  const exportFilesData = async () => {
     setLoadingChangeServer(true)
     const { data } = await req.get('/files', { params: {
       full_properties: 1,
@@ -174,20 +177,15 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       } })
       files.push(...data.files)
     }
-    const frame = document.createElement('iframe')
-    frame.style.display = 'none'
-    frame.src = `https://${changeDCConfirmation === 'sg' ? '' : `${changeDCConfirmation}.`}teledriveapp.com`
-    document.body.appendChild(frame)
 
-    await new Promise(res => setTimeout(res, 5000))
-    frame.contentWindow?.postMessage({
-      type: 'files',
-      files
-    }, '*')
+    const hiddenElement = document.createElement('a')
 
-    await req.post('/auth/logout', {}, { params: { destroySession: 1 } })
+    hiddenElement.href = 'data:attachment/text,' + encodeURI(JSON.stringify(files) || '')
+    hiddenElement.target = '_blank'
+    hiddenElement.download = 'files.json'
+    hiddenElement.click()
+
     setLoadingChangeServer(false)
-    return window.location.replace(`https://${changeDCConfirmation === 'sg' ? '' : `${changeDCConfirmation}.`}teledriveapp.com/login`)
   }
 
   const downloadLogs = async () => {
@@ -236,15 +234,22 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
           </Row>]}>
             <Form form={form} layout="horizontal" labelAlign="left" labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
               {stats?.stats && <List header="Stats Info" bordered={false}>
+                <List.Item key="fileTotalSize">
+                  <List.Item.Meta title="Uploaded Files" description={<Space direction="horizontal" align="center" style={{ marginTop: '13px' }}>
+                    <Progress width={150} type="circle" status="active" format={() => <>
+                      <Typography.Title level={3}>{prettyBytes(Number(stats.stats.totalUserFilesSize))}</Typography.Title>
+                      <Typography.Paragraph style={{ fontSize: '12px' }} type="secondary">User Files Size</Typography.Paragraph>
+                    </>} percent={Number((Number(stats.stats.totalUserFilesSize) / Number(stats.stats.totalFilesSize) * 100).toFixed(1))} />
+                    <Progress width={150} type="circle" status="success" format={() => <>
+                      <Typography.Title level={3}>{prettyBytes(Number(stats.stats.totalFilesSize))}</Typography.Title>
+                      <Typography.Paragraph style={{ fontSize: '12px' }} type="secondary">Total Files Size</Typography.Paragraph>
+                    </>} percent={100} />
+                  </Space>} />
+                </List.Item>
+
                 <List.Item key="system">
                   <List.Item.Meta title="System Disk Usage" description={<Tooltip title={`Available ${prettyBytes(stats.stats.system.free)}/${prettyBytes(stats.stats.system.size)}`}>
                     <Progress status="active" percent={Number((stats.stats.system.free / stats.stats.system.size * 100).toFixed(1))} />
-                  </Tooltip>} />
-                </List.Item>
-
-                <List.Item key="fileTotalSize">
-                  <List.Item.Meta title="Files Uploaded Size" description={<Tooltip title={`You take ${prettyBytes(Number(stats.stats.totalUserFilesSize))}/${prettyBytes(Number(stats.stats.totalFilesSize))} from total uploaded files`}>
-                    <Progress status="active" percent={Number((Number(stats.stats.totalUserFilesSize) / Number(stats.stats.totalFilesSize) * 100).toFixed(1))} />
                   </Tooltip>} />
                 </List.Item>
 
@@ -305,6 +310,32 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </List.Item>
               </List>
 
+              <List header="Data">
+                <List.Item key="export" actions={[<Form.Item>
+                  <Button shape="round" loading={loadingChangeServer} icon={<CloudDownloadOutlined />} onClick={exportFilesData}>Export</Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><ExportOutlined /><>Save Data</></Space>} description="Export your files ref data as JSON" />
+                </List.Item>
+
+                <List.Item key="import" actions={[<Form.Item>
+                  <Button shape="round" icon={<CloudUploadOutlined />}>
+                    <Upload name="upload" fileList={[]} multiple={false} beforeUpload={file => {
+                      const fileReader = new FileReader()
+                      fileReader.readAsText(file, 'UTF-8')
+                      fileReader.onload = async ({ target }) => {
+                        await req.post('/files/filesSync', { files: JSON.parse(target?.result as string || '[]') })
+                        notification.success({
+                          message: 'Import Successfully',
+                          description: 'Your files has been imported successfully but you need to reshare your files again to update your shared files',
+                        })
+                      }
+                    }}>Import</Upload>
+                  </Button>
+                </Form.Item>]}>
+                  <List.Item.Meta title={<Space><ImportOutlined /><>Import Data</></Space>} description="Import your files ref data" />
+                </List.Item>
+              </List>
+
               <List header="Danger Zone">
                 <List.Item key="join-exp" actions={[<Form.Item>
                   <Button shape="round" icon={localStorage.getItem('experimental') && localStorage.getItem('session') ? <LogoutOutlined /> : <LoginOutlined />} onClick={async () => {
@@ -325,15 +356,6 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
                 </Form.Item>]}>
                   <List.Item.Meta title={<Space><ExperimentOutlined /><>Experimental</></Space>} description="Join to the experimental features" />
                 </List.Item>
-                {/* <List.Item key="change-server" actions={[<Form.Item name="change_server">
-                  {dc && <Select className="change-server ghost" onChange={server => dc !== server ? setChangeDCConfirmation(server) : undefined}>
-                    <Select.Option value="sg">&#127480;&#127468; Singapore</Select.Option>
-                    <Select.Option value="ge">&#127465;&#127466; Frankfurt</Select.Option>
-                    <Select.Option value="us">&#127482;&#127480; New York</Select.Option>
-                  </Select>}
-                </Form.Item>]}>
-                  <List.Item.Meta title={<Space><GlobalOutlined /><>Change Server</></Space>} description="Migrate to another datacenter" />
-                </List.Item> */}
 
                 <List.Item key="delete-account" actions={[<Form.Item>
                   <Button shape="round" danger type="primary" icon={<FrownOutlined />} onClick={() => setRemoveConfirmation(true)}>Delete</Button>
@@ -384,7 +406,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       </Form>
     </Modal>
 
-    <Modal title={<Typography.Text>
+    {/* <Modal title={<Typography.Text>
       <Typography.Text type="warning"><WarningOutlined /></Typography.Text> Change Server Confirmation
     </Typography.Text>}
     visible={!!changeDCConfirmation}
@@ -398,7 +420,7 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       <Typography.Paragraph type="secondary">
         You'll be logged out and redirected to the new server. Please login again to that new server.
       </Typography.Paragraph>
-    </Modal>
+    </Modal> */}
 
     <Modal title={<Typography.Text>
       <Typography.Text><InfoOutlined /></Typography.Text> Report Bugs

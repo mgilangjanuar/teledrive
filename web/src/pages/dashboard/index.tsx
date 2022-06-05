@@ -69,6 +69,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
   const [syncConfirmation, setSyncConfirmation] = useState<boolean>()
   const [collapsedMessaging, setCollapsedMessaging] = useState<boolean>(true)
   const [collapsedView, setCollapsedView] = useState<string>()
+  const [init, setInit] = useState<boolean>()
 
   const { data: me, error: errorMe } = useSWR('/users/me', fetcher)
   const { data: filesUpload } = useSWR(fileList?.filter(file => file.response?.file)?.length
@@ -105,8 +106,11 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
 
   useEffect(() => {
     // init config
-    req.get('/config')
-  }, [])
+    if (!init) {
+      req.get('/config')
+      setInit(true)
+    }
+  }, [init])
 
   useEffect(() => {
     if (window.localStorage.getItem('session')) {
