@@ -318,7 +318,14 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
       }
       return notification.error({
         message: error?.response?.status || 'Something error',
-        ...error?.response?.data ? { description: error.response.data.error } : {}
+        ...error?.response?.data ? { description: <>
+          <Typography.Paragraph>
+            {error?.response?.data?.error || error.message || 'Something error'}
+          </Typography.Paragraph>
+          <Typography.Paragraph code>
+            {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+          </Typography.Paragraph>
+        </> } : {}
       })
     } finally {
       setSyncConfirmation(false)

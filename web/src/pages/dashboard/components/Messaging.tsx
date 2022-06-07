@@ -392,7 +392,14 @@ const Messaging: React.FC<Props> = ({ me, collapsed, parent, setCollapsed }) => 
       setLoadingSend(false)
       return notification.error({
         message: 'Error',
-        description: error?.response.data?.error || 'Something error, please try again.'
+        description: <>
+          <Typography.Paragraph>
+            {error?.response?.data?.error || error.message || 'Something error'}
+          </Typography.Paragraph>
+          <Typography.Paragraph code>
+            {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+          </Typography.Paragraph>
+        </>
       })
     }
     return setLoadingSend(false)

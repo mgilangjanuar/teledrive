@@ -155,7 +155,14 @@ const Settings: React.FC<Props> = ({ me, mutate, error }) => {
       return window.location.replace('/')
     } catch (error: any) {
       setLoadingRemove(false)
-      return notification.error({ message: 'Error', description: error.response?.data.error })
+      return notification.error({ message: 'Error', description: <>
+        <Typography.Paragraph>
+          {error?.response?.data?.error || error.message || 'Something error'}
+        </Typography.Paragraph>
+        <Typography.Paragraph code>
+          {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+        </Typography.Paragraph>
+      </> })
     }
   }
 

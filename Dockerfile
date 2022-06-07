@@ -9,6 +9,7 @@ COPY package.json .
 COPY api/package.json api/package.json
 COPY web/package.json web/package.json
 COPY docker/.env .
-RUN yarn install
+RUN yarn cache clean
+RUN yarn install --network-timeout 1000000
 COPY . .
 RUN yarn workspaces run build
