@@ -171,10 +171,16 @@ const Admin: FC<Props> = ({ me, errorMe }) => {
                   // responsive: ['md'],
                 },
                 {
+                  title: 'Role',
+                  dataIndex: 'role',
+                  key: 'role',
+                  render: (value: string, record) => <>{<Tag color="blue">{record.role}</Tag>}</>
+                },
+                {
                   title: 'Username',
                   dataIndex: 'username',
                   key: 'username',
-                  render: (value: string, record) => <>{record.role && <Tag color="red">{record.role}</Tag>} {value}</>
+                  render: (value: string, record) => <>{value}</>
                 },
                 {
                   title: 'Name',
