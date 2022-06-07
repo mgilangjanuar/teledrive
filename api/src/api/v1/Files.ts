@@ -127,6 +127,14 @@ export class Files {
                     { NOT: { name: { endsWith: '11' } } },
                     { NOT: { name: { endsWith: '111' } } },
                     { NOT: { name: { endsWith: '1111' } } },
+                    { NOT: { name: { endsWith: '21' } } },
+                    { NOT: { name: { endsWith: '31' } } },
+                    { NOT: { name: { endsWith: '41' } } },
+                    { NOT: { name: { endsWith: '51' } } },
+                    { NOT: { name: { endsWith: '61' } } },
+                    { NOT: { name: { endsWith: '71' } } },
+                    { NOT: { name: { endsWith: '81' } } },
+                    { NOT: { name: { endsWith: '91' } } },
                   ]
                 },
                 {
