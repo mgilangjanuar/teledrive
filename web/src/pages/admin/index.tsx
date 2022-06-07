@@ -74,7 +74,14 @@ const Admin: FC<Props> = ({ me, errorMe }) => {
     } catch (error: any) {
       return notification.error({
         message: error?.response?.status || 'Something error',
-        ...error?.response?.data ? { description: error.response.data.error } : {}
+        ...error?.response?.data ? { description: <>
+          <Typography.Paragraph>
+            {error?.response?.data?.error || error.message || 'Something error'}
+          </Typography.Paragraph>
+          <Typography.Paragraph code>
+            {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+          </Typography.Paragraph>
+        </> } : {}
       })
     }
   }
@@ -198,7 +205,14 @@ const Admin: FC<Props> = ({ me, errorMe }) => {
                         }).catch(error => {
                           notification.error({
                             message: error?.response?.status || 'Something error',
-                            ...error?.response?.data ? { description: error.response.data.error } : {}
+                            ...error?.response?.data ? { description: <>
+                              <Typography.Paragraph>
+                                {error?.response?.data?.error || error.message || 'Something error'}
+                              </Typography.Paragraph>
+                              <Typography.Paragraph code>
+                                {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+                              </Typography.Paragraph>
+                            </> } : {}
                           })
                         })
                       }} />
@@ -210,7 +224,14 @@ const Admin: FC<Props> = ({ me, errorMe }) => {
                       }).catch(error => {
                         notification.error({
                           message: error?.response?.status || 'Something error',
-                          ...error?.response?.data ? { description: error.response.data.error } : {}
+                          ...error?.response?.data ? { description: <>
+                            <Typography.Paragraph>
+                              {error?.response?.data?.error || error.message || 'Something error'}
+                            </Typography.Paragraph>
+                            <Typography.Paragraph code>
+                              {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+                            </Typography.Paragraph>
+                          </> } : {}
                         })
                       })
                     }}>

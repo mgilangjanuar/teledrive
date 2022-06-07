@@ -1,5 +1,5 @@
 import { CloudUploadOutlined } from '@ant-design/icons'
-import { notification, Upload as BaseUpload } from 'antd'
+import { notification, Typography, Upload as BaseUpload } from 'antd'
 import mime from 'mime-types'
 import React, { useEffect, useRef } from 'react'
 import { Api } from 'teledrive-client'
@@ -37,7 +37,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         await new Promise(res => setTimeout(res, 3000 * ++retry))
         await cb?.()
         if (retry === RETRY_COUNT) {
-          notification.error({ message: 'Failed to upload file', description: error.message })
+          notification.error({ message: 'Failed to upload file', description: <>
+            <Typography.Paragraph>
+              {error?.response?.data?.error || error.message || 'Something error'}
+            </Typography.Paragraph>
+            <Typography.Paragraph code>
+              {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+            </Typography.Paragraph>
+          </> })
           throw error
         }
       }
@@ -275,7 +282,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       notification.error({
         key: 'fileUploadError',
         message: error?.response?.status || 'Something error',
-        ...error?.response?.data ? { description: error.response.data.error } : {}
+        ...error?.response?.data ? { description: <>
+          <Typography.Paragraph>
+            {error?.response?.data?.error || error.message || 'Something error'}
+          </Typography.Paragraph>
+          <Typography.Paragraph code>
+            {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+          </Typography.Paragraph>
+        </> } : {}
       })
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
