@@ -29,6 +29,8 @@ Or, just send us an [issue](https://github.com/mgilangjanuar/teledrive/issues) f
 ## Deploy to Heroku
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mgilangjanuar/teledrive)
 
+If you're experiancing issues check this https://github.com/mgilangjanuar/teledrive/issues/373
+
 ## Folder Structure
 
 We using the monorepo structure with [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
