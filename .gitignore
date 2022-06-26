@@ -4,8 +4,8 @@ node_modules/
 dist/
 build/
 keys
-.env
-*.env
+# .env
+# *.env
 .vercel
 lab/
 sessions/
