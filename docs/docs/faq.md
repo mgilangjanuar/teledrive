@@ -3,27 +3,35 @@ sidebar_position: 1
 ---
 
 
-# General Questions
+**General Frequently Asked Questions**
+Q: What is Teledrive?
+A: Teledrive is a free cloud storage program that allows you to have free unlimited cloud using the Telegram API
 
-1.What is Teledrive? Teledrive is a free cloud storage program that allows you to have free unlimited cloud storage using the Telegram api.
+Q: Bandwidth limits are there any?
+A: No, Teledrive allows you to upload as much as you want without any bandwidth limit within the program.
+_Free Heroku deployments do have a 2TB per month bandwidth limit_.
 
-2.Bandwidth limits are there any? Nope Teledrive allows you to upload as much as you want without any bandwidth limit within the program. Free Heroku deployments do have a 2tb per month bandwidth limit.
+Q: File size limits are any?
+A: No, Teledrive automatically splits up your files for your upload to Telegram.
+_This way Teledrive doesn't have any file size limits._
 
-3.File size limits are there any? Nope Teledrive automatically splits up your files for your upload to Telegram. This way Teledrive doesn't have any file size limits.
+Q: How long will my files be on Teledrive?
+A: Telegram has automatic self-destruction if you don't use it in 6 months by default but you can set it to 1 year.
+Keep your Telegram account active that way your files don't get deleted.
 
-4.How long will my files stay on Teledrive? Telegram has a automatic self destruction if you don't use it in 6 months by default but you can set it to 1 year. Keep your Telegram account active that way you're files don't get deleted.
+**Docker Frequently Asked Questions**
+Q: How do I start containers?
+A: You will need to run this command
+`$ cd teledrive/docker`
+`$ docker-compose up -d`
 
-# Docker Frequently Asked Questions
- 
-1.How do I start containers? You'll need to run this command "docker compose-up -d"
+Q: How much RAM do I need to host?
+A: Minimum of 2.5GB of RAM (building requirement)
 
-2.How much ram do I need to host? Minimum of 2.5gb of Ram (Building Requirement)
+**Manual installation Frequently Asked Questions**
+Q: How much RAM do I need to host?
+A: Minimum of 2.5GB of RAM (building requirement)
 
-# Manual installation Frequently Asked Questions
-
-1.How much ram do I need to host? Minimum of 2.5gb of Ram (Building Requirement)
-
-# Heroku Deployment Frequently Asked Questions
-
-1.How much bandwidth can I use for Heroku deployment? Heroku provides a 2tb per month for free deployment.
-
+**Heroku Deployment Frequently Asked Questions**
+Q: How much bandwidth can I use for Heroku deployment?
+A: Heroku provides 2TB per month for free deployment.
