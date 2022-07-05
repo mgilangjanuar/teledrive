@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: teledriveapp.com
+Token: 2f0579c42f3578cf1b1eb15f15c6c4c7efc4c5ae2b8f651c8bbf4b0519fbb7e8 
