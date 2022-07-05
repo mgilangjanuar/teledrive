@@ -21,7 +21,7 @@ then
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
 
-  DB_PASSWORD=$(node -e "console.log(require('crypto').randomBytes(48).toString('base64'));")
+  DB_PASSWORD=$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'));")
 
   echo "ENV=$ENV" > docker/.env
   echo "PORT=$PORT" >> docker/.env
