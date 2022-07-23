@@ -9,9 +9,9 @@ For deployment to [Heroku](https://heroku.com/) you need to create an account fi
 ## Deployment
 **Note.** *You need a github account to follow the next steps.*
 
-- [Fork the teledrive repo](https://github.com/mgilangjanuar/teledrive/fork)
+- [Fork teledrive](https://github.com/mgilangjanuar/teledrive/fork)
   
-- Copy your forked repo url
+- Copy your forked teledrive repository url
 
   > _Make sure to copy the entire url with "https://"_
 
@@ -19,7 +19,7 @@ For deployment to [Heroku](https://heroku.com/) you need to create an account fi
 
 - Use this heroku template url
 
-  > _Replace "{forked-repo-url}" with your forked repo url_
+  > _Replace "{forked-repo-url}" with your forked teledrive repository url_
 
   ```
   https://dashboard.heroku.com/new?template={forked-repo-url}
