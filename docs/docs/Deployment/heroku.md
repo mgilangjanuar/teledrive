@@ -6,13 +6,28 @@ sidebar_position: 4
 
 For deployment to [Heroku](https://heroku.com/) you need to create an account first.
 
-**Note.** *You need to clone TeleDrive in your local machine first.*
+## Deployment
+**Note.** *You need a github account to follow the next steps.*
 
-## One-click Deployment
+- [Fork teledrive](https://github.com/mgilangjanuar/teledrive/fork)
+  
+- Copy your forked teledrive repository url
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mgilangjanuar/teledrive)
+  > _Make sure to copy the entire url with "https://"_
+
+  ![image](https://user-images.githubusercontent.com/42100404/180603080-abb10755-0d40-40b7-801a-1396877c31e1.png)
+
+- Use this heroku template url
+
+  > _Replace "{forked-repo-url}" with your forked teledrive repository url_
+
+  ```
+  https://dashboard.heroku.com/new?template={forked-repo-url}
+  ```
 
 **If you want to upgrade your application to the latest version, you can use these following steps:**
+
+**Note.** *You need to clone TeleDrive in your local machine first.*
 
 ## Prerequisite
 
