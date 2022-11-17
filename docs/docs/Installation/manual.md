@@ -51,10 +51,11 @@ If it's succeed you don't need to follow the steps below.
   npm i -g yarn
   ```
 
-- Define all server variables in `./server/.env`, you can copy from `./server/.env.example`
+- Define all 
+variables in `./api/.env`, you can copy from `./api/.env.example`
 
   ```shell
-  cp ./server/.env.example ./server/.env
+  cp ./api/.env.example ./api/.env
   ```
 
   Explanation:
@@ -125,7 +126,7 @@ yarn workspaces run build
 
 ```shell
 yarn server prisma migrate deploy
-cd server && node dist/index.js
+cd api && node dist/index.js
 ```
 
 Done! You can now open [localhost:4000](http://localhost:4000) in your browser 🎊
@@ -141,7 +142,7 @@ yarn install                     # install
 yarn workspaces run build        # build
 
 yarn server prisma migrate deploy
-cd server && node dist/index.js  # run
+cd api && node dist/index.js  # run
 ```
 
 Next, you can deploy TeleDrive with [Vercel](/docs/deployment/vercel) or [PM2](/docs/deployment/pm2).
