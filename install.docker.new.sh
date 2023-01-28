@@ -29,6 +29,7 @@ then
   echo "TG_API_ID=$TG_API_ID" >> docker/.env
   echo "TG_API_HASH=$TG_API_HASH" >> docker/.env
   echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> docker/.env
+  export DATABASE_URL=postgresql://postgres:$DB_PASSWORD@db:5432/teledrive
   echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
 
   cd docker
