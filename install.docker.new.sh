@@ -7,10 +7,6 @@ echo "cURL Version: $(curl --version | head -n 1)"
 echo "Docker Version: $(docker -v)"
 echo "Docker Compose Version: $(docker compose version)"
 
-if command -v docker >/dev/null 2>&1; then
-  echo "Docker is not found. Please install Docker to continue."
-  exit 1
-fi
 
 if [ ! -f docker/.env ]
 then
@@ -53,7 +49,6 @@ else
   sleep 2
   docker compose up -d
   docker compose exec teledrive yarn workspace api prisma migrate deploy
-else
   git reset --hard
   git clean -f
   git pull origin main
