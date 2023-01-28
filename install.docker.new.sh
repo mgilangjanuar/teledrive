@@ -7,6 +7,11 @@ echo "cURL Version: $(curl --version | head -n 1)"
 echo "Docker Version: $(docker -v)"
 echo "Docker Compose Version: $(docker compose version)"
 
+if command -v docker >/dev/null 2>&1; then
+  echo "Docker is not found. Please install Docker to continue."
+  exit 1
+fi
+
 if [ ! -f docker/.env ]
 then
   echo "Generating .env file..."
@@ -29,13 +34,24 @@ then
   echo "TG_API_ID=$TG_API_ID" >> docker/.env
   echo "TG_API_HASH=$TG_API_HASH" >> docker/.env
   echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> docker/.env
-  export DATABASE_URL="postgresql://postgres:$DB_PASSWORD@db:5432/teledrive"
+  export DATABASE_URL=postgresql://postgres:$DB_PASSWORD@db:5432/teledrive
   echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
 
   cd docker
   docker compose build teledrive
   docker compose up -d
   sleep 2
+  docker compose exec teledrive yarn workspace api prisma migrate deploy
+else
+  git pull origin main
+
+  export $(cat docker/.env | xargs)
+
+  cd docker
+  docker compose down
+  docker compose up --build --force-recreate -d
+  sleep 2
+  docker compose up -d
   docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
   git reset --hard
