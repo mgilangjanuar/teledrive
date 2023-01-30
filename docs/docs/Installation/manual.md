@@ -51,10 +51,10 @@ If it's succeed you don't need to follow the steps below.
   npm i -g yarn
   ```
 
-- Define all server variables in `./server/.env`, you can copy from `./server/.env.example`
+- Define all api variables in `./api/.env`, you can copy from `./api/.env.example`
 
   ```shell
-  cp ./server/.env.example ./server/.env
+  cp ./api/.env.example ./api/.env
   ```
 
   Explanation:
@@ -104,7 +104,7 @@ You need to create and import the database schema.
   CREATE DATABASE teledrive;
   ```
 
-**Note.** *If you follow the instructions above then you need to fill the server variables:*
+**Note.** *If you follow the instructions above then you need to fill the api variables:*
 - `DATABASE_URL`: postgresql://postgres@localhost:5432/teledrive
 
 ### Dependencies installation
@@ -124,8 +124,8 @@ yarn workspaces run build
 ## Run:
 
 ```shell
-yarn server prisma migrate deploy
-cd server && node dist/index.js
+yarn api prisma migrate deploy
+cd api && node dist/index.js
 ```
 
 Done! You can now open [localhost:4000](http://localhost:4000) in your browser 🎊
@@ -140,8 +140,8 @@ git pull origin main             # or, staging for the latest updates
 yarn install                     # install
 yarn workspaces run build        # build
 
-yarn server prisma migrate deploy
-cd server && node dist/index.js  # run
+yarn api prisma migrate deploy
+cd api && node dist/index.js  # run
 ```
 
 Next, you can deploy TeleDrive with [Vercel](/docs/deployment/vercel) or [PM2](/docs/deployment/pm2).
