@@ -5,8 +5,8 @@ import { telegramClient } from './Telegram'
 
 const downloadFiles = async (controller: ReadableStreamDefaultController, client: any, response: any) => {
   for (const file of response.files) {
-    const { forward_info, message_id } = file;
-    let chat: any;
+    const { forward_info, message_id } = file
+    let chat: any
     if (forward_info && forward_info.match(/^channel\//gi)) {
       const [, peerId, id, accessHash] = forward_info.split('/');
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat;
@@ -42,27 +42,27 @@ const downloadFiles = async (controller: ReadableStreamDefaultController, client
 };
 
 export const download = async (id: string): Promise<ReadableStream> => {
-  const { data: response } = await req.get(`/files/${id}`, { params: { raw: 1, as_array: 1 } });
+  const { data: response } = await req.get(`/files/${id}`, { params: { raw: 1, as_array: 1 } })
   const client = await telegramClient.connect();
   return new ReadableStream({
     start: async (controller: ReadableStreamDefaultController) => {
-      console.log('start downloading:', response.files);
-      await downloadFiles(controller, client, response);
+      console.log('start downloading:', response.files)
+      await downloadFiles(controller, client, response)
     }
   }, {
     size: (chunk: any) => chunk.length
-  });
-};
+  })
+}
 
 export const directDownload = async (id: string, name: string): Promise<void> => {
   const fileStream = streamSaver.createWriteStream(name);
-  const writer = fileStream.getWriter();
-  const reader = (await download(id)).getReader();
+  const writer = fileStream.getWriter()
+  const reader = (await download(id)).getReader()
   const pump = async () => {
-    const { value, done } = await reader.read();
-    if (done) return writer.close();
-    writer.write(value);
-    return writer.ready.then(pump);
+    const { value, done } = await reader.read()
+    if (done) return writer.close()
+    writer.write(value)
+    return writer.ready.then(pump)
   };
-  await pump();
+  await pump()
 }
