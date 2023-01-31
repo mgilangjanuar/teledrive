@@ -8,17 +8,17 @@ const downloadFiles = async (controller: ReadableStreamDefaultController, client
     const { forwardInfo, messageId } = file
     let chat: any
     if (forwardInfo && forwardInfo.match(/^channel\//gi)) {
-      const [, peerId, id, accessHash] = forwardInfo.split('/');
+      const [, peerId, id, accessHash] = forwardInfo.split('/')
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
       if (forwardInfo.startsWith('channel')) {
         peer = new Api.InputPeerChannel({
           channelId: BigInt(peerId) as any,
           accessHash: BigInt(accessHash as string) as any
-        });
+        })
         chat = await client.invoke(new Api.channels.GetMessages({
           channel: peer,
           id: [new Api.InputMessageID({ id: Number(id) })]
-        }));
+        }))
       }
     } else {
       chat = await client.invoke(new Api.messages.GetMessages({
