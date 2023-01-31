@@ -22,7 +22,7 @@ const downloadFiles = async (controller: ReadableStreamDefaultController, client
       }
     } else {
       chat = await client.invoke(new Api.messages.GetMessages({
-        id: [new Api.InputMessageID({ id: Number(message_id) })]
+        id: [new Api.InputMessageID({ id: Number(messageId) })]
       }))
     }
     const media = chat['messages'][0].media
