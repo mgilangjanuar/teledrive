@@ -231,9 +231,6 @@ const TableFiles: React.FC<Props> = ({
       width: 100,
       align: 'center',
       render: (value: any) => {
-        if (Number(value) === 2_000_000_000) {
-          return '> 2 GB'
-        }
         return value ? prettyBytes(Number(value)) : '-'
       }
     },
