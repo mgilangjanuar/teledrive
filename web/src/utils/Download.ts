@@ -1,30 +1,6 @@
-
-        await getData()
-      
-    },
-    cancel() {
-      cancel = true
-    }
-  }, {
-    size(chunk: any) {
-      return chunk.length
-    }
-  }
-  return readableStream
-}
-
-export const directDownload = async (id: string, name: string): Promise<void> => {
-  const fileStream = streamSaver.createWriteStream(name)
-  const writer = fileStream.getWriter()
-  const reader = (await download(id)).getReader()
-  
-  
-  import streamSaver from 'streamsaver'
-
+import streamSaver from 'streamsaver'
 import { Api } from 'teledrive-client'
-
 import { req } from './Fetcher'
-
 import { telegramClient } from './Telegram'
 
 export async function download(id: string): Promise<ReadableStream> {
