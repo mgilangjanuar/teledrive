@@ -345,14 +345,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       },
       strokeWidth: 3,
       format: (percent: any) => `${percent}%`
-    },
-    eta: {
-      strokeColor: {
-        '0%': '#108ee9',
-        '100%': '#87d068',
-      },
-      strokeWidth: 3,
-      format: (eta: any) => `${eta}%`
     }
   }
 
