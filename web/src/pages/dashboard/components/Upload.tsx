@@ -62,34 +62,12 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return 'Are you sure you want to leave?'
     }
 
-    (async () => {
-      const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
-      const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
-      const startTime = Date.now()
-      const totalParts = 0
-      const totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
-      let trial = 0
-      while (trial < RETRY_COUNT) {
-        try {
-          responses[j] = await beginUpload()
-          trial = RETRY_COUNT
-        } catch (error) {
-          if (trial >= RETRY_COUNT) {
-            throw error
-          }
-          await new Promise(res => setTimeout(res, ++trial * 3000))
-        }
-      }
-      const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-      // calculate the ETA based on the elapsed time and remaining parts
-      const elapsedTime = Date.now() - startTime
-      const remainingParts = totalAllParts - totalParts
-      const eta = Date.now() + remainingParts * elapsedTime / totalParts
-      onProgress({ percent, eta }, file)
-    })()
+
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
     let deleted = false
+    const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+    const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
 
     try {
       while (filesWantToUpload.current?.findIndex(f => f.uid === file.uid) !== 0) {
@@ -319,6 +297,31 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return onError(error.response?.data || error.response || { error: error.message }, file)
     }
   }
+
+  (async () => {
+    const startTime = Date.now()
+    const totalParts = 0
+    const totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
+    let trial = 0
+    while (trial < RETRY_COUNT) {
+      try {
+        responses[j] = await beginUpload()
+        trial = RETRY_COUNT
+      } catch (error) {
+        if (trial >= RETRY_COUNT) {
+          throw error
+        }
+        await new Promise(res => setTimeout(res, ++trial * 3000))
+      }
+    }
+    const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+    // calculate the ETA based on the elapsed time and remaining parts
+    const elapsedTime = Date.now() - startTime
+    const remainingParts = totalAllParts - totalParts
+    const eta = Date.now() + remainingParts * elapsedTime / totalParts
+    onProgress({ percent, eta }, file)
+  })()
+
 
   const params = {
     multiple: true,
