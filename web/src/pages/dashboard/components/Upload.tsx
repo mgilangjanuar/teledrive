@@ -305,7 +305,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     let trial = 0
     while (trial < RETRY_COUNT) {
       try {
-        responses[j] = await beginUpload()
         trial = RETRY_COUNT
       } catch (error) {
         if (trial >= RETRY_COUNT) {
