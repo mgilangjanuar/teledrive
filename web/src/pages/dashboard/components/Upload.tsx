@@ -62,6 +62,39 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return 'Are you sure you want to leave?'
     }
 
+    let startTime = new Date().getTime();
+    let dataUploaded = 0;
+    let estimatedTime = 0;
+  
+    // ... your existing code ...
+  
+    for (let j = 0; j < fileParts; j++) {
+      const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size));
+      const parts = Math.ceil(fileBlob.size / CHUNK_SIZE);
+      for (let i = 0; i < parts; i++) {
+        if (cancelUploading.current && file.uid === cancelUploading.current) {
+          throw new Error('Upload cancelled');
+        }
+  
+        const chunk = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size));
+        const formData = new FormData();
+        formData.append('part', chunk);
+  
+        // ... your existing code ...
+  
+        // calculate estimated time
+        const now = new Date().getTime();
+        dataUploaded += chunk.size;
+        const timeElapsed = now - startTime;
+        estimatedTime = (timeElapsed / dataUploaded) * (file.size - dataUploaded);
+  
+        // ... your existing code ...
+      }
+    }
+  
+    // ... your existing code ...
+  }
+
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
 
