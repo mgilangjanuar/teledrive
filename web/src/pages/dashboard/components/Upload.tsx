@@ -63,7 +63,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     }
 
     (async () => {
-      let  cstartTime = Date.now()
+      let  startTime = Date.now()
       let totalParts = 0
       let totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
       let trial = 0
