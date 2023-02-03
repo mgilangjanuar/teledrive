@@ -67,7 +67,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       const totalParts = 0
       const totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
       let trial = 0
-            while (trial < RETRY_COUNT) {
+      while (trial < RETRY_COUNT) {
         try {
           responses[j] = await beginUpload()
           trial = RETRY_COUNT
@@ -83,7 +83,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       const elapsedTime = Date.now() - startTime
       const remainingParts = totalAllParts - totalParts
       const eta = Date.now() + remainingParts * elapsedTime / totalParts
-    
       onProgress({ percent, eta }, file)
     })()
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
