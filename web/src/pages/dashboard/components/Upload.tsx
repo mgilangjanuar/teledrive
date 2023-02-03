@@ -90,7 +90,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   
         // ... your existing code ...
       }
-    }
+  
   
     // ... your existing code ...
   }
@@ -366,5 +366,4 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     </p>
   </BaseUpload.Dragger>
 }
-
 export default Upload
