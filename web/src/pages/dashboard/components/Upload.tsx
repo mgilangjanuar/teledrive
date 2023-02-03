@@ -364,3 +364,4 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
   </BaseUpload.Dragger>
 
 export default Upload
+}
