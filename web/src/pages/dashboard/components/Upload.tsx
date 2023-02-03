@@ -357,6 +357,5 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       Maximum file size is unlimited
     </p>
   </BaseUpload.Dragger>
-}
-
+  
 export default Upload
