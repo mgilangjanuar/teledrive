@@ -73,7 +73,7 @@ const Upload: React.FC<Props> = ({
       return 'Are you sure you want to leave?'
     };
       // ... rest of the code ...
-    } ,catch (error) {
+    } ,catch (errorCatch) {
       if (!deleted) {
         try {
           await req('DELETE', `/telegram/files/${data.fileId}`)
