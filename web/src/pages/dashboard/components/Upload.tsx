@@ -63,6 +63,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     }
 
     (async () => {
+      const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
       const startTime = Date.now()
       const totalParts = 0
       const totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
@@ -87,7 +88,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     })()
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
-    const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
     let deleted = false
 
     try {
