@@ -62,12 +62,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return 'Are you sure you want to leave?'
     }
 
-
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
-    let deleted = false
-    const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+
     const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
+    let deleted = false
 
     try {
       while (filesWantToUpload.current?.findIndex(f => f.uid === file.uid) !== 0) {
@@ -82,6 +81,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       if (localStorage.getItem('experimental')) {
         let client = await telegramClient.connect()
         for (let j = 0; j < fileParts; j++) {
+          const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
           const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
           if (!deleted) {
@@ -178,8 +178,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                 responses[j] = await beginUpload()
 
                 const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-                const eta = Date.now() + (totalAllParts - totalParts) * 1000*60
-                onProgress({ percent, eta }, file)
+                onProgress({ percent }, file)
               }
             }
 
@@ -247,7 +246,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                 }
 
                 const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-                onProgress({ percent, eta }, file)
+                onProgress({ percent }, file)
               }
             }
 
@@ -298,30 +297,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     }
   }
 
-  (async () => {
-    const startTime = Date.now()
-    const totalParts = 0
-    const totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
-    let trial = 0
-    while (trial < RETRY_COUNT) {
-      try {
-        trial = RETRY_COUNT
-      } catch (error) {
-        if (trial >= RETRY_COUNT) {
-          throw error
-        }
-        await new Promise(res => setTimeout(res, ++trial * 3000))
-      }
-    }
-    const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-    // calculate the ETA based on the elapsed time and remaining parts
-    const elapsedTime = Date.now() - startTime
-    const remainingParts = totalAllParts - totalParts
-    const eta = Date.now() + remainingParts * elapsedTime / totalParts
-    onProgress({ percent, eta }, file)
-  })()
-
-
   const params = {
     multiple: true,
     customRequest: upload,
@@ -358,4 +333,5 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     </p>
   </BaseUpload.Dragger>
 }
+
 export default Upload
