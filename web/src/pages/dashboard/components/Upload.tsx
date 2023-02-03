@@ -62,30 +62,35 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return 'Are you sure you want to leave?'
     }
 
-    let startTime = Date.now()
-    let totalParts = 0;
-    let totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
-        
-                let trial = 0
-                while (trial < RETRY_COUNT) {
-                  try {
-                    responses[j] = await beginUpload()
-                    trial = RETRY_COUNT
-                  } catch (error) {
-                    if (trial >= RETRY_COUNT) {
-                      throw error
-                    }
-                    await new Promise(res => setTimeout(res, ++trial * 3000))
-                  }
-                }
+    (async () => {
+      let startTime = Date.now();
+      let totalParts = 0;
+      let totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE);
     
-                const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-                // calculate the ETA based on the elapsed time and remaining parts
-                const elapsedTime = Date.now() - startTime
-                const remainingParts = totalAllParts - totalParts
-                const eta = Date.now() + (remainingParts * elapsedTime) / totalParts
-                
-              }
+      // ...
+    
+      let trial = 0
+      while (trial < RETRY_COUNT) {
+        try {
+          responses[j] = await beginUpload()
+          trial = RETRY_COUNT
+        } catch (error) {
+          if (trial >= RETRY_COUNT) {
+            throw error
+          }
+          await new Promise(res => setTimeout(res, ++trial * 3000))
+        }
+      }
+    
+      const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+      // calculate the ETA based on the elapsed time and remaining parts
+      const elapsedTime = Date.now() - startTime;
+      const remainingParts = totalAllParts - totalParts;
+      const eta = Date.now() + (remainingParts * elapsedTime) / totalParts;
+    
+      onProgress({ percent, eta }, file)
+    })()
+    
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
 
@@ -357,5 +362,5 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       Maximum file size is unlimited
     </p>
   </BaseUpload.Dragger>
-  
+
 export default Upload
