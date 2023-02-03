@@ -63,6 +63,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     }
 
     (async () => {
+      const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
       const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
       const startTime = Date.now()
       const totalParts = 0
@@ -103,7 +104,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       if (localStorage.getItem('experimental')) {
         let client = await telegramClient.connect()
         for (let j = 0; j < fileParts; j++) {
-          const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
           const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
           if (!deleted) {
