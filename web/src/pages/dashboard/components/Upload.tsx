@@ -62,7 +62,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return 'Are you sure you want to leave?'
     }
 
-    const startTime = new Date().getTime();
+    const startTime = new Date().getTime()
     let dataUploaded = 0
     let estimatedTime = 0
     // ... your existing code ...
@@ -81,11 +81,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         const now = new Date().getTime()
         dataUploaded += chunk.size
         const timeElapsed = now - startTime
-        estimatedTime = (timeElapsed / dataUploaded) * (file.size - dataUploaded)
+        estimatedTime = timeElapsed / dataUploaded * (file.size - dataUploaded)
         // ... your existing code ...
       }
     // ... your existing code ...
-  }
+    }
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
 
