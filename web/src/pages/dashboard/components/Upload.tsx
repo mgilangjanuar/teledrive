@@ -62,9 +62,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       return 'Are you sure you want to leave?'
     }
 
-    let startTime = Date.now();
+    let startTime = Date.now()
     let totalParts = 0;
-    let totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE);
+    let totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
         
                 let trial = 0
                 while (trial < RETRY_COUNT) {
@@ -81,9 +81,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     
                 const percent = (++totalParts / totalAllParts * 100).toFixed(1)
                 // calculate the ETA based on the elapsed time and remaining parts
-                const elapsedTime = Date.now() - startTime;
-                const remainingParts = totalAllParts - totalParts;
-                const eta = Date.now() + (remainingParts * elapsedTime) / totalParts;
+                const elapsedTime = Date.now() - startTime
+                const remainingParts = totalAllParts - totalParts
+                const eta = Date.now() + (remainingParts * elapsedTime) / totalParts
                 
               }
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
