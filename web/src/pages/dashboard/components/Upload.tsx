@@ -63,11 +63,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     }
 
     (async () => {
-      let  startTime = Date.now()
-      let totalParts = 0
-      let totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
+      const startTime = Date.now()
+      const totalParts = 0
+      const totalAllParts = fileParts * Math.ceil(fileBlob.size / CHUNK_SIZE)
       let trial = 0
-      while (trial < RETRY_COUNT) {
+            while (trial < RETRY_COUNT) {
         try {
           responses[j] = await beginUpload()
           trial = RETRY_COUNT
@@ -78,12 +78,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           await new Promise(res => setTimeout(res, ++trial * 3000))
         }
       }
-    
       const percent = (++totalParts / totalAllParts * 100).toFixed(1)
       // calculate the ETA based on the elapsed time and remaining parts
       const elapsedTime = Date.now() - startTime
       const remainingParts = totalAllParts - totalParts
-      const eta = Date.now() + (remainingParts * elapsedTime) / totalParts
+      const eta = Date.now() + remainingParts * elapsedTime / totalParts
     
       onProgress({ percent, eta }, file)
     })()
