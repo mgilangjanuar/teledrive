@@ -675,51 +675,69 @@ export class Files {
     }
 
     // begin to send
-    const sendData = async (forceDocument: boolean) => {
+    const sendData = async (forceDocument: boolean, req: any, model: any) => {
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
-        const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
-        if (type === 'channel') {
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: accessHash ? bigInt(accessHash as string) : null })
-        } else if (type === 'user') {
-          peer = new Api.InputPeerUser({
-            userId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
-        } else if (type === 'chat') {
-          peer = new Api.InputPeerChat({
-            chatId: bigInt(peerId) })
+      const savedLocation = (req.user.settings as Prisma.JsonObject)?.saved_location as string
+    
+      if (savedLocation) {
+        const [type, peerId, _, accessHash] = savedLocation.split("/")
+        switch (type) {
+          case "channel":
+            peer = new Api.InputPeerChannel({
+              channelId: bigInt(peerId),
+              accessHash: accessHash ? bigInt(accessHash) : null,
+            })
+            break
+          case "user":
+            peer = new Api.InputPeerUser({
+              userId: bigInt(peerId),
+              accessHash: bigInt(accessHash),
+            })
+            break
+          case "chat":
+            peer = new Api.InputPeerChat({
+              chatId: bigInt(peerId),
+            })
+            break
+          default:
+            peer = null
         }
       }
-      return await req.tg.sendFile(peer || 'me', {
-        file: new Api.InputFileBig({
-          id: bigInt(model.file_id),
-          parts: Number(totalPart),
-          name: model.name
-        }),
-        forceDocument,
-        caption: model.name,
-        fileSize: Number(model.size),
-        attributes: forceDocument ? [
-          new Api.DocumentAttributeFilename({ fileName: model.name })
-        ] : undefined,
-        workers: 1
-      })
+    
+      return await req.tg.sendFile(
+        peer || "me",
+        {
+          file: new Api.InputFileBig({
+            id: bigInt(model.file_id),
+            parts: Number(model.totalPart),
+            name: model.name,
+          }),
+          forceDocument,
+          caption: model.name,
+          fileSize: Number(model.size),
+          attributes: forceDocument
+            ? [new Api.DocumentAttributeFilename({ fileName: model.name })]
+            : undefined,
+          workers: 1,
+        },
+      )
     }
-
+    
     let data: Api.Message
     try {
-      data = await sendData(false)
+      data = await sendData(false, req, model)
     } catch (error) {
-      data = await sendData(true)
+      data = await sendData(true, req, model)
     }
-
-    let forwardInfo = null
-    if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
-      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
+    
+    let forwardInfo: string | null = null
+    const savedLocation = (req.user.settings as Prisma.JsonObject)?.saved_location as string
+    
+    if (savedLocation) {
+      const [type, peerId, _, accessHash] = savedLocation.split("/")
       forwardInfo = `${type}/${peerId}/${data.id?.toString()}/${accessHash}`
     }
+    
 
     await prisma.files.update({
       data: {
