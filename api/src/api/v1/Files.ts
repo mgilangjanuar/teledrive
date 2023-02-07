@@ -1149,24 +1149,33 @@ export class Files {
 
     for (const file of files) {
       let chat: any
+      let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
-          }))
+            accessHash: bigInt(accessHash as string)
+          });
+    
+          chat = await req.tg.invoke(
+            new Api.channels.GetMessages({
+              channel: peer,
+              id: [new Api.InputMessageID({ id: Number(id) })]
+            })
+          );
         }
       } else {
-        chat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-        }))
+        chat = await req.tg.invoke(
+          new Api.messages.GetMessages({
+            id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+          })
+        )
       }
-
+    }
+    
       // const readableStream = new Readable()
       const getData = async () => {
         try {
