@@ -704,7 +704,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 4
+        workers: 1
       })
     }
 
@@ -1166,29 +1166,38 @@ export class Files {
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
+
       // const readableStream = new Readable()
       const getData = async () => {
         try {
           await req.tg.downloadMedia(chat['messages'][0].media, {
-            ...thumb ? { thumb: 0 } : {},
+            ...(thumb !== undefined ? { thumb: 0 } : {}),
             outputFile: {
               write: (buffer: Buffer) => {
                 downloaded += buffer.length
                 if (cancel) {
                   throw { status: 422, body: { error: 'canceled' } }
                 } else {
-                  console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
+                  console.log(
+                    `${chat['messages'][0].id} ${downloaded}/${
+                      chat['messages'][0].media.document.size
+                    } (${downloaded / Number(chat['messages'][0].media.document.size)})`
+                  )
                   try {
                     appendFileSync(filename('process-'), buffer)
                   } catch (error) {
-                    // Error handling
                     console.error(error)
                   }
                   res.write(buffer)
                 }
               },
               close: () => {
-                console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
+                console.log(
+                  `${chat['messages'][0].id} ${downloaded}/${
+                    chat['messages'][0].media.document.size
+                  } (${downloaded / Number(chat['messages'][0].media.document.size)})`,
+                  '-end-'
+                )
                 try {
                   const { size } = statSync(filename('process-'))
                   if (totalFileSize.gt(bigInt(size))) {
@@ -1197,17 +1206,12 @@ export class Files {
                     renameSync(filename('process-'), filename())
                   }
                 } catch (error) {
-                  // Error handling
                   console.error(error)
                 }
                 res.end()
               }
             }
           })
-        } catch (error) {
-          console.log(error)
-        }
-        try {
           usage = await prisma.usages.update({
             data: {
               usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
@@ -1215,20 +1219,19 @@ export class Files {
             where: { key: usage.key }
           })
         } catch (error) {
-          // Error handling
           console.error(error)
         }
         while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
-          try {
-            rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
-          } catch (error) {
-            // Error handling
-            console.error(error)
-          }
+          rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
         }
       }
+      try {
+        await getData()
+      } catch (error) {
+        console.error(error)
+      }
     }
-  }
+  }      
   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
