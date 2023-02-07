@@ -675,67 +675,51 @@ export class Files {
     }
 
     // begin to send
-    const sendData = async (forceDocument: boolean, req: any, model: any) => {
+    const sendData = async (forceDocument: boolean) => {
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      const savedLocation = (req.user.settings as Prisma.JsonObject)?.saved_location as string
-      if (savedLocation) {
-        const [type, peerId, _, accessHash] = savedLocation.split("/")
-        switch ('type') {
-          case "channel":
-            peer = new Api.InputPeerChannel({
-              channelId: bigInt('peerId'),
-              accessHash: accessHash ? bigInt(accessHash) : null,
-            })
-            break
-          case "user":
-            peer = new Api.InputPeerUser({
-              userId: bigInt('peerId'),
-              accessHash: bigInt('accessHash'),
-            })
-            break
-          case "chat":
-            peer = new Api.InputPeerChat({
-              chatId: bigInt('peerId'),
-            })
-            break
-          default:
-            peer = null
+      if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+        const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: accessHash ? bigInt(accessHash as string) : null })
+        } else if (type === 'user') {
+          peer = new Api.InputPeerUser({
+            userId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peer = new Api.InputPeerChat({
+            chatId: bigInt(peerId) })
         }
       }
-      return await req.tg.sendFile(
-        peer || "me",
-        {
-          file: new Api.InputFileBig({
-            id: bigInt(model.file_id),
-            parts: Number(model.totalPart),
-            name: model.name,
-          }),
-          forceDocument,
-          caption: model.name,
-          fileSize: Number(model.size),
-          attributes: forceDocument
-            ? [new Api.DocumentAttributeFilename({ fileName: model.name })]
-            : undefined,
-          workers: 1,
-        },
-      )
+      return await req.tg.sendFile(peer || 'me', {
+        file: new Api.InputFileBig({
+          id: bigInt(model.file_id),
+          parts: Number(totalPart),
+          name: model.name
+        }),
+        forceDocument,
+        caption: model.name,
+        fileSize: Number(model.size),
+        attributes: forceDocument ? [
+          new Api.DocumentAttributeFilename({ fileName: model.name })
+        ] : undefined,
+        workers: 1
+      })
     }
-    
+
     let data: Api.Message
     try {
-      data = await sendData(false, req, model)
+      data = await sendData(false)
     } catch (error) {
-      data = await sendData(true, req, model)
+      data = await sendData(true)
     }
-    
-    let forwardInfo: string | null = null
-    const savedLocation = (req.user.settings as Prisma.JsonObject)?.saved_location as string
-    
-    if (savedLocation) {
-      const [type, peerId, _, accessHash] = savedLocation.split("/")
+
+    let forwardInfo = null
+    if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
       forwardInfo = `${type}/${peerId}/${data.id?.toString()}/${accessHash}`
     }
-    
 
     await prisma.files.update({
       data: {
@@ -1182,9 +1166,7 @@ export class Files {
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
-
       // const readableStream = new Readable()
- 
       const getData = async () => {
         try {
           await req.tg.downloadMedia(chat['messages'][0].media, {
@@ -1200,7 +1182,7 @@ export class Files {
                     appendFileSync(filename('process-'), buffer)
                   } catch (error) {
                     // Error handling
-                    console.error(error)
+                    console.error(error);
                   }
                   res.write(buffer)
                 }
@@ -1216,12 +1198,12 @@ export class Files {
                   }
                 } catch (error) {
                   // Error handling
-                  console.error(error)
+                  console.error(error);
                 }
                 res.end()
               }
             }
-          })
+          });
         } catch (error) {
           console.log(error)
         }
@@ -1234,22 +1216,20 @@ export class Files {
           })
         } catch (error) {
           // Error handling
-          console.error(error)
+          console.error(error);
         }
         while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
           try {
             rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
           } catch (error) {
             // Error handling
-            console.error(error)
+            console.error(error);
           }
         }
       }
     }
-  }
-    
-
-   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
+  }    
+  public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
     }
