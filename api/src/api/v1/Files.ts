@@ -1231,7 +1231,7 @@ export class Files {
         console.error(error)
       }
     }
-  }     
+  }
   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
