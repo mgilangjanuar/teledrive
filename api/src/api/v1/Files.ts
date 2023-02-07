@@ -1245,10 +1245,11 @@ export class Files {
           }
         }
       }
-    
+    }
+  }
     
 
-  public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
+   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
     }
