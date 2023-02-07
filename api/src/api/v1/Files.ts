@@ -1171,7 +1171,7 @@ export class Files {
       const getData = async () => {
         try {
           await req.tg.downloadMedia(chat['messages'][0].media, {
-            ...(thumb !== undefined ? { thumb: 0 } : {}),
+            ...thumb !== undefined ? { thumb: 0 } : {},
             outputFile: {
               write: (buffer: Buffer) => {
                 downloaded += buffer.length
@@ -1231,7 +1231,7 @@ export class Files {
         console.error(error)
       }
     }
-  }      
+  }     
   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
