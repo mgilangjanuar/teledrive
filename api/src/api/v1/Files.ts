@@ -678,32 +678,30 @@ export class Files {
     const sendData = async (forceDocument: boolean, req: any, model: any) => {
       let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
       const savedLocation = (req.user.settings as Prisma.JsonObject)?.saved_location as string
-    
       if (savedLocation) {
         const [type, peerId, _, accessHash] = savedLocation.split("/")
-        switch (type) {
+        switch ('type') {
           case "channel":
             peer = new Api.InputPeerChannel({
-              channelId: bigInt(peerId),
+              channelId: bigInt('peerId'),
               accessHash: accessHash ? bigInt(accessHash) : null,
             })
             break
           case "user":
             peer = new Api.InputPeerUser({
-              userId: bigInt(peerId),
-              accessHash: bigInt(accessHash),
+              userId: bigInt('peerId'),
+              accessHash: bigInt('accessHash'),
             })
             break
           case "chat":
             peer = new Api.InputPeerChat({
-              chatId: bigInt(peerId),
+              chatId: bigInt('peerId'),
             })
             break
           default:
             peer = null
         }
       }
-    
       return await req.tg.sendFile(
         peer || "me",
         {
@@ -1186,63 +1184,69 @@ export class Files {
       }
 
       // const readableStream = new Readable()
-      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
-        ...thumb ? { thumb: 0 } : {},
-        outputFile: {
-          write: (buffer: Buffer) => {
-            downloaded += buffer.length
-            if (cancel) {
-              throw { status: 422, body: { error: 'canceled' } }
-            } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
-              try {
-                appendFileSync(filename('process-'), buffer)
-              } catch (error) {
-                // ignore
+ 
+      const getData = async () => {
+        try {
+          await req.tg.downloadMedia(chat['messages'][0].media, {
+            ...thumb ? { thumb: 0 } : {},
+            outputFile: {
+              write: (buffer: Buffer) => {
+                downloaded += buffer.length
+                if (cancel) {
+                  throw { status: 422, body: { error: 'canceled' } }
+                } else {
+                  console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
+                  try {
+                    appendFileSync(filename('process-'), buffer)
+                  } catch (error) {
+                    // Error handling
+                    console.error(error)
+                  }
+                  res.write(buffer)
+                }
+              },
+              close: () => {
+                console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
+                try {
+                  const { size } = statSync(filename('process-'))
+                  if (totalFileSize.gt(bigInt(size))) {
+                    rmSync(filename('process-'))
+                  } else {
+                    renameSync(filename('process-'), filename())
+                  }
+                } catch (error) {
+                  // Error handling
+                  console.error(error)
+                }
+                res.end()
               }
-              res.write(buffer)
             }
-          },
-          close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
-            try {
-              const { size } = statSync(filename('process-'))
-              if (totalFileSize.gt(bigInt(size))) {
-                rmSync(filename('process-'))
-              } else {
-                renameSync(filename('process-'), filename())
-              }
-            } catch (error) {
-              // ignore
-            }
-            res.end()
+          })
+        } catch (error) {
+          console.log(error)
+        }
+        try {
+          usage = await prisma.usages.update({
+            data: {
+              usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
+            },
+            where: { key: usage.key }
+          })
+        } catch (error) {
+          // Error handling
+          console.error(error)
+        }
+        while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
+          try {
+            rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
+          } catch (error) {
+            // Error handling
+            console.error(error)
           }
         }
-      })
-
-      try {
-        await getData()
-      } catch (error) {
-        console.log(error)
       }
-    }
-    usage = await prisma.usages.update({
-      data: {
-        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
-      },
-      where: { key: usage.key }
-    })
-
-    while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
-      try {
-        rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
-      } catch {
-        // ignore
-      }
-    }
-
-    // res.end()
-  }
+    
+    
 
   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
