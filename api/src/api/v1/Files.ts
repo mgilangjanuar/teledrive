@@ -1182,7 +1182,7 @@ export class Files {
                     appendFileSync(filename('process-'), buffer)
                   } catch (error) {
                     // Error handling
-                    console.error(error);
+                    console.error(error)
                   }
                   res.write(buffer)
                 }
@@ -1198,12 +1198,12 @@ export class Files {
                   }
                 } catch (error) {
                   // Error handling
-                  console.error(error);
+                  console.error(error)
                 }
                 res.end()
               }
             }
-          });
+          })
         } catch (error) {
           console.log(error)
         }
@@ -1216,19 +1216,19 @@ export class Files {
           })
         } catch (error) {
           // Error handling
-          console.error(error);
+          console.error(error)
         }
         while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
           try {
             rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
           } catch (error) {
             // Error handling
-            console.error(error);
+            console.error(error)
           }
         }
       }
     }
-  }    
+  }
   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
