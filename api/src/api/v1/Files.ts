@@ -1149,98 +1149,83 @@ export class Files {
 
     for (const file of files) {
       let chat: any
-      let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-    
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
-    
+        let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string)
-          });
-    
-          chat = await req.tg.invoke(
-            new Api.channels.GetMessages({
-              channel: peer,
-              id: [new Api.InputMessageID({ id: Number(id) })]
-            })
-          );
+            accessHash: bigInt(accessHash as string) })
+          chat = await req.tg.invoke(new Api.channels.GetMessages({
+            channel: peer,
+            id: [new Api.InputMessageID({ id: Number(id) })]
+          }))
         }
       } else {
-        chat = await req.tg.invoke(
-          new Api.messages.GetMessages({
-            id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-          })
-        )
+        chat = await req.tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+        }))
       }
-    }
-    
+
       // const readableStream = new Readable()
-      const getData = async () => {
-        try {
-          await req.tg.downloadMedia(chat['messages'][0].media, {
-            ...thumb !== undefined ? { thumb: 0 } : {},
-            outputFile: {
-              write: (buffer: Buffer) => {
-                downloaded += buffer.length
-                if (cancel) {
-                  throw { status: 422, body: { error: 'canceled' } }
-                } else {
-                  console.log(
-                    `${chat['messages'][0].id} ${downloaded}/${
-                      chat['messages'][0].media.document.size
-                    } (${downloaded / Number(chat['messages'][0].media.document.size)})`
-                  )
-                  try {
-                    appendFileSync(filename('process-'), buffer)
-                  } catch (error) {
-                    console.error(error)
-                  }
-                  res.write(buffer)
-                }
-              },
-              close: () => {
-                console.log(
-                  `${chat['messages'][0].id} ${downloaded}/${
-                    chat['messages'][0].media.document.size
-                  } (${downloaded / Number(chat['messages'][0].media.document.size)})`,
-                  '-end-'
-                )
-                try {
-                  const { size } = statSync(filename('process-'))
-                  if (totalFileSize.gt(bigInt(size))) {
-                    rmSync(filename('process-'))
-                  } else {
-                    renameSync(filename('process-'), filename())
-                  }
-                } catch (error) {
-                  console.error(error)
-                }
-                res.end()
+      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
+        ...thumb ? { thumb: 0 } : {},
+        outputFile: {
+          write: (buffer: Buffer) => {
+            downloaded += buffer.length
+            if (cancel) {
+              throw { status: 422, body: { error: 'canceled' } }
+            } else {
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
+              try {
+                appendFileSync(filename('process-'), buffer)
+              } catch (error) {
+                // ignore
               }
+              res.write(buffer)
             }
-          })
-          usage = await prisma.usages.update({
-            data: {
-              usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
-            },
-            where: { key: usage.key }
-          })
-        } catch (error) {
-          console.error(error)
+          },
+          close: () => {
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
+            try {
+              const { size } = statSync(filename('process-'))
+              if (totalFileSize.gt(bigInt(size))) {
+                rmSync(filename('process-'))
+              } else {
+                renameSync(filename('process-'), filename())
+              }
+            } catch (error) {
+              // ignore
+            }
+            res.end()
+          }
         }
-        while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
-          rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
-        }
-      }
+      })
+
       try {
         await getData()
       } catch (error) {
-        console.error(error)
+        console.log(error)
       }
     }
+    usage = await prisma.usages.update({
+      data: {
+        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
+      },
+      where: { key: usage.key }
+    })
+
+    while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
+      try {
+        rmSync(`${CACHE_DIR}/${cachedFiles()[0]}`)
+      } catch {
+        // ignore
+      }
+    }
+
+    // res.end()
   }
+
   public static async initiateSessionTG(req: Request, files?: files[]): Promise<any[]> {
     if (!files?.length) {
       throw { status: 404, body: { error: 'File not found' } }
