@@ -61,6 +61,12 @@ const config = {
             href: 'https://github.com/mgilangjanuar/teledrive',
             label: 'GitHub',
             position: 'right',
+            
+          },
+          {
+            href: 'https://opencollective.com/teledrive/contribute',
+            label: 'Donate',
+            position: 'right',
           },
         ],
       },
@@ -74,6 +80,10 @@ const config = {
                 label: 'Tutorial',
                 to: '/docs/intro',
               },
+              {
+                label: 'FAQ',
+                to: '/docs/faq',
+              },
             ],
           },
           {
@@ -86,6 +96,10 @@ const config = {
               {
                 label: 'Discord',
                 href: 'https://discord.gg/8v26KavKa4'
+              },
+              {
+                label: 'Youtube',
+                href: 'https://www.youtube.com/channel/UCg9WsNAHdOpo8SyM8JHGuZQ',
               }
             ],
           },
@@ -95,6 +109,10 @@ const config = {
               {
                 label: 'GitHub',
                 href: 'https://github.com/mgilangjanuar/teledrive',
+              },
+              {
+                label: 'Donate',
+                href: 'https://opencollective.com/teledrive/contribute',
               },
             ],
           },
