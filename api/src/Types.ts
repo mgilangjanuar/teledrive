@@ -1,5 +1,5 @@
 import { users } from '@prisma/client'
-import { TelegramClient } from 'teledrive-client'
+import { TelegramClient } from 'telegram'
 
 declare module 'http' {
   interface IncomingMessage {

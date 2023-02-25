@@ -1,5 +1,5 @@
 import streamSaver from 'streamsaver'
-import { Api } from 'teledrive-client'
+import { Api } from 'telegram'
 import { req } from './Fetcher'
 import { telegramClient } from './Telegram'
 

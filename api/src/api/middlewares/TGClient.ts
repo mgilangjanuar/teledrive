@@ -1,6 +1,6 @@
-import { Logger, TelegramClient } from 'teledrive-client'
-import { LogLevel } from 'teledrive-client/extensions/Logger'
-import { StringSession } from 'teledrive-client/sessions'
+import { Logger, TelegramClient } from 'telegram'
+import { LogLevel } from 'telegram/extensions/Logger'
+import { StringSession } from 'telegram/sessions'
 import { NextFunction, Request, Response } from 'express'
 import { CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 

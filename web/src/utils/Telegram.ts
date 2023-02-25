@@ -1,5 +1,5 @@
-import { TelegramClient } from 'teledrive-client'
-import { StringSession } from 'teledrive-client/sessions'
+import { TelegramClient } from 'telegram'
+import { StringSession } from 'telegram/sessions'
 import { notification } from 'antd'
 
 export const telegramClient = {
