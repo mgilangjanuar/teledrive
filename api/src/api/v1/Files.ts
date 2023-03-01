@@ -982,7 +982,7 @@ export class Files {
               name,
               message_id: file.id.toString(),
               mime_type: mimeType,
-              size,
+              size: size.value,
               user_id: req.user.id,
               uploaded_at: new Date(file.date * 1000),
               type,
