@@ -263,13 +263,14 @@ export class Files {
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
-    const count = data?.name ? null : await prisma.files.count({
+    const count = await prisma.files.count({
       where: {
         AND: [
           { type: 'folder' },
           { user_id: req.user.id },
-          { name: { startsWith: 'New Folder' } },
-          { parent_id: data?.parent_id || null }
+          { name: { startsWith: data?.name || 'New Folder' } },
+          { parent_id: data?.parent_id || null },
+          { link_id: data?.link_id || null }
         ]
       }
     })
@@ -279,11 +280,12 @@ export class Files {
 
     return res.send({ file: await prisma.files.create({
       data: {
-        name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
+        name: (data?.name || 'New Folder') + `${count ? ` (${count})` : ''}`,
         mime_type: 'teledrive/folder',
         user_id: req.user.id,
         type: 'folder',
         uploaded_at: new Date(),
+        link_id: data?.link_id,
         ...parent ? {
           parent_id: parent.id,
           sharing_options: parent.sharing_options,
