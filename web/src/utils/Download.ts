@@ -12,6 +12,7 @@ export async function download(id: string): Promise<ReadableStream> {
     start(_controller: ReadableStreamDefaultController) {
     },
     async pull(controller: ReadableStreamDefaultController) {
+      let countFiles = 1
       console.log('start downloading:', response.files)
       for (const file of response.files) {
         let chat: any
@@ -39,13 +40,20 @@ export async function download(id: string): Promise<ReadableStream> {
               if (cancel) return false
               return controller.enqueue(chunk)
             },
-            close: () => controller.close()
+            close: () => {
+              if (countFiles++ >= Number(response.files.length))
+                controller.close()
+            }
           },
           progressCallback: (received, total) => {
-            console.log('progress:', received, '/', total)
+            console.log('progress: ', (Number(received)/Number(total)*100).toFixed(2), '%')
           }
         })
-        await getData()
+        try {
+          await getData()
+        } catch (error) {
+          console.log(error)
+        }
       }
     },
     cancel() {

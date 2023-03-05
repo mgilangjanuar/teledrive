@@ -1147,6 +1147,7 @@ export class Files {
       // ignore
     }
 
+    let countFiles = 1
     for (const file of files) {
       let chat: any
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
@@ -1176,7 +1177,7 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
               try {
                 appendFileSync(filename('process-'), buffer)
               } catch (error) {
@@ -1186,18 +1187,20 @@ export class Files {
             }
           },
           close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
-            try {
-              const { size } = statSync(filename('process-'))
-              if (totalFileSize.gt(bigInt(size))) {
-                rmSync(filename('process-'))
-              } else {
-                renameSync(filename('process-'), filename())
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`, '-end-')
+            if (countFiles++ >= files.length) {
+              try {
+                const { size } = statSync(filename('process-'))
+                if (totalFileSize.gt(bigInt(size))) {
+                  rmSync(filename('process-'))
+                } else {
+                  renameSync(filename('process-'), filename())
+                }
+              } catch (error) {
+                // ignore
               }
-            } catch (error) {
-              // ignore
+              res.end()
             }
-            res.end()
           }
         }
       })
