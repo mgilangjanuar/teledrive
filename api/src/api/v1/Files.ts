@@ -300,6 +300,95 @@ export class Files {
     }) })
   }
 
+  @Endpoint.POST({ middlewares: [Auth] })
+  public async cloneFile(req: Request, res: Response): Promise<any> {
+    const { file: body } = req.body
+    const source = await prisma.files.findUnique({ where: { id: body.key } })
+    const files = await prisma.files.findMany({
+      where: {
+        AND: [
+          {
+            name: {
+              startsWith: body.name.replace(/\.part0*\d+$/, '')
+            }
+          },
+          {
+            user_id: req.user?.id
+          },
+          {
+            parent_id: source.parent_id
+          },
+        ]
+      }
+    })
+
+    delete body.key
+    let countFiles = 0
+    for (const file of files) {
+      const { forward_info: forwardInfo, message_id: messageId, mime_type: mimeType } = file
+      let peerFrom: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+      let peerTo: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+      const [type, peerId, _id, accessHash] = forwardInfo?.split('/') ?? []
+      if (forwardInfo && forwardInfo.match(/^channel\//gi)) {
+        if (type === 'channel') {
+          peerFrom = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: accessHash ? bigInt(accessHash as string) : null })
+        } else if (type === 'user') {
+          peerFrom = new Api.InputPeerUser({
+            userId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peerFrom = new Api.InputPeerChat({
+            chatId: bigInt(peerId) })
+        }
+      }
+      if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+        const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
+        if (type === 'channel') {
+          peerTo = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: accessHash ? bigInt(accessHash as string) : null })
+        } else if (type === 'user') {
+          peerTo = new Api.InputPeerUser({
+            userId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peerTo = new Api.InputPeerChat({
+            chatId: bigInt(peerId) })
+        }
+      }
+
+      const chat = await req.tg.invoke(new Api.messages.ForwardMessages({
+        fromPeer: peerFrom || 'me',
+        id: [Number(messageId)],
+        toPeer: peerTo || 'me',
+        randomId: [bigInt.randBetween('-1e100', '1e100')],
+        silent: true,
+        dropAuthor: true
+      })) as any
+
+      const newForwardInfo = forwardInfo ? `${type}/${peerId}/${chat.updates[0].id.toString()}/${accessHash}` : null
+      const message = {
+        size: Number(file.size),
+        message_id: chat.updates[0].id.toString(),
+        mime_type: mimeType,
+        forward_info: newForwardInfo,
+        uploaded_at: new Date(chat.date * 1000)
+      }
+
+      const response = await prisma.files.create({
+        data: {
+          ...body,
+          name: files.length == 1 ? body.name : body.name.replace(/\.part0*\d+$/, '')+`.part${String(countFiles + 1).padStart(3, '0')}`,
+          ...message
+        }
+      })
+      if (countFiles++ == 0)
+        res.send({ file: response })
+    }
+  }
+
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
   public async retrieve(req: Request, res: Response): Promise<any> {
     const { id } = req.params
