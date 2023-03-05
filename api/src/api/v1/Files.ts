@@ -115,6 +115,11 @@ export class Files {
                   .split(',')
               } }
             }
+            if (/\.like$/.test(k)) {
+              obj = { [k.replace(/\.like$/, '')]: {
+                startsWith: filters[k].toString()
+              } }
+            }
             return [...res, obj]
           }, []),
           ...excludeParts === 'true' || excludeParts === '1' ? [
@@ -153,7 +158,7 @@ export class Files {
           take: Number(limit) || 10,
           orderBy: buildSort(sort as string)
         }),
-        await prisma.files.count({ where })
+        await prisma.files.count({ where: whereQuery })
       ]
     }
 
