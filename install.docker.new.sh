@@ -142,7 +142,7 @@ else
 
   git clean -f
 
-  git pull origin main
+  git pull origin staging
 
   
 
