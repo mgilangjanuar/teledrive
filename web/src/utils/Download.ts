@@ -147,7 +147,7 @@ export async function download(id: string): Promise<ReadableStream> {
 
   return readableStream
 
-}
+},
 
 export const directDownload = async (id: string, name: string): Promise<void> => {
 
