@@ -53,7 +53,7 @@ else
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull origin main
+  git pull origin staging
   
   # Update the database password
   DB_PASSWORD=$(openssl rand -base64 48 | tr -d '\n\r')
