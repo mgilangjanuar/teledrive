@@ -141,7 +141,7 @@ export async function download(id: string): Promise<ReadableStream> {
 
       return chunk.length
 
-    }
+    },
 
   })
 
