@@ -2,9 +2,10 @@
 
 set -e
 
-echo "Node Version: $(git --version)"
-echo "cURL Version: $(docker -v)"
-echo "cURL Version: $(docker-compose -v)"
+echo "Node Version: $(node -v)"
+echo "cURL Version: $(curl --version | head -n 1)"
+echo "Docker Version: $(docker -v)"
+echo "Docker Compose Version: $(docker-compose -v)"
 
 if [ ! -f docker/.env ]
 then
@@ -31,9 +32,10 @@ then
   echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
 
   cd docker
+  docker-compose build teledrive
   docker-compose up -d
   sleep 2
-  docker-compose up -d
+  docker-compose exec teledrive yarn workspace api prisma migrate deploy
 else
   git reset --hard
   git clean -f
@@ -46,6 +48,6 @@ else
   docker-compose up --build --force-recreate -d
   sleep 2
   docker-compose up -d
-
+  docker-compose exec teledrive yarn workspace api prisma migrate deploy
   docker image prune -f
 fi

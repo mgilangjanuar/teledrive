@@ -1,5 +1,5 @@
 import streamSaver from 'streamsaver'
-import { Api } from 'teledrive-client'
+import { Api } from 'telegram'
 import { req } from './Fetcher'
 import { telegramClient } from './Telegram'
 
@@ -13,8 +13,13 @@ export async function download(id: string): Promise<ReadableStream> {
 
   const readableStream = new ReadableStream({
 
-    start(controller: ReadableStreamDefaultController) {
+    start(_controller: ReadableStreamDefaultController) {
+    },
+    async pull(controller: ReadableStreamDefaultController) {
+      let countFiles = 1
 
+
+    start(controller: ReadableStreamDefaultController) {
       console.log('start downloading:', response.files)
 
       response.files.forEach(async file => {
@@ -54,6 +59,29 @@ export async function download(id: string): Promise<ReadableStream> {
           }))
 
         }
+
+
+        const getData = async () => await client.downloadMedia(chat['messages'][0].media, {
+          outputFile: {
+            write: (chunk: Buffer) => {
+              if (cancel) return false
+              return controller.enqueue(chunk)
+            },
+            close: () => {
+              if (countFiles++ >= Number(response.files.length))
+                controller.close()
+            }
+          },
+          progressCallback: (received, total) => {
+            console.log('progress: ', (Number(received)/Number(total)*100).toFixed(2), '%')
+          }
+        })
+        try {
+          await getData()
+        } catch (error) {
+          console.log(error)
+        }
+      }
 
         const getData = async () => {
 

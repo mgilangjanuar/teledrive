@@ -48,7 +48,7 @@ const Viewer: React.FC<Props> = ({ data, me, error, mutate, pageParams, isInDraw
   const history = useHistory()
   const [collapsed, setCollapsed] = useState<boolean>()
   const { data: user } = useSWRImmutable(data?.file ? `/users/${data.file.user_id}` : null, fetcher)
-  const { data: datafilesParts } = useSWR(data?.file.name && /\.part0*\d+$/.test(data.file.name) ? `/files?name.match=${encodeURIComponent('\.part0*[0-9]+$')}&name.like=${data.file.name.replace(/\.part0*\d+$/, '')}%&user_id=${data.file.user_id}${me?.user.id !== data.file.user_id ? '&shared=1' : ''}&parent_id${data.file.parent_id ? `=${data.file.parent_id}` : '.is=null'}` : null, fetcher)
+  const { data: datafilesParts } = useSWR(data?.file.name && /\.part0*\d+$/.test(data.file.name) ? `/files?name.like=${data.file.name.replace(/\.part0*\d+$/, '')}&user_id=${data.file.user_id}${me?.user.id !== data.file.user_id ? '&shared=1' : ''}&parent_id${data.file.parent_id ? `=${data.file.parent_id}` : '=null'}` : null, fetcher)
   const [links, setLinks] = useState<{ raw: string, download: string, share: string }>()
   const [showContent] = useDebounce(collapsed, 250)
   const [contentStyle, setContentStyle] = useState<{ display: string } | undefined>()

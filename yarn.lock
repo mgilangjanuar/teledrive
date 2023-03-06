@@ -13078,6 +13078,11 @@ readline2@^1.0.1:
     is-fullwidth-code-point "^1.0.0"
     mute-stream "0.0.5"
 
+real-cancellable-promise@^1.1.1:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/real-cancellable-promise/-/real-cancellable-promise-1.1.2.tgz#af9f7b68ae6828f71af5346132cf427eb859745a"
+  integrity sha512-eq/nAAVW+hj29x292W6yOkeEJ2F/pABnYC5cUfivOsIvSvF/Z0V2tWiyPK73+ay9DZ27CKp7Q+JkCwzmbwE75Q==
+
 recursive-readdir@2.2.2:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/recursive-readdir/-/recursive-readdir-2.2.2.tgz#9946fb3274e1628de6e36b2f6714953b4845094f"
@@ -14192,10 +14197,10 @@ static-extend@^0.1.1:
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.5.0.tgz#161c7dac177659fd9811f43771fa99381478628c"
   integrity sha1-Fhx9rBd2Wf2YEfQ3cfqZOBR4Yow=
 
-store2@^2.12.0:
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/store2/-/store2-2.12.0.tgz#e1f1b7e1a59b6083b2596a8d067f6ee88fd4d3cf"
-  integrity sha512-7t+/wpKLanLzSnQPX8WAcuLCCeuSHoWdQuh9SB3xD0kNOM38DNf+0Oa+wmvxmYueRzkmh6IcdKFtvTa+ecgPDw==
+store2@^2.13.0:
+  version "2.14.2"
+  resolved "https://registry.yarnpkg.com/store2/-/store2-2.14.2.tgz#56138d200f9fe5f582ad63bc2704dbc0e4a45068"
+  integrity sha512-siT1RiqlfQnGqgT/YzXVUNsom9S0H1OX+dpdGN1xkyYATo4I6sep5NmsRD/40s3IIOvlCq6akxkqG82urIZW1w==
 
 stream-browserify@^2.0.1:
   version "2.0.2"
@@ -14663,10 +14668,10 @@ tar@^6.0.2:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-teledrive-client@^2.8.2:
-  version "2.8.2"
-  resolved "https://registry.yarnpkg.com/teledrive-client/-/teledrive-client-2.8.2.tgz#825ff5353a5a8f05460665a440068ed3d06d3e58"
-  integrity sha512-tsbrqFEHurYepyvBCw3fh3/lXzTT1PDy2jcyqr8b4wh6QHbfgRYAJw9J2r/DLRSzL9wahcLlgyn3WYXczxfmCQ==
+telegram@^2.15.5:
+  version "2.15.5"
+  resolved "https://registry.yarnpkg.com/telegram/-/telegram-2.15.5.tgz#0eeba38366320922201404ae5d86f306b197b6fd"
+  integrity sha512-8xYhZ5FpdvGaGijhiV5wEcxNbiWa0NykBCC7/rhcjbQI91WYwkSFMQFBEoQTn24+w9jBA2Fzi0kNzX8N5Zs3Mw==
   dependencies:
     "@cryptography/aes" "^0.1.1"
     async-mutex "^0.3.0"
@@ -14677,8 +14682,9 @@ teledrive-client@^2.8.2:
     node-localstorage "^2.2.1"
     pako "^2.0.3"
     path-browserify "^1.0.1"
+    real-cancellable-promise "^1.1.1"
     socks "^2.6.2"
-    store2 "^2.12.0"
+    store2 "^2.13.0"
     ts-custom-error "^3.2.0"
     websocket "^1.0.34"
   optionalDependencies:
