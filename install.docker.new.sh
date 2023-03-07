@@ -23,7 +23,7 @@ then
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
 
-  read -s -p "Enter your DB_PASSWORD: " DB_PASSWORD
+  read -p "Enter your DB_PASSWORD: " DB_PASSWORD
   echo
 
   echo "ENV=$ENV" > docker/.env
@@ -52,5 +52,5 @@ else
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull origin main
+  git pull staging
 fi
