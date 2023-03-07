@@ -23,13 +23,15 @@ then
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
 
-  read -p "Enter your DB_PASSWORD: " DB_PASSWORD
+  read -s -p "Enter your DB_PASSWORD: " DB_PASSWORD
+  echo
 
   echo "ENV=$ENV" > docker/.env
   echo "PORT=$PORT" >> docker/.env
   echo "TG_API_ID=$TG_API_ID" >> docker/.env
   echo "TG_API_HASH=$TG_API_HASH" >> docker/.env
   echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> docker/.env
+  export DATABASE_URL=postgresql://postgres:$DB_PASSWORD@db:5432/teledrive
   echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
 
   cd docker
@@ -37,7 +39,6 @@ then
   docker compose up -d
   sleep 2
   docker compose exec teledrive yarn workspace api prisma migrate deploy
-  
 else
   git pull origin main
 
