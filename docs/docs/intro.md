@@ -54,10 +54,10 @@ Next, you can select where you want to install TeleDrive.
   Clone repository to your virtual machine and choose the installation method:
 
   - Running application with [Docker](/docs/installation/docker):
-    - Then, setup domain with reverse proxy ([nginx](/docs/deoployment/nginx))
+    - Then, setup domain with reverse proxy ([nginx](/docs/deployment/nginx))
   - Or, running with [manual](/docs/installation/manual):
-    - Daemonize the application with [pm2](/docs/deoployment/pm2)
-    - Then, setup domain with reverse proxy ([nginx](/docs/deoployment/nginx))
+    - Daemonize the application with [pm2](/docs/deployment/pm2)
+    - Then, setup domain with reverse proxy ([nginx](/docs/deoloyment/nginx))
 
 - Heroku *(difficulty level: low)*
 

@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { verify } from 'jsonwebtoken'
-import { Logger, TelegramClient } from 'teledrive-client'
-import { LogLevel } from 'teledrive-client/extensions/Logger'
-import { StringSession } from 'teledrive-client/sessions'
+import { Logger, TelegramClient } from 'telegram'
+import { LogLevel } from 'telegram/extensions/Logger'
+import { StringSession } from 'telegram/sessions'
 import { API_JWT_SECRET, CONNECTION_RETRIES, TG_CREDS } from '../../utils/Constant'
 
 export async function TGSessionAuth(req: Request, _: Response, next: NextFunction): Promise<any> {
