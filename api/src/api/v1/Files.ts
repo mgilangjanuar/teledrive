@@ -1065,15 +1065,16 @@ export class Files {
 
             const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
             const size = file.media.photo ? getSizes(file.media.photo.sizes.pop()) : file.media.document?.size
-            let type = file.media.photo || mimeType.match(/^image/gi) ? 'image' : null
+            let type = file.media.photo
             if (file.media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
               type = 'video'
             } else if (file.media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
               type = 'document'
             } else if (file.media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
               type = 'audio'
+            } else if (file.media.document?.mimeType.match(/^image/gi) || name.match(/\.jpg$/gi) || name.match(/\.jpeg$/gi) || name.match(/\.png$/gi) || name.match(/\.gif$/gi)) {
+              type = 'image'
             }
-
             return {
               name,
               message_id: file.id.toString(),
@@ -1200,7 +1201,7 @@ export class Files {
         const end = ranges[1] ? ranges[1] : totalFileSize.toJSNumber() - 1
 
         const readStream = createReadStream(filename(), { start, end })
-        res.writeHead(206, {
+        res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
           'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
@@ -1211,7 +1212,7 @@ export class Files {
         })
         readStream.pipe(res)
       } else {
-        res.writeHead(206, {
+        res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
           'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes */${totalFileSize}`,
