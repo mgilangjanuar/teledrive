@@ -307,17 +307,19 @@ export class Files {
     const files = await prisma.files.findMany({
       where: {
         AND: [
-          {
-            name: {
-              startsWith: body.name.replace(/\.part0*\d+$/, '')
-            }
-          },
-          {
-            user_id: req.user?.id
-          },
-          {
-            parent_id: source.parent_id
-          },
+          { name: source.name.endsWith('.part001') ? { startsWith: source.name.replace(/\.part0*\d+$/, '.part') } : source.name },
+          { user_id: req.user?.id },
+          { parent_id: source.parent_id },
+        ]
+      }
+    })
+
+    const countExists = await prisma.files.count({
+      where: {
+        AND: [
+          { name: source.name.endsWith('.part001') ? { startsWith: source.name.replace(/\.part0*\d+$/, ''), endsWith: '.part001' } : { startsWith: source.name } },
+          { user_id: req.user?.id },
+          { parent_id: body.parent_id }
         ]
       }
     })
@@ -380,7 +382,7 @@ export class Files {
       const response = await prisma.files.create({
         data: {
           ...body,
-          name: files.length == 1 ? body.name : body.name.replace(/\.part0*\d+$/, '')+`.part${String(countFiles + 1).padStart(3, '0')}`,
+          name: files.length == 1 ? body.name + `${countExists ? ` (${countExists})` : ''}` : body.name.replace(/\.part0*\d+$/, '')+`${countExists ? ` (${countExists})` : ''}`+`.part${String(countFiles + 1).padStart(3, '0')}`,
           ...message
         }
       })
