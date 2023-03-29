@@ -51,8 +51,10 @@ If it's succeed you don't need to follow the steps below.
   npm i -g yarn
   ```
 
+
 - Define all 
 variables in `./api/.env`, you can copy from `./api/.env.example`
+
 
   ```shell
   cp ./api/.env.example ./api/.env
@@ -105,7 +107,7 @@ You need to create and import the database schema.
   CREATE DATABASE teledrive;
   ```
 
-**Note.** *If you follow the instructions above then you need to fill the server variables:*
+**Note.** *If you follow the instructions above then you need to fill the api variables:*
 - `DATABASE_URL`: postgresql://postgres@localhost:5432/teledrive
 
 ### Dependencies installation
@@ -125,7 +127,10 @@ yarn workspaces run build
 ## Run:
 
 ```shell
-yarn server prisma migrate deploy
+
+yarn api prisma migrate deploy
+
+
 cd api && node dist/index.js
 ```
 
@@ -140,8 +145,7 @@ git pull origin main             # or, staging for the latest updates
 
 yarn install                     # install
 yarn workspaces run build        # build
-
-yarn server prisma migrate deploy
+yarn api prisma migrate deploy  
 cd api && node dist/index.js  # run
 ```
 

@@ -8,9 +8,9 @@ import { Request, Response } from 'express'
 import { appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
 import moment from 'moment'
 import multer from 'multer'
-import { Api, Logger, TelegramClient } from 'teledrive-client'
-import { LogLevel } from 'teledrive-client/extensions/Logger'
-import { StringSession } from 'teledrive-client/sessions'
+import { Api, Logger, TelegramClient } from 'telegram'
+import { LogLevel } from 'telegram/extensions/Logger'
+import { StringSession } from 'telegram/sessions'
 import { prisma } from '../../model'
 import { Redis } from '../../service/Cache'
 import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } from '../../utils/Constant'
@@ -115,6 +115,11 @@ export class Files {
                   .split(',')
               } }
             }
+            if (/\.like$/.test(k)) {
+              obj = { [k.replace(/\.like$/, '')]: {
+                startsWith: filters[k].toString()
+              } }
+            }
             return [...res, obj]
           }, []),
           ...excludeParts === 'true' || excludeParts === '1' ? [
@@ -153,7 +158,7 @@ export class Files {
           take: Number(limit) || 10,
           orderBy: buildSort(sort as string)
         }),
-        await prisma.files.count({ where })
+        await prisma.files.count({ where: whereQuery })
       ]
     }
 
@@ -263,13 +268,14 @@ export class Files {
   @Endpoint.POST({ middlewares: [Auth] })
   public async addFolder(req: Request, res: Response): Promise<any> {
     const { file: data } = req.body
-    const count = data?.name ? null : await prisma.files.count({
+    const count = await prisma.files.count({
       where: {
         AND: [
           { type: 'folder' },
           { user_id: req.user.id },
-          { name: { startsWith: 'New Folder' } },
-          { parent_id: data?.parent_id || null }
+          { name: { startsWith: data?.name || 'New Folder' } },
+          { parent_id: data?.parent_id || null },
+          { link_id: data?.link_id || null }
         ]
       }
     })
@@ -279,11 +285,12 @@ export class Files {
 
     return res.send({ file: await prisma.files.create({
       data: {
-        name: data?.name || `New Folder${count ? ` (${count})` : ''}`,
+        name: (data?.name || 'New Folder') + `${count ? ` (${count})` : ''}`,
         mime_type: 'teledrive/folder',
         user_id: req.user.id,
         type: 'folder',
         uploaded_at: new Date(),
+        link_id: data?.link_id,
         ...parent ? {
           parent_id: parent.id,
           sharing_options: parent.sharing_options,
@@ -291,6 +298,97 @@ export class Files {
         } : {}
       }
     }) })
+  }
+
+  @Endpoint.POST({ middlewares: [Auth] })
+  public async cloneFile(req: Request, res: Response): Promise<any> {
+    const { file: body } = req.body
+    const source = await prisma.files.findUnique({ where: { id: body.key } })
+    const files = await prisma.files.findMany({
+      where: {
+        AND: [
+          { name: source.name.endsWith('.part001') ? { startsWith: source.name.replace(/\.part0*\d+$/, '.part') } : source.name },
+          { user_id: req.user?.id },
+          { parent_id: source.parent_id },
+        ]
+      }
+    })
+
+    const countExists = await prisma.files.count({
+      where: {
+        AND: [
+          { name: source.name.endsWith('.part001') ? { startsWith: source.name.replace(/\.part0*\d+$/, ''), endsWith: '.part001' } : { startsWith: source.name } },
+          { user_id: req.user?.id },
+          { parent_id: body.parent_id }
+        ]
+      }
+    })
+
+    delete body.key
+    let countFiles = 0
+    for (const file of files) {
+      const { forward_info: forwardInfo, message_id: messageId, mime_type: mimeType } = file
+      let peerFrom: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+      let peerTo: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+      if (forwardInfo && forwardInfo.match(/^channel\//gi)) {
+        const [type, peerId, _id, accessHash] = forwardInfo?.split('/') ?? []
+        if (type === 'channel') {
+          peerFrom = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: accessHash ? bigInt(accessHash as string) : null })
+        } else if (type === 'user') {
+          peerFrom = new Api.InputPeerUser({
+            userId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peerFrom = new Api.InputPeerChat({
+            chatId: bigInt(peerId) })
+        }
+      }
+      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
+      if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
+        if (type === 'channel') {
+          peerTo = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: accessHash ? bigInt(accessHash as string) : null })
+        } else if (type === 'user') {
+          peerTo = new Api.InputPeerUser({
+            userId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peerTo = new Api.InputPeerChat({
+            chatId: bigInt(peerId) })
+        }
+      }
+
+      const chat = await req.tg.invoke(new Api.messages.ForwardMessages({
+        fromPeer: peerFrom || 'me',
+        id: [Number(messageId)],
+        toPeer: peerTo || 'me',
+        randomId: [bigInt.randBetween('-1e100', '1e100')],
+        silent: true,
+        dropAuthor: true
+      })) as any
+
+      const newForwardInfo = peerTo ? `${type}/${peerId}/${chat.updates[0].id.toString()}/${accessHash}` : null
+      const message = {
+        size: Number(file.size),
+        message_id: chat.updates[0].id.toString(),
+        mime_type: mimeType,
+        forward_info: newForwardInfo,
+        uploaded_at: new Date(chat.date * 1000)
+      }
+
+      const response = await prisma.files.create({
+        data: {
+          ...body,
+          name: files.length == 1 ? body.name + `${countExists ? ` (${countExists})` : ''}` : body.name.replace(/\.part0*\d+$/, '')+`${countExists ? ` (${countExists})` : ''}`+`.part${String(countFiles + 1).padStart(3, '0')}`,
+          ...message
+        }
+      })
+      if (countFiles++ == 0)
+        res.send({ file: response })
+    }
   }
 
   @Endpoint.GET('/:id', { middlewares: [AuthMaybe] })
@@ -704,7 +802,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 1
+        workers: 4
       })
     }
 
@@ -969,20 +1067,21 @@ export class Files {
 
             const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
             const size = file.media.photo ? getSizes(file.media.photo.sizes.pop()) : file.media.document?.size
-            let type = file.media.photo || mimeType.match(/^image/gi) ? 'image' : null
+            let type = file.media.photo
             if (file.media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
               type = 'video'
             } else if (file.media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
               type = 'document'
             } else if (file.media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
               type = 'audio'
+            } else if (file.media.document?.mimeType.match(/^image/gi) || name.match(/\.jpg$/gi) || name.match(/\.jpeg$/gi) || name.match(/\.png$/gi) || name.match(/\.gif$/gi)) {
+              type = 'image'
             }
-
             return {
               name,
               message_id: file.id.toString(),
               mime_type: mimeType,
-              size,
+              size: size.value,
               user_id: req.user.id,
               uploaded_at: new Date(file.date * 1000),
               type,
@@ -1104,7 +1203,7 @@ export class Files {
         const end = ranges[1] ? ranges[1] : totalFileSize.toJSNumber() - 1
 
         const readStream = createReadStream(filename(), { start, end })
-        res.writeHead(206, {
+        res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
           'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
@@ -1115,7 +1214,7 @@ export class Files {
         })
         readStream.pipe(res)
       } else {
-        res.writeHead(206, {
+        res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
           'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes */${totalFileSize}`,
@@ -1147,15 +1246,17 @@ export class Files {
       // ignore
     }
 
+    let countFiles = 1
     for (const file of files) {
-      let chat: any
+      let chat
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+        let peer
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
+            accessHash: bigInt(accessHash as string)
+          })
           chat = await req.tg.invoke(new Api.channels.GetMessages({
             channel: peer,
             id: [new Api.InputMessageID({ id: Number(id) })]
@@ -1166,8 +1267,6 @@ export class Files {
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
-
-      // const readableStream = new Readable()
       const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { thumb: 0 } : {},
         outputFile: {
@@ -1176,7 +1275,7 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`)
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
               try {
                 appendFileSync(filename('process-'), buffer)
               } catch (error) {
@@ -1186,22 +1285,23 @@ export class Files {
             }
           },
           close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size} (${downloaded/Number(chat['messages'][0].media.document.size)})`, '-end-')
-            try {
-              const { size } = statSync(filename('process-'))
-              if (totalFileSize.gt(bigInt(size))) {
-                rmSync(filename('process-'))
-              } else {
-                renameSync(filename('process-'), filename())
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`, '-end-')
+            if (countFiles++ >= files.length) {
+              try {
+                const { size } = statSync(filename('process-'))
+                if (totalFileSize.gt(bigInt(size))) {
+                  rmSync(filename('process-'))
+                } else {
+                  renameSync(filename('process-'), filename())
+                }
+              } catch (error) {
+                // ignore
               }
-            } catch (error) {
-              // ignore
+              res.end()
             }
-            res.end()
           }
         }
       })
-
       try {
         await getData()
       } catch (error) {

@@ -29,6 +29,8 @@ Or, just send us an [issue](https://github.com/mgilangjanuar/teledrive/issues) f
 ## Deploy to Heroku
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mgilangjanuar/teledrive)
 
+If you're experiencing issues check this https://github.com/mgilangjanuar/teledrive/issues/373
+
 ## Folder Structure
 
 We using the monorepo structure with [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
@@ -53,7 +55,7 @@ We using the monorepo structure with [yarn workspaces](https://classic.yarnpkg.c
 └── yarn.lock
 ```
 
+## Community
+[![img](https://user-images.githubusercontent.com/34012548/172031316-60d858c7-8401-42f3-9c73-0b75e80c8292.png)](https://discord.gg/PKNVJwAZnR)
 
-   <a href="https://discord.gg/PKNVJwAZnR"> <img src="https://user-images.githubusercontent.com/34012548/172031316-60d858c7-8401-42f3-9c73-0b75e80c8292.png" alt="discord"></a>
-
-
+[![img](https://media.discordapp.net/attachments/978783095463501834/984317776544014416/ytbutton.png)](https://youtube.com/channel/UCg9WsNAHdOpo8SyM8JHGuZQ)

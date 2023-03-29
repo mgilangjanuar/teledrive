@@ -44,9 +44,9 @@ app.use(cors({
   ]
 }))
 // app.use(compression())
-app.use(json())
-app.use(urlencoded({ extended: true }))
-app.use(raw())
+app.use(json({ limit: '100mb' }))
+app.use(urlencoded({ extended: true, limit: '100mb' }))
+app.use(raw({ limit: '100mb' }))
 app.use(cookieParser())
 if (process.env.ENV !== 'production') {
   app.use(morgan('tiny'))
