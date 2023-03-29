@@ -51,7 +51,10 @@ If it's succeed you don't need to follow the steps below.
   npm i -g yarn
   ```
 
-- Define all api variables in `./api/.env`, you can copy from `./api/.env.example`
+
+- Define all 
+variables in `./api/.env`, you can copy from `./api/.env.example`
+
 
   ```shell
   cp ./api/.env.example ./api/.env
@@ -124,7 +127,10 @@ yarn workspaces run build
 ## Run:
 
 ```shell
+
 yarn api prisma migrate deploy
+
+
 cd api && node dist/index.js
 ```
 
@@ -139,8 +145,7 @@ git pull origin main             # or, staging for the latest updates
 
 yarn install                     # install
 yarn workspaces run build        # build
-
-yarn api prisma migrate deploy
+yarn api prisma migrate deploy  
 cd api && node dist/index.js  # run
 ```
 
