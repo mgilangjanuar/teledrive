@@ -37,16 +37,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         await new Promise(res => setTimeout(res, 3000 * ++retry))
         await cb?.()
         if (retry === RETRY_COUNT) {
-          notification.error({
-            message: 'Failed to upload file', description: <>
-              <Typography.Paragraph>
-                {error?.response?.data?.error || error.message || 'Something error'}
-              </Typography.Paragraph>
-              <Typography.Paragraph code>
-                {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
-              </Typography.Paragraph>
-            </>
-          })
+          notification.error({ message: 'Failed to upload file', description: <>
+            <Typography.Paragraph>
+              {error?.response?.data?.error || error.message || 'Something error'}
+            </Typography.Paragraph>
+            <Typography.Paragraph code>
+              {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+            </Typography.Paragraph>
+          </> })
           throw error
         }
       }
@@ -140,17 +138,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                         if (type === 'channel') {
                           peer = new Api.InputPeerChannel({
                             channelId: BigInt(peerId) as any,
-                            accessHash: BigInt(accessHash as string) as any
-                          })
+                            accessHash: BigInt(accessHash as string) as any })
                         } else if (type === 'user') {
                           peer = new Api.InputPeerUser({
                             userId: BigInt(peerId.toString()) as any,
-                            accessHash: BigInt(accessHash.toString()) as any
-                          })
+                            accessHash: BigInt(accessHash.toString()) as any })
                         } else if (type === 'chat') {
                           peer = new Api.InputPeerChat({
-                            chatId: BigInt(peerId) as any
-                          })
+                            chatId: BigInt(peerId) as any })
                         }
                       }
                       return await client.sendFile(peer || 'me', {
@@ -217,7 +212,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
                 await Promise.all(responses.map(async response => {
                   try {
-                    await req.delete(/files/${ response?.file.id })
+                    await req.delete(`/files/${response?.file.id}`)
                   } catch (error) {
                     // ignore
                   }
@@ -265,9 +260,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
             const group = 2
             await uploadPart(0)
-            for (const i of Array.from(Array(parts - 1).keys()).slice(1)) {
+            for (let i = 1; i < parts - 1; i += group) {
               if (deleted) break
-              const others = Array.from(Array(group).keys()).map(j => i + j).filter(j => j < parts - 1)
+              const others = Array.from(Array(i + group).keys()).slice(i, Math.min(parts - 1, i + group))
               await Promise.all(others.map(async j => await uploadPart(j)))
             }
             if (!deleted && parts - 1 > 0) {
@@ -295,16 +290,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       notification.error({
         key: 'fileUploadError',
         message: error?.response?.status || 'Something error',
-        ...error?.response?.data ? {
-          description: <>
-            <Typography.Paragraph>
-              {error?.response?.data?.error || error.message || 'Something error'}
-            </Typography.Paragraph>
-            <Typography.Paragraph code>
-              {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
-            </Typography.Paragraph>
-          </>
-        } : {}
+        ...error?.response?.data ? { description: <>
+          <Typography.Paragraph>
+            {error?.response?.data?.error || error.message || 'Something error'}
+          </Typography.Paragraph>
+          <Typography.Paragraph code>
+            {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+          </Typography.Paragraph>
+        </> } : {}
       })
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
