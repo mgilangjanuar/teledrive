@@ -5,6 +5,10 @@
   "author": "M Gilang Januar <mgilangjanuar@teledriveapp.com>",
   "license": "MIT",
   "private": true,
+  "engines": {
+  "node": "16.14.0"
+  },
+
   "scripts": {
     "web": "yarn workspace web",
     "server": "yarn workspace api",
@@ -18,7 +22,4 @@
     "api"
   ],
   "dependencies": {}
-},
-"engines": {
-  "node": "18.x"
 }
