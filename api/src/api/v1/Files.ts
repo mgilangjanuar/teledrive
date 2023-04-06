@@ -800,7 +800,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 1
+        workers: 4
       })
     }
 
@@ -1245,14 +1245,15 @@ export class Files {
 
     let countFiles = 1
     for (const file of files) {
-      let chat: any
+      let chat
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+        let peer
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
+            accessHash: bigInt(accessHash as string)
+          })
           chat = await req.tg.invoke(new Api.channels.GetMessages({
             channel: peer,
             id: [new Api.InputMessageID({ id: Number(id) })]
@@ -1263,8 +1264,6 @@ export class Files {
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
-
-      // const readableStream = new Readable()
       const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
         ...thumb ? { thumb: 0 } : {},
         outputFile: {
@@ -1300,7 +1299,6 @@ export class Files {
           }
         }
       })
-
       try {
         await getData()
       } catch (error) {
