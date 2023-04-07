@@ -307,17 +307,19 @@ export class Files {
     const files = await prisma.files.findMany({
       where: {
         AND: [
-          {
-            name: {
-              startsWith: body.name.replace(/\.part0*\d+$/, '')
-            }
-          },
-          {
-            user_id: req.user?.id
-          },
-          {
-            parent_id: source.parent_id
-          },
+          { name: source.name.endsWith('.part001') ? { startsWith: source.name.replace(/\.part0*\d+$/, '.part') } : source.name },
+          { user_id: req.user?.id },
+          { parent_id: source.parent_id },
+        ]
+      }
+    })
+
+    const countExists = await prisma.files.count({
+      where: {
+        AND: [
+          { name: source.name.endsWith('.part001') ? { startsWith: source.name.replace(/\.part0*\d+$/, ''), endsWith: '.part001' } : { startsWith: source.name } },
+          { user_id: req.user?.id },
+          { parent_id: body.parent_id }
         ]
       }
     })
@@ -328,8 +330,8 @@ export class Files {
       const { forward_info: forwardInfo, message_id: messageId, mime_type: mimeType } = file
       let peerFrom: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
       let peerTo: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      const [type, peerId, _id, accessHash] = forwardInfo?.split('/') ?? []
       if (forwardInfo && forwardInfo.match(/^channel\//gi)) {
+        const [type, peerId, _id, accessHash] = forwardInfo?.split('/') ?? []
         if (type === 'channel') {
           peerFrom = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
@@ -343,8 +345,8 @@ export class Files {
             chatId: bigInt(peerId) })
         }
       }
+      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
       if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
-        const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
         if (type === 'channel') {
           peerTo = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
@@ -368,7 +370,7 @@ export class Files {
         dropAuthor: true
       })) as any
 
-      const newForwardInfo = forwardInfo ? `${type}/${peerId}/${chat.updates[0].id.toString()}/${accessHash}` : null
+      const newForwardInfo = peerTo ? `${type}/${peerId}/${chat.updates[0].id.toString()}/${accessHash}` : null
       const message = {
         size: Number(file.size),
         message_id: chat.updates[0].id.toString(),
@@ -380,7 +382,7 @@ export class Files {
       const response = await prisma.files.create({
         data: {
           ...body,
-          name: files.length == 1 ? body.name : body.name.replace(/\.part0*\d+$/, '')+`.part${String(countFiles + 1).padStart(3, '0')}`,
+          name: files.length == 1 ? body.name + `${countExists ? ` (${countExists})` : ''}` : body.name.replace(/\.part0*\d+$/, '')+`${countExists ? ` (${countExists})` : ''}`+`.part${String(countFiles + 1).padStart(3, '0')}`,
           ...message
         }
       })
@@ -1065,15 +1067,16 @@ export class Files {
 
             const getSizes = ({ size, sizes }) => sizes ? sizes.pop() : size
             const size = file.media.photo ? getSizes(file.media.photo.sizes.pop()) : file.media.document?.size
-            let type = file.media.photo || mimeType.match(/^image/gi) ? 'image' : null
+            let type = file.media.photo
             if (file.media.document?.mimeType.match(/^video/gi) || name.match(/\.mp4$/gi) || name.match(/\.mkv$/gi) || name.match(/\.mov$/gi)) {
               type = 'video'
             } else if (file.media.document?.mimeType.match(/pdf$/gi) || name.match(/\.doc$/gi) || name.match(/\.docx$/gi) || name.match(/\.xls$/gi) || name.match(/\.xlsx$/gi)) {
               type = 'document'
             } else if (file.media.document?.mimeType.match(/audio$/gi) || name.match(/\.mp3$/gi) || name.match(/\.ogg$/gi)) {
               type = 'audio'
+            } else if (file.media.document?.mimeType.match(/^image/gi) || name.match(/\.jpg$/gi) || name.match(/\.jpeg$/gi) || name.match(/\.png$/gi) || name.match(/\.gif$/gi)) {
+              type = 'image'
             }
-
             return {
               name,
               message_id: file.id.toString(),
@@ -1200,7 +1203,7 @@ export class Files {
         const end = ranges[1] ? ranges[1] : totalFileSize.toJSNumber() - 1
 
         const readStream = createReadStream(filename(), { start, end })
-        res.writeHead(206, {
+        res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
           'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
@@ -1211,7 +1214,7 @@ export class Files {
         })
         readStream.pipe(res)
       } else {
-        res.writeHead(206, {
+        res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
           'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes */${totalFileSize}`,

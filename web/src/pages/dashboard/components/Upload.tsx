@@ -69,6 +69,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     let deleted = false
 
     try {
+      const { data: exists } = await req.get('/files', { params: { parent_id: parent?.id, name: file.name } })
+      if (/\.part0*\d*$/.test(file.name))
+        throw { status: 400, body: { error: 'The file name cannot end with ".part", even if followed by digits!' } }
+      if (/\(\d+\).+/.test(file.name))
+        throw { status: 400, body: { error: 'The file name cannot contain text after parentheses with digits inside!' } }
+      if (exists.length > 0)
+        throw { status: 400, body: { error: `A file/folder named "${file.name}" already exists!` } }
+
       while (filesWantToUpload.current?.findIndex(f => f.uid === file.uid) !== 0) {
         await new Promise(res => setTimeout(res, 1000))
       }

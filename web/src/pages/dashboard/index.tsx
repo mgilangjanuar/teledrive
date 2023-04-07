@@ -272,8 +272,7 @@ const Dashboard: React.FC<PageProps & { me?: any, errorMe?: any }> = ({ match })
             const name = `Link of ${row.name}`
             await req.post('/files/addFolder', { file: { ...row, name, link_id: row.id, parent_id: p?.link_id || p?.id, id: undefined } })
           } else {
-            const name = data?.find(datum => datum.name === row.name) ? `Copy of ${row.name}` : row.name
-            await req.post('/files/cloneFile', { file: { ...row, name, parent_id: p?.link_id || p?.id, id: undefined } })
+            await req.post('/files/cloneFile', { file: { ...row, name: row.name, parent_id: p?.link_id || p?.id, id: undefined } })
           }
         }))
       } else if ((act || action) === 'cut') {
