@@ -12,4 +12,5 @@ COPY docker/.env .
 RUN yarn cache clean
 RUN yarn install --network-timeout 1000000
 COPY . .
+RUN export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 RUN yarn workspaces run build
