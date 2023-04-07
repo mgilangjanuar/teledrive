@@ -2,6 +2,7 @@
 
 set -e
 
+export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 echo "Node Version: $(node -v)"
 echo "Yarn Version: $(yarn -v)"
 
