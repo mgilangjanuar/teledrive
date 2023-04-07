@@ -23,7 +23,7 @@ fi
 
 git reset --hard
 git clean -f
-git pull origin main
+git pull origin staging
 
 export $(cat docker/.env | xargs)
 
