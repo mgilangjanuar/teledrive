@@ -40,7 +40,7 @@ then
   sleep 2
   docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
-  git pull origin staging
+  git pull origin main
 
   export $(cat docker/.env | xargs)
 
