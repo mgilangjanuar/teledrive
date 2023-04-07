@@ -1,4 +1,4 @@
-FROM node:16.14.0 as build
+FROM node:18.15.0 as build
 ARG REACT_APP_TG_API_ID
 ARG REACT_APP_TG_API_HASH
 
