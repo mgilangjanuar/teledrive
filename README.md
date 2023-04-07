@@ -31,6 +31,11 @@ Or, just send us an [issue](https://github.com/mgilangjanuar/teledrive/issues) f
 
 If you're experiencing issues check this https://github.com/mgilangjanuar/teledrive/issues/373
 
+# Deploy to Railway
+[![Deploy](https://railway.app/button.svg)](https://railway.app/new/template/m4m_XE?referralCode=BvMMSE)
+
+(DrakeTDL's forked Teledrive repo powers the railway template.)
+
 ## Folder Structure
 
 We using the monorepo structure with [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
