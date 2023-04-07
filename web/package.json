@@ -52,7 +52,7 @@
     "world_countries_lists": "^2.5.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts --openssl-legacy-provider --no-experimental-fetch start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
