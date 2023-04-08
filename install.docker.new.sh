@@ -12,7 +12,7 @@ echo "Docker Compose Version: $(docker compose version)"
 # Check if the current user has permission to modify the necessary directories and files
 if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
   echo "This script requires root privileges to modify some files and directories."
-  sudo ls >/dev/null
+  sudo -v
   echo "Thanks!"
 fi
 
@@ -42,10 +42,10 @@ if [ ! -f docker/.env ]; then
     sudo chmod -R 777 docker
   fi
   cd docker
-  docker compose build teledrive
-  docker compose up -d
+  sudo docker compose build teledrive
+  sudo docker compose up -d
   sleep 2
-  docker compose exec teledrive yarn workspace api prisma migrate deploy
+  sudo docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
   cd docker
   git fetch origin
@@ -54,11 +54,11 @@ else
   fi
   git checkout staging
   export $(cat docker/.env | xargs)
-  docker compose down
-  docker compose up --build --force-recreate -d
+  sudo docker compose down
+  sudo docker compose up --build --force-recreate -d
   sleep 2
-  docker compose up -d
-  docker compose exec teledrive yarn workspace api prisma migrate deploy
+  sudo docker compose up -d
+  sudo docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
   git pull origin staging
