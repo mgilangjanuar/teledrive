@@ -12,8 +12,8 @@ echo "Docker Compose Version: $(docker compose version)"
 # Check if the current user has permission to modify the necessary directories and files
 if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
   echo "This script requires root privileges to modify some files and directories."
-  echo "Please enter your password to continue."
-  sudo echo "Thanks!"
+  sudo ls >/dev/null
+  echo "Thanks!"
 fi
 
 if [ ! -f docker/.env ]; then
@@ -39,6 +39,7 @@ if [ ! -f docker/.env ]; then
   if [ ! -d "docker/data" ]; then
     sudo mkdir -p docker/data
     sudo chown -R $(whoami):$(whoami) docker
+    sudo chmod -R 777 docker
   fi
   cd docker
   docker compose build teledrive
