@@ -11,7 +11,7 @@
     "postbuild": "test -f keys || (node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" > keys && node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" >> keys)"
   },
   "dependencies": {
-    "@prisma/client": "^3.14.0",
+    "@prisma/client": "^4.12.0",
     "@types/moment": "^2.13.0",
     "axios": "^0.21.4",
     "bcryptjs": "^2.4.3",
