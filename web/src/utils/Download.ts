@@ -47,7 +47,7 @@ export async function download(id: string): Promise<ReadableStream> {
 
     return new ReadableStream({
       start(controller) {
-        ;(async () => {
+        (async () => {
           for await (const chunk of fileIterator) {
             controller.enqueue(chunk)
           }
