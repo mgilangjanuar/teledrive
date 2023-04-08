@@ -19,7 +19,8 @@ if [ ! -f docker/.env ]; then
   read -p "Enter your ADMIN_USERNAME: " ADMIN_USERNAME
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
-  read -p "Enter your DB_PASSWORD: " DB_PASSWORD
+  DB_PASSWORD=$(openssl rand -hex 16)
+  echo "Generated random DB_PASSWORD: $DB_PASSWORD"
   echo
   echo "ENV=$ENV" > docker/.env
   echo "PORT=$PORT" >> docker/.env
