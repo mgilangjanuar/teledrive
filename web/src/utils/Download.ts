@@ -26,7 +26,14 @@ class ConnectionPool {
 
 const connectionPool = new ConnectionPool()
 
-class TelegramReadableStream extends Readable {
+interface ReadableStreamWithGetReader extends Readable {
+  getReader(): ReadableStreamDefaultReader
+}
+
+class TelegramReadableStream
+  extends Readable
+  implements ReadableStreamWithGetReader
+{
   private client: any
   private media: any
   private fileIterator: any
@@ -86,40 +93,27 @@ class TelegramReadableStream extends Readable {
       this.emit('error', error)
     }
   }
-}
 
-interface ReadableStreamWithGetReader extends Readable {
-  getReader(): ReadableStreamDefaultReader
-}
-
-export const download = async (
-  id: string
-): Promise<ReadableStreamWithGetReader> => {
-  return new TelegramReadableStream(id) as ReadableStreamWithGetReader
+  getReader(): ReadableStreamDefaultReader {
+    return this.readable[Symbol.asyncIterator]()
+  }
 }
 
 export const directDownload = async (
-  id: string,
-  name: string
-): Promise<void> => {
-  const fileStream = streamSaver.createWriteStream(name)
-  const writer = fileStream.getWriter()
-  const reader = (await download(id)).getReader()
+  id: string
+): Promise<ReadableStreamDefaultReader> => {
+  const stream = new TelegramReadableStream(id)
+  const writer = streamSaver.createWriteStream('file.mp4')
+  const reader = stream.getReader()
 
-  const pump = async () => {
+  while (true) {
     const { done, value } = await reader.read()
     if (done) {
       writer.close()
-      return
+      break
     }
     writer.write(value)
-    pump()
   }
 
-  pump()
-
-  return new Promise((resolve, reject) => {
-    writer.on('close', resolve)
-    writer.on('error', reject)
-  })
+  return writer.getWriter()
 }
