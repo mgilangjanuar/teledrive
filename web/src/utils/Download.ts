@@ -1,3 +1,4 @@
+import { Readable } from 'stream'
 import streamSaver from 'streamsaver'
 import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
@@ -25,39 +26,70 @@ class ConnectionPool {
 
 const connectionPool = new ConnectionPool()
 
-export async function download(id: string): Promise<ReadableStream> {
-  const client = await connectionPool.getConnection()
+class TelegramReadableStream extends Readable {
+  private client: any
+  private media: any
+  private fileIterator: any
 
-  try {
-    const { data: response } = await client.invoke(
-      new Api.messages.GetMessages({
-        id: [new Api.InputMessageID({ id: Number(id) })]
-      })
-    )
-    const media = response.messages[0].media
+  constructor(id: string) {
+    super({ objectMode: true })
+    this.client = null
+    this.media = null
+    this.fileIterator = null
 
-    const fileIterator = {
-      [Symbol.asyncIterator]: async function* () {
-        const chunks = await client.downloadMedia(media)
-        for (const chunk of chunks) {
-          yield chunk
+    this._init(id)
+  }
+
+  async _init(id: string) {
+    try {
+      this.client = await connectionPool.getConnection()
+
+      const { data: response } = await this.client.invoke(
+        new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(id) })]
+        })
+      )
+
+      this.media = response.messages[0].media
+
+      this.fileIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          const chunks = await this.client.downloadMedia(this.media)
+          for (const chunk of chunks) {
+            yield chunk
+          }
+        }.bind(this)
+      }
+    } catch (error) {
+      this.emit('error', error)
+    }
+  }
+
+  async _read() {
+    try {
+      if (!this.fileIterator) {
+        // Wait for initialization to complete
+        return setTimeout(() => this._read(), 0)
+      }
+
+      for await (const chunk of this.fileIterator) {
+        if (!this.push(chunk)) {
+          // Stop pushing data if the consumer is no longer interested
+          break
         }
       }
-    }
 
-    return new ReadableStream({
-      start(controller) {
-        (async () => {
-          for await (const chunk of fileIterator) {
-            controller.enqueue(chunk)
-          }
-          controller.close()
-        })()
-      }
-    })
-  } finally {
-    connectionPool.releaseConnection(client)
+      // Close the stream once all data has been pushed
+      this.push(null)
+      this.client && connectionPool.releaseConnection(this.client)
+    } catch (error) {
+      this.emit('error', error)
+    }
   }
+}
+
+export const download = async (id: string): Promise<Readable> => {
+  return new TelegramReadableStream(id)
 }
 
 export const directDownload = async (
@@ -75,8 +107,13 @@ export const directDownload = async (
       return
     }
     writer.write(value)
-    await pump()
+    pump()
   }
 
-  await pump()
+  pump()
+
+  return new Promise((resolve, reject) => {
+    writer.on('close', resolve)
+    writer.on('error', reject)
+  })
 }
