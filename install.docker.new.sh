@@ -9,14 +9,20 @@ echo "cURL Version: $(curl --version | head -n 1)"
 echo "Docker Version: $(docker -v)"
 echo "Docker Compose Version: $(docker compose version)"
 
+# Disable Git-related functionality in buildx
+export DOCKER_BUILDKIT=1
+export BUILDKIT_PROGRESS=plain
+export BUILDKIT_INLINE_CACHE=1
+export BUILDKIT_ENABLE_LEGACY_GIT=0
+
 # Check if the current user has permission to modify the necessary directories and files
-if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
+if [ ! -w /var/run/docker.sock ] || [ ! -w "$(pwd)/docker/.env" ] || [ ! -w "$(pwd)/docker/data" ]; then
   echo "This script requires root privileges to modify some files and directories."
   sudo -v
   echo "Thanks!"
 fi
 
-if [ ! -f docker/.env ]; then
+if [ ! -f "$(pwd)/docker/.env" ]; then
   echo "Generating .env file..."
   ENV="develop"
   echo "Preparing your keys from https://my.telegram.org/"
@@ -29,23 +35,23 @@ if [ ! -f docker/.env ]; then
   DB_PASSWORD=$(openssl rand -hex 16)
   echo "Generated random DB_PASSWORD: $DB_PASSWORD"
   echo
-  echo "ENV=$ENV" > docker/.env
-  echo "PORT=$PORT" >> docker/.env
-  echo "TG_API_ID=$TG_API_ID" >> docker/.env
-  echo "TG_API_HASH=$TG_API_HASH" >> docker/.env
-  echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> docker/.env
+  echo "ENV=$ENV" > "$(pwd)/docker/.env"
+  echo "PORT=$PORT" >> "$(pwd)/docker/.env"
+  echo "TG_API_ID=$TG_API_ID" >> "$(pwd)/docker/.env"
+  echo "TG_API_HASH=$TG_API_HASH" >> "$(pwd)/docker/.env"
+  echo "ADMIN_USERNAME=$ADMIN_USERNAME" >> "$(pwd)/docker/.env"
   export DATABASE_URL=postgresql://postgres:$DB_PASSWORD@db:5432/teledrive
-  echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
-  if [ ! -d "docker/data" ]; then
-    sudo mkdir -p docker/data
-    sudo chown -R $(whoami):$(whoami) docker
-    sudo chmod -R 777 docker
+  echo "DB_PASSWORD=$DB_PASSWORD" >> "$(pwd)/docker/.env"
+  if [ ! -d "$(pwd)/docker/data" ]; then
+    mkdir -p "$(pwd)/docker/data"
+    chown -R $(whoami):$(whoami) "$(pwd)/docker"
+    chmod -R 777 "$(pwd)/docker"
   fi
   cd docker
-  sudo docker compose build teledrive
-  sudo docker compose up -d
+  docker compose build teledrive
+  docker compose up -d
   sleep 2
-  sudo docker compose exec teledrive yarn workspace api prisma migrate deploy
+  docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
   cd docker
   git fetch origin
@@ -53,12 +59,12 @@ else
     git branch staging origin/staging
   fi
   git checkout staging
-  export $(cat docker/.env | xargs)
-  sudo docker compose down
-  sudo docker compose up --build --force-recreate -d
+  export $(cat "$(pwd)/docker/.env" | xargs)
+  docker compose down
+  docker compose up --build --force-recreate -d
   sleep 2
-  sudo docker compose up -d
-  sudo docker compose exec teledrive yarn workspace api prisma migrate deploy
+  docker compose up -d
+  docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
   git pull origin staging
