@@ -10,7 +10,7 @@ class ConnectionPool {
     this.connections = []
   }
 
-  async getConnection() {
+  async getConnection(): Promise<any> {
     if (this.connections.length > 0) {
       return this.connections.shift()
     }
@@ -19,7 +19,7 @@ class ConnectionPool {
     return connection
   }
 
-  releaseConnection(connection: Promise<any>) {
+  releaseConnection(connection: Promise<any>): void {
     this.connections.push(connection)
   }
 }
@@ -53,7 +53,7 @@ class TelegramReadableStream extends Readable {
       this.media = response.messages[0].media
 
       this.fileIterator = {
-        [Symbol.asyncIterator]: async function* () {
+        [Symbol.asyncIterator]: async function* (this: TelegramReadableStream) {
           const chunks = await this.client.downloadMedia(this.media)
           for (const chunk of chunks) {
             yield chunk
