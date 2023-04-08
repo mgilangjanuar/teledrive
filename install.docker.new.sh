@@ -18,8 +18,7 @@ export BUILDKIT_ENABLE_LEGACY_GIT=0
 # Check if the current user has permission to modify the necessary directories and files
 if [ ! -w /var/run/docker.sock ] || [ ! -w "$(pwd)/docker/.env" ] || [ ! -w "$(pwd)/docker/data" ]; then
   echo "This script requires root privileges to modify some files and directories."
-  sudo -v
-  echo "Thanks!"
+  exit 1
 fi
 
 if [ ! -f "$(pwd)/docker/.env" ]; then
@@ -48,10 +47,10 @@ if [ ! -f "$(pwd)/docker/.env" ]; then
     chmod -R 777 "$(pwd)/docker"
   fi
   cd docker
-  docker compose build teledrive
-  docker compose up -d
+  echo $DB_PASSWORD | sudo -S docker compose build teledrive
+  echo $DB_PASSWORD | sudo -S docker compose up -d
   sleep 2
-  docker compose exec teledrive yarn workspace api prisma migrate deploy
+  echo $DB_PASSWORD | sudo -S docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
   cd docker
   git fetch origin
@@ -60,11 +59,11 @@ else
   fi
   git checkout staging
   export $(cat "$(pwd)/docker/.env" | xargs)
-  docker compose down
-  docker compose up --build --force-recreate -d
+  echo $DB_PASSWORD | sudo -S docker compose down
+  echo $DB_PASSWORD | sudo -S docker compose up --build --force-recreate -d
   sleep 2
-  docker compose up -d
-  docker compose exec teledrive yarn workspace api prisma migrate deploy
+  echo $DB_PASSWORD | sudo -S docker compose up -d
+  echo $DB_PASSWORD | sudo -S docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
   git pull origin staging
