@@ -9,6 +9,13 @@ echo "cURL Version: $(curl --version | head -n 1)"
 echo "Docker Version: $(docker -v)"
 echo "Docker Compose Version: $(docker compose version)"
 
+# Check if the current user has permission to modify the necessary directories and files
+if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
+  echo "This script requires root privileges to modify some files and directories."
+  echo "Please enter your password to continue."
+  sudo echo "Thanks!"
+fi
+
 if [ ! -f docker/.env ]; then
   echo "Generating .env file..."
   ENV="develop"
