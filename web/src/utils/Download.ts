@@ -88,8 +88,14 @@ class TelegramReadableStream extends Readable {
   }
 }
 
-export const download = async (id: string): Promise<Readable> => {
-  return new TelegramReadableStream(id)
+interface ReadableStreamWithGetReader extends Readable {
+  getReader(): ReadableStreamDefaultReader
+}
+
+export const download = async (
+  id: string
+): Promise<ReadableStreamWithGetReader> => {
+  return new TelegramReadableStream(id) as ReadableStreamWithGetReader
 }
 
 export const directDownload = async (
