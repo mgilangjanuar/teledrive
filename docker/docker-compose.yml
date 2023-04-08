@@ -42,7 +42,3 @@ services:
 volumes:
   teledrive_data:
     driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/postgresql/data
