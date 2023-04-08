@@ -47,9 +47,13 @@ if [ ! -f docker/.env ]; then
   sleep 2
   docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
-  git pull origin staging
-  export $(cat docker/.env | xargs)
   cd docker
+  git fetch origin
+  if ! git rev-parse --verify staging >/dev/null 2>&1; then
+    git branch staging origin/staging
+  fi
+  git checkout staging
+  export $(cat docker/.env | xargs)
   docker compose down
   docker compose up --build --force-recreate -d
   sleep 2
@@ -57,5 +61,5 @@ else
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull staging
+  git pull origin staging
 fi
