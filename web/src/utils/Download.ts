@@ -106,12 +106,11 @@ export const directDownload = async (
   const writer = streamSaver.createWriteStream('file.mp4')
   const reader = stream.getReader()
 
-  let running = true
-  while (running) {
+  while (true) {
     const { done, value } = await reader.read()
     if (done) {
       writer.close()
-      running = false
+      break
     }
     writer.write(value)
   }
