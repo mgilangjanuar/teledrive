@@ -30,8 +30,8 @@ if [ ! -f docker/.env ]; then
   export DATABASE_URL=postgresql://postgres:$DB_PASSWORD@db:5432/teledrive
   echo "DB_PASSWORD=$DB_PASSWORD" >> docker/.env
   if [ ! -d "docker/data" ]; then
-    mkdir -p docker/data
-    chown -R $(whoami) docker/data
+    sudo mkdir -p docker/data
+    sudo chown -R $(whoami):$(whoami) docker
   fi
   cd docker
   docker compose build teledrive
