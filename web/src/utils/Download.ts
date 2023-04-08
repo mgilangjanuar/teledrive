@@ -29,21 +29,30 @@ export async function download(id: string): Promise<ReadableStream> {
   const client = await connectionPool.getConnection()
 
   try {
-    const { data: response } = await client.invoke(new Api.messages.GetMessages({ id: [new Api.InputMessageID({ id: Number(id) })] }))
+    const { data: response } = await client.invoke(
+      new Api.messages.GetMessages({
+        id: [new Api.InputMessageID({ id: Number(id) })]
+      })
+    )
     const media = response.messages[0].media
-    const chunks = await client.downloadMedia(media)
 
-    const buffer = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0))
-    let offset = 0
-    for (const chunk of chunks) {
-      buffer.set(new Uint8Array(chunk), offset)
-      offset += chunk.byteLength
+    const fileIterator = {
+      [Symbol.asyncIterator]: async function* () {
+        const chunks = await client.downloadMedia(media)
+        for (const chunk of chunks) {
+          yield chunk
+        }
+      }
     }
 
     return new ReadableStream({
       start(controller) {
-        controller.enqueue(buffer)
-        controller.close()
+        ;(async () => {
+          for await (const chunk of fileIterator) {
+            controller.enqueue(chunk)
+          }
+          controller.close()
+        })()
       }
     })
   } finally {
@@ -51,7 +60,10 @@ export async function download(id: string): Promise<ReadableStream> {
   }
 }
 
-export const directDownload = async (id: string, name: string): Promise<void> => {
+export const directDownload = async (
+  id: string,
+  name: string
+): Promise<void> => {
   const fileStream = streamSaver.createWriteStream(name)
   const writer = fileStream.getWriter()
   const reader = (await download(id)).getReader()
