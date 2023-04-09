@@ -4,6 +4,7 @@ import { telegramClient } from './Telegram'
 
 class ConnectionPool {
   private connections: Promise<any>[]
+  public maxSize: number
 
   constructor(maxSize: number) {
     this.connections = []
