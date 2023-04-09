@@ -37,15 +37,20 @@ class ConnectionPool {
   }
 }
 
-// Updated async generator function without `this` parameter
+// Declare the proper type for file iterators
+type FileIterator = {
+  [Symbol.asyncIterator]: () => AsyncGenerator<Uint8Array, void, unknown>
+}
+const fileIterators: FileIterator[] = []
 async function* generateChunks(
   client: any,
   media: any,
   i: number,
   numParallel: number
-): AsyncGenerator<any, void, unknown> {
+): AsyncGenerator<Uint8Array, void, unknown> {
+  // <-- change the return type here to Uint8Array
   const chunks = await client.downloadMedia(media, {
-    offset: i * media.size / numParallel,
+    offset: (i * media.size) / numParallel,
     limit: media.size / numParallel
   })
   for (const chunk of chunks) {
@@ -80,8 +85,6 @@ export async function download(
       })
     )
     const media = response.messages[0].media
-
-    const fileIterators = []
 
     // Update the for loop that pushes the generator to the fileIterators array
     for (let i = 0; i < numParallel; i++) {
