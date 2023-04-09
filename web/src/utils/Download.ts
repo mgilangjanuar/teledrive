@@ -72,7 +72,7 @@ export async function download(
           const chunks = await client.downloadMedia(media, {
             offset: i * media.size / numParallel,
             limit: media.size / numParallel
-          })      
+          })
           for (const chunk of chunks) {
             yield chunk
           }
