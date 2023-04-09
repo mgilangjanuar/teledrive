@@ -3,7 +3,7 @@ import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
 
 class ConnectionPool {
-  private connections: Promise<any>[]
+  private connections: Promise<TelegramClient>[]
   public maxSize: number
 
   constructor(maxSize: number) {
@@ -37,9 +37,8 @@ class ConnectionPool {
   }
 }
 
-// Create the async generator function separately
+// Updated async generator function without `this` parameter
 async function* generateChunks(
-  this: AsyncGenerator<any, void, unknown>,
   client: any,
   media: any,
   i: number,
