@@ -68,11 +68,11 @@ export async function download(
     const fileIterators = []
     for (let i = 0; i < numParallel; i++) {
       fileIterators.push({
-        [Symbol.asyncIterator]: async function* (): AsyncGenerator<any, void, unknown> {
+        [Symbol.asyncIterator]: async function* (this: AsyncGenerator<any, void, unknown>): AsyncGenerator<any, void, unknown> {
           const chunks = await client.downloadMedia(media, {
             offset: i * media.size / numParallel,
             limit: media.size / numParallel
-          })
+          })      
           for (const chunk of chunks) {
             yield chunk
           }
