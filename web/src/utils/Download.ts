@@ -3,7 +3,7 @@ import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
 
 class ConnectionPool {
-  private connections: Promise<TelegramClient>[]
+  private connections: Promise<any>[]
   public maxSize: number
 
   constructor(maxSize: number) {
