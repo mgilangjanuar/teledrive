@@ -35,8 +35,7 @@ class ConnectionPool {
         setTimeout(() => resolve(this.getConnection()), 100)
       })
     }
-    const connection = telegramClient.createClient()
-    await connection.connect()
+    const connection = await telegramClient.connect();
     this.connections.push({ connection, lastUsed: now })
     return connection
   }
