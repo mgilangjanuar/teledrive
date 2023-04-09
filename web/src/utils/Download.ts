@@ -3,7 +3,7 @@ import { Api } from 'telegram-mtproto'
 import { telegramClient } from './Telegram'
 
 interface PooledConnection {
-  connection: Api
+  connection: Api,
   lastUsed: number
 }
 
@@ -72,7 +72,7 @@ export async function download(id: string): Promise<ReadableStream> {
 
     return new ReadableStream({
       start(controller) {
-        ;(async () => {
+        (async () => {
           for await (const chunk of fileIterator) {
             controller.enqueue(chunk)
           }
