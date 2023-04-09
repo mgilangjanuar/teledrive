@@ -1,25 +1,47 @@
 import streamSaver from 'streamsaver'
-import { Api } from 'telegram'
+import { Api } from 'telegram-mtproto'
 import { telegramClient } from './Telegram'
 
-class ConnectionPool {
-  private connections: Promise<any>[]
+interface PooledConnection {
+  connection: Api
+  lastUsed: number
+}
 
-  constructor() {
+class ConnectionPool {
+  private connections: PooledConnection[]
+  private maxConnections: number
+  private idleTimeout: number
+
+  constructor(maxConnections = 5, idleTimeout = 30000) {
     this.connections = []
+    this.maxConnections = maxConnections
+    this.idleTimeout = idleTimeout
   }
 
-  async getConnection() {
-    if (this.connections.length > 0) {
-      return this.connections.shift()
+  async getConnection(): Promise<Api> {
+    const now = Date.now()
+    const availableConnectionIndex = this.connections.findIndex(
+      conn => now - conn.lastUsed < this.idleTimeout
+    )
+    if (availableConnectionIndex !== -1) {
+      const { connection } = this.connections.splice(availableConnectionIndex, 1)[0]
+      return connection
     }
-    const connection = telegramClient.connect()
-    this.connections.push(connection)
+    if (this.connections.length >= this.maxConnections) {
+      return new Promise(resolve => {
+        setTimeout(() => resolve(this.getConnection()), 100)
+      })
+    }
+    const connection = telegramClient.createClient()
+    await connection.connect()
+    this.connections.push({ connection, lastUsed: now })
     return connection
   }
 
-  releaseConnection(connection: Promise<any>) {
-    this.connections.push(connection)
+  releaseConnection(connection: Api): void {
+    const now = Date.now()
+    const pooledConnection = { connection, lastUsed: now }
+    this.connections.push(pooledConnection)
   }
 }
 
@@ -29,12 +51,12 @@ export async function download(id: string): Promise<ReadableStream> {
   const client = await connectionPool.getConnection()
 
   try {
-    const { data: response } = await client.invoke(
+    const { messages } = await client.invoke(
       new Api.messages.GetMessages({
         id: [new Api.InputMessageID({ id: Number(id) })]
       })
     )
-    const media = response.messages[0].media
+    const media = messages[0].media
 
     const fileIterator = {
       [Symbol.asyncIterator]: async function* () {
@@ -79,4 +101,42 @@ export const directDownload = async (
   }
 
   await pump()
+}
+
+export const directDownloadWithGot = async (
+  id: string,
+  name: string
+): Promise<void> => {
+  const client = await connectionPool.getConnection()
+
+  try {
+    const { messages } = await client.invoke(
+      new Api.messages.GetMessages({
+        id: [new Api.InputMessageID({ id: Number(id) })]
+      })
+    )
+    const media = messages[0].media
+    const gotStream = got.stream.post(`https://api.telegram.org/file/bot${telegramClient.token}/${media.file_reference}`, {
+      headers: {
+        'Range': 'bytes=0-'
+      },
+      responseType: 'buffer'
+    })
+
+    await new Promise((resolve, reject) => {
+      pipeline(
+        gotStream,
+        streamSaver.createWriteStream(name),
+        err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        }
+      )
+    })
+  } finally {
+    connectionPool.releaseConnection(client)
+  }
 }
