@@ -21,14 +21,17 @@ class ConnectionPool {
   async getConnection(): Promise<Api> {
     const now = Date.now()
     const availableConnectionIndex = this.connections.findIndex(
-      conn => now - conn.lastUsed < this.idleTimeout
+      (conn) => now - conn.lastUsed < this.idleTimeout
     )
     if (availableConnectionIndex !== -1) {
-      const { connection } = this.connections.splice(availableConnectionIndex, 1)[0]
+      const { connection } = this.connections.splice(
+        availableConnectionIndex,
+        1
+      )[0]
       return connection
     }
     if (this.connections.length >= this.maxConnections) {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         setTimeout(() => resolve(this.getConnection()), 100)
       })
     }
@@ -69,7 +72,7 @@ export async function download(id: string): Promise<ReadableStream> {
 
     return new ReadableStream({
       start(controller) {
-        (async () => {
+        ;(async () => {
           for await (const chunk of fileIterator) {
             controller.enqueue(chunk)
           }
@@ -116,25 +119,24 @@ export const directDownloadWithGot = async (
       })
     )
     const media = messages[0].media
-    const gotStream = got.stream.post(`https://api.telegram.org/file/bot${telegramClient.token}/${media.file_reference}`, {
-      headers: {
-        'Range': 'bytes=0-'
-      },
-      responseType: 'buffer'
-    })
+    const gotStream = got.stream.post(
+      `https://api.telegram.org/file/bot${telegramClient.token}/${media.file_reference}`,
+      {
+        headers: {
+          Range: 'bytes=0-'
+        },
+        responseType: 'buffer'
+      }
+    )
 
     await new Promise((resolve, reject) => {
-      pipeline(
-        gotStream,
-        streamSaver.createWriteStream(name),
-        err => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve()
-          }
+      pipeline(gotStream, streamSaver.createWriteStream(name), (err) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
         }
-      )
+      })
     })
   } finally {
     connectionPool.releaseConnection(client)
