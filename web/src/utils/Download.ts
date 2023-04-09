@@ -66,20 +66,35 @@ export async function download(
     const media = response.messages[0].media
 
     const fileIterators = []
-    for (let i = 0; i < numParallel; i++) {
-      fileIterators.push({
-        [Symbol.asyncIterator]: async function* (this: AsyncGenerator<any, void, unknown>): AsyncGenerator<any, void, unknown> {
-          const chunks = await client.downloadMedia(media, {
-            offset: i * media.size / numParallel,
-            limit: media.size / numParallel
-          })
-          for (const chunk of chunks) {
-            yield chunk
-          }
-        }
+    // Create the async generator function separately
+    async function* generateChunks(
+      this: AsyncGenerator<any, void, unknown>,
+      client: any,
+      media: any,
+      i: number,
+      numParallel: number
+    ): AsyncGenerator<any, void, unknown> {
+      const chunks = await client.downloadMedia(media, {
+        offset: (i * media.size) / numParallel,
+        limit: media.size / numParallel
       })
+      for (const chunk of chunks) {
+        yield chunk
+      }
     }
 
+    // Update the for loop that pushes the generator to the fileIterators array
+    for (let i = 0; i < numParallel; i++) {
+      fileIterators.push({
+        [Symbol.asyncIterator]: generateChunks.bind(
+          null,
+          client,
+          media,
+          i,
+          numParallel
+        )
+      })
+    }
     const stream = new ReadableStream({
       start(controller) {
         const readers = []
