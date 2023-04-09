@@ -1,6 +1,8 @@
 import streamSaver from 'streamsaver'
 import { Api } from 'telegram-mtproto'
 import { telegramClient } from './Telegram'
+import got from 'got'
+
 
 interface PooledConnection {
   connection: Api,
