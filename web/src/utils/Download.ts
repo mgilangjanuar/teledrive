@@ -50,7 +50,7 @@ async function* generateChunks(
 ): AsyncGenerator<Uint8Array, void, unknown> {
   // <-- change the return type here to Uint8Array
   const chunks = await client.downloadMedia(media, {
-    offset: (i * media.size) / numParallel,
+    offset: i * media.size / numParallel,
     limit: media.size / numParallel
   })
   for (const chunk of chunks) {
