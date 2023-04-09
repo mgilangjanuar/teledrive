@@ -1,4 +1,3 @@
-import { Readable } from 'stream'
 import streamSaver from 'streamsaver'
 import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
@@ -10,7 +9,7 @@ class ConnectionPool {
     this.connections = []
   }
 
-  async getConnection(): Promise<any> {
+  async getConnection() {
     if (this.connections.length > 0) {
       return this.connections.shift()
     }
@@ -19,101 +18,65 @@ class ConnectionPool {
     return connection
   }
 
-  releaseConnection(connection: Promise<any>): void {
+  releaseConnection(connection: Promise<any>) {
     this.connections.push(connection)
   }
 }
 
 const connectionPool = new ConnectionPool()
 
-interface ReadableStreamWithGetReader extends Readable {
-  getReader(): ReadableStreamDefaultReader
-}
+export async function download(id: string): Promise<ReadableStream> {
+  const client = await connectionPool.getConnection()
 
-class TelegramReadableStream
-  extends Readable
-  implements ReadableStreamWithGetReader
-{
-  private client: any
-  private media: any
-  private fileIterator: any
+  try {
+    const { data: response } = await client.invoke(
+      new Api.messages.GetMessages({
+        id: [new Api.InputMessageID({ id: Number(id) })]
+      })
+    )
+    const media = response.messages[0].media
 
-  constructor(id: string) {
-    super({ objectMode: true })
-    this.client = null
-    this.media = null
-    this.fileIterator = null
-
-    this._init(id)
-  }
-
-  async _init(id: string) {
-    try {
-      this.client = await connectionPool.getConnection()
-
-      const { data: response } = await this.client.invoke(
-        new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(id) })]
-        })
-      )
-
-      this.media = response.messages[0].media
-
-      this.fileIterator = {
-        [Symbol.asyncIterator]: async function* (this: TelegramReadableStream) {
-          const chunks = await this.client.downloadMedia(this.media)
-          for (const chunk of chunks) {
-            yield chunk
-          }
-        }.bind(this)
-      }
-    } catch (error) {
-      this.emit('error', error)
-    }
-  }
-
-  async _read() {
-    try {
-      if (!this.fileIterator) {
-        // Wait for initialization to complete
-        return setTimeout(() => this._read(), 0)
-      }
-
-      for await (const chunk of this.fileIterator) {
-        if (!this.push(chunk)) {
-          // Stop pushing data if the consumer is no longer interested
-          break
+    const fileIterator = {
+      [Symbol.asyncIterator]: async function* () {
+        const chunks = await client.downloadMedia(media)
+        for (const chunk of chunks) {
+          yield chunk
         }
       }
-
-      // Close the stream once all data has been pushed
-      this.push(null)
-      this.client && connectionPool.releaseConnection(this.client)
-    } catch (error) {
-      this.emit('error', error)
     }
-  }
 
-  getReader(): ReadableStreamDefaultReader {
-    return this.readable[Symbol.asyncIterator]()
+    return new ReadableStream({
+      start(controller) {
+        (async () => {
+          for await (const chunk of fileIterator) {
+            controller.enqueue(chunk)
+          }
+          controller.close()
+        })()
+      }
+    })
+  } finally {
+    connectionPool.releaseConnection(client)
   }
 }
 
 export const directDownload = async (
-  id: string
-): Promise<ReadableStreamDefaultReader> => {
-  const stream = new TelegramReadableStream(id)
-  const writer = streamSaver.createWriteStream('file.mp4')
-  const reader = stream.getReader()
+  id: string,
+  name: string
+): Promise<void> => {
+  const fileStream = streamSaver.createWriteStream(name)
+  const writer = fileStream.getWriter()
+  const reader = (await download(id)).getReader()
 
-  while (reader) {
+  const pump = async () => {
     const { done, value } = await reader.read()
     if (done) {
       writer.close()
-      break
+      return
     }
     writer.write(value)
+    await pump()
   }
 
-  return writer.getWriter()
+  await pump()
 }
