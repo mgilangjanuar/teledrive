@@ -1240,99 +1240,100 @@ export class Files {
     res.setHeader('Accept-Ranges', 'bytes')
 
     let downloaded: number = 0
-    try {
+  // File merging code
+try {
+  fs.writeFileSync(output, Buffer.from([]))
 
-      fs.writeFileSync(output, Buffer.from([]))
+  const mergedBuffer = input.reduce((acc: Buffer, file: string, i: number) => {
+    const fileBuffer = fs.readFileSync(file)
+    fs.appendFileSync(output, fileBuffer)
+    console.log('Merging... ' + (i + 1) + '/' + input.length)
+    return Buffer.concat([acc, fileBuffer])
+  }, Buffer.from([]))
 
-      input.reduce((_: Buffer, file: string, i: number) => {
+  console.log('Done file saved in ' + output)
+  return mergedBuffer
+} catch (error) {
+  console.error(`Error: ${JSON.stringify(error)}`)
+}
 
-        fs.appendFileSync(output, fs.readFileSync(file))
-
-        console.log('Merging... ' + (i + 1) + '/' + input.length)
-
-      }, Buffer.from([]))
-
-      console.log('Done file saved in ' + output)
-
-    } catch (error) {
-
-      console.error(`Error: ${JSON.stringify(error)}`)
-
-    }
-
-  })
-
-    let countFiles = 1
-    for (const file of files) {
-      let chat
-      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-        const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer
-        if (type === 'channel') {
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string)
-          })
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
-          }))
-        }
-      } else {
-        chat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-        }))
-      }
-      const getData = async () => {
-        try {
-          await req.tg.downloadMedia(chat['messages'][0].media, {
-            ...thumb ? { thumb: 0 } : {},
-            outputFile: {
-              write: (buffer) => {
-                downloaded += buffer.length
-                if (cancel) {
-                  throw { status: 422, body: { error: 'canceled' } }
-                } else {
-                  const { size } = chat['messages'][0].media.document
-                  const progress = `${downloaded}/${size.value} (${downloaded / Number(totalFileSize) * 100}%)`
-                  console.log(`${chat['messages'][0].id} ${progress}`)
-                  try {
-                    appendFileSync(filename('process-'), buffer)
-                  } catch (error) {
-                    console.error(`Error writing buffer: ${error}`)
-                  }
-                  res.write(buffer)
-                }
-              },
-              close: () => {
-                const { size } = chat['messages'][0].media.document
-                const progress = `${downloaded}/${size.value} (${downloaded / Number(totalFileSize) * 100}%) -end-`
-                console.log(`${chat['messages'][0].id} ${progress}`)
-                if (countFiles++ >= files.length) {
-                  try {
-                    const { size } = statSync(filename('process-'))
-                    if (totalFileSize.gt(bigInt(size))) {
-                      rmSync(filename('process-'))
-                    } else {
-                      renameSync(filename('process-'), filename())
-                    }
-                  } catch (error) {
-                    console.error(`Error handling file: ${error}`)
-                  }
-                  res.end()
-                }
-              }
+// Media download code
+const downloadMedia = async (chat: any, thumb?: boolean) => {
+  try {
+    await req.tg.downloadMedia(chat['messages'][0].media, {
+      ...thumb ? { thumb: 0 } : {},
+      outputFile: {
+        write: (buffer) => {
+          downloaded += buffer.length
+          if (cancel) {
+            throw { status: 422, body: { error: 'canceled' } }
+          } else {
+            const { size } = chat['messages'][0].media.document
+            const progress = `${downloaded}/${size.value} (${downloaded / Number(totalFileSize) * 100}%)`
+            console.log(`${chat['messages'][0].id} ${progress}`)
+            try {
+              appendFileSync(filename('process-'), buffer)
+            } catch (error) {
+              console.error(`Error writing buffer: ${error}`)
             }
-          })
-        } catch (error) {
-          console.log(error)
+            res.write(buffer)
+          }
+        },
+        close: () => {
+          const { size } = chat['messages'][0].media.document
+          const progress = `${downloaded}/${size.value} (${downloaded / Number(totalFileSize) * 100}%) -end-`
+          console.log(`${chat['messages'][0].id} ${progress}`)
+          if (countFiles++ >= files.length) {
+            try {
+              const { size } = statSync(filename('process-'))
+              if (totalFileSize.gt(bigInt(size))) {
+                rmSync(filename('process-'))
+              } else {
+                renameSync(filename('process-'), filename())
+              }
+            } catch (error) {
+              console.error(`Error handling file: ${error}`)
+            }
+            res.end()
+          }
         }
       }
-      try {
-        await getData()
-      } catch (error) {
-        console.log(error)
-      }
+    })
+    return true
+  } catch (error) {
+    console.log(error)
+    return Promise.reject(error)
+  }
+}
+
+// Usage
+const mergedBuffer = await mergeFiles(input, output)
+for (const file of files) {
+  let chat
+  if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+    const [type, peerId, id, accessHash] = file.forward_info.split('/')
+    let peer
+    if (type === 'channel') {
+      peer = new Api.InputPeerChannel({
+        channelId: bigInt(peerId),
+        accessHash: bigInt(accessHash as string)
+      })
+      chat = await req.tg.invoke(new Api.channels.GetMessages({
+        channel: peer,
+        id: [new Api.InputMessageID({ id: Number(id) })]
+      }))
+    }
+  } else {
+    chat = await req.tg.invoke(new Api.messages.GetMessages({
+      id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+    }))
+  }
+  try {
+    await downloadMedia(chat, thumb)
+  } catch (error) {
+    console.log(error)
+  }
+}
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
