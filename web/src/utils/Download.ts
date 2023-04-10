@@ -57,16 +57,16 @@ async function* generateChunks(
 export async function download(
   id: string,
   numParallel: number = 1
-): Promise<ReadableStream[]> {
+): Promise<ReadableStream<Uint8Array>> {
   const fileIterators: FileIterator[] = []
   const cachedData = cache.get(id)
   if (cachedData) {
-    return [new ReadableStream({
+    return new ReadableStream({
       start(controller) {
         controller.enqueue(cachedData)
         controller.close()
       }
-    })]
+    })
   }
   const client = await connectionPool.getConnection()
   try {
@@ -100,7 +100,7 @@ export async function download(
       })
       streams.push(stream)
     }
-    return streams
+    return mergeStreams(...streams) // merge the streams and return the merged stream
   } finally {
     connectionPool.releaseConnection(client)
   }
