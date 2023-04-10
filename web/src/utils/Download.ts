@@ -1,16 +1,14 @@
 import streamSaver from 'streamsaver'
 import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
-
+import { concat } from 'concat-stream'
 class ConnectionPool {
   private connections: Promise<any>[]
   public maxSize: number
-
   constructor(maxSize: number) {
     this.connections = []
     this.maxSize = maxSize
   }
-
   async getConnection() {
     if (this.connections.length > 0) {
       return this.connections.shift()
@@ -31,17 +29,16 @@ class ConnectionPool {
       }, 1000)
     })
   }
-
   releaseConnection(connection: Promise<any>) {
     this.connections.push(connection)
   }
 }
-
 // Declare the proper type for file iterators
 type FileIterator = {
   [Symbol.asyncIterator]: () => AsyncGenerator<Uint8Array, void, unknown>
 }
-const fileIterators: FileIterator[] = []
+const connectionPool = new ConnectionPool(5) // set maximum pool size to 5
+const cache = new Map<string, Uint8Array>() // create a cache for downloaded data
 async function* generateChunks(
   client: any,
   media: any,
@@ -50,22 +47,18 @@ async function* generateChunks(
 ): AsyncGenerator<Uint8Array, void, unknown> {
   // <-- change the return type here to Uint8Array
   const chunks = await client.downloadMedia(media, {
-    offset: i * media.size / numParallel,
+    offset: (i * media.size) / numParallel,
     limit: media.size / numParallel
   })
   for (const chunk of chunks) {
     yield chunk
   }
 }
-
-const connectionPool = new ConnectionPool(5) // set maximum pool size to 5
-
-const cache = new Map<string, Uint8Array>() // create a cache for downloaded data
-
 export async function download(
   id: string,
   numParallel: number = 1
-): Promise<ReadableStream> {
+): Promise<ReadableStream[]> {
+  const fileIterators: FileIterator[] = []
   const cachedData = cache.get(id)
   if (cachedData) {
     return new ReadableStream({
@@ -75,9 +68,7 @@ export async function download(
       }
     })
   }
-
   const client = await connectionPool.getConnection()
-
   try {
     const { data: response } = await client.invoke(
       new Api.messages.GetMessages({
@@ -85,7 +76,6 @@ export async function download(
       })
     )
     const media = response.messages[0].media
-
     // Update the for loop that pushes the generator to the fileIterators array
     for (let i = 0; i < numParallel; i++) {
       fileIterators.push({
@@ -98,46 +88,23 @@ export async function download(
         )
       })
     }
-    const stream = new ReadableStream({
-      start(controller) {
-        const readers = []
-        for (const fileIterator of fileIterators) {
-          readers.push((await fileIterator[Symbol.asyncIterator]().next()).value.getReader())
-        }
-
-        const pump = async () => {
-          const promises = []
-          for (let i = 0; i < readers.length; i++) {
-            const reader = readers[i]
-            const promise = reader.read()
-            promises.push(promise)
-            promise.then(({ done, value }) => {
-              if (done) {
-                readers[i] = null
-              } else {
-                controller.enqueue(value)
-              }
-            })
+    const streams = []
+    for (const fileIterator of fileIterators) {
+      const stream = new ReadableStream({
+        async start(controller) {
+          for await (const chunk of fileIterator) {
+            controller.enqueue(chunk)
           }
-          await Promise.all(promises)
-          if (readers.every((reader) => reader === null)) {
-            cache.set(id, controller.byobRequest.buffer)
-            controller.close()
-          } else {
-            await pump()
-          }
+          controller.close()
         }
-
-        pump()
-      }
-    })
-
-    return stream
+      })
+      streams.push(stream)
+    }
+    return streams
   } finally {
     connectionPool.releaseConnection(client)
   }
 }
-
 export const directDownload = async (
   id: string,
   name: string,
@@ -145,37 +112,26 @@ export const directDownload = async (
 ): Promise<void> => {
   const fileStream = streamSaver.createWriteStream(name)
   const writer = fileStream.getWriter()
-
   try {
-    const readers = []
-    for (let i = 0; i < numParallel; i++) {
-      readers.push((await download(id, numParallel)).getReader())
-    }
-
+    const streams = await download(id, numParallel)
+    // Combine the streams using a function like mergeStreams in place of [stream1, stream2, ..., streamN]
+    const mergedStream = mergeStreams(streams)
+    const reader = mergedStream.getReader()
     const pump = async () => {
-      const promises = []
-      for (let i = 0; i < readers.length; i++) {
-        const reader = readers[i]
-        const promise = reader.read()
-        promises.push(promise)
-        promise.then(({ done, value }) => {
-          if (done) {
-            readers[i] = null
-          } else {
-            writer.write(value)
-          }
-        })
-      }
-      await Promise.all(promises)
-      if (readers.every((reader) => reader === null)) {
+      const { done, value } = await reader.read()
+      if (done) {
+        cache.set(id, value)
         writer.close()
-      } else {
-        await pump()
+        return
       }
+      writer.write(value)
+      pump()
     }
-
-    await pump()
+    pump()
   } catch (error) {
     console.error(error)
   }
+}
+export function mergeStreams(...streams) {
+  return concat(streams)
 }
