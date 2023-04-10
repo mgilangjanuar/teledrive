@@ -1273,18 +1273,18 @@ export class Files {
         console.log(`Downloaded ${chat["messages"][0].id} to ${outputFile}`)
         return {
           close: () => {
-            const { size } = chat["messages"][0].media.document
+            const { size } = chat['messages'][0].media.document
             const progress = `${downloaded}/${size.value} (${
               (downloaded / Number(totalFileSize)) * 100
             }%) -end-`
-            console.log(`${chat["messages"][0].id} ${progress}`)
+            console.log(`${chat['messages'][0].id} ${progress}`)
             if (countFiles++ >= files.length) {
               try {
-                const { size } = statSync(filename("process-"))
+                const { size } = statSync(filename('process-'))
                 if (totalFileSize.gt(bigInt(size))) {
                   rmSync(filename("process-"))
                 } else {
-                  renameSync(filename("process-"), filename())
+                  renameSync(filename('process-'), filename())
                 }
               } catch (error) {
                 console.error(`Error handling file: ${error}`)
@@ -1301,7 +1301,7 @@ export class Files {
 
     // Usage
     const mergedBuffer = await mergeFiles(input, output)
-    res.set("Content-disposition", "attachment; filename=" + output)
+    res.set('Content-disposition', 'attachment; filename=' + output)
     res.set('Content-Type', 'application/octet-stream')
     res.send(mergedBuffer)
     for (const file of files) {
