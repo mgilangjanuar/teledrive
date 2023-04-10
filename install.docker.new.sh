@@ -63,10 +63,10 @@ if [ ! -f docker/.env ]; then
 else
   cd docker
   git fetch origin
-  if ! git rev-parse --verify staging >/dev/null 2>&1; then
-    git branch staging origin/staging
+  if ! git rev-parse --verify experiment >/dev/null 2>&1; then
+    git branch experiment origin/experiment
   fi
-  git checkout staging
+  git checkout experiment
   export $(cat docker/.env | xargs)
   docker compose down
   docker compose up --build --force-recreate -d
@@ -75,5 +75,5 @@ else
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull origin staging
+  git pull origin experiment
 fi
