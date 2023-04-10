@@ -26,7 +26,7 @@ if [ ! -f docker/.env ]; then
   read -p "Enter your ADMIN_USERNAME: " ADMIN_USERNAME
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
-  DB_PASSWORD=$(openssl rand -hex 18)
+  DB_PASSWORD=$(openssl rand -base64 16)
   echo "Generated random DB_PASSWORD: $DB_PASSWORD"
   echo
   echo "ENV=$ENV" > docker/.env
@@ -45,7 +45,7 @@ if [ ! -f docker/.env ]; then
   docker compose build teledrive
   docker compose up -d
   sleep 2
-  docker compose exec db psql -U postgres -c "alter user postgres with password '$DB_PASSWORD';"
+  docker run --rm --network=docker_teledrive --name=postgres-client postgres psql -h db -U postgres -c "alter user postgres with password '$DB_PASSWORD';"
   docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
   cd docker
