@@ -102,7 +102,7 @@ export async function download(
       start(controller) {
         const readers = []
         for (const fileIterator of fileIterators) {
-          readers.push(fileIterator[Symbol.asyncIterator]().getReader())
+          readers.push((await fileIterator[Symbol.asyncIterator]().next()).value.getReader())
         }
 
         const pump = async () => {
