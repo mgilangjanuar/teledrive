@@ -120,7 +120,9 @@ export const directDownload = async (
     const pump = async () => {
       const { done, value } = await reader.read()
       if (done) {
-        cache.set(id, value)
+        if (value) { // add null check here
+          cache.set(id, value)
+        }
         writer.close()
         return
       }
