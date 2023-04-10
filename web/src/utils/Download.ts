@@ -61,13 +61,13 @@ export async function download(
   const fileIterators: FileIterator[] = []
   const cachedData = cache.get(id)
   if (cachedData) {
-    return new ReadableStream({
+    return [new ReadableStream({
       start(controller) {
         controller.enqueue(cachedData)
         controller.close()
       }
-    })
-  }
+    })]
+  }  
   const client = await connectionPool.getConnection()
   try {
     const { data: response } = await client.invoke(
