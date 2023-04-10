@@ -1241,10 +1241,26 @@ export class Files {
 
     let downloaded: number = 0
     try {
-      writeFileSync(filename('process-'), '')
+
+      fs.writeFileSync(output, Buffer.from([]))
+
+      input.reduce((_: Buffer, file: string, i: number) => {
+
+        fs.appendFileSync(output, fs.readFileSync(file))
+
+        console.log('Merging... ' + (i + 1) + '/' + input.length)
+
+      }, Buffer.from([]))
+
+      console.log('Done file saved in ' + output)
+
     } catch (error) {
-      // ignore
+
+      console.error(`Error: ${JSON.stringify(error)}`)
+
     }
+
+  })
 
     let countFiles = 1
     for (const file of files) {
