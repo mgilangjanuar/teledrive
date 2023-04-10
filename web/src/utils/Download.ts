@@ -132,6 +132,21 @@ export const directDownload = async (
     console.error(error)
   }
 }
-export function mergeStreams<T extends ReadableStream<any>>(...streams: T[]): ReadableStream<T> {
-  return concat(streams)
+export function mergeStreams(...streams: ReadableStream<any>[]): ReadableStream<any> {
+  const combinedStream = new ReadableStream({
+    async start(controller) {
+      for (const stream of streams) {
+        const reader = stream.getReader()
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
+          }
+          controller.enqueue(value)
+        }
+      }
+      controller.close()
+    }
+  })
+  return combinedStream
 }
