@@ -135,14 +135,16 @@ export const directDownload = async (
 export function mergeStreams(...streams: ReadableStream<any>[]): ReadableStream<any> {
   const combinedStream = new ReadableStream({
     async start(controller) {
-      for (const stream of streams) {
-        const reader = stream.getReader()
-        while (true) {
+      let allDone = false
+      while (!allDone) {
+        allDone = true
+        for (const stream of streams) {
+          const reader = stream.getReader()
           const { done, value } = await reader.read()
-          if (done) {
-            break
+          if (!done) {
+            allDone = false
+            controller.enqueue(value)
           }
-          controller.enqueue(value)
         }
       }
       controller.close()
