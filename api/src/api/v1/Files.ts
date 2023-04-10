@@ -1250,7 +1250,7 @@ export class Files {
         },
         Buffer.from([])
       )
-      console.log("Done merging")
+      console.log('Done merging')
       fs.writeFileSync(output, mergedBuffer)
       return mergedBuffer
     } catch (error) {
@@ -1267,7 +1267,7 @@ export class Files {
         const outputFile = path.resolve(
           outputDirectory,
           chat["messages"][0].media.document.file_name
-        );
+        )
         const fileBuffer = mergedBuffer || fs.readFileSync(outputFile)
         fs.writeFileSync(outputFile, fileBuffer)
         console.log(`Downloaded ${chat["messages"][0].id} to ${outputFile}`)
@@ -1282,7 +1282,7 @@ export class Files {
               try {
                 const { size } = statSync(filename('process-'))
                 if (totalFileSize.gt(bigInt(size))) {
-                  rmSync(filename("process-"))
+                  rmSync(filename('process-'))
                 } else {
                   renameSync(filename('process-'), filename())
                 }
