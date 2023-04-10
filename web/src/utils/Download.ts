@@ -67,7 +67,7 @@ export async function download(
         controller.close()
       }
     })]
-  }  
+  }
   const client = await connectionPool.getConnection()
   try {
     const { data: response } = await client.invoke(
