@@ -132,7 +132,7 @@ export const directDownload = async (
     console.error(error)
   }
 }
-export function mergeStreams(...streams: ReadableStream<any>[]): ReadableStream<any> {
+export function mergeStreams(...streams: ReadableStream<Uint8Array>[]): ReadableStream<Uint8Array> {
   const combinedStream = new ReadableStream({
     async start(controller) {
       let allDone = false
