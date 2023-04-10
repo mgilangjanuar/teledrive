@@ -88,7 +88,7 @@ export async function download(
         )
       })
     }
-    const streams = []
+    const streams: ReadableStream<Uint8Array>[] = []
     for (const fileIterator of fileIterators) {
       const stream = new ReadableStream({
         async start(controller) {
