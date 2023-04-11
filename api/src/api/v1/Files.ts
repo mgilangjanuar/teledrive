@@ -1239,13 +1239,13 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    const downloaded: number = 0;
+    const downloaded: number = 0
     // File merging code
     try {
       const mergedBuffer = input.reduce(
         (acc: Buffer, file: string, i: number) => {
           const fileBuffer = fs.readFileSync(file)
-          console.log("Merging... " + (i + 1) + "/" + input.length)
+          console.log('Merging... ' + (i + 1) + '/' + input.length)
           return Buffer.concat([acc, fileBuffer])
         },
         Buffer.from([])
@@ -1266,16 +1266,16 @@ export class Files {
       try {
         const outputFile = path.resolve(
           outputDirectory,
-          chat["messages"][0].media.document.file_name
+          chat['messages'][0].media.document.file_name
         )
         const fileBuffer = mergedBuffer || fs.readFileSync(outputFile)
         fs.writeFileSync(outputFile, fileBuffer)
-        console.log(`Downloaded ${chat["messages"][0].id} to ${outputFile}`)
+        console.log(`Downloaded ${chat['messages'][0].id} to ${outputFile}`)
         return {
           close: () => {
             const { size } = chat['messages'][0].media.document
-            const progress = `${downloaded}/${size.value} (${(downloaded / Number(totalFileSize)) * 100
-              }%) -end-`
+            const progress = `${downloaded}/${size.value} ${downloaded} / Number(totalFileSize) * 100
+          }%) -end-`
             console.log(`${chat['messages'][0].id} ${progress}`)
             if (countFiles++ >= files.length) {
               try {
