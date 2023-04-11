@@ -19,7 +19,6 @@ import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 import fs from 'fs'
 
-
 // New dependencies
 import { promisify } from 'util'
 import { pipeline } from 'stream'
@@ -29,6 +28,9 @@ import buffer from 'buffer'
 import telegramMtproto from 'telegram-mtproto'
 import stream from 'stream'
 import util from 'util'
+
+// Add Readable to the import statement
+import { Readable } from 'stream'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1263,14 +1265,19 @@ export class Files {
       let countFiles = 1
       const outputStream = fs.createWriteStream(output)
       const totalFileSize = bigInt(files.reduce((acc, curr) => acc + curr.size, 0))
-
+    
       for (const file of files) {
         // Download the media file
         const downloadedChat = await downloadMedia(file)
-
-        // Write the downloaded buffer to the output stream
-        outputStream.write(downloadedChat['messages'][0].media.bytes)
-
+    
+        // Create a ReadableStream from the downloaded buffer
+        const readableStream = new Readable()
+        readableStream.push(downloadedChat['messages'][0].media.bytes)
+        readableStream.push(null)
+    
+        // Pipe the ReadableStream to the outputStream
+        readableStream.pipe(outputStream, { end: false })
+    
         // Check if all files are downloaded
         if (countFiles++ >= files.length) {
           try {
