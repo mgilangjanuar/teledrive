@@ -1274,9 +1274,8 @@ export class Files {
         return {
           close: () => {
             const { size } = chat['messages'][0].media.document
-            const progress = `${downloaded}/${size.value} (${
-              (downloaded / Number(totalFileSize)) * 100
-            }%) -end-`
+            const progress = `${downloaded}/${size.value} (${(downloaded / Number(totalFileSize)) * 100
+              }%) -end-`
             console.log(`${chat['messages'][0].id} ${progress}`)
             if (countFiles++ >= files.length) {
               try {
