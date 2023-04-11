@@ -1258,96 +1258,109 @@ export class Files {
       // ignore
     }
 
-    let countFiles = 1
-    const outputStream = fs.createWriteStream(output)
+    async function downloadAndSaveFiles(files: any[], output: string) {
+      let downloaded = 0
+      let countFiles = 1
+      const outputStream = fs.createWriteStream(output)
+      const totalFileSize = bigInt(files.reduce((acc, curr) => acc + curr.size, 0))
 
-    for (const file of files) {
-      // Download the media file
-      const downloadedChat = await downloadMedia(file)
+      for (const file of files) {
+        // Download the media file
+        const downloadedChat = await downloadMedia(file)
 
-      // Write the downloaded buffer to the output stream
-      outputStream.write(downloadedChat['messages'][0].media.bytes)
+        // Write the downloaded buffer to the output stream
+        outputStream.write(downloadedChat['messages'][0].media.bytes)
 
-      // Check if all files are downloaded
-      if (countFiles++ >= files.length) {
-        try {
-          // Close the output stream to finalize the file
-          outputStream.end()
-          await pipeline(outputStream, fs.createWriteStream(output))
-          console.log('Done file saved in ' + output)
-        } catch (error) {
-          console.error(`Error: ${JSON.stringify(error)}`)
+        // Check if all files are downloaded
+        if (countFiles++ >= files.length) {
+          try {
+            // Close the output stream to finalize the file
+            outputStream.end()
+            await pipeline(outputStream, fs.createWriteStream(output))
+            console.log('Done file saved in ' + output)
+          } catch (error) {
+            console.error(`Error: ${JSON.stringify(error)}`)
+          }
         }
       }
-    }
 
-    async function downloadMedia(file) {
-      let downloadedChat
+      async function downloadMedia(file: any) {
+        let downloadedChat
 
-      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-        const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer
+        if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+          const [type, peerId, id, accessHash] = file.forward_info.split('/')
+          let peer
 
-        if (type === 'channel') {
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string),
-          })
+          if (type === 'channel') {
+            peer = new Api.InputPeerChannel({
+              channelId: bigInt(peerId),
+              accessHash: bigInt(accessHash as string)
+            })
 
-          downloadedChat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })],
-          }))
+            downloadedChat = await req.tg.invoke(
+              new Api.channels.GetMessages({
+                channel: peer,
+                id: [new Api.InputMessageID({ id: Number(id) })]
+              })
+            )
+          }
+        } else {
+          downloadedChat = await req.tg.invoke(
+            new Api.messages.GetMessages({
+              id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+            })
+          )
         }
-      } else {
-        downloadedChat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })],
-        }))
-      }
 
-      const buffer = await req.tg.downloadMedia(downloadedChat['messages'][0].media, {
-        ...thumb ? { thumb: 0 } : {},
-        outputFile: {
-          write: (buffer) => {
-            downloaded += buffer.length
+        const buffer = await req.tg.downloadMedia(downloadedChat['messages'][0].media, {
+          ...thumb ? { thumb: 0 } : {},
+          outputFile: {
+            write: (buffer) => {
+              downloaded += buffer.length
 
-            if (cancel) {
-              throw { status: 422, body: { error: 'canceled' } }
-            } else {
-              console.log(`${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
+              if (cancel) {
+                throw { status: 422, body: { error: 'canceled' } }
+              } else {
+                console.log(
+                  `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${(downloaded / Number(totalFileSize)) * 100 + '%'})`
+                )
 
-              try {
-                appendFileSync(filename('process-'), buffer)
-              } catch (error) {
-                // ignore
-              }
-
-              res.write(buffer)
-            }
-          },
-          close: () => {
-            console.log(`${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
-
-            if (countFiles++ >= files.length) {
-              try {
-                const { size } = statSync(filename('process-'))
-
-                if (totalFileSize.gt(bigInt(size))) {
-                  rmSync(filename('process-'))
-                } else {
-                  renameSync(filename('process-'), filename())
+                try {
+                  appendFileSync(filename('process-'), buffer)
+                } catch (error) {
+                  // ignore
                 }
-              } catch (error) {
-                // ignore
+
+                res.write(buffer)
               }
+            },
+            close: () => {
+              console.log(
+                `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${(downloaded / Number(totalFileSize)) * 100 + '%'})`,
+                '-end-'
+              )
 
-              res.end()
+              if (countFiles++ >= files.length) {
+                try {
+                  const { size } = statSync(filename('process-'))
+
+                  if (totalFileSize.gt(bigInt(size))) {
+                    rmSync(filename('process-'))
+                  } else {
+                    renameSync(filename('process-'), filename())
+                  }
+                } catch (error) {
+                  // ignore
+                }
+
+                res.end()
+              }
             }
-          },
-        },
-      })
+          }
+        })
 
-      return downloadedChat
+        return downloadedChat
+      }
     }
     usage = await prisma.usages.update({
       data: {
