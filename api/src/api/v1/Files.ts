@@ -1279,7 +1279,7 @@ export class Files {
           try {
             // Close the output stream to finalize the file
             outputStream.end()
-            await pipeline(outputStream, fs.createWriteStream(output))
+            await pipeline(readableStream, fs.createWriteStream(output))
             console.log('Done file saved in ' + output)
           } catch (error) {
             console.error(`Error: ${JSON.stringify(error)}`)
