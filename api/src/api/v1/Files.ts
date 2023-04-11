@@ -1265,19 +1265,15 @@ export class Files {
       let countFiles = 1
       const outputStream = fs.createWriteStream(output)
       const totalFileSize = bigInt(files.reduce((acc, curr) => acc + curr.size, 0))
-    
       for (const file of files) {
         // Download the media file
         const downloadedChat = await downloadMedia(file)
-    
         // Create a ReadableStream from the downloaded buffer
         const readableStream = new Readable()
         readableStream.push(downloadedChat['messages'][0].media.bytes)
         readableStream.push(null)
-    
         // Pipe the ReadableStream to the outputStream
         readableStream.pipe(outputStream, { end: false })
-    
         // Check if all files are downloaded
         if (countFiles++ >= files.length) {
           try {
