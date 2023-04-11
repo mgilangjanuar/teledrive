@@ -1326,7 +1326,7 @@ export class Files {
                 )
 
                 try {
-                  appendFileSync(filename'process-', buffer)
+                  appendFileSync(filename,'process-', buffer)
                 } catch (error) {
                   // ignore
                 }
