@@ -1251,7 +1251,7 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    let downloaded: number = 0
+    const downloaded: number = 0
     try {
       writeFileSync(filename('process-'), '')
     } catch (error) {
@@ -1322,11 +1322,11 @@ export class Files {
                 throw { status: 422, body: { error: 'canceled' } }
               } else {
                 console.log(
-                  `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${(downloaded / Number(totalFileSize)) * 100 + '%'})`
+                  `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} ${(downloaded / Number(totalFileSize)) * 100 + '%'}`
                 )
 
                 try {
-                  appendFileSync(filename('process-'), buffer)
+                  appendFileSync(filename'process-', buffer)
                 } catch (error) {
                   // ignore
                 }
