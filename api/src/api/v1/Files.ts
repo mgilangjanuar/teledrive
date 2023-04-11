@@ -1322,7 +1322,7 @@ export class Files {
                 throw { status: 422, body: { error: 'canceled' } }
               } else {
                 console.log(
-                  `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} ${(downloaded / Number(totalFileSize)) * 100 + '%'}`
+                  `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} ${downloaded / Number(totalFileSize) * 100 + '%'}`
                 )
 
                 try {
@@ -1336,7 +1336,7 @@ export class Files {
             },
             close: () => {
               console.log(
-                `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${(downloaded / Number(totalFileSize)) * 100 + '%'})`,
+                `${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} ${downloaded / Number(totalFileSize) * 100 + '%'})`,
                 '-end-'
               )
 
