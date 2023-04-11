@@ -49,7 +49,15 @@
     "serverless-http": "^3.0.1",
     "source-map-support": "^0.5.19",
     "telegram": "^2.15.5",
-    "uuid-random": "^1.3.2"
+    "uuid-random": "^1.3.2",
+    "telegraf": "^4.4.0",
+    "telegram-typings": "^0.40.0",
+    "buffer": "^6.0.3",
+    "big-integer": "^1.6.48",
+    "telegram-mtproto": "^1.0.11",
+    "stream": "0.0.2",
+    "util": "^0.12.4",
+    "fs-extra": "^10.0.0"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
