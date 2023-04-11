@@ -1255,7 +1255,7 @@ export class Files {
 
     const downloaded: number = 0
     try {
-      writeFileSync(filename('process-'), '')
+      appendFileSync(filename(`process-${Date.now()}`) + fileExtension, buffer)
     } catch (error) {
       // ignore
     }
