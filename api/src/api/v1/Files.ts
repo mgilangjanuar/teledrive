@@ -18,6 +18,16 @@ import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 
+// New dependencies
+import { promisify } from 'util'
+import { pipeline } from 'stream'
+import fsExtra from 'fs-extra'
+import telegramTypings from 'telegram-typings'
+import buffer from 'buffer'
+import telegramMtproto from 'telegram-mtproto'
+import stream from 'stream'
+import util from 'util'
+
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
 @Endpoint.API()
@@ -802,7 +812,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 4
+        workers: 1
       })
     }
 
@@ -1247,48 +1257,79 @@ export class Files {
     }
 
     let countFiles = 1
+    const outputStream = fs.createWriteStream(output)
+
     for (const file of files) {
-      let chat
+      // Download the media file
+      const downloadedChat = await downloadMedia(file)
+
+      // Write the downloaded buffer to the output stream
+      outputStream.write(downloadedChat['messages'][0].media.bytes)
+
+      // Check if all files are downloaded
+      if (countFiles++ >= files.length) {
+        try {
+          // Close the output stream to finalize the file
+          outputStream.end()
+          await pipeline(outputStream, fs.createWriteStream(output))
+          console.log('Done file saved in ' + output)
+        } catch (error) {
+          console.error(`Error: ${JSON.stringify(error)}`)
+        }
+      }
+    }
+
+    async function downloadMedia(file) {
+      let downloadedChat
+
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
         let peer
+
         if (type === 'channel') {
           peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string)
+            accessHash: bigInt(accessHash as string),
           })
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
+
+          downloadedChat = await req.tg.invoke(new Api.channels.GetMessages({
             channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
+            id: [new Api.InputMessageID({ id: Number(id) })],
           }))
         }
       } else {
-        chat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+        downloadedChat = await req.tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(file.message_id) })],
         }))
       }
-      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
+
+      const buffer = await req.tg.downloadMedia(downloadedChat['messages'][0].media, {
         ...thumb ? { thumb: 0 } : {},
         outputFile: {
-          write: (buffer: Buffer) => {
+          write: (buffer) => {
             downloaded += buffer.length
+
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
+              console.log(`${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
+
               try {
                 appendFileSync(filename('process-'), buffer)
               } catch (error) {
                 // ignore
               }
+
               res.write(buffer)
             }
           },
           close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
+            console.log(`${downloadedChat['messages'][0].id} ${downloaded}/${downloadedChat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
+
             if (countFiles++ >= files.length) {
               try {
                 const { size } = statSync(filename('process-'))
+
                 if (totalFileSize.gt(bigInt(size))) {
                   rmSync(filename('process-'))
                 } else {
@@ -1297,16 +1338,14 @@ export class Files {
               } catch (error) {
                 // ignore
               }
+
               res.end()
             }
-          }
-        }
+          },
+        },
       })
-      try {
-        await getData()
-      } catch (error) {
-        console.log(error)
-      }
+
+      return downloadedChat
     }
     usage = await prisma.usages.update({
       data: {
