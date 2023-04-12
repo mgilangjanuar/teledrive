@@ -1244,7 +1244,7 @@ export class Files {
 
     const writeStream = createWriteStream(tempFilename, { flags: 'a', encoding: 'binary' })
 
-    let downloaded = 0
+    const downloaded = 0
 
     for (const file of files) {
       let chat
