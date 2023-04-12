@@ -18,6 +18,7 @@ import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 import { promisify } from 'util'
+import { basename } from 'path'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1264,14 +1265,14 @@ export class Files {
 
     writeStream.on('finish', async () => {
       try {
-        const { size } = await promisify(stat)(tempFilename)
+        const { size } = await promisify(require('fs').stat)(tempFilename)
         if (totalFileSize.gt(bigInt(size))) {
-          rmSync(tempFilename)
+          require('fs').unlinkSync(tempFilename)
           res.status(500).send('Failed to download file')
           return
         }
 
-        await promisify(rename)(tempFilename, finalFilename)
+        await promisify(require('fs').rename)(tempFilename, finalFilename)
         res.download(finalFilename, files[0].name.replace(/\.part\d+$/gi, ''))
       } catch (error) {
         console.error(error)
@@ -1317,6 +1318,15 @@ export class Files {
         return result.messages[0]
       }
     }
+
+    function mergeFiles(filenames: string[], dest: string) {
+      const chunks = filenames.map((file) => readFileSync(file))
+      const buffer = Buffer.concat(chunks)
+      writeFileSync(dest, buffer)
+    }
+
+    const partFiles = files.map((file) => filename(file.name))
+    mergeFiles(partFiles, tempFilename)
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
