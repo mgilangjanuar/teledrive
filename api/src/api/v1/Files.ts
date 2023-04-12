@@ -1238,7 +1238,13 @@ export class Files {
     const tempFilename = filename('process-')
     const finalFilename = filename()
 
-    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
+    res.setHeader(
+      'Content-Disposition',
+      contentDisposition(
+        files[0].name.replace(/\.part\d+$/gi, ''),
+        { type: Number(dl) === 1 ? 'attachment' : 'inline' }
+      )
+    )
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
@@ -1247,7 +1253,7 @@ export class Files {
       const range = req.headers.range.replace(/bytes=/, '').split('-')
       const start = parseInt(range[0], 10)
       const end = range[1] ? parseInt(range[1], 10) : totalFileSize - 1
-      const chunksize = (end - start) + 1
+      const chunksize = end - start + 1
       const file = createReadStream(finalFilename, { start, end })
       res.writeHead(206, {
         'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
@@ -1257,7 +1263,10 @@ export class Files {
       })
       file.pipe(res)
     } else {
-      const writeStream = createWriteStream(tempFilename, { flags: 'a', encoding: 'binary' })
+      const writeStream = createWriteStream(tempFilename, {
+        flags: 'a',
+        encoding: 'binary'
+      })
 
       for (const file of files) {
         const chat = await getChat(file, req.tg)
@@ -1286,7 +1295,10 @@ export class Files {
           await promisify(require('fs').rename)(tempFilename, finalFilename)
           const file = createReadStream(finalFilename)
           res.writeHead(200, {
-            'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
+            'Content-Disposition': contentDisposition(
+              files[0].name.replace(/\.part\d+$/gi, ''),
+              { type: Number(dl) === 1 ? 'attachment' : 'inline' }
+            ),
             'Content-Type': files[0].mime_type,
             'Content-Length': totalFileSize.toString()
           })
@@ -1313,38 +1325,42 @@ export class Files {
           res.end()
         }
       })
+    }
 
-      async function getChat(file, tg) {
-        if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-          const [type, peerId, id, accessHash] = file.forward_info.split('/')
-          if (type === 'channel') {
-            const peer = new Api.InputPeerChannel({
-              channelId: bigInt(peerId),
-              accessHash: bigInt(accessHash)
-            })
-            const result = await tg.invoke(new Api.channels.GetMessages({
+    async function getChat(file, tg) {
+      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+        const [type, peerId, id, accessHash] = file.forward_info.split('/')
+        if (type === 'channel') {
+          const peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: bigInt(accessHash)
+          })
+          const result = await tg.invoke(
+            new Api.channels.GetMessages({
               channel: peer,
               id: [new Api.InputMessageID({ id: Number(id) })]
-            }))
-            return result.messages[0]
-          }
-        } else {
-          const result = await tg.invoke(new Api.messages.GetMessages({
-            id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-          }))
+            })
+          )
           return result.messages[0]
         }
+      } else {
+        const result = await tg.invoke(
+          new Api.messages.GetMessages({
+            id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+          })
+        )
+        return result.messages[0]
       }
-
-      function mergeFiles(filenames: string[], dest: string) {
-        const chunks = filenames.map((file) => readFileSync(file))
-        const buffer = Buffer.concat(chunks)
-        writeFileSync(dest, buffer)
-      }
-
-      const partFiles = files.map((file) => filename(file.name))
-      mergeFiles(partFiles, tempFilename)
     }
+
+    function mergeFiles(filenames, dest) {
+      const chunks = filenames.map((file) => readFileSync(file))
+      const buffer = Buffer.concat(chunks)
+      writeFileSync(dest, buffer)
+    }
+
+    const partFiles = files.map((file) => filename(file.name))
+    mergeFiles(partFiles, tempFilename)
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
