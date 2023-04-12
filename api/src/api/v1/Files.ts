@@ -5,7 +5,7 @@ import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import { appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
+import { createWriteStream, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
 import moment from 'moment'
 import multer from 'multer'
 import { Api, Logger, TelegramClient } from 'telegram'
@@ -17,6 +17,7 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
+import { promisify } from 'util'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1247,51 +1248,34 @@ export class Files {
     const downloaded = 0
 
     for (const file of files) {
-      let chat
-      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-        const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer
-        if (type === 'channel') {
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string)
-          })
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
-          }))
-        }
-      } else {
-        chat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-        }))
-      }
+      const chat = await getChat(file, req.tg)
       const getData = async () => {
-        await req.tg.downloadMedia(chat['messages'][0].media, {
-          ...thumb ? { thumb: 0 } : {},
-          outputFile: writeStream
-        })
+        try {
+          await req.tg.downloadMedia(chat.media, {
+            ...thumb ? { thumb: 0 } : {},
+            outputFile: writeStream
+          })
+        } catch (error) {
+          console.log(error)
+        }
       }
-      try {
-        await getData()
-      } catch (error) {
-        console.log(error)
-      }
+      await getData()
     }
 
-    writeStream.on('finish', () => {
+    writeStream.on('finish', async () => {
       try {
-        const { size } = statSync(tempFilename)
+        const { size } = await promisify(stat)(tempFilename)
         if (totalFileSize.gt(bigInt(size))) {
-          // delete the temporary file if the downloaded size doesn't match the expected size
           rmSync(tempFilename)
           res.status(500).send('Failed to download file')
-        } else {
-          // rename the temporary file to the final filename
-          renameSync(tempFilename, finalFilename)
+          return
         }
+
+        await promisify(rename)(tempFilename, finalFilename)
+        res.download(finalFilename, files[0].name.replace(/\.part\d+$/gi, ''))
       } catch (error) {
-        // ignore
+        console.error(error)
+        res.status(500).send('Failed to download file')
       }
     })
 
@@ -1301,7 +1285,7 @@ export class Files {
     })
 
     writeStream.on('error', (error) => {
-      console.log(error)
+      console.error(error)
       res.status(500).send('Failed to download file')
     })
 
@@ -1311,6 +1295,28 @@ export class Files {
         res.end()
       }
     })
+
+    async function getChat(file, tg) {
+      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+        const [type, peerId, id, accessHash] = file.forward_info.split('/')
+        if (type === 'channel') {
+          const peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: bigInt(accessHash)
+          })
+          const result = await tg.invoke(new Api.channels.GetMessages({
+            channel: peer,
+            id: [new Api.InputMessageID({ id: Number(id) })]
+          }))
+          return result.messages[0]
+        }
+      } else {
+        const result = await tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+        }))
+        return result.messages[0]
+      }
+    }
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
