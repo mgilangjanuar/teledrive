@@ -51,6 +51,7 @@ const TableFiles: React.FC<Props> = ({
   files,
   tab,
   me,
+  data,
   onChange,
   onDelete,
   onRename,
