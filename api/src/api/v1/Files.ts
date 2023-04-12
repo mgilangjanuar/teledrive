@@ -1273,7 +1273,7 @@ export class Files {
         const getData = async () => {
           try {
             await req.tg.downloadMedia(chat.media, {
-              ...(thumb ? { thumb: 0 } : {}),
+              ...thumb ? { thumb: 0 } : {},
               outputFile: writeStream
             })
           } catch (error) {
