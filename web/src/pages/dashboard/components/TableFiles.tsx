@@ -232,7 +232,7 @@ const TableFiles: React.FC<Props> = ({
       width: 100,
       align: 'center',
       render: (value: any) => {
-       {datafilesParts?.length ? prettyBytes(datafilesParts?.files.reduce((res: number, file: any) => res + Number(file.size), 0)) + ` (${datafilesParts?.length} parts)` : data?.file.size && prettyBytes(Number(data?.file.size || 0))}
+        {datafilesParts?.length ? prettyBytes(datafilesParts?.files.reduce((res: number, file: any) => res + Number(file.size), 0)) + ` (${datafilesParts?.length} parts)` : data?.file.size && prettyBytes(Number(data?.file.size || 0))}
       }
     },
     {
