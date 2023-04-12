@@ -1277,7 +1277,7 @@ export class Files {
             } else {
               console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
               try {
-                appendFileSync(filename('process-'), buffer)
+                writeFileSync(filename('process-'), buffer)
               } catch (error) {
                 // ignore
               }
