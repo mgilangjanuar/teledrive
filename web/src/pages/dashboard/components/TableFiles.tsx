@@ -30,6 +30,7 @@ interface Props {
   files?: any,
   tab: string,
   me?: any,
+  data: any,
   onChange: (...args: any[]) => void,
   onDelete: (row: any) => void,
   onRename: (row: any) => void,
@@ -231,10 +232,7 @@ const TableFiles: React.FC<Props> = ({
       width: 100,
       align: 'center',
       render: (value: any) => {
-        if (Number(value) === 2_000_000_000) {
-          return '> 2 GB'
-        }
-        return value ? prettyBytes(Number(value)) : '-'
+       {datafilesParts?.length ? prettyBytes(datafilesParts?.files.reduce((res: number, file: any) => res + Number(file.size), 0)) + ` (${datafilesParts?.length} parts)` : data?.file.size && prettyBytes(Number(data?.file.size || 0))}
       }
     },
     {
