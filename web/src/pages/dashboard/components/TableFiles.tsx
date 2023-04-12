@@ -30,7 +30,6 @@ interface Props {
   files?: any,
   tab: string,
   me?: any,
-  data: any,
   onChange: (...args: any[]) => void,
   onDelete: (row: any) => void,
   onRename: (row: any) => void,
@@ -51,7 +50,6 @@ const TableFiles: React.FC<Props> = ({
   files,
   tab,
   me,
-  data,
   onChange,
   onDelete,
   onRename,
@@ -70,7 +68,7 @@ const TableFiles: React.FC<Props> = ({
   const [popup, setPopup] = useState<{ visible: boolean, x?: number, y?: number, row?: any }>()
   const [showDetails, setShowDetails] = useState<any>()
   const { data: user } = useSWR(showDetails ? `/users/${showDetails.user_id}` : null, fetcher)
-  const { data: datafilesParts } = useSWR(showDetails ? `/files?name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}&user_id=${showDetails.user_id}&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '=null'}${tab === 'shared' ? '&shared=1' : ''}` : null, fetcher)
+  const { data: filesParts } = useSWR(showDetails ? `/files?name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}&user_id=${showDetails.user_id}&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '=null'}${tab === 'shared' ? '&shared=1' : ''}` : null, fetcher)
   const pasteEnabled = useRef<boolean | null>(null)
 
   useEffect(() => {
@@ -233,7 +231,10 @@ const TableFiles: React.FC<Props> = ({
       width: 100,
       align: 'center',
       render: (value: any) => {
-        {datafilesParts?.length ? prettyBytes(datafilesParts?.files.reduce((res: number, file: any) => res + Number(file.size), 0)) + ` (${datafilesParts?.length} parts)` : data?.file.size && prettyBytes(Number(data?.file.size || 0))}
+        if (Number(value) === 2_000_000_000) {
+          return '> 2 GB'
+        }
+        return value ? prettyBytes(Number(value)) : '-'
       }
     },
     {
@@ -352,7 +353,7 @@ const TableFiles: React.FC<Props> = ({
       okButtonProps={{ shape: 'round' }}>
       <Descriptions column={1}>
         <Descriptions.Item label="Size">
-          {datafilesParts?.length ? prettyBytes(datafilesParts?.files.reduce((res: number, file: any) => res + Number(file.size), 0)) + ` (${datafilesParts?.length} parts)` : showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}
+          {filesParts?.length ? prettyBytes(filesParts?.files.reduce((res: number, file: any) => res + Number(file.size), 0)) + ` (${filesParts?.length} parts)` : showDetails?.size && prettyBytes(Number(showDetails?.size || 0))}
         </Descriptions.Item>
         <Descriptions.Item label="Uploaded At">{moment(showDetails?.uploaded_at).local().format('lll')}</Descriptions.Item>
         <Descriptions.Item label="Uploaded By">
