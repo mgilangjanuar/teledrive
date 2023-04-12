@@ -1238,95 +1238,116 @@ export class Files {
     const tempFilename = filename('process-')
     const finalFilename = filename()
 
-    res.setHeader('Content-Range', `bytes */${totalFileSize}`)
     res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    const writeStream = createWriteStream(tempFilename, { flags: 'a', encoding: 'binary' })
+    if (req.headers.range) {
+      const range = req.headers.range
+      const parts = range.replace(/bytes=/, '').split('-')
+      const start = parseInt(parts[0], 10)
+      const end = parts[1] ? parseInt(parts[1], 10) : totalFileSize - 1
+      const chunksize = (end - start) + 1
+      const file = createReadStream(finalFilename, { start, end })
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': files[0].mime_type
+      })
+      file.pipe(res)
+    } else {
+      const writeStream = createWriteStream(tempFilename, { flags: 'a', encoding: 'binary' })
 
-    const downloaded = 0
+      let downloaded = 0
 
-    for (const file of files) {
-      const chat = await getChat(file, req.tg)
-      const getData = async () => {
+      for (const file of files) {
+        const chat = await getChat(file, req.tg)
+        const getData = async () => {
+          try {
+            await req.tg.downloadMedia(chat.media, {
+              ...thumb ? { thumb: 0 } : {},
+              outputFile: writeStream
+            })
+          } catch (error) {
+            console.log(error)
+          }
+        }
+        await getData()
+      }
+
+      writeStream.on('finish', async () => {
         try {
-          await req.tg.downloadMedia(chat.media, {
-            ...thumb ? { thumb: 0 } : {},
-            outputFile: writeStream
+          const { size } = await promisify(require('fs').stat)(tempFilename)
+          if (totalFileSize.gt(bigInt(size))) {
+            require('fs').unlinkSync(tempFilename)
+            res.status(500).send('Failed to download file')
+            return
+          }
+
+          await promisify(require('fs').rename)(tempFilename, finalFilename)
+          const file = createReadStream(finalFilename)
+          res.writeHead(200, {
+            'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
+            'Content-Type': files[0].mime_type,
+            'Content-Length': totalFileSize.toString()
           })
+          file.pipe(res)
         } catch (error) {
-          console.log(error)
-        }
-      }
-      await getData()
-    }
-
-    writeStream.on('finish', async () => {
-      try {
-        const { size } = await promisify(require('fs').stat)(tempFilename)
-        if (totalFileSize.gt(bigInt(size))) {
-          require('fs').unlinkSync(tempFilename)
+          console.error(error)
           res.status(500).send('Failed to download file')
-          return
         }
+      })
 
-        await promisify(require('fs').rename)(tempFilename, finalFilename)
-        res.download(finalFilename, files[0].name.replace(/\.part\d+$/gi, ''))
-      } catch (error) {
-        console.error(error)
-        res.status(500).send('Failed to download file')
-      }
-    })
-
-    req.on('close', () => {
-      writeStream.destroy()
-      res.end()
-    })
-
-    writeStream.on('error', (error) => {
-      console.error(error)
-      res.status(500).send('Failed to download file')
-    })
-
-    res.on('close', () => {
-      if (!res.finished) {
+      req.on('close', () => {
         writeStream.destroy()
         res.end()
-      }
-    })
+      })
 
-    async function getChat(file, tg) {
-      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-        const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        if (type === 'channel') {
-          const peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash)
-          })
-          const result = await tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
+      writeStream.on('error', (error) => {
+        console.error(error)
+        res.status(500).send('Failed to download file')
+      })
+
+      res.on('close', () => {
+        if (!res.finished) {
+          writeStream.destroy()
+          res.end()
+        }
+      })
+
+      async function getChat(file, tg) {
+        if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+          const [type, peerId, id, accessHash] = file.forward_info.split('/')
+          if (type === 'channel') {
+            const peer = new Api.InputPeerChannel({
+              channelId: bigInt(peerId),
+              accessHash: bigInt(accessHash)
+            })
+            const result = await tg.invoke(new Api.channels.GetMessages({
+              channel: peer,
+              id: [new Api.InputMessageID({ id: Number(id) })]
+            }))
+            return result.messages[0]
+          }
+        } else {
+          const result = await tg.invoke(new Api.messages.GetMessages({
+            id: [new Api.InputMessageID({ id: Number(file.message_id) })]
           }))
           return result.messages[0]
         }
-      } else {
-        const result = await tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-        }))
-        return result.messages[0]
       }
-    }
 
-    function mergeFiles(filenames: string[], dest: string) {
-      const chunks = filenames.map((file) => readFileSync(file))
-      const buffer = Buffer.concat(chunks)
-      writeFileSync(dest, buffer)
-    }
+      function mergeFiles(filenames: string[], dest: string) {
+        const chunks = filenames.map((file) => readFileSync(file))
+        const buffer = Buffer.concat(chunks)
+        writeFileSync(dest, buffer)
+      }
 
-    const partFiles = files.map((file) => filename(file.name))
-    mergeFiles(partFiles, tempFilename)
+      const partFiles = files.map((file) => filename(file.name))
+      mergeFiles(partFiles, tempFilename)
+    }
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
