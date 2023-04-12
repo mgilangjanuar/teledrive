@@ -1244,10 +1244,9 @@ export class Files {
     res.setHeader('Accept-Ranges', 'bytes')
 
     if (req.headers.range) {
-      const range = req.headers.range
-      const parts = range.replace(/bytes=/, '').split('-')
-      const start = parseInt(parts[0], 10)
-      const end = parts[1] ? parseInt(parts[1], 10) : totalFileSize - 1
+      const range = req.headers.range.replace(/bytes=/, '').split('-')
+      const start = parseInt(range[0], 10)
+      const end = range[1] ? parseInt(range[1], 10) : totalFileSize - 1
       const chunksize = (end - start) + 1
       const file = createReadStream(finalFilename, { start, end })
       res.writeHead(206, {
@@ -1260,14 +1259,12 @@ export class Files {
     } else {
       const writeStream = createWriteStream(tempFilename, { flags: 'a', encoding: 'binary' })
 
-      let downloaded = 0
-
       for (const file of files) {
         const chat = await getChat(file, req.tg)
         const getData = async () => {
           try {
             await req.tg.downloadMedia(chat.media, {
-              ...thumb ? { thumb: 0 } : {},
+              ...(thumb ? { thumb: 0 } : {}),
               outputFile: writeStream
             })
           } catch (error) {
