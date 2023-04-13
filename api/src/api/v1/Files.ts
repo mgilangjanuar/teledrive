@@ -5,7 +5,7 @@ import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import { createWriteStream, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, readFileSync } from 'fs'
+import { appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
 import moment from 'moment'
 import multer from 'multer'
 import { Api, Logger, TelegramClient } from 'telegram'
@@ -17,8 +17,6 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-import { promisify } from 'util'
-import { basename } from 'path'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -804,7 +802,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 1
+        workers: 4
       })
     }
 
@@ -1235,132 +1233,81 @@ export class Files {
 
     // res.setHeader('Cache-Control', 'public, max-age=604800')
     // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
-    const tempFilename = filename('process-')
-    const finalFilename = filename()
-
-    res.setHeader(
-      'Content-Disposition',
-      contentDisposition(
-        files[0].name.replace(/\.part\d+$/gi, ''),
-        { type: Number(dl) === 1 ? 'attachment' : 'inline' }
-      )
-    )
+    res.setHeader('Content-Range', `bytes */${totalFileSize}`)
+    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    if (req.headers.range) {
-      const range = req.headers.range.replace(/bytes=/, '').split('-')
-      const start = Number(BigInt(parseInt(range[0], 10)))
-      const end = range[1] ? Number(BigInt(parseInt(range[1], 10))) : totalFileSize - 1
-      const chunksize = BigInt(end - start + 1)
-      const file = createReadStream(finalFilename, { start, end })
-      res.writeHead(206, {
-        'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': Number(chunksize),
-        'Content-Type': files[0].mime_type
-      })
-      file.pipe(res)
-    } else {
-      const writeStream = createWriteStream(tempFilename, {
-        flags: 'a',
-        encoding: 'binary'
-      })
-
-      for (const file of files) {
-        const chat = await getChat(file, req.tg)
-        const getData = async () => {
-          try {
-            await req.tg.downloadMedia(chat.media, {
-              ...thumb ? { thumb: 0 } : {},
-              outputFile: writeStream
-            })
-          } catch (error) {
-            console.log(error)
-          }
-        }
-        await getData()
-      }
-
-      writeStream.on('finish', async () => {
-        try {
-          const { size } = await promisify(require('fs').stat)(tempFilename)
-          if (totalFileSize.gt(bigInt(size))) {
-            require('fs').unlinkSync(tempFilename)
-            res.status(500).send('Failed to download file')
-            return
-          }
-
-          await promisify(require('fs').rename)(tempFilename, finalFilename)
-          const file = createReadStream(finalFilename)
-          res.writeHead(200, {
-            'Content-Disposition': contentDisposition(
-              files[0].name.replace(/\.part\d+$/gi, ''),
-              { type: Number(dl) === 1 ? 'attachment' : 'inline' }
-            ),
-            'Content-Type': files[0].mime_type,
-            'Content-Length': totalFileSize.toString()
-          })
-          file.pipe(res)
-        } catch (error) {
-          console.error(error)
-          res.status(500).send('Failed to download file')
-        }
-      })
-
-      req.on('close', () => {
-        writeStream.destroy()
-        res.end()
-      })
-
-      writeStream.on('error', (error) => {
-        console.error(error)
-        res.status(500).send('Failed to download file')
-      })
-
-      res.on('close', () => {
-        if (!res.finished) {
-          writeStream.destroy()
-          res.end()
-        }
-      })
+    let downloaded: number = 0
+    try {
+      writeFileSync(filename('process-'), '')
+    } catch (error) {
+      // ignore
     }
 
-    async function getChat(file, tg) {
+    let countFiles = 1
+    for (const file of files) {
+      let chat
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
+        let peer
         if (type === 'channel') {
-          const peer = new Api.InputPeerChannel({
+          peer = new Api.InputPeerChannel({
             channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash)
+            accessHash: bigInt(accessHash as string)
           })
-          const result = await tg.invoke(
-            new Api.channels.GetMessages({
-              channel: peer,
-              id: [new Api.InputMessageID({ id: Number(id) })]
-            })
-          )
-          return result.messages[0]
+          chat = await req.tg.invoke(new Api.channels.GetMessages({
+            channel: peer,
+            id: [new Api.InputMessageID({ id: Number(id) })]
+          }))
         }
       } else {
-        const result = await tg.invoke(
-          new Api.messages.GetMessages({
-            id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-          })
-        )
-        return result.messages[0]
+        chat = await req.tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+        }))
+      }
+      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
+        ...thumb ? { thumb: 0 } : {},
+        outputFile: {
+          write: (buffer: Buffer) => {
+            downloaded += buffer.length
+            if (cancel) {
+              throw { status: 422, body: { error: 'canceled' } }
+            } else {
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
+              try {
+                appendFileSync(filename('process-'), buffer)
+              } catch (error) {
+                // ignore
+              }
+              res.write(buffer)
+            }
+          },
+          close: () => {
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`, '-end-')
+            if (countFiles++ >= files.length) {
+              try {
+                const { size } = statSync(filename('process-'))
+                if (totalFileSize.gt(bigInt(size))) {
+                  rmSync(filename('process-'))
+                } else {
+                  renameSync(filename('process-'), filename())
+                }
+              } catch (error) {
+                // ignore
+              }
+              res.end()
+            }
+          }
+        }
+      })
+      try {
+        await getData()
+      } catch (error) {
+        console.log(error)
       }
     }
-
-    function mergeFiles(filenames, dest) {
-      const chunks = filenames.map((file) => readFileSync(file))
-      const buffer = Buffer.concat(chunks)
-      writeFileSync(dest, buffer)
-    }
-
-    const partFiles = files.map((file) => filename(file.name))
-    mergeFiles(partFiles, tempFilename)
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
