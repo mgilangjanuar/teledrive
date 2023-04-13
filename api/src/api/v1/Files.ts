@@ -1258,7 +1258,7 @@ export class Files {
       res.writeHead(206, {
         'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
         'Accept-Ranges': 'bytes',
-        'Content-Length': chunksize,
+        'Content-Length': Number(chunksize),
         'Content-Type': files[0].mime_type
       })
       file.pipe(res)
