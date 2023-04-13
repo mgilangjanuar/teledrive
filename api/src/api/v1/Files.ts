@@ -1251,8 +1251,8 @@ export class Files {
 
     if (req.headers.range) {
       const range = req.headers.range.replace(/bytes=/, '').split('-')
-      const start = BigInt(parseInt(range[0], 10)).valueOf() as number
-      const end = range[1] ? BigInt(parseInt(range[1], 10)).valueOf() as number : totalFileSize - 1
+      const start = Number(BigInt(parseInt(range[0], 10)))
+      const end = range[1] ? Number(BigInt(parseInt(range[1], 10))) : totalFileSize - 1
       const chunksize = BigInt(end - start + 1)
       const file = createReadStream(finalFilename, { start, end })
       res.writeHead(206, {
