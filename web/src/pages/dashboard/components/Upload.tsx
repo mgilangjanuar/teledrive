@@ -6,7 +6,6 @@ import { Api } from 'telegram'
 import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 import { telegramClient } from '../../../utils/Telegram'
-import {axios} from 'axios'
 
 interface Props {
   dataFileList: [any[], (data: any[]) => void],
@@ -221,7 +220,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                   const data = new FormData()
                   data.append('upload', blobPart)
 
-                  axios.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                  req({
+                    method: 'POST',
+                    url: `/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`,
                     params: {
                       ...parent?.id ? { parent_id: parent.id } : {},
                       relative_path: file.webkitRelativePath || null,
@@ -231,6 +232,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                       part: i,
                       total_part: parts,
                     },
+                    data: data,
                   })
                     .then((response) => {
                       responses.push(response.data)
