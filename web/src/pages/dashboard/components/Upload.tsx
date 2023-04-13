@@ -213,13 +213,13 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
           // For each chunk of the file part, create a promise to upload it
           for (let i = 0; i < parts; i++) {
-            const promise = new Promise(async (resolve, reject) => {
+            const promise = new Promise((resolve, reject) => {
               try {
                 const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size))
                 const data = new FormData()
                 data.append('upload', blobPart)
 
-                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
                   params: {
                     ...parent?.id ? { parent_id: parent.id } : {},
                     relative_path: file.webkitRelativePath || null,
@@ -230,9 +230,13 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                     total_part: parts,
                   },
                 })
-
-                responses.push(response)
-                resolve(response)
+                  .then((response) => {
+                    responses.push(response.data)
+                    resolve(response.data)
+                  })
+                  .catch((error) => {
+                    reject(error)
+                  })
               } catch (error) {
                 reject(error)
               }
@@ -247,7 +251,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         promises.forEach((promise) => {
           promise.then(() => {
             completedChunks++
-            const percent = Math.round((completedChunks / totalChunks) * 100)
+            const percent = Math.round(completedChunks / totalChunks * 100)
             onProgress({ percent }, file)
           })
         })
