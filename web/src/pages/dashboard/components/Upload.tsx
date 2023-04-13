@@ -214,7 +214,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             console.error('File ' + fileIndex + ' - Part ' + partIndex + ' upload failed', error)
           }
         }
-
         async function uploadFile(file: File) {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const fileArrayBuffer = await file.arrayBuffer()
@@ -234,7 +233,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               params: {
                 ...(parent?.id ? { parent_id: parent.id } : {}),
                 relative_path: file.webkitRelativePath || null,
-                name: `${file.name}${fileParts > 1 ? `.part${String(fileIndex + 1).padStart(3, '0')}` : ''}`,
+                name: `${file.name}${fileParts > 1 ? ` .part${String(fileIndex + 1).padStart(3, '0')} ` : ''}`,
                 size: file.size,
                 mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
                 part: partIndex,
@@ -244,20 +243,17 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             })
             return handlePromise(promise, fileIndex, partIndex)
           })
-
-          Promise.all(uploadPromises)
-            .then((responses) => {
-              console.log(responses)
-              if (deletedFiles.includes(file)) {
-                console.log('File was deleted during upload:', file)
-                return
-              }
-              onProgress({ percent: 100 }, file)
-            })
-            .catch((error) => {
-              console.error(error)
-            })
-
+          try {
+            const responses = await Promise.all(uploadPromises)
+            console.log(responses)
+            if (deletedFiles.includes(file)) {
+              console.log('File was deleted during upload:', file)
+              return
+            }
+            onProgress({ percent: 100 }, file)
+          } catch (error) {
+            console.error(error)
+          }
           if (!deleted) {
             window.onbeforeunload = undefined as any
             notification.success({
