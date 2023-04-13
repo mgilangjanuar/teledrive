@@ -206,63 +206,43 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        async function handlePromise(promise: Promise<any>, fileIndex: number, partIndex: number) {
-          try {
-            const response = await promise
-            console.log('File ' + fileIndex + ' - Part ' + partIndex + ' uploaded successfully', response)
-          } catch (error) {
-            console.error('File ' + fileIndex + ' - Part ' + partIndex + ' upload failed', error)
+        const parallelUploads = async (start, end, fileBlob, parts) => {
+          const tasks = []
+          for (let i = start; i < end; ++i) {
+            const task = uploadPart(i, fileBlob, parts)
+            tasks.push(task)
           }
+          await Promise.all(tasks)
         }
-        async function uploadFile(file: File) {
-          const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
-          const fileArrayBuffer = await file.arrayBuffer()
-          const chunks = new Array(Math.ceil(fileArrayBuffer.byteLength / CHUNK_SIZE)).fill(null).map((_, index) => {
-            const start = index * CHUNK_SIZE
-            const end = Math.min(start + CHUNK_SIZE, fileArrayBuffer.byteLength)
-            return fileArrayBuffer.slice(start, end)
-          })
-          const uploadPromises = chunks.map(async (chunk, index) => {
-            const partIndex = Math.floor(index / fileParts)
-            const fileIndex = index % fileParts
-            const data = new FormData()
-            data.append('upload', new Blob([chunk]))
-            const promise = req({
-              method: 'POST',
-              url: '/files/upload',
-              params: {
-                ...(parent?.id ? { parent_id: parent.id } : {}),
-                relative_path: file.webkitRelativePath || null,
-                name: `${file.name}${fileParts > 1 ? ` .part${String(fileIndex + 1).padStart(3, '0')} ` : ''}`,
-                size: file.size,
-                mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                part: partIndex,
-                total_part: chunks.length,
-              },
-              data: data,
-            })
-            return handlePromise(promise, fileIndex, partIndex)
-          })
-          try {
-            const responses = await Promise.all(uploadPromises)
-            console.log(responses)
-            if (deletedFiles.includes(file)) {
-              console.log('File was deleted during upload:', file)
-              return
+        const uploadFile = async () => {
+          let uploadedParts = 0
+          let totalParts = 0
+          for (let j = 0; j < fileParts; j++) {
+            const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+            const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
+            totalParts += parts
+            if (!deleted) {
+              const group = 2
+              await parallelUploads(0, Math.min(1, parts), fileBlob, parts)
+              uploadedParts++
+              for (let i = 1; i < parts - 1; i += group) {
+                if (deleted) break
+                const end = Math.min(parts - 1, i + group)
+                await parallelUploads(i, end, fileBlob, parts)
+                uploadedParts += end - i
+                const percent = (uploadedParts / totalParts * 100).toFixed(1)
+                onProgress({ percent }, file)
+              }
+              if (!deleted && parts - 1 > 0) {
+                await parallelUploads(parts - 1, parts, fileBlob, parts)
+                uploadedParts++
+                const percent = (uploadedParts / totalParts * 100).toFixed(1)
+                onProgress({ percent }, file)
+              }
             }
-            onProgress({ percent: 100 }, file)
-          } catch (error) {
-            console.error(error)
-          }
-          if (!deleted) {
-            window.onbeforeunload = undefined as any
-            notification.success({
-              key: 'fileUploaded',
-              message: 'Success',
-              description: 'File ' + file.name + ' uploaded successfully',
-            })
           }
         }
+        uploadFile() // Call function to start the upload.
       }
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
