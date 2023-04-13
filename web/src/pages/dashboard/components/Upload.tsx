@@ -203,75 +203,80 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        const promises: Promise<any>[] = [] // explicitly define the type of promises array
-        for (let j = 0; j < fileParts; j++) {
-          const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
-          const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
-          const responses: any[] = [] // explicitly define the type of responses array
+        function uploadFile(file: File) {
+          const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
+          const totalChunks = fileParts * Math.ceil(MAX_UPLOAD_SIZE / CHUNK_SIZE)
 
-          for (let i = 0; i < parts; i++) {
-            const promise = new Promise((resolve, reject) => {
-              try {
-                const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size))
-                const data = new FormData()
-                data.append('upload', blobPart)
+          const promises: Promise<any>[] = [] // explicitly define the type of promises array
+          for (let j = 0; j < fileParts; j++) {
+            const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+            const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
+            const responses: any[] = [] // explicitly define the type of responses array
 
-                req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-                  params: {
-                    ...parent?.id ? { parent_id: parent.id } : {},
-                    relative_path: file.webkitRelativePath || null,
-                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                    size: fileBlob.size,
-                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                    part: i,
-                    total_part: parts,
-                  },
-                })
-                  .then((response) => {
-                    responses.push(response.data)
-                    resolve(response.data)
+            for (let i = 0; i < parts; i++) {
+              const promise = new Promise((resolve, reject) => {
+                try {
+                  const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size))
+                  const data = new FormData()
+                  data.append('upload', blobPart)
+
+                  req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                    params: {
+                      ...parent?.id ? { parent_id: parent.id } : {},
+                      relative_path: file.webkitRelativePath || null,
+                      name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                      size: fileBlob.size,
+                      mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                      part: i,
+                      total_part: parts,
+                    },
                   })
-                  .catch((error) => {
-                    reject(error)
-                  })
-              } catch (error) {
-                reject(error)
+                    .then((response) => {
+                      responses.push(response.data)
+                      resolve(response.data)
+                    })
+                    .catch((error) => {
+                      reject(error)
+                    })
+                } catch (error) {
+                  reject(error)
+                }
+              })
+
+              promises.push(promise)
+            }
+          }
+
+          let completedChunks = 0
+          promises.forEach((promise) => {
+            promise.then(() => {
+              completedChunks++
+              const percent = Math.round(completedChunks / totalChunks * 100)
+              onProgress({ percent }, file)
+            })
+          })
+
+          Promise.all(promises)
+            .then((allResponses) => {
+              console.log(allResponses)
+              if (deletedFiles.includes(file)) {
+                console.log('File was deleted during upload:', file)
+                return
               }
+              onProgress({ percent: 100 }, file)
+            })
+            .catch((error) => {
+              console.error(error)
             })
 
-            promises.push(promise)
+          if (!deleted) {
+            window.onbeforeunload = undefined as any
+            notification.success({
+              key: 'fileUploaded',
+              message: 'Success',
+              description: `File ${file.name} uploaded successfully`
+            })
           }
-        }
-
-        let completedChunks = 0
-        promises.forEach((promise) => {
-          promise.then(() => {
-            completedChunks++
-            const percent = Math.round(completedChunks / totalChunks * 100)
-            onProgress({ percent }, file)
-          })
-        })
-
-        Promise.all(promises)
-          .then((allResponses) => {
-            console.log(allResponses)
-            if (deletedFiles.includes(file)) {
-              console.log('File was deleted during upload:', file)
-              return
-            }
-            onProgress({ percent: 100 }, file)
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-
-        if (!deleted) {
-          window.onbeforeunload = undefined as any
-          notification.success({
-            key: 'fileUploaded',
-            message: 'Success',
-            description: `File ${file.name} uploaded successfully`
-          })
         }
       }
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
