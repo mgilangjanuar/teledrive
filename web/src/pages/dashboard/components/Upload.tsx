@@ -223,33 +223,31 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             const end = Math.min(start + CHUNK_SIZE, fileArrayBuffer.byteLength)
             return fileArrayBuffer.slice(start, end)
           })
-          const uploadPartPromises = Array.from({ length: fileParts }, (_, fileIndex) => {
-            const uploadChunkPromises = chunks.map(async (chunk, partIndex) => {
-              const data = new FormData()
-              data.append('upload', new Blob([chunk]))
-              return req({
-                method: 'POST',
-                url: '/files/upload',
-                params: {
-                  ...(parent?.id ? { parent_id: parent.id } : {}),
-                  relative_path: file.webkitRelativePath || null,
-                  name: `${file.name}${fileParts > 1 ? `.part${String(fileIndex + 1).padStart(3, '0')}` : ''}`,
-                  size: file.size,
-                  mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                  part: partIndex,
-                  total_part: chunks.length,
-                },
-                data: data,
-              })
+          const uploadPromises = chunks.map(async (chunk, index) => {
+            const partIndex = Math.floor(index / fileParts);
+            const fileIndex = index % fileParts;
+            const data = new FormData();
+            data.append('upload', new Blob([chunk]));
+            const promise = req({
+              method: 'POST',
+              url: '/files/upload',
+              params: {
+                ...(parent?.id ? { parent_id: parent.id } : {}),
+                relative_path: file.webkitRelativePath || null,
+                name: `${file.name}${fileParts > 1 ? `.part${String(fileIndex + 1).padStart(3, '0')}` : ''}`,
+                size: file.size,
+                mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                part: partIndex,
+                total_part: chunks.length,
+              },
+              data: data,
             })
-            return Promise.all(uploadChunkPromises.map((promise, partIndex) => handlePromise(promise, fileIndex, partIndex))).then(
-              (responses) => ({ fileIndex, responses })
-            )
+            return handlePromise(promise, fileIndex, partIndex)
           })
 
-          Promise.all(uploadPartPromises)
-            .then((allResponses) => {
-              console.log(allResponses)
+          Promise.all(uploadPromises)
+            .then((responses) => {
+              console.log(responses)
               if (deletedFiles.includes(file)) {
                 console.log('File was deleted during upload:', file)
                 return
