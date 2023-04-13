@@ -207,7 +207,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         }
       } else {
         function uploadFile(file: File) {
-          const handlePromise = (promise: Promise<any>, fileIndex: number, partIndex: number) => {
+          function handlePromise(promise: Promise<any>, fileIndex: number, partIndex: number) {
             promise.then((response) => {
               console.log(`File ${fileIndex} - Part ${partIndex} uploaded successfully`, response)
             })
