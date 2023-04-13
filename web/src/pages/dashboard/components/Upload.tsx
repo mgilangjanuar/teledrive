@@ -138,17 +138,14 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                         if (type === 'channel') {
                           peer = new Api.InputPeerChannel({
                             channelId: BigInt(peerId) as any,
-                            accessHash: BigInt(accessHash as string) as any
-                          })
+                            accessHash: BigInt(accessHash as string) as any })
                         } else if (type === 'user') {
                           peer = new Api.InputPeerUser({
                             userId: BigInt(peerId.toString()) as any,
-                            accessHash: BigInt(accessHash.toString()) as any
-                          })
+                            accessHash: BigInt(accessHash.toString()) as any })
                         } else if (type === 'chat') {
                           peer = new Api.InputPeerChat({
-                            chatId: BigInt(peerId) as any
-                          })
+                            chatId: BigInt(peerId) as any })
                         }
                       }
                       return await client.sendFile(peer || 'me', {
@@ -265,13 +262,18 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             }
           }
         }
-        
-        uploadFile() // Call function to start the upload.
-            }
-          }
-        }
 
         uploadFile() // Call function to start the upload.
+      }
+
+      // notification.close(`upload-${file.uid}`)
+      if (!deleted) {
+        window.onbeforeunload = undefined as any
+        notification.success({
+          key: 'fileUploaded',
+          message: 'Success',
+          description: `File ${file.name} uploaded successfully`
+        })
       }
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
