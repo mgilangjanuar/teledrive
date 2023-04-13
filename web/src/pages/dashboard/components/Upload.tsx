@@ -203,73 +203,71 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
+        const promises = []
+
+        // For each file part, upload all chunks in parallel
         for (let j = 0; j < fileParts; j++) {
           const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
           const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
+          const responses = []
 
-          if (!deleted) {
-            const uploadPart = async (i: number) => {
-              if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
-                await Promise.all(responses.map(async response => {
-                  try {
-                    await req.delete(`/files/${response?.file.id}`)
-                  } catch (error) {
-                    // ignore
-                  }
-                }))
-                cancelUploading.current = null
-                deleted = true
-                window.onbeforeunload = undefined as any
-              } else {
-                const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+          // For each chunk of the file part, create a promise to upload it
+          for (let i = 0; i < parts; i++) {
+            const promise = new Promise(async (resolve, reject) => {
+              try {
+                const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size))
                 const data = new FormData()
                 data.append('upload', blobPart)
 
-                const beginUpload = async () => {
-                  const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-                    params: {
-                      ...parent?.id ? { parent_id: parent.id } : {},
-                      relative_path: file.webkitRelativePath || null,
-                      name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                      size: fileBlob.size,
-                      mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                      part: i,
-                      total_part: parts,
-                    },
-                  })
-                  return response
-                }
+                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                  params: {
+                    ...parent?.id ? { parent_id: parent.id } : {},
+                    relative_path: file.webkitRelativePath || null,
+                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                    size: fileBlob.size,
+                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                    part: i,
+                    total_part: parts,
+                  },
+                })
 
-                let trial = 0
-                while (trial < RETRY_COUNT) {
-                  try {
-                    responses[j] = await beginUpload()
-                    trial = RETRY_COUNT
-                  } catch (error) {
-                    if (trial >= RETRY_COUNT) {
-                      throw error
-                    }
-                    await new Promise(res => setTimeout(res, ++trial * 3000))
-                  }
-                }
-
-                const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-                onProgress({ percent }, file)
+                responses.push(response)
+                resolve(response)
+              } catch (error) {
+                reject(error)
               }
-            }
+            })
 
-            const group = 2
-            await uploadPart(0)
-            for (let i = 1; i < parts - 1; i += group) {
-              if (deleted) break
-              const others = Array.from(Array(i + group).keys()).slice(i, Math.min(parts - 1, i + group))
-              await Promise.all(others.map(async j => await uploadPart(j)))
-            }
-            if (!deleted && parts - 1 > 0) {
-              await uploadPart(parts - 1)
-            }
+            promises.push(promise)
           }
         }
+
+        // Update progress as each promise resolves
+        let completedChunks = 0
+        promises.forEach((promise) => {
+          promise.then(() => {
+            completedChunks++
+            const percent = Math.round((completedChunks / totalChunks) * 100)
+            onProgress({ percent }, file)
+          })
+        })
+
+        // Wait for all promises to resolve and update progress accordingly
+        Promise.all(promises)
+          .then((allResponses) => {
+            console.log(allResponses)
+            // Check if file was deleted during upload
+            if (deletedFiles.includes(file)) {
+              console.log('File was deleted during upload:', file)
+              return
+            }
+            // handle response data as needed
+            onProgress({ percent: 100 }, file)
+          })
+          .catch((error) => {
+            console.error(error)
+            // handle error
+          })
       }
 
       // notification.close(`upload-${file.uid}`)
