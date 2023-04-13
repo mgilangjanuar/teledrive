@@ -206,15 +206,16 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        function uploadFile(file: File) {
-          async function handlePromise(promise: Promise<any>, fileIndex: number, partIndex: number) {
-            try {
-              const response = await promise
-              console.log(`File ${fileIndex} - Part ${partIndex} uploaded successfully`, response)
-            } catch (error) {
-              console.error(`File ${fileIndex} - Part ${partIndex} upload failed`, error)
-            }
+        async function handlePromise(promise: Promise<any>, fileIndex: number, partIndex: number) {
+          try {
+            const response = await promise
+            console.log('File ' + fileIndex + ' - Part ' + partIndex + ' uploaded successfully', response)
+          } catch (error) {
+            console.error('File ' + fileIndex + ' - Part ' + partIndex + ' upload failed', error)
           }
+        }
+
+        function uploadFile(file: File) {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const uploadPartPromises = Array.from({ length: fileParts }, async (_, fileIndex) => {
             const fileBlob = file.slice(fileIndex * MAX_UPLOAD_SIZE, Math.min(fileIndex * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
@@ -225,9 +226,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               data.append('upload', blobPart)
               return req({
                 method: 'POST',
-                url: `/files/upload`,
+                url: '/files/upload',
                 params: {
-                  ...parent?.id ? { parent_id: parent.id } : {},
+                  ...(parent?.id ? { parent_id: parent.id } : {}),
                   relative_path: file.webkitRelativePath || null,
                   name: `${file.name}${fileParts > 1 ? `.part${String(fileIndex + 1).padStart(3, '0')}` : ''}`,
                   size: fileBlob.size,
@@ -241,6 +242,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             const responses = await Promise.all(uploadChunkPromises.map((promise, partIndex) => handlePromise(promise, fileIndex, partIndex)))
             return { fileIndex, responses }
           })
+
           Promise.all(uploadPartPromises)
             .then((allResponses) => {
               console.log(allResponses)
@@ -253,12 +255,13 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             .catch((error) => {
               console.error(error)
             })
+
           if (!deleted) {
             window.onbeforeunload = undefined as any
             notification.success({
               key: 'fileUploaded',
               message: 'Success',
-              description: `File ${file.name} uploaded successfully`
+              description: 'File ' + file.name + ' uploaded successfully'
             })
           }
         }
