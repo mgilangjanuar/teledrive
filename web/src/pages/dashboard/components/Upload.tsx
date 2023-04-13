@@ -203,67 +203,73 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        const uploadPart = async (partNumber: number, fileBlob, totalParts) => {
-          const url = await getUploadUrl()
-          const start = partNumber * CHUNK_SIZE
-          const end = Math.min(start + CHUNK_SIZE, fileBlob.size)
-          const body = fileBlob.slice(start, end)
-          const headers = {
-            'Content-Type': 'application/octet-stream',
-            'Content-Range': `bytes ${start}-${end - 1}/${file.size}`,
-            'x-amz-content-sha256': 'required',
-          }
-          const response = await fetch(url, {
-            method: 'PUT',
-            body: body,
-            headers: headers,
-          })
-          if (!response.ok) {
-            throw new Error(`Failed to upload part ${partNumber + 1}: ${response.statusText}`)
-          }
-          const etag = response.headers.get('etag')
-          return { ETag: etag, PartNumber: partNumber + 1 }
-        }
+        for (let j = 0; j < fileParts; j++) {
+          const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+          const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
-        const parallelUploads = async (start: number, end: number, fileBlob, parts) => {
-          const tasks = []
-          for (let i = start; i < end; ++i) {
-            const task = uploadPart(i, fileBlob, parts)
-            tasks.push(task)
-          }
-          await Promise.all(tasks)
-        }
+          if (!deleted) {
+            const uploadPart = async (i: number) => {
+              if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
+                await Promise.all(responses.map(async response => {
+                  try {
+                    await req.delete(`/files/${response?.file.id}`)
+                  } catch (error) {
+                    // ignore
+                  }
+                }))
+                cancelUploading.current = null
+                deleted = true
+                window.onbeforeunload = undefined as any
+              } else {
+                const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+                const data = new FormData()
+                data.append('upload', blobPart)
 
-        const uploadFile = async () => {
-          let uploadedParts = 0
-          let totalParts = 0
-          for (let j = 0; j < fileParts; j++) {
-            const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
-            const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
-            totalParts += parts
-            if (!deleted) {
-              const group = 2
-              await parallelUploads(0, Math.min(1, parts), fileBlob, parts)
-              uploadedParts++
-              for (let i = 1; i < parts - 1; i += group) {
-                if (deleted) break
-                const end = Math.min(parts - 1, i + group)
-                await parallelUploads(i, end, fileBlob, parts)
-                uploadedParts += end - i
-                const percent = (uploadedParts / totalParts * 100).toFixed(1)
-                onProgress({ percent }, file)
-              }
-              if (!deleted && parts - 1 > 0) {
-                await parallelUploads(parts - 1, parts, fileBlob, parts)
-                uploadedParts++
-                const percent = (uploadedParts / totalParts * 100).toFixed(1)
+                const beginUpload = async () => {
+                  const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                    params: {
+                      ...parent?.id ? { parent_id: parent.id } : {},
+                      relative_path: file.webkitRelativePath || null,
+                      name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                      size: fileBlob.size,
+                      mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                      part: i,
+                      total_part: parts,
+                    },
+                  })
+                  return response
+                }
+
+                let trial = 0
+                while (trial < RETRY_COUNT) {
+                  try {
+                    responses[j] = await beginUpload()
+                    trial = RETRY_COUNT
+                  } catch (error) {
+                    if (trial >= RETRY_COUNT) {
+                      throw error
+                    }
+                    await new Promise(res => setTimeout(res, ++trial * 3000))
+                  }
+                }
+
+                const percent = (++totalParts / totalAllParts * 100).toFixed(1)
                 onProgress({ percent }, file)
               }
             }
+
+            const group = 2
+            await uploadPart(0)
+            for (let i = 1; i < parts - 1; i += group) {
+              if (deleted) break
+              const others = Array.from(Array(i + group).keys()).slice(i, Math.min(parts - 1, i + group))
+              await Promise.all(others.map(async j => await uploadPart(j)))
+            }
+            if (!deleted && parts - 1 > 0) {
+              await uploadPart(parts - 1)
+            }
           }
         }
-
-        uploadFile() // Call function to start the upload.
       }
 
       // notification.close(`upload-${file.uid}`)
