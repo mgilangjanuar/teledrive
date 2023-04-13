@@ -1240,11 +1240,8 @@ export class Files {
     res.setHeader('Accept-Ranges', 'bytes')
 
     let downloaded: number = 0
-    try {
-      writeFileSync(filename('process-'), '')
-    } catch (error) {
-      // ignore
-    }
+    const mergedFilename = path.join(__dirname, 'merged-file') // change 'merged-file' to your desired filename
+    const writeStream = fs.createWriteStream(mergedFilename)
 
     let countFiles = 1
     for (const file of files) {
@@ -1275,9 +1272,9 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
               try {
-                appendFileSync(filename('process-'), buffer)
+                writeStream.write(buffer) // write buffer to merged file
               } catch (error) {
                 // ignore
               }
@@ -1285,15 +1282,10 @@ export class Files {
             }
           },
           close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`, '-end-')
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
             if (countFiles++ >= files.length) {
               try {
-                const { size } = statSync(filename('process-'))
-                if (totalFileSize.gt(bigInt(size))) {
-                  rmSync(filename('process-'))
-                } else {
-                  renameSync(filename('process-'), filename())
-                }
+                writeStream.end() // close write stream
               } catch (error) {
                 // ignore
               }
