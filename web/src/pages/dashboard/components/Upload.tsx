@@ -215,15 +215,18 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
 
-        function uploadFile(file: File) {
+        async function uploadFile(file: File) {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
-          const uploadPartPromises = Array.from({ length: fileParts }, async (_, fileIndex) => {
-            const fileBlob = file.slice(fileIndex * MAX_UPLOAD_SIZE, Math.min(fileIndex * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
-            const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
-            const uploadChunkPromises = Array.from({ length: parts }, (_, partIndex) => {
-              const blobPart = fileBlob.slice(partIndex * CHUNK_SIZE, Math.min(partIndex * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size))
+          const fileArrayBuffer = await file.arrayBuffer()
+          const chunks = new Array(Math.ceil(fileArrayBuffer.byteLength / CHUNK_SIZE)).fill(null).map((_, index) => {
+            const start = index * CHUNK_SIZE
+            const end = Math.min(start + CHUNK_SIZE, fileArrayBuffer.byteLength)
+            return fileArrayBuffer.slice(start, end)
+          })
+          const uploadPartPromises = Array.from({ length: fileParts }, (_, fileIndex) => {
+            const uploadChunkPromises = chunks.map(async (chunk, partIndex) => {
               const data = new FormData()
-              data.append('upload', blobPart)
+              data.append('upload', new Blob([chunk]))
               return req({
                 method: 'POST',
                 url: '/files/upload',
@@ -231,16 +234,17 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                   ...(parent?.id ? { parent_id: parent.id } : {}),
                   relative_path: file.webkitRelativePath || null,
                   name: `${file.name}${fileParts > 1 ? `.part${String(fileIndex + 1).padStart(3, '0')}` : ''}`,
-                  size: fileBlob.size,
+                  size: file.size,
                   mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
                   part: partIndex,
-                  total_part: parts
+                  total_part: chunks.length,
                 },
-                data: data
+                data: data,
               })
             })
-            const responses = await Promise.all(uploadChunkPromises.map((promise, partIndex) => handlePromise(promise, fileIndex, partIndex)))
-            return { fileIndex, responses }
+            return Promise.all(uploadChunkPromises.map((promise, partIndex) => handlePromise(promise, fileIndex, partIndex))).then(
+              (responses) => ({ fileIndex, responses })
+            )
           })
 
           Promise.all(uploadPartPromises)
@@ -261,7 +265,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             notification.success({
               key: 'fileUploaded',
               message: 'Success',
-              description: 'File ' + file.name + ' uploaded successfully'
+              description: 'File ' + file.name + ' uploaded successfully',
             })
           }
         }
