@@ -212,20 +212,19 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const end = Math.min(start + CHUNK_SIZE, fileBlob.size)
           const body = fileBlob.slice(start, end)
           const headers = {
-            "Content-Type": "application/octet-stream",
-            "Content-Range": `bytes ${start}-${end - 1}/${file.size}`,
-            "x-amz-content-sha256": "required"
+            'Content-Type': 'application/octet-stream',
+            'Content-Range': `bytes ${start}-${end - 1}/${file.size}`,
+            'x-amz-content-sha256': 'required',
           }
-          const response = await axios({
-            method: "PUT",
-            url,
-            data: body,
-            headers
+          const response = await fetch(url, {
+            method: 'PUT',
+            body: body,
+            headers: headers,
           })
-          if (response.status !== 200 && response.status !== 201) {
+          if (!response.ok) {
             throw new Error(`Failed to upload part ${partNumber + 1}: ${response.statusText}`)
           }
-          const etag = response.headers.etag
+          const etag = response.headers.get('etag')
           return { ETag: etag, PartNumber: partNumber + 1 }
         }
 
@@ -263,6 +262,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                 const percent = (uploadedParts / totalParts * 100).toFixed(1)
                 onProgress({ percent }, file)
               }
+            }
+          }
+        }
+        
+        uploadFile() // Call function to start the upload.
             }
           }
         }
