@@ -206,7 +206,30 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        const parallelUploads = async (start, end, fileBlob, parts) => {
+        const uploadPart = async (partNumber: number, fileBlob, totalParts) => {
+          const url = await getUploadUrl()
+          const start = partNumber * CHUNK_SIZE
+          const end = Math.min(start + CHUNK_SIZE, fileBlob.size)
+          const body = fileBlob.slice(start, end)
+          const headers = {
+            "Content-Type": "application/octet-stream",
+            "Content-Range": `bytes ${start}-${end - 1}/${file.size}`,
+            "x-amz-content-sha256": "required"
+          }
+          const response = await axios({
+            method: "PUT",
+            url,
+            data: body,
+            headers
+          })
+          if (response.status !== 200 && response.status !== 201) {
+            throw new Error(`Failed to upload part ${partNumber + 1}: ${response.statusText}`)
+          }
+          const etag = response.headers.etag
+          return { ETag: etag, PartNumber: partNumber + 1 }
+        }
+
+        const parallelUploads = async (start: number, end: number, fileBlob, parts) => {
           const tasks = []
           for (let i = start; i < end; ++i) {
             const task = uploadPart(i, fileBlob, parts)
@@ -214,6 +237,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
           await Promise.all(tasks)
         }
+
         const uploadFile = async () => {
           let uploadedParts = 0
           let totalParts = 0
@@ -242,6 +266,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             }
           }
         }
+
         uploadFile() // Call function to start the upload.
       }
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
