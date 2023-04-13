@@ -203,15 +203,12 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        const promises = []
-
-        // For each file part, upload all chunks in parallel
+        const promises: Promise<any>[] = [] // explicitly define the type of promises array
         for (let j = 0; j < fileParts; j++) {
           const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
           const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
-          const responses = []
+          const responses: any[] = [] // explicitly define the type of responses array
 
-          // For each chunk of the file part, create a promise to upload it
           for (let i = 0; i < parts; i++) {
             const promise = new Promise((resolve, reject) => {
               try {
@@ -246,7 +243,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
 
-        // Update progress as each promise resolves
         let completedChunks = 0
         promises.forEach((promise) => {
           promise.then(() => {
@@ -256,32 +252,27 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           })
         })
 
-        // Wait for all promises to resolve and update progress accordingly
         Promise.all(promises)
           .then((allResponses) => {
             console.log(allResponses)
-            // Check if file was deleted during upload
             if (deletedFiles.includes(file)) {
               console.log('File was deleted during upload:', file)
               return
             }
-            // handle response data as needed
             onProgress({ percent: 100 }, file)
           })
           .catch((error) => {
             console.error(error)
-            // handle error
           })
-      }
 
-      // notification.close(`upload-${file.uid}`)
-      if (!deleted) {
-        window.onbeforeunload = undefined as any
-        notification.success({
-          key: 'fileUploaded',
-          message: 'Success',
-          description: `File ${file.name} uploaded successfully`
-        })
+        if (!deleted) {
+          window.onbeforeunload = undefined as any
+          notification.success({
+            key: 'fileUploaded',
+            message: 'Success',
+            description: `File ${file.name} uploaded successfully`
+          })
+        }
       }
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
