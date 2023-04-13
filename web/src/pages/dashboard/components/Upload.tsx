@@ -138,14 +138,17 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                         if (type === 'channel') {
                           peer = new Api.InputPeerChannel({
                             channelId: BigInt(peerId) as any,
-                            accessHash: BigInt(accessHash as string) as any })
+                            accessHash: BigInt(accessHash as string) as any
+                          })
                         } else if (type === 'user') {
                           peer = new Api.InputPeerUser({
                             userId: BigInt(peerId.toString()) as any,
-                            accessHash: BigInt(accessHash.toString()) as any })
+                            accessHash: BigInt(accessHash.toString()) as any
+                          })
                         } else if (type === 'chat') {
                           peer = new Api.InputPeerChat({
-                            chatId: BigInt(peerId) as any })
+                            chatId: BigInt(peerId) as any
+                          })
                         }
                       }
                       return await client.sendFile(peer || 'me', {
@@ -204,6 +207,15 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         }
       } else {
         function uploadFile(file: File) {
+          function handlePromise(promise: Promise<any>, fileIndex: number, partIndex: number) {
+            promise.then((response) => {
+              console.log(`File ${fileIndex} - Part ${partIndex} uploaded successfully`, response)
+            })
+              .catch((error) => {
+                console.error(`File ${fileIndex} - Part ${partIndex} upload failed`, error)
+              })
+          }
+
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalChunks = fileParts * Math.ceil(MAX_UPLOAD_SIZE / CHUNK_SIZE)
 
@@ -245,6 +257,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                   reject(error)
                 }
               })
+
+              handlePromise(promise, j, i)
 
               promises.push(promise)
             }
