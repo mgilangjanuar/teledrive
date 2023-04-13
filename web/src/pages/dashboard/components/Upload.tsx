@@ -224,10 +224,10 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             return fileArrayBuffer.slice(start, end)
           })
           const uploadPromises = chunks.map(async (chunk, index) => {
-            const partIndex = Math.floor(index / fileParts);
-            const fileIndex = index % fileParts;
-            const data = new FormData();
-            data.append('upload', new Blob([chunk]));
+            const partIndex = Math.floor(index / fileParts)
+            const fileIndex = index % fileParts
+            const data = new FormData()
+            data.append('upload', new Blob([chunk]))
             const promise = req({
               method: 'POST',
               url: '/files/upload',
