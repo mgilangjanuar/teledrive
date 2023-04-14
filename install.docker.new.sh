@@ -22,13 +22,6 @@ export BUILDKIT_PROGRESS=plain
 export BUILDKIT_INLINE_CACHE=1
 export BUILDKIT_ENABLE_LEGACY_GIT=0
 
-# Check if the current user has permission to modify the necessary directories and files
-if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
-printf "This script requires permission to modify some files and directories.\n"
-printf "Giving permission to the current user...\n"
-sudo chown -R "$(whoami)" /var/run/docker.sock ./docker/.env ./docker/data
-fi
-
 # Generate .env file if it doesn't exist
 if [ ! -f docker/.env ]; then
 printf "Generating .env file...\n"
@@ -43,6 +36,13 @@ DB_PASSWORD=$(openssl rand -hex 16)
 printf "Generated random DB_PASSWORD: %s\n" "$DB_PASSWORD"
 printf "ENV=%s\nPORT=%s\nTG_API_ID=%s\nTG_API_HASH=%s\nADMIN_USERNAME=%s\nDB_PASSWORD=%s\n" \
 "$ENV" "$PORT" "$TG_API_ID" "$TG_API_HASH" "$ADMIN_USERNAME" "$DB_PASSWORD" > docker/.env
+fi
+
+# Check if the current user has permission to modify the necessary directories and files
+if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
+printf "This script requires permission to modify some files and directories.\n"
+printf "Giving permission to the current user...\n"
+sudo chown -R "$(whoami)" /var/run/docker.sock ./docker/.env ./docker/data
 fi
 
 # Build and start services using Docker Compose
