@@ -35,6 +35,10 @@ if [ ! -f docker/.env ]; then
   DB_PASSWORD=$(openssl rand -hex 16)
 
    printf "Generated random DB_PASSWORD: %s\n" "$DB_PASSWORD"
+   if [ -z "$DB_PASSWORD" ]; then
+    echo "Error: Database password not generated."
+    exit 1
+     fi
   printf "ENV=%s\nPORT=%s\nTG_API_ID=%s\nTG_API_HASH=%s\nADMIN_USERNAME=%s\nDB_PASSWORD=%s\n" \
   "$ENV" "$PORT" "$TG_API_ID" "$TG_API_HASH" "$ADMIN_USERNAME" "$DB_PASSWORD" > docker/.env
 
