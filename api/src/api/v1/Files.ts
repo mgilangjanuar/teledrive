@@ -1242,8 +1242,6 @@ export class Files {
     res.setHeader('Accept-Ranges', 'bytes')
 
     let downloaded: number = 0
-    const mergedFilename = path.join(__dirname, 'merged-file') // change 'merged-file' to your desired filename
-    const writeStream = fs.createWriteStream(mergedFilename)
 
     let countFiles = 1
     for (const file of files) {
@@ -1275,22 +1273,12 @@ export class Files {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
               console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
-              try {
-                writeStream.write(buffer) // write buffer to merged file
-              } catch (error) {
-                // ignore
-              }
-              res.write(buffer)
+              res.write(buffer) // write buffer to response
             }
           },
           close: () => {
             console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
             if (countFiles++ >= files.length) {
-              try {
-                writeStream.end() // close write stream
-              } catch (error) {
-                // ignore
-              }
               res.end()
             }
           }
