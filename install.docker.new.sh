@@ -19,15 +19,9 @@ export BUILDKIT_ENABLE_LEGACY_GIT=0
 
 # Check if the current user has permission to modify the necessary directories and files
 if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
-printf "This script requires root privileges to modify some files and directories.\n"
-if sudo -E true; then
-printf "Thanks!\n"
-sudo -E "$0"
-exit
-else
-printf "Please run the script with sudo.\n"
-exit 1
-fi
+printf "This script requires permission to modify some files and directories.\n"
+printf "Giving permission to the current user...\n"
+sudo chown -R $(whoami) /var/run/docker.sock ./docker/.env ./docker/data
 fi
 
 # Generate .env file if it doesn't exist
