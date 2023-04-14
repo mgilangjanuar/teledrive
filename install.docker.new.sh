@@ -34,6 +34,10 @@ if [ ! -f docker/.env ]; then
   PORT="${PORT:-4000}"
   DB_PASSWORD=$(openssl rand -hex 16)
 
+   printf "Generated random DB_PASSWORD: %s\n" "$DB_PASSWORD"
+  printf "ENV=%s\nPORT=%s\nTG_API_ID=%s\nTG_API_HASH=%s\nADMIN_USERNAME=%s\nDB_PASSWORD=%s\n" \
+  "$ENV" "$PORT" "$TG_API_ID" "$TG_API_HASH" "$ADMIN_USERNAME" "$DB_PASSWORD" > docker/.env
+
   # Stop and start services using Docker Compose
   docker compose down
   docker compose up --build --force-recreate -d
@@ -42,10 +46,6 @@ if [ ! -f docker/.env ]; then
 
   # Update PostgreSQL password
   docker compose exec docker-db-1 psql -U postgres -c "ALTER USER postgres PASSWORD '${DB_PASSWORD}';"
-
-   printf "Generated random DB_PASSWORD: %s\n" "$DB_PASSWORD"
-  printf "ENV=%s\nPORT=%s\nTG_API_ID=%s\nTG_API_HASH=%s\nADMIN_USERNAME=%s\nDB_PASSWORD=%s\n" \
-  "$ENV" "$PORT" "$TG_API_ID" "$TG_API_HASH" "$ADMIN_USERNAME" "$DB_PASSWORD" > docker/.env
 
 else
   # Check if the current user has permission to modify the necessary directories and files
