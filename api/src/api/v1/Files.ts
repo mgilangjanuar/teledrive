@@ -1236,60 +1236,60 @@ export class Files {
     // res.setHeader('Cache-Control', 'public, max-age=604800')
     // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Range', `bytes */${totalFileSize}`)
-res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
-res.setHeader('Content-Type', files[0].mime_type)
-res.setHeader('Content-Length', totalFileSize.toString())
-res.setHeader('Accept-Ranges', 'bytes')
+    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
+    res.setHeader('Content-Type', files[0].mime_type)
+    res.setHeader('Content-Length', totalFileSize.toString())
+    res.setHeader('Accept-Ranges', 'bytes')
 
-let downloaded: number = 0
+    let downloaded: number = 0
 
-let countFiles = 1
-for (const file of files) {
-let chat
-if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-const [type, peerId, id, accessHash] = file.forward_info.split('/')
-let peer
-if (type === 'channel') {
-peer = new Api.InputPeerChannel({
-channelId: bigInt(peerId),
-accessHash: bigInt(accessHash as string)
-})
-chat = await req.tg.invoke(new Api.channels.GetMessages({
-channel: peer,
-id: [new Api.InputMessageID({ id: Number(id) })]
-}))
-}
-} else {
-chat = await req.tg.invoke(new Api.messages.GetMessages({
-id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-}))
-}
-const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
-...thumb ? { thumb: 0 } : {},
-outputFile: {
-write: (buffer: Buffer) => {
-downloaded += buffer.length
-if (cancel) {
-throw { status: 422, body: { error: 'canceled' } }
-} else {
-console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
-res.write(buffer) // write buffer to response
-}
-},
-close: () => {
-console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
-if (countFiles++ >= files.length) {
-res.end()
-}
-}
-}
-})
-try {
-await getData()
-} catch (error) {
-console.log(error)
-}
-}
+    let countFiles = 1
+    for (const file of files) {
+      let chat
+      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+        const [type, peerId, id, accessHash] = file.forward_info.split('/')
+        let peer
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string)
+          })
+          chat = await req.tg.invoke(new Api.channels.GetMessages({
+            channel: peer,
+            id: [new Api.InputMessageID({ id: Number(id) })]
+          }))
+        }
+      } else {
+        chat = await req.tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+        }))
+      }
+      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
+        ...thumb ? { thumb: 0 } : {},
+        outputFile: {
+          write: (buffer: Buffer) => {
+            downloaded += buffer.length
+            if (cancel) {
+              throw { status: 422, body: { error: 'canceled' } }
+            } else {
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
+              res.write(buffer) // write buffer to response
+            }
+          },
+          close: () => {
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
+            if (countFiles++ >= files.length) {
+              res.end()
+            }
+          }
+        }
+      })
+      try {
+        await getData()
+      } catch (error) {
+        console.log(error)
+      }
+    }
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
