@@ -48,7 +48,7 @@ fi
 
 git reset --hard
 git clean -f
-git pull origin main
+git pull origin experiment
 
 export $(cat web/.env | xargs)
 
