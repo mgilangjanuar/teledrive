@@ -2,6 +2,12 @@
 
 set -e
 
+# Check if configuration file exists
+if [ ! -f docker/.env ]; then
+  echo "Error: Configuration file not found."
+  exit 1
+fi
+
 # Create /docker directory if it doesn't exist
 if [ ! -d docker ]; then
   mkdir docker
@@ -22,44 +28,21 @@ export BUILDKIT_PROGRESS=plain
 export BUILDKIT_INLINE_CACHE=1
 export BUILDKIT_ENABLE_LEGACY_GIT=0
 
-# Generate .env file if it doesn't exist
-if [ ! -f docker/.env ]; then
-  printf "Generating .env file...\n"
-  ENV="develop"
-  read -p "Enter your TG_API_ID: " TG_API_ID
-  read -p "Enter your TG_API_HASH: " TG_API_HASH
-  printf "\n"
-  read -p "Enter your ADMIN_USERNAME: " ADMIN_USERNAME
-  read -p "Enter your PORT [4000]: " PORT
-  PORT="${PORT:-4000}"
-  DB_PASSWORD=$(openssl rand -hex 16)
-
-   printf "Generated random DB_PASSWORD: %s\n" "$DB_PASSWORD"
-   if [ -z "$DB_PASSWORD" ]; then
-    echo "Error: Database password not generated."
-    exit 1
-     fi
-  printf "ENV=%s\nPORT=%s\nTG_API_ID=%s\nTG_API_HASH=%s\nADMIN_USERNAME=%s\nDB_PASSWORD=%s\n" \
-  "$ENV" "$PORT" "$TG_API_ID" "$TG_API_HASH" "$ADMIN_USERNAME" "$DB_PASSWORD" > docker/.env
-
+# If no parameters are provided, start services using Docker Compose
+if [ $# -eq 0 ]; then
   # Stop and start services using Docker Compose
   docker compose down
   docker compose up --build --force-recreate -d
   sleep 2
-  docker compose exec teledrive yarn workspace api prisma migrate deploy  
-
+  docker compose exec teledrive yarn workspace api prisma migrate deploy
   # Update PostgreSQL password
+  DB_PASSWORD=$(openssl rand -hex 16)
   docker compose exec docker-db-1 psql -U postgres -c "ALTER USER postgres PASSWORD '${DB_PASSWORD}';"
+  printf "Generated random DB_PASSWORD: %s\n" "$DB_PASSWORD"
+fi
 
-else
-  # Check if the current user has permission to modify the necessary directories and files
-  if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
-    printf "This script requires permission to modify some files and directories.\n"
-    printf "Giving permission to the current user...\n"
-    sudo chown -R "$(whoami)" /var/run/docker.sock ./docker/.env ./docker/data
-  fi
-
-  # Build and start services using Docker Compose
+# If "update" parameter is provided, update services using Docker Compose
+if [ "$1" == "update" ]; then
   cd docker
   if ! git branch --list experiment >/dev/null; then
     git branch experiment origin/experiment
@@ -73,4 +56,15 @@ else
   git reset --hard
   git clean -f
   git pull origin experiment
+fi
+
+# If "permissions" parameter is provided, check if the current user has permission to modify necessary directories and files
+if [ "$1" == "permissions" ]; then
+  if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
+    printf "This script requires permission to modify some files and directories.\n"
+    printf "Giving permission to the current user...\n"
+    sudo chown -R "$(whoami)" /var/run/docker.sock ./docker/.env ./docker/data
+  else
+    printf "No permissions required.\n"
+  fi
 fi
