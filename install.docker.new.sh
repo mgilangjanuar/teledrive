@@ -2,6 +2,11 @@
 
 set -e
 
+# Create /docker directory if it doesn't exist
+if [ ! -d docker ]; then
+mkdir docker
+fi
+
 # Configure Node.js and cURL
 export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 printf "Node.js Version: %s\n" "$(node -v)"
