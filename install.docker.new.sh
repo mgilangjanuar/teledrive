@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e -x
 
 export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 
@@ -16,7 +16,7 @@ export BUILDKIT_INLINE_CACHE=1
 export BUILDKIT_ENABLE_LEGACY_GIT=0
 
 # Check if the current user has permission to modify the necessary directories and files
-if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
+if [ "$(id -u)" != "0" ] && ( [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ] ); then
   echo "This script requires root privileges to modify some files and directories."
   if sudo -n true 2>/dev/null; then
     sudo -E bash -c "
