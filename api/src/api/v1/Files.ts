@@ -1299,6 +1299,7 @@ export class Files {
           })
         )
       }
+    }
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
