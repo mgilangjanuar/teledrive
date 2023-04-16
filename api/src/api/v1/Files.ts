@@ -1293,7 +1293,7 @@ export class Files {
           await req.tg.downloadMedia(chat['messages'][0].media, {
             ...thumb ? { thumb: 0 } : {},
             outputFile,
-            onProgress: (progress) => {
+            onProgress: (progress: number) => {
               downloaded = progress
               if (cancel) {
                 throw { status: 422, body: { error: 'canceled' } }
@@ -1301,7 +1301,7 @@ export class Files {
                 console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
               }
             },
-          })
+          } as CustomDownloadMediaInterface)
         } catch (error) {
           console.log(error)
         }
