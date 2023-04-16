@@ -1281,15 +1281,19 @@ export class Files {
       let downloadedBytes = 0
       let outputStream
       let processedFilesCount = 0
+
       try {
         outputStream = fs.createWriteStream(filename('process-'))
       } catch (error) {
         console.error('Error creating writable stream:', error)
+        res.status(500).end('Error creating writable stream')
+        return
       }
+
       outputStream.on('finish', () => {
         try {
           const { size } = fs.statSync(filename('process-'))
-          if (totalFileSize.gt(bigInt(size))) {
+          if (BigInt(totalFileSize) > BigInt(size)) {
             fs.unlinkSync(filename('process-'))
           } else {
             fs.renameSync(filename('process-'), filename())
@@ -1299,21 +1303,17 @@ export class Files {
         }
         res.end()
       })
-      for (const file of files) {
+
+      async function processFile(file) {
         let chat
         try {
           if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-            const [
-              type,
-              peerId,
-              id,
-              accessHash,
-            ] = file.forward_info.split('/')
+            const [type, peerId, id, accessHash] = file.forward_info.split('/')
             let peer
             if (type === 'channel') {
               peer = new Api.InputPeerChannel({
-                channelId: bigInt(peerId),
-                accessHash: bigInt(accessHash as string),
+                channelId: BigInt(peerId),
+                accessHash: BigInt(accessHash),
               })
               chat = await req.tg.invoke(
                 new Api.channels.GetMessages({
@@ -1337,7 +1337,7 @@ export class Files {
               downloadedBytes += chunk.length
               console.log(
                 `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
-                  100
+                100
                 }%)`
               )
             })
@@ -1347,7 +1347,7 @@ export class Files {
             outputStreamWithProgress.end()
             console.log(
               `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
-                100
+              100
               }%)`,
               '-end-'
             )
@@ -1360,7 +1360,12 @@ export class Files {
           outputStream.end()
         }
       }
+
+      for (const file of files) {
+        await processFile(file)
+      }
     }
+
     module.exports = mergeFiles
     usage = await prisma.usages.update({
       data: {
