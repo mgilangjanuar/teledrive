@@ -17,8 +17,6 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-import fs from 'fs'
-import * as stream from 'stream'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1134,51 +1132,41 @@ export class Files {
 
     let usage = await prisma.usages.findFirst({
       where: {
-        key: req.user
-          ? `u:${req.user.id}`
-          : `ip:${(req.headers['cf-connecting-ip'] as string) || req.ip}`,
-      },
+        key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`
+      }
     })
     if (!usage) {
       usage = await prisma.usages.create({
         data: {
-          key: req.user
-            ? `u:${req.user.id}`
-            : `ip:${(req.headers['cf-connecting-ip'] as string) || req.ip}`,
+          key: req.user ? `u:${req.user.id}` : `ip:${req.headers['cf-connecting-ip'] as string || req.ip}`,
           usage: 0,
-          expire: moment().add(1, 'day').toDate(),
-        },
+          expire: moment().add(1, 'day').toDate()
+        }
       })
     }
 
-    if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {
-      // is expired
+    if (new Date().getTime() - new Date(usage.expire).getTime() > 0) {   // is expired
       usage = await prisma.usages.update({
         data: {
           expire: moment().add(1, 'day').toDate(),
-          usage: 0,
+          usage: 0
         },
-        where: { key: usage.key },
+        where: { key: usage.key }
       })
     }
 
-    const totalFileSize = files.reduce(
-      (res, file) => res.add(file.size || 0),
-      bigInt(0)
-    )
+    const totalFileSize = files.reduce((res, file) => res.add(file.size || 0), bigInt(0))
 
     if (!raw || Number(raw) === 0) {
       const { signed_key: _, ...result } = files[0]
-      return res.send({
-        file: { ...result, password: result.password ? '[REDACTED]' : null },
-      })
+      return res.send({ file: { ...result, password: result.password ? '[REDACTED]' : null } })
     }
 
     usage = await prisma.usages.update({
       data: {
-        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber(),
+        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
       },
-      where: { key: usage.key },
+      where: { key: usage.key }
     })
     if (asArray === '1') {
       return res.send({ files })
@@ -1189,36 +1177,25 @@ export class Files {
     let cancel = false
     req.on('close', () => cancel = true)
 
-    const ranges = req.headers.range
-      ? req.headers.range
-        .replace(/bytes\=/gi, '')
-        .split('-')
-        .map(Number)
-      : null
+    const ranges = req.headers.range ? req.headers.range.replace(/bytes\=/gi, '').split('-').map(Number) : null
 
     if (onlyHeaders) return res.status(200)
 
-    const filename = (prefix: string = '') =>
-      `${CACHE_DIR}/${prefix}${totalFileSize.toString()}_${files[0].name}`
+    const filename = (prefix: string = '') => `${CACHE_DIR}/${prefix}${totalFileSize.toString()}_${files[0].name}`
     try {
       mkdirSync(`${CACHE_DIR}`, { recursive: true })
     } catch (error) {
       // ignore
     }
 
-    const cachedFiles = () =>
-      readdirSync(`${CACHE_DIR}`)
-        .filter((filename) => statSync(`${CACHE_DIR}/${filename}`).isFile())
-        .sort(
-          (a, b) =>
-            new Date(statSync(`${CACHE_DIR}/${a}`).birthtime).getTime() -
-            new Date(statSync(`${CACHE_DIR}/${b}`).birthtime).getTime()
-        )
-    const getCachedFilesSize = () =>
-      cachedFiles().reduce(
-        (res, file) => res + statSync(`${CACHE_DIR}/${file}`).size,
-        0
+    const cachedFiles = () => readdirSync(`${CACHE_DIR}`)
+      .filter(filename =>
+        statSync(`${CACHE_DIR}/${filename}`).isFile()
+      ).sort((a, b) =>
+        new Date(statSync(`${CACHE_DIR}/${a}`).birthtime).getTime()
+          - new Date(statSync(`${CACHE_DIR}/${b}`).birthtime).getTime()
       )
+    const getCachedFilesSize = () => cachedFiles().reduce((res, file) => res + statSync(`${CACHE_DIR}/${file}`).size, 0)
 
     if (existsSync(filename())) {
       if (ranges) {
@@ -1228,14 +1205,9 @@ export class Files {
         const readStream = createReadStream(filename(), { start, end })
         res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
-          ETag: Buffer.from(`${files[0].id}:${files[0].message_id}`).toString(
-            'base64'
-          ),
+          'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
-          'Content-Disposition': contentDisposition(
-            files[0].name.replace(/\.part\d+$/gi, ''),
-            { type: Number(dl) === 1 ? 'attachment' : 'inline' }
-          ),
+          'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
           'Content-Type': files[0].mime_type,
           'Content-Length': end - start + 1,
           'Accept-Ranges': 'bytes',
@@ -1244,14 +1216,9 @@ export class Files {
       } else {
         res.writeHead(200, {
           'Cache-Control': 'public, max-age=604800',
-          ETag: Buffer.from(`${files[0].id}:${files[0].message_id}`).toString(
-            'base64'
-          ),
+          'ETag': Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'),
           'Content-Range': `bytes */${totalFileSize}`,
-          'Content-Disposition': contentDisposition(
-            files[0].name.replace(/\.part\d+$/gi, ''),
-            { type: Number(dl) === 1 ? 'attachment' : 'inline' }
-          ),
+          'Content-Disposition': contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }),
           'Content-Type': files[0].mime_type,
           'Content-Length': totalFileSize.toString(),
           'Accept-Ranges': 'bytes',
@@ -1259,7 +1226,7 @@ export class Files {
         const readStream = createReadStream(filename())
         readStream
           .on('open', () => readStream.pipe(res))
-          .on('error', (msg) => res.end(msg))
+          .on('error', msg => res.end(msg))
       }
       return
     }
@@ -1267,117 +1234,92 @@ export class Files {
     // res.setHeader('Cache-Control', 'public, max-age=604800')
     // res.setHeader('ETag', Buffer.from(`${files[0].id}:${files[0].message_id}`).toString('base64'))
     res.setHeader('Content-Range', `bytes */${totalFileSize}`)
-    res.setHeader(
-      'Content-Disposition',
-      contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), {
-        type: Number(dl) === 1 ? 'attachment' : 'inline',
-      })
-    )
+    res.setHeader('Content-Disposition', contentDisposition(files[0].name.replace(/\.part\d+$/gi, ''), { type: Number(dl) === 1 ? 'attachment' : 'inline' }))
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    const { BigInteger } = require('big-integer')
+    let downloaded: number = 0
 
-    function bigIntToBigInteger(value) {
-      return BigInteger(value.toString())
+    // Sort the files based on their ".part" number
+    files.sort((a, b) => {
+      const aPart = Number(a.name.match(/\.part(\d+)$/i)?.[1] || 0)
+      const bPart = Number(b.name.match(/\.part(\d+)$/i)?.[1] || 0)
+      return aPart - bPart
+    })
+    try {
+      writeFileSync(filename('process-'), '')
+    } catch (error) {
+      // ignore
     }
 
-    async function mergeFiles(files, filename, totalFileSize, req, res) {
-      let downloadedBytes = 0
-      let outputStream
-      let processedFilesCount = 0
-
-      try {
-        outputStream = fs.createWriteStream(filename('process-'))
-      } catch (error) {
-        console.error('Error creating writable stream:', error)
-        res.status(500).end('Error creating writable stream')
-        return
-      }
-
-      outputStream.on('finish', () => {
-        try {
-          const { size } = fs.statSync(filename('process-'))
-          if (BigInt(totalFileSize) > BigInt(size)) {
-            fs.unlinkSync(filename('process-'))
-          } else {
-            fs.renameSync(filename('process-'), filename())
-          }
-        } catch (error) {
-          console.error('Error handling output file:', error)
+    let countFiles = 1
+    for (const file of files) {
+      let chat
+      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+        const [type, peerId, id, accessHash] = file.forward_info.split('/')
+        let peer
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string)
+          })
+          chat = await req.tg.invoke(new Api.channels.GetMessages({
+            channel: peer,
+            id: [new Api.InputMessageID({ id: Number(id) })]
+          }))
         }
-        res.end()
-      })
-
-      async function processFile(file) {
-        let chat
-        try {
-          if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-            const [type, peerId, id, accessHash] = file.forward_info.split('/')
-            let peer
-            if (type === 'channel') {
-              peer = new Api.InputPeerChannel({
-                channelId: bigIntToBigInteger(peerId),
-                accessHash: bigIntToBigInteger(accessHash),
-              })
-              chat = await req.tg.invoke(
-                new Api.channels.GetMessages({
-                  channel: peer,
-                  id: [new Api.InputMessageID({ id: Number(id) })],
-                })
-              )
+      } else {
+        chat = await req.tg.invoke(new Api.messages.GetMessages({
+          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+        }))
+      }
+      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
+        ...thumb ? { thumb: 0 } : {},
+        outputFile: {
+          write: (buffer: Buffer) => {
+            downloaded += buffer.length
+            if (cancel) {
+              throw { status: 422, body: { error: 'canceled' } }
+            } else {
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
+              try {
+                appendFileSync(filename('process-'), buffer)
+              } catch (error) {
+                // ignore
+              }
+              res.write(buffer)
             }
-          } else {
-            chat = await req.tg.invoke(
-              new Api.messages.GetMessages({
-                id: [new Api.InputMessageID({ id: Number(file.message_id) })],
-              })
-            )
+          },
+          close: () => {
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
+            if (countFiles++ >= files.length) {
+              try {
+                const { size } = statSync(filename('process-'))
+                if (totalFileSize.gt(bigInt(size))) {
+                  rmSync(filename('process-'))
+                } else {
+                  renameSync(filename('process-'), filename())
+                }
+              } catch (error) {
+                // ignore
+              }
+              res.end()
+            }
           }
-          if (chat) {
-            const media = chat['messages'][0].media
-            const outputStreamWithProgress = new stream.PassThrough()
-            outputStreamWithProgress.pipe(outputStream, { end: false })
-            outputStreamWithProgress.on('data', (chunk) => {
-              downloadedBytes += chunk.length
-              console.log(
-                `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
-                100
-                }%)`
-              )
-            })
-            await req.tg.downloadMedia(media, {
-              outputFile: outputStreamWithProgress,
-            })
-            outputStreamWithProgress.end()
-            console.log(
-              `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
-              100
-              }%)`,
-              '-end-'
-            )
-          }
-        } catch (error) {
-          console.error('Error processing file:', error)
         }
-        processedFilesCount++
-        if (processedFilesCount === files.length) {
-          outputStream.end()
-        }
-      }
-
-      for (const file of files) {
-        await processFile(file)
+      })
+      try {
+        await getData()
+      } catch (error) {
+        console.log(error)
       }
     }
-
-    module.exports = mergeFiles
     usage = await prisma.usages.update({
       data: {
-        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber(),
+        usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
       },
-      where: { key: usage.key },
+      where: { key: usage.key }
     })
 
     while (CACHE_FILES_LIMIT < getCachedFilesSize()) {
