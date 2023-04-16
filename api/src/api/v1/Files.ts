@@ -1281,13 +1281,13 @@ export class Files {
     async function mergeFiles(files, filename, totalFileSize, req, res) {
       let downloadedBytes = 0
       let processedFilesCount = 0
-    
+
       try {
         const mergedStream = mergeStream()
         const outputStream = fs.createWriteStream(filename('process-'))
-    
+
         mergedStream.pipe(outputStream)
-    
+
         outputStream.on('finish', () => {
           try {
             const { size } = fs.statSync(filename('process-'))
@@ -1301,77 +1301,77 @@ export class Files {
           }
           res.end()
         })
-    
+
         for (const file of files) {
           try {
-          let chat
-          if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-            const [
-              type,
-              peerId,
-              id,
-              accessHash,
-            ] = file.forward_info.split('/')
-            let peer
-            if (type === 'channel') {
-              peer = new Api.InputPeerChannel({
-                channelId: bigInt(peerId),
-                accessHash: bigInt(accessHash as string),
-              })
+            let chat
+            if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+              const [
+                type,
+                peerId,
+                id,
+                accessHash,
+              ] = file.forward_info.split('/')
+              let peer
+              if (type === 'channel') {
+                peer = new Api.InputPeerChannel({
+                  channelId: bigInt(peerId),
+                  accessHash: bigInt(accessHash as string),
+                })
+                chat = await req.tg.invoke(
+                  new Api.channels.GetMessages({
+                    channel: peer,
+                    id: [new Api.InputMessageID({ id: Number(id) })],
+                  })
+                )
+              }
+            } else {
               chat = await req.tg.invoke(
-                new Api.channels.GetMessages({
-                  channel: peer,
-                  id: [new Api.InputMessageID({ id: Number(id) })],
+                new Api.messages.GetMessages({
+                  id: [new Api.InputMessageID({ id: Number(file.message_id) })],
                 })
               )
             }
-          } else {
-            chat = await req.tg.invoke(
-              new Api.messages.GetMessages({
-                id: [new Api.InputMessageID({ id: Number(file.message_id) })],
+            if (chat) {
+              const media = chat['messages'][0].media
+              const outputStreamWithProgress = new stream.PassThrough()
+
+              outputStreamWithProgress.on('data', (chunk) => {
+                downloadedBytes += chunk.length
+                console.log(
+                  `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
+                  100
+                  }%)`
+                )
               })
-            )
-          }
-          if (chat) {
-            const media = chat['messages'][0].media
-            const outputStreamWithProgress = new stream.PassThrough()
-  
-            outputStreamWithProgress.on('data', (chunk) => {
-              downloadedBytes += chunk.length
+
+              await req.tg.downloadMedia(media, {
+                outputFile: outputStreamWithProgress,
+              })
+
+              mergedStream.add(outputStreamWithProgress)
+
               console.log(
                 `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
-                  100
-                }%)`
-              )
-            })
-  
-            await req.tg.downloadMedia(media, {
-              outputFile: outputStreamWithProgress,
-            })
-            
-            mergedStream.add(outputStreamWithProgress)
-            
-            console.log(
-              `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
                 100
-              }%)`,
-              '-end-'
-            )
+                }%)`,
+                '-end-'
+              )
+            }
+          } catch (error) {
+            console.error('Error processing file:', error)
           }
-        } catch (error) {
-          console.error('Error processing file:', error)
+          processedFilesCount++
+          if (processedFilesCount === files.length) {
+            mergedStream.end()
+          }
         }
-        processedFilesCount++
-        if (processedFilesCount === files.length) {
-          mergedStream.end()
-        }
+      } catch (error) {
+        console.error('Error creating writable stream:', error)
       }
-    } catch (error) {
-      console.error('Error creating writable stream:', error)
     }
-  }
-  
-  module.exports = mergeFiles
+
+    module.exports = mergeFiles
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber(),
