@@ -1189,9 +1189,9 @@ export class Files {
 
     const ranges = req.headers.range
       ? req.headers.range
-          .replace(/bytes\=/gi, '')
-          .split('-')
-          .map(Number)
+        .replace(/bytes\=/gi, '')
+        .split('-')
+        .map(Number)
       : null
 
     if (onlyHeaders) return res.status(200)
