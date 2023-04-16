@@ -1277,6 +1277,12 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
+    const { BigInteger } = require('big-integer')
+
+    function bigIntToBigInteger(value) {
+      return BigInteger(value.toString())
+    }
+
     async function mergeFiles(files, filename, totalFileSize, req, res) {
       let downloadedBytes = 0
       let outputStream
@@ -1305,15 +1311,15 @@ export class Files {
       })
 
       async function processFile(file) {
-        let chat
+        let chat;
         try {
           if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-            const [type, peerId, id, accessHash] = file.forward_info.split('/')
-            let peer
+            const [type, peerId, id, accessHash] = file.forward_info.split('/');
+            let peer;
             if (type === 'channel') {
               peer = new Api.InputPeerChannel({
-                channelId: BigInt(peerId),
-                accessHash: BigInt(accessHash),
+                channelId: bigIntToBigInteger(peerId),
+                accessHash: bigIntToBigInteger(accessHash),
               })
               chat = await req.tg.invoke(
                 new Api.channels.GetMessages({
