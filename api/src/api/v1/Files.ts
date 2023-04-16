@@ -1269,37 +1269,37 @@ export class Files {
         }))
       }
       const getData = async () => {
-        const fileNames = [];
-        const outputFile = filename();
+        const fileNames = []
+        const outputFile = filename()
 
         await Promise.all(
           files.map(async (file, index) => {
             const buffer = await req.tg.downloadMedia(file, {
-              ...thumb ? { thumb: 0 } : {},
-            });
-            const chunkFileName = filename(`chunk-${index}-`);
-            fs.writeFileSync(chunkFileName, buffer);
-            fileNames.push(chunkFileName);
+              ...thumb ? { thumb: 0 } : {}
+            })
+            const chunkFileName = filename(`chunk-${index}-`)
+            fs.writeFileSync(chunkFileName, buffer)
+            fileNames.push(chunkFileName)
           })
-        );
+        )
 
-        const mergedFile = Buffer.alloc(0);
+        let mergedFile = Buffer.alloc(0)
 
         for (const fileName of fileNames) {
-          const fileContents = fs.readFileSync(fileName);
-          mergedFile = Buffer.concat([mergedFile, fileContents]);
-          fs.unlinkSync(fileName);
+          const fileContents = fs.readFileSync(fileName)
+          mergedFile = Buffer.concat([mergedFile, fileContents])
+          fs.unlinkSync(fileName)
         }
 
-        fs.writeFileSync(outputFile, mergedFile);
+        fs.writeFileSync(outputFile, mergedFile)
 
-        res.sendFile(path.resolve(outputFile));
-      };
+        res.sendFile(path.resolve(outputFile))
+      }
 
       try {
-        await getData();
+        await getData()
       } catch (error) {
-        console.log(error);
+        console.log(error)
       }
     usage = await prisma.usages.update({
       data: {
