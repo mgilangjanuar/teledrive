@@ -1274,7 +1274,7 @@ export class Files {
           CONSTRUCTOR_ID: number,
           SUBCLASS_OF_ID: number,
           classType: string,
-          className: string,
+          className: string
         }
       }
 
@@ -1290,7 +1290,7 @@ export class Files {
               classType: file.metadata.classType,
               className: file.metadata.className,
               ...file,
-            } as MyFile;
+            } as MyFile
             const buffer = await req.tg.downloadMedia(message, {
               ...thumb ? { thumb: 0 } : {},
             })
