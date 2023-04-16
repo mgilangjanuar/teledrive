@@ -1239,7 +1239,7 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    let downloaded: number = 0
+    const downloaded: number = 0
     try {
       writeFileSync(filename('process-'), '')
     } catch (error) {
