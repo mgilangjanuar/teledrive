@@ -1301,6 +1301,7 @@ export class Files {
       } catch (error) {
         console.log(error)
       }
+    }
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
