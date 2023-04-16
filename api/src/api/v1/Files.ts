@@ -1185,7 +1185,7 @@ export class Files {
     console.log(req.headers.range)
 
     let cancel = false
-    req.on('close', () => (cancel = true))
+    req.on('close', () => cancel = true)
 
     const ranges = req.headers.range
       ? req.headers.range
