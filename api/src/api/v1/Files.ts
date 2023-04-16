@@ -1277,16 +1277,16 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-     async function mergeFiles(files, filename, totalFileSize, req, res) {
+    async function mergeFiles(files, filename, totalFileSize, req, res) {
       let downloadedBytes = 0
       let outputStream
       let processedFilesCount = 0
-       try {
+      try {
         outputStream = fs.createWriteStream(filename('process-'))
       } catch (error) {
         console.error('Error creating writable stream:', error)
       }
-       outputStream.on('finish', () => {
+      outputStream.on('finish', () => {
         try {
           const { size } = fs.statSync(filename('process-'))
           if (totalFileSize.gt(bigInt(size))) {
@@ -1341,10 +1341,10 @@ export class Files {
                 }%)`
               )
             })
-             await req.tg.downloadMedia(media, {
+            await req.tg.downloadMedia(media, {
               outputFile: outputStreamWithProgress,
             })
-             outputStreamWithProgress.end()
+            outputStreamWithProgress.end()
             console.log(
               `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
                 100
@@ -1361,7 +1361,7 @@ export class Files {
         }
       }
     }
-     module.exports = mergeFiles
+    module.exports = mergeFiles
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber(),
