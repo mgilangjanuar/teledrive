@@ -1285,7 +1285,7 @@ export class Files {
         mime_type: string,
         size: bigint,
         uploaded_at: Date,
-        upload_progress: number,
+        upload_progress: number
       }
 
       const getData = async () => {
