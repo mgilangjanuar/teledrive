@@ -51,8 +51,7 @@
     "telegram": "^2.15.5",
     "uuid-random": "^1.3.2",
     "util": "0.12.5",
-    "path":"0.12.7",
-    "merge-stream": "^2.0.0"
+    "path":"0.12.7"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
