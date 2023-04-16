@@ -1311,11 +1311,11 @@ export class Files {
       })
 
       async function processFile(file) {
-        let chat;
+        let chat
         try {
           if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-            const [type, peerId, id, accessHash] = file.forward_info.split('/');
-            let peer;
+            const [type, peerId, id, accessHash] = file.forward_info.split('/')
+            let peer
             if (type === 'channel') {
               peer = new Api.InputPeerChannel({
                 channelId: bigIntToBigInteger(peerId),
