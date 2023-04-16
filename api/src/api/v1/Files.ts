@@ -17,8 +17,6 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-import path = require('path')
-import fs from 'fs'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1241,14 +1239,14 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    const downloaded: number = 0
+    let downloaded: number = 0
     try {
       writeFileSync(filename('process-'), '')
     } catch (error) {
       // ignore
     }
 
-    const countFiles = 1
+    let countFiles = 1
     for (const file of files) {
       let chat
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
@@ -1269,65 +1267,46 @@ export class Files {
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
-      interface MyFile {
-        metadata: {
-          CONSTRUCTOR_ID: number,
-          SUBCLASS_OF_ID: number,
-          classType: string,
-          className: string
-        },
-        created_at: Date,
-        updated_at: Date,
-        id: string,
-        name: string,
-        type: string,
-        message_id: string,
-        mime_type: string,
-        size: bigint,
-        uploaded_at: Date,
-        upload_progress: number
-      }
+      let downloaded = 0
+      const totalFileSize = bigInt(chat['messages'][0].media.document.size.value)
+
+      const outputFile = createWriteStream(filename('process-'))
+      outputFile.on('finish', () => {
+        console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
+        if (countFiles++ >= files.length) {
+          try {
+            const { size } = statSync(filename('process-'))
+            if (totalFileSize.gt(bigInt(size))) {
+              rmSync(filename('process-'))
+            } else {
+              renameSync(filename('process-'), filename())
+            }
+          } catch (error) {
+            console.log(error)
+          }
+          res.end()
+        }
+      })
 
       const getData = async () => {
-        const fileNames = []
-        const outputFile = filename()
-
-        await Promise.all(
-          files.map(async (file, index) => {
-            const message = {
-              CONSTRUCTOR_ID: file.metadata.CONSTRUCTOR_ID,
-              SUBCLASS_OF_ID: file.metadata.SUBCLASS_OF_ID,
-              classType: file.metadata.classType,
-              className: file.metadata.className,
-              ...file,
-            } as MyFile
-            const buffer = await req.tg.downloadMedia(message, {
-              ...thumb ? { thumb: 0 } : {},
-            })
-            const chunkFileName = filename(`chunk-${index}-`)
-            fs.writeFileSync(chunkFileName, buffer)
-            fileNames.push(chunkFileName)
+        try {
+          await req.tg.downloadMedia(chat['messages'][0].media, {
+            ...thumb ? { thumb: 0 } : {},
+            outputFile,
+          }, (progress) => {
+            downloaded = progress
+            if (cancel) {
+              throw { status: 422, body: { error: 'canceled' } }
+            } else {
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
+            }
           })
-        )
-
-        let mergedFile = Buffer.alloc(0)
-
-        for (const fileName of fileNames) {
-          const fileContents = fs.readFileSync(fileName)
-          mergedFile = Buffer.concat([mergedFile, fileContents])
-          fs.unlinkSync(fileName)
+        } catch (error) {
+          console.log(error)
         }
-
-        fs.writeFileSync(outputFile, mergedFile)
-
-        res.sendFile(path.resolve(outputFile))
       }
 
-      try {
-        await getData()
-      } catch (error) {
-        console.log(error)
-      }
+      await getData()
     }
     usage = await prisma.usages.update({
       data: {
