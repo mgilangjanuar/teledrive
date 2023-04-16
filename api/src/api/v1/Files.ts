@@ -5,7 +5,7 @@ import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import { appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
+import { appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, fs } from 'fs'
 import moment from 'moment'
 import multer from 'multer'
 import { Api, Logger, TelegramClient } from 'telegram'
@@ -1241,89 +1241,88 @@ export class Files {
 
     // Set initial downloaded bytes to 0
     let downloadedBytes = 0
+    let outputStream
+    let processedFilesCount = 0
     try {
-      // Create empty process file to store downloaded data
-      writeFileSync(filename('process-'), '')
+      // Create a writable stream for the merged output file
+      outputStream = fs.createWriteStream(filename('process-'))
     } catch (error) {
-      // Ignore any errors
+      console.error('Error creating writable stream:', error)
     }
-    let processedFilesCount = 1
-    // Loop through all the files to be merged
-    for (const file of files) {
-      let chat
-      // Check if file is forwarded from a channel
-      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
-        const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer
-        if (type === 'channel') {
-          // Create input peer channel object
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string)
-          })
-          // Get the messages from the channel
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
-          }))
+
+    outputStream.on('finish', () => {
+      try {
+        const { size } = fs.statSync(filename('process-'))
+        // Check if downloaded data is less than total file size
+        if (totalFileSize.gt(bigInt(size))) {
+          // Delete incomplete process file
+          fs.unlinkSync(filename('process-'))
+        } else {
+          // Rename process file to final filename
+          fs.renameSync(filename('process-'), filename())
         }
-      } else {
-        // Get the messages if file is not forwarded from a channel
-        chat = await req.tg.invoke(new Api.messages.GetMessages({
-          id: [new Api.InputMessageID({ id: Number(file.message_id) })]
-        }))
+      } catch (error) {
+        console.error('Error handling output file:', error)
       }
-      // Function to download media data
-      const downloadMedia = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
-        ...thumb ? { thumb: 0 } : {},
-        outputFile: {
-          write: (buffer: Buffer) => {
-            downloadedBytes += buffer.length
-            // Check if cancel flag is set
-            if (cancel) {
-              throw { status: 422, body: { error: 'canceled' } }
+      // End response
+      res.end()
+    })
+
+      (async () => {
+        for (const file of files) {
+          let chat
+          // Additional error handling around file processing
+          try {
+            if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+              const [type, peerId, id, accessHash] = file.forward_info.split('/')
+              let peer
+              if (type === 'channel') {
+                peer = new Api.InputPeerChannel({
+                  channelId: bigInt(peerId),
+                  accessHash: bigInt(accessHash as string)
+                })
+                chat = await req.tg.invoke(new Api.channels.GetMessages({
+                  channel: peer,
+                  id: [new Api.InputMessageID({ id: Number(id) })]
+                }))
+              }
             } else {
-              // Log progress and write data to process file
-              console.log(`${chat['messages'][0].id} ${downloadedBytes}/${chat['messages'][0].media.document.size.value} (${downloadedBytes / Number(totalFileSize) * 100 + '%'})`)
-              try {
-                appendFileSync(filename('process-'), buffer)
-              } catch (error) {
-                // Ignore any errors
-              }
-              // Write data to response object
-              res.write(buffer)
+              chat = await req.tg.invoke(new Api.messages.GetMessages({
+                id: [new Api.InputMessageID({ id: Number(file.message_id) })]
+              }))
             }
-          },
-          close: () => {
-            console.log(`${chat['messages'][0].id} ${downloadedBytes}/${chat['messages'][0].media.document.size.value} (${downloadedBytes / Number(totalFileSize) * 100 + '%'})`, '-end-')
-            // Check if all files have been processed
-            if (processedFilesCount++ >= files.length) {
-              try {
-                const { size } = statSync(filename('process-'))
-                // Check if downloaded data is less than total file size
-                if (totalFileSize.gt(bigInt(size))) {
-                  // Delete incomplete process file
-                  rmSync(filename('process-'))
-                } else {
-                  // Rename process file to final filename
-                  renameSync(filename('process-'), filename())
+            if (chat) {
+              const downloadMedia = async () => {
+                try {
+                  const media = chat['messages'][0].media
+                  const outputStreamWithProgress = new stream.PassThrough()
+                  outputStreamWithProgress.pipe(outputStream, { end: false })
+                  outputStreamWithProgress.on('data', (chunk) => {
+                    downloadedBytes += chunk.length
+                    console.log(`${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) * 100 + '%'})`)
+                  })
+                  await req.tg.downloadMedia(media, { outputFile: outputStreamWithProgress })
+                  outputStreamWithProgress.end()
+                  console.log(`${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) * 100 + '%'})`, '-end-')
+                } catch (error) {
+                  console.error('Error downloading media:', error)
                 }
-              } catch (error) {
-                // Ignore any errors
               }
-              // End response
-              res.end()
+              await downloadMedia()
             }
+          } catch (error) {
+            console.error('Error processing file:', error)
+          }
+          processedFilesCount++
+          if (cancel) {
+            outputStream.end()
+            throw { status: 422, body: { error: 'canceled' } }
           }
         }
-      })
-      try {
-        // Start downloading media data
-        await downloadMedia()
-      } catch (error) {
-        console.log(error)
-      }
-    }
+        if (processedFilesCount === files.length) {
+          outputStream.end()
+        }
+      })()
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
