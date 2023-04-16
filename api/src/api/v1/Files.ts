@@ -1277,7 +1277,7 @@ export class Files {
       outputFile.on('finish', () => {
         console.log(
           `${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${(
-            (downloaded / Number(totalFileSize)) *
+            downloaded / Number(totalFileSize) *
             100
           ).toFixed(2)}%)`,
           '-end-'
@@ -1309,7 +1309,7 @@ export class Files {
               } else {
                 console.log(
                   `${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${(
-                    (downloaded / Number(totalFileSize)) *
+                    downloaded / Number(totalFileSize) *
                     100
                   ).toFixed(2)}%)`
                 )
