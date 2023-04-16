@@ -1299,7 +1299,7 @@ export class Files {
         }
         res.end()
       })
-       for (const file of files) {
+      for (const file of files) {
         let chat
         try {
           if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
