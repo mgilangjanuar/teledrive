@@ -1279,28 +1279,28 @@ export class Files {
     res.setHeader('Accept-Ranges', 'bytes')
 
     async function mergeFiles(files, filename, totalFileSize, req, res) {
-      let downloadedBytes = 0;
-      let processedFilesCount = 0;
+      let downloadedBytes = 0
+      let processedFilesCount = 0
     
       try {
-        const mergedStream = mergeStream();
-        const outputStream = fs.createWriteStream(filename('process-'));
+        const mergedStream = mergeStream()
+        const outputStream = fs.createWriteStream(filename('process-'))
     
-        mergedStream.pipe(outputStream);
+        mergedStream.pipe(outputStream)
     
         outputStream.on('finish', () => {
           try {
-            const { size } = fs.statSync(filename('process-'));
+            const { size } = fs.statSync(filename('process-'))
             if (totalFileSize.gt(bigInt(size))) {
-              fs.unlinkSync(filename('process-'));
+              fs.unlinkSync(filename('process-'))
             } else {
-              fs.renameSync(filename('process-'), filename());
+              fs.renameSync(filename('process-'), filename())
             }
           } catch (error) {
-            console.error('Error handling output file:', error);
+            console.error('Error handling output file:', error)
           }
-          res.end();
-        });
+          res.end()
+        })
     
         for (const file of files) {
           try {
@@ -1333,41 +1333,41 @@ export class Files {
             )
           }
           if (chat) {
-            const media = chat['messages'][0].media;
-            const outputStreamWithProgress = new stream.PassThrough();
+            const media = chat['messages'][0].media
+            const outputStreamWithProgress = new stream.PassThrough()
   
             outputStreamWithProgress.on('data', (chunk) => {
-              downloadedBytes += chunk.length;
+              downloadedBytes += chunk.length
               console.log(
                 `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
                   100
                 }%)`
-              );
-            });
+              )
+            })
   
             await req.tg.downloadMedia(media, {
               outputFile: outputStreamWithProgress,
-            });
+            })
             
-            mergedStream.add(outputStreamWithProgress);
+            mergedStream.add(outputStreamWithProgress)
             
             console.log(
               `${chat['messages'][0].id} ${downloadedBytes}/${media.document.size.value} (${downloadedBytes / Number(totalFileSize) *
                 100
               }%)`,
               '-end-'
-            );
+            )
           }
         } catch (error) {
-          console.error('Error processing file:', error);
+          console.error('Error processing file:', error)
         }
-        processedFilesCount++;
+        processedFilesCount++
         if (processedFilesCount === files.length) {
-          mergedStream.end();
+          mergedStream.end()
         }
       }
     } catch (error) {
-      console.error('Error creating writable stream:', error);
+      console.error('Error creating writable stream:', error)
     }
   }
   
