@@ -1240,14 +1240,14 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    let downloaded: number = 0
+    const downloaded: number = 0
     try {
       writeFileSync(filename('process-'), '')
     } catch (error) {
       // ignore
     }
 
-    let countFiles = 1
+    const countFiles = 1
     for (const file of files) {
       let chat
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
