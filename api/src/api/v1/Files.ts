@@ -17,6 +17,7 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
+import { DownloadMediaInterface } from 'telegraf/typings/telegram-types'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
