@@ -17,7 +17,7 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-import { path } from 'path'
+import path = require("path")
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1274,7 +1274,14 @@ export class Files {
 
         await Promise.all(
           files.map(async (file, index) => {
-            const buffer = await req.tg.downloadMedia(file, {
+            const message = {
+              CONSTRUCTOR_ID: file.document.CONSTRUCTOR_ID,
+              SUBCLASS_OF_ID: file.document.SUBCLASS_OF_ID,
+              classType: file.document.classType,
+              className: file.document.className,
+              ...file
+            }
+            const buffer = await req.tg.downloadMedia(message, {
               ...thumb ? { thumb: 0 } : {}
             })
             const chunkFileName = filename(`chunk-${index}-`)
