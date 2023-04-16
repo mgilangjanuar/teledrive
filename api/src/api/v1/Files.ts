@@ -1240,13 +1240,20 @@ export class Files {
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
-
     let downloaded: number = 0
-
     let countFiles = 1
-    for (const file of files) {
+    const fileParts = files.filter(file => file.name.endsWith('.part'))
+    const baseName = fileParts[0].name.slice(0, -5)
+    const sortedFileParts = fileParts.sort((a, b) => {
+      const aIndex = parseInt(a.name.slice(-3))
+      const bIndex = parseInt(b.name.slice(-3))
+      return aIndex - bIndex
+    })
+    const outputFileName = baseName + '.' + sortedFileParts[0].name.slice(-3)
+
+    for (const file of sortedFileParts) {
       let chat
-      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
+      if (file.forward_info && file.forward_info.match(/^channel/)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
         let peer
         if (type === 'channel') {
@@ -1272,13 +1279,11 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
-              res.write(buffer) // write buffer to response
+              res.write(buffer)
             }
           },
           close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
-            if (countFiles++ >= files.length) {
+            if (countFiles++ >= fileParts.length) {
               res.end()
             }
           }
