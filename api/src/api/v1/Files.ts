@@ -1273,9 +1273,9 @@ export class Files {
         let currentSize = 0 // current size of the merged file
         const totalSize = chat['messages'][0].media.document.size.value // total size of the merged file
         await req.tg.downloadMedia(chat['messages'][0].media, {
-          ...thumb ? { thumb: 0 } : {},
+          ...(thumb ? { thumb: 0 } : {}),
           outputFile: {
-            write: (buffer: Buffer) => {
+            write: (buffer) => {
               downloaded += buffer.length
               if (cancel) {
                 throw { status: 422, body: { error: 'canceled' } }
@@ -1295,7 +1295,7 @@ export class Files {
                 }
               }
             },
-            close: () => {
+            close: async () => {
               console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
               if (countFiles++ >= files.length) {
                 try {
