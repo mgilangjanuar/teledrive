@@ -1239,75 +1239,59 @@ export class Files {
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
 
-    let downloaded: number = 0
+    let downloaded = 0
     try {
       writeFileSync(filename('process-'), '')
     } catch (error) {
       // ignore
     }
-
-    let countFiles = 1
-    for (const file of files) {
+    const downloadFile = async (file) => {
       let chat
       if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
-        let peer
-        if (type === 'channel') {
-          peer = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string)
-          })
-          chat = await req.tg.invoke(new Api.channels.GetMessages({
-            channel: peer,
-            id: [new Api.InputMessageID({ id: Number(id) })]
-          }))
-        }
+        const peer = new Api.InputPeerChannel({
+          channelId: bigInt(peerId),
+          accessHash: bigInt(accessHash)
+        })
+        chat = await req.tg.invoke(new Api.channels.GetMessages({
+          channel: peer,
+          id: [new Api.InputMessageID({ id: Number(id) })]
+        }))
       } else {
         chat = await req.tg.invoke(new Api.messages.GetMessages({
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
-      const getData = async () => await req.tg.downloadMedia(chat['messages'][0].media, {
-        ...thumb ? { thumb: 0 } : {},
-        outputFile: {
-          write: (buffer: Buffer) => {
-            downloaded += buffer.length
-            if (cancel) {
-              throw { status: 422, body: { error: 'canceled' } }
-            } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
-              try {
-                appendFileSync(filename('process-'), buffer)
-              } catch (error) {
-                // ignore
-              }
-              res.write(buffer)
-            }
-          },
-          close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`, '-end-')
-            if (countFiles++ >= files.length) {
-              try {
-                const { size } = statSync(filename('process-'))
-                if (totalFileSize.gt(bigInt(size))) {
-                  rmSync(filename('process-'))
-                } else {
-                  renameSync(filename('process-'), filename())
-                }
-              } catch (error) {
-                // ignore
-              }
-              res.end()
-            }
-          }
-        }
-      })
-      try {
-        await getData()
-      } catch (error) {
-        console.log(error)
+      const media = chat.messages[0].media
+      const fileData = await req.tg.downloadMedia(media)
+      const buffer = Buffer.from(fileData, 'binary')
+      downloaded += buffer.length
+      if (cancel) {
+        throw { status: 422, body: { error: 'canceled' } }
       }
+      appendFileSync(filename('process-'), buffer)
+      res.write(buffer)
+      const percentage = downloaded / Number(totalFileSize) * 100
+      console.log(`${chat.messages[0].id} ${downloaded}/${media.document.size.value} (${percentage}%)`)
+      return Promise.resolve()
     }
+    const downloadAllFiles = async (files) => {
+      await Promise.all(files.map(async (file) => {
+        try {
+          await downloadFile(file)
+        } catch (error) {
+          console.log(error)
+        }
+      }))
+      const { size } = statSync(filename('process-'))
+      if (totalFileSize.gt(bigInt(size))) {
+        rmSync(filename('process-'))
+      } else {
+        renameSync(filename('process-'), filename())
+      }
+      res.end()
+    }
+    downloadAllFiles(files)
     usage = await prisma.usages.update({
       data: {
         usage: bigInt(totalFileSize).add(bigInt(usage.usage)).toJSNumber()
