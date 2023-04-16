@@ -1275,7 +1275,17 @@ export class Files {
           SUBCLASS_OF_ID: number,
           classType: string,
           className: string
-        }
+        },
+        created_at: Date,
+        updated_at: Date,
+        id: string,
+        name: string,
+        type: string,
+        message_id: string,
+        mime_type: string,
+        size: bigint,
+        uploaded_at: Date,
+        upload_progress: number,
       }
 
       const getData = async () => {
