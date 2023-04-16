@@ -5,7 +5,7 @@ import checkDiskSpace from 'check-disk-space'
 import contentDisposition from 'content-disposition'
 import { AES, enc } from 'crypto-js'
 import { Request, Response } from 'express'
-import { fs, appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
+import { appendFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
 import moment from 'moment'
 import multer from 'multer'
 import { Api, Logger, TelegramClient } from 'telegram'
@@ -18,6 +18,7 @@ import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 import path = require('path')
+import fs from 'fs'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1268,6 +1269,15 @@ export class Files {
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
+      interface MyFile extends TypeMessageMedia {
+        metadata: {
+          CONSTRUCTOR_ID: number,
+          SUBCLASS_OF_ID: number,
+          classType: string,
+          className: string,
+        }
+      }
+
       const getData = async () => {
         const fileNames = []
         const outputFile = filename()
@@ -1275,14 +1285,14 @@ export class Files {
         await Promise.all(
           files.map(async (file, index) => {
             const message = {
-              CONSTRUCTOR_ID: file.document.CONSTRUCTOR_ID,
-              SUBCLASS_OF_ID: file.document.SUBCLASS_OF_ID,
-              classType: file.document.classType,
-              className: file.document.className,
-              ...file
-            }
+              CONSTRUCTOR_ID: file.metadata.CONSTRUCTOR_ID,
+              SUBCLASS_OF_ID: file.metadata.SUBCLASS_OF_ID,
+              classType: file.metadata.classType,
+              className: file.metadata.className,
+              ...file,
+            } as MyFile;
             const buffer = await req.tg.downloadMedia(message, {
-              ...thumb ? { thumb: 0 } : {}
+              ...thumb ? { thumb: 0 } : {},
             })
             const chunkFileName = filename(`chunk-${index}-`)
             fs.writeFileSync(chunkFileName, buffer)
