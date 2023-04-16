@@ -17,6 +17,7 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
+import { path } from 'path'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1268,61 +1269,37 @@ export class Files {
         }))
       }
       const getData = async () => {
-        const partPrefix = filename('part-') // part file prefix with incremental numbering
-        let partNumber = 1 // current part file number
-        let currentSize = 0 // current size of the merged file
-        const totalSize = chat['messages'][0].media.document.size.value // total size of the merged file
-        await req.tg.downloadMedia(chat['messages'][0].media, {
-          ...(thumb ? { thumb: 0 } : {}),
-          outputFile: {
-            write: (buffer) => {
-              downloaded += buffer.length
-              if (cancel) {
-                throw { status: 422, body: { error: 'canceled' } }
-              } else {
-                console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
-                try {
-                  // write buffer to current part file
-                  const partFilename = `${partPrefix}${partNumber.toString().padStart(3, '0')}`
-                  appendFileSync(partFilename, buffer)
-                  currentSize += buffer.length
-                  if (currentSize >= MAX_PART_SIZE) {
-                    partNumber++
-                    currentSize = 0
-                  }
-                } catch (error) {
-                  // ignore
-                }
-              }
-            },
-            close: async () => {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
-              if (countFiles++ >= files.length) {
-                try {
-                  // merge part files into single file
-                  const { size: totalSize } = fs.statSync(filename('process-'))
-                  const outputFile = filename()
-                  const output = fs.createWriteStream(outputFile)
-                  for (let i = 1; i <= partNumber; i++) {
-                    const partFilename = `${partPrefix}${i.toString().padStart(3, '0')}`
-                    const input = fs.createReadStream(partFilename)
-                    await new Promise((resolve, reject) => {
-                      input.pipe(output, { end: false })
-                      input.on('error', reject)
-                      input.on('end', () => {
-                        fs.unlinkSync(partFilename)
-                        resolve()
-                      })
-                    })
-                  }
-                } catch (error) {
-                  // ignore
-                }
-                res.end()
-              }
-            }
-          }
-        })
+        const fileNames = [];
+        const outputFile = filename();
+
+        await Promise.all(
+          files.map(async (file, index) => {
+            const buffer = await req.tg.downloadMedia(file, {
+              ...thumb ? { thumb: 0 } : {},
+            });
+            const chunkFileName = filename(`chunk-${index}-`);
+            fs.writeFileSync(chunkFileName, buffer);
+            fileNames.push(chunkFileName);
+          })
+        );
+
+        const mergedFile = Buffer.alloc(0);
+
+        for (const fileName of fileNames) {
+          const fileContents = fs.readFileSync(fileName);
+          mergedFile = Buffer.concat([mergedFile, fileContents]);
+          fs.unlinkSync(fileName);
+        }
+
+        fs.writeFileSync(outputFile, mergedFile);
+
+        res.sendFile(path.resolve(outputFile));
+      };
+
+      try {
+        await getData();
+      } catch (error) {
+        console.log(error);
       }
     usage = await prisma.usages.update({
       data: {
