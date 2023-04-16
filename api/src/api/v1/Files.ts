@@ -1269,7 +1269,7 @@ export class Files {
           id: [new Api.InputMessageID({ id: Number(file.message_id) })]
         }))
       }
-      interface MyFile extends TypeMessageMedia {
+      interface MyFile {
         metadata: {
           CONSTRUCTOR_ID: number,
           SUBCLASS_OF_ID: number,
