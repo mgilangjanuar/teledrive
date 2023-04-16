@@ -19,6 +19,7 @@ import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 import fs from 'fs'
 import * as stream from 'stream'
+import { finished } from 'stream/promises'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1276,7 +1277,6 @@ export class Files {
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
-
     // Set initial downloaded bytes to 0
     let downloadedBytes = 0
     let outputStream
@@ -1287,8 +1287,7 @@ export class Files {
     } catch (error) {
       console.error('Error creating writable stream:', error)
     }
-
-    outputStream.on('finish', () => {
+     outputStream.on('finish', () => {
       try {
         const { size } = fs.statSync(filename('process-'))
         // Check if downloaded data is less than total file size
@@ -1304,7 +1303,8 @@ export class Files {
       }
       // End response
       res.end()
-    })(async () => {
+    })()
+     (async () => {
       for (const file of files) {
         let chat
         // Additional error handling around file processing
@@ -1354,6 +1354,7 @@ export class Files {
                   } (${downloadedBytes / Number(totalFileSize) * 100 + '%'})`,
                   '-end-'
                 )
+                await finished(outputStreamWithProgress) // Wait for the outputStreamWithProgress to finish before moving to the next file
               } catch (error) {
                 console.error('Error downloading media:', error)
               }
