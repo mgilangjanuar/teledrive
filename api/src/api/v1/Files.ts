@@ -17,8 +17,6 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-const fs = require('fs')
-const path = require('path')
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -1240,20 +1238,18 @@ export class Files {
     res.setHeader('Content-Type', files[0].mime_type)
     res.setHeader('Content-Length', totalFileSize.toString())
     res.setHeader('Accept-Ranges', 'bytes')
-    let downloaded: number = 0
-    let countFiles = 1
-    const fileParts = files.filter(file => file.name.endsWith('.part'))
-    const baseName = fileParts[0].name.slice(0, -5)
-    const sortedFileParts = fileParts.sort((a, b) => {
-      const aIndex = parseInt(a.name.slice(-3))
-      const bIndex = parseInt(b.name.slice(-3))
-      return aIndex - bIndex
-    })
-    const outputFileName = baseName + '.' + sortedFileParts[0].name.slice(-3)
 
-    for (const file of sortedFileParts) {
+    let downloaded: number = 0
+    try {
+      writeFileSync(filename('process-'), '')
+    } catch (error) {
+      // ignore
+    }
+
+    let countFiles = 1
+    for (const file of files) {
       let chat
-      if (file.forward_info && file.forward_info.match(/^channel/)) {
+      if (file.forward_info && file.forward_info.match(/^channel\//gi)) {
         const [type, peerId, id, accessHash] = file.forward_info.split('/')
         let peer
         if (type === 'channel') {
@@ -1279,11 +1275,28 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
+              try {
+                appendFileSync(filename('process-'), buffer)
+              } catch (error) {
+                // ignore
+              }
               res.write(buffer)
             }
           },
           close: () => {
-            if (countFiles++ >= fileParts.length) {
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`, '-end-')
+            if (countFiles++ >= files.length) {
+              try {
+                const { size } = statSync(filename('process-'))
+                if (totalFileSize.gt(bigInt(size))) {
+                  rmSync(filename('process-'))
+                } else {
+                  renameSync(filename('process-'), filename())
+                }
+              } catch (error) {
+                // ignore
+              }
               res.end()
             }
           }
