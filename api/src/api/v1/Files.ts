@@ -1290,16 +1290,17 @@ export class Files {
 
       const getData = async () => {
         try {
-          await req.tg.downloadMedia(chat['messages'][0].media, (progress) => {
-            downloaded = progress
-            if (cancel) {
-              throw { status: 422, body: { error: 'canceled' } }
-            } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
-            }
-          }, {
+          await req.tg.downloadMedia(chat['messages'][0].media, {
             ...thumb ? { thumb: 0 } : {},
             outputFile,
+            onProgress: (progress) => {
+              downloaded = progress
+              if (cancel) {
+                throw { status: 422, body: { error: 'canceled' } }
+              } else {
+                console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
+              }
+            },
           })
         } catch (error) {
           console.log(error)
