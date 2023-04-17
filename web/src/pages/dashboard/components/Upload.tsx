@@ -160,7 +160,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                         attributes: forceDocument ? [
                           new Api.DocumentAttributeFilename({ fileName: response.file.name })
                         ] : undefined,
-                        workers: 1
+                        workers: 6
                       })
                     }
 

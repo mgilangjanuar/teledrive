@@ -17,8 +17,6 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
-const fs = require('fs')
-const path = require('path')
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -804,7 +802,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 4
+        workers: 1
       })
     }
 
@@ -1243,6 +1241,18 @@ export class Files {
 
     let downloaded: number = 0
 
+    // Sort the files based on their ".part" number
+    files.sort((a, b) => {
+      const aPart = Number(a.name.match(/\.part(\d+)$/i)?.[1] || 0)
+      const bPart = Number(b.name.match(/\.part(\d+)$/i)?.[1] || 0)
+      return aPart - bPart
+    })
+    try {
+      writeFileSync(filename('process-'), '')
+    } catch (error) {
+      // ignore
+    }
+
     let countFiles = 1
     for (const file of files) {
       let chat
@@ -1273,12 +1283,27 @@ export class Files {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
               console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
-              res.write(buffer) // write buffer to response
+              try {
+                appendFileSync(filename('process-'), buffer)
+              } catch (error) {
+                // ignore
+              }
+              res.write(buffer)
             }
           },
           close: () => {
             console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
             if (countFiles++ >= files.length) {
+              try {
+                const { size } = statSync(filename('process-'))
+                if (totalFileSize.gt(bigInt(size))) {
+                  rmSync(filename('process-'))
+                } else {
+                  renameSync(filename('process-'), filename())
+                }
+              } catch (error) {
+                // ignore
+              }
               res.end()
             }
           }
