@@ -261,7 +261,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
           return responses
         }
-
         export default uploadFile
       }
 
