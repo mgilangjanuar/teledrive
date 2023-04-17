@@ -802,7 +802,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 4
+        workers: 1
       })
     }
 
