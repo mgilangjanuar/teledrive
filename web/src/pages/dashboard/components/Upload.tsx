@@ -250,7 +250,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
 
           const uploadParts = async () => {
-            const promises = []
+            const promises: Promise<void>[] = []
             for (let i = 0; i < totalPartsArray.length; i++) {
               const start = i * CHUNK_SIZE
               const end = start + CHUNK_SIZE >= file.size ? file.size : start + CHUNK_SIZE
