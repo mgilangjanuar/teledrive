@@ -208,7 +208,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const totalAllParts = totalPartsArray.length
           let totalParts = 0
           let deleted = false
-          let responses: any[] = []
+          const responses: any[] = []
 
           const uploadPart = async (blobPart: Blob, index: number) => {
             const data = new FormData()
