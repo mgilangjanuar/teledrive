@@ -259,15 +259,15 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
             await Promise.all([
               uploadPart(0),
-              uploadPart(Math.floor(parts / 2)), // Upload middle chunk 
-              uploadPart(parts - 1) // Upload last chunk 
+              uploadPart(Math.floor(parts / 2)),
+              uploadPart(parts - 1)
             ])
 
             for (let i = 1; i < parts - 1; i += 2) {
               if (deleted) break
               const [response1, response2] = await Promise.all([
                 uploadPart(i),
-                uploadPart(i + 1) // Upload 2 chunks concurrently 
+                uploadPart(i + 1)
               ])
             }
           }
