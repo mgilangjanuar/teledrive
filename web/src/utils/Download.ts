@@ -40,21 +40,23 @@ type FileIterator = {
 const connectionPool = new ConnectionPool(5) // set maximum pool size to 5
 const cache = new Map<string, Uint8Array>() // create a cache for downloaded data
 async function* generateChunks(
-  client: any,
+  clients: any[],
   media: any,
   i: number,
   numParallel: number
 ): AsyncGenerator<Uint8Array, void, unknown> {
-  const chunkPromises = Array.from({ length: numParallel }, async (_, j) => {
-    const offset = i * media.size / numParallel + j * media.size / (numParallel * numParallel)
-    const limit = media.size / numParallel
+  const numConnections = clients.length
+  let connIndex = i % numConnections
+  let offset = Math.floor(i / numConnections) * media.size / numParallel
+  const limit = media.size / numParallel
+  for (let j = 0; j < numParallel; j++) {
+    const client = clients[connIndex]
     const chunks = await client.downloadMedia(media, { offset, limit })
-    return chunks
-  })
-  const chunksArrays = await Promise.all(chunkPromises)
-  const chunks = chunksArrays.flatMap((arr) => arr)
-  for (const chunk of chunks) {
-    yield chunk
+    for (const chunk of chunks) {
+      yield chunk
+    }
+    offset += limit
+    connIndex = (connIndex + 1) % numConnections
   }
 }
 export async function download(
@@ -71,20 +73,22 @@ export async function download(
       }
     })
   }
-  const client = await connectionPool.getConnection()
+  const clients = []
+  for (let i = 0; i < numParallel; i++) {
+    clients.push(await connectionPool.getConnection())
+  }
   try {
-    const { data: response } = await client.invoke(
+    const { data: response } = await clients[0].invoke(
       new Api.messages.GetMessages({
         id: [new Api.InputMessageID({ id: Number(id) })]
       })
     )
     const media = response.messages[0].media
-    // Update the for loop that pushes the generator to the fileIterators array
     for (let i = 0; i < numParallel; i++) {
       fileIterators.push({
         [Symbol.asyncIterator]: generateChunks.bind(
           null,
-          client,
+          clients,
           media,
           i,
           numParallel
@@ -103,9 +107,11 @@ export async function download(
       })
       streams.push(stream)
     }
-    return mergeStreams(...streams) // merge the streams and return the merged stream
+    return mergeStreams(...streams)
   } finally {
-    connectionPool.releaseConnection(client)
+    for (const client of clients) {
+      connectionPool.releaseConnection(client)
+    }
   }
 }
 export const directDownload = async (
