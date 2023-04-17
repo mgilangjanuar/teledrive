@@ -7,7 +7,7 @@ import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constan
 import { req } from '../../../utils/Fetcher'
 import { telegramClient } from '../../../utils/Telegram'
 import { axiosParallel } from 'axios-parallel'
-
+export default uploadFile
 
 interface Props {
   dataFileList: [any[], (data: any[]) => void],
@@ -261,7 +261,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
           return responses
         }
-        export default uploadFile
       }
 
       // notification.close(`upload-${file.uid}`)
