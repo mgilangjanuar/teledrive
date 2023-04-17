@@ -50,7 +50,8 @@
     "use-debounce": "^7.0.1",
     "web-vitals": "^0.2.4",
     "world_countries_lists": "^2.5.1",
-    "concat-stream": "^2.0.0"
+    "concat-stream": "^2.0.0",
+    "axios-parallel": "^1.1.2"
   },
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider --no-experimental-fetch start",

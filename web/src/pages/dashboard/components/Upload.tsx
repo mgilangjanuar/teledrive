@@ -6,6 +6,8 @@ import { Api } from 'telegram'
 import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 import { telegramClient } from '../../../utils/Telegram'
+import { axiosParallel } from 'axios-parallel'
+
 
 interface Props {
   dataFileList: [any[], (data: any[]) => void],
@@ -203,75 +205,64 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        for (let j = 0; j < fileParts; j++) {
-          const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
-          const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
+        const uploadFile = async (file, req, parent, onProgress, cancelUploading) => {
+          const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
+          const totalAllParts = fileParts * 3 - 2
+          let deleted = false
+          let totalParts = 0
+          let responses = []
 
-          if (!deleted) {
-            const uploadPart = async (i: number) => {
-              if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
-                await Promise.all(responses.map(async response => {
-                  try {
-                    await req.delete(`/files/${response?.file.id}`)
-                  } catch (error) {
-                    // ignore
-                  }
-                }))
-                cancelUploading.current = null
-                deleted = true
-                window.onbeforeunload = undefined as any
-              } else {
-                const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
-                const data = new FormData()
-                data.append('upload', blobPart)
+          const uploadParts = async (range) => {
+            const promises = range.map((i) => {
+              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+              const data = new FormData()
+              data.append('upload', blobPart)
 
-                const beginUpload = async () => {
-                  const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-                    params: {
-                      ...parent?.id ? { parent_id: parent.id } : {},
-                      relative_path: file.webkitRelativePath || null,
-                      name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                      size: fileBlob.size,
-                      mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                      part: i,
-                      total_part: parts,
-                    },
-                  })
-                  return response
-                }
-
-                let trial = 0
-                while (trial < RETRY_COUNT) {
-                  try {
-                    responses[j] = await beginUpload()
-                    trial = RETRY_COUNT
-                  } catch (error) {
-                    if (trial >= RETRY_COUNT) {
-                      throw error
-                    }
-                  }
-                }
-
-                const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-                onProgress({ percent }, file)
+              const beginUpload = async () => {
+                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                  params: {
+                    ...parent?.id ? { parent_id: parent.id } : {},
+                    relative_path: file.webkitRelativePath || null,
+                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                    size: fileBlob.size,
+                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                    part: i,
+                    total_part: parts,
+                  },
+                })
+                return response
               }
-            }
 
-            await Promise.all([
-              uploadPart(0),
-              uploadPart(Math.floor(parts / 2)),
-              uploadPart(parts - 1)
-            ])
+              return axiosParallel(beginUpload)
+            })
 
-            for (let i = 1; i < parts - 1; i += 2) {
-              if (deleted) break
-              const [response1, response2] = await Promise.all([
-                uploadPart(i),
-                uploadPart(i + 1)
-              ])
-            }
+            const responses = await Promise.all(promises)
+            return responses
           }
+
+          for (let j = 0; j < fileParts; j++) {
+            const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+            const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
+
+            if (!deleted) {
+              const range = Array.from({ length: parts }, (_, i) => i)
+              const responses = await uploadParts(range)
+
+              for (let i = 0; i < parts; i++) {
+                responses[j][i].part = i
+              }
+
+              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+              onProgress({ percent }, file)
+            }
+
+            if (deleted) break
+          }
+
+          return responses
         }
+
+        export default uploadFile
       }
 
       // notification.close(`upload-${file.uid}`)
