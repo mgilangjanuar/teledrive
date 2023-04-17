@@ -243,8 +243,10 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             }
 
             totalParts++
-            const percent = (totalParts / totalAllParts * 100).toFixed(1)
-            onProgress({ percent }, file)
+            if (onProgress) {
+              const percent = (totalParts / totalAllParts * 100).toFixed(1)
+              onProgress({ percent }, file)
+            }
           }
 
           const uploadParts = async () => {
