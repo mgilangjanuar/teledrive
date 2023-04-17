@@ -73,7 +73,7 @@ export async function download(
       }
     })
   }
-  const clients = []
+  const clients: any[] = []
   for (let i = 0; i < numParallel; i++) {
     clients.push(await connectionPool.getConnection())
   }
