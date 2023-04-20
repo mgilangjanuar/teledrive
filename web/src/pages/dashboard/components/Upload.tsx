@@ -240,7 +240,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                     size: fileBlob.size,
                     mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
                     part: i,
-                    total_part: parts,
+                    total_part: fileParts, // fix: replace `parts` with `fileParts`
                   },
                 })
                 return response
@@ -261,13 +261,13 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               onProgress({ percent }, file)
             }
           }
-          const groups = Math.ceil(parts / PARALLELISM)
+          const groups = Math.ceil(fileParts / PARALLELISM) // fix: replace `parts` with `fileParts`
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
             const groupPromises = []
             for (let g = 0; g < groups; g++) {
               const group = []
-              for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, parts); i++) {
+              for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, fileParts); i++) { // fix: replace `parts` with `fileParts`
                 group.push(uploadPart(j, i))
               }
               groupPromises.push(Promise.all(group))
