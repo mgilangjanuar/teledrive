@@ -230,8 +230,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           while (completed < promises.length) {
             const values = await Promise.all(promises.slice(completed, completed + PARALLELISM))
             completed += PARALLELISM
-          }  
-          
+          }
+
           const groupPromises: Promise<any[][]> = Promise.resolve([]) // initialize with a promise that resolves to an empty array
           for (let g = 0; g < groups; g++) {
             const group: Promise<any>[] = [] // initialize as an array of promises
