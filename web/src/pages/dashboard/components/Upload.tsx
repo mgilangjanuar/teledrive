@@ -265,7 +265,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const groups = Math.ceil(fileParts / PARALLELISM)
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
-            const groupPromises: Promise<any[][]> = Promise.resolve([]) // initialize with a promise that resolves to an empty array
+            let groupPromises: Promise<any[][]> = Promise.resolve([]) // initialize with a promise that resolves to an empty array
             for (let g = 0; g < groups; g++) {
               const group: Promise<any>[] = [] // initialize as an array of promises
               for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, fileParts); i++) {
