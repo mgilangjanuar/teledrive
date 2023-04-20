@@ -215,14 +215,15 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             id: string
           }
         }
-        
+
+        let deleted = false
+
         const uploadFile = async (file: File, parent?: { id: string }, onProgress?: (progress: any, file: File) => void) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
-          let deleted = false
           const responses: Response[] = []
-        
+
           const workerScript = `
             const uploadPart = async (file, j, i) => {
               const fileBlob = file.slice(
@@ -259,7 +260,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           `
           const workerBlob = new Blob([workerScript], { type: 'application/javascript' })
           const workerUrl = URL.createObjectURL(workerBlob)
-        
+
           const uploadPart = async (j: number, i: number) => {
             if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
               await Promise.all(
@@ -273,22 +274,23 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               )
               cancelUploading.current = null
               deleted = true
-              window.onbeforeunload = undefined as any
+              window.onbeforeunload = null
             } else {
               const worker = new Worker(workerUrl)
               worker.postMessage({ file, j, partIndex: i })
               worker.onmessage = (event) => {
                 const { percent } = event.data
                 onProgress?.({ percent }, file)
+                totalParts += 1
                 if (++i < fileParts) {
                   uploadPart(j, i)
                 }
               }
             }
           }
-        
+
           const promises: Promise<void>[] = []
-        
+
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
             const groupIndex = Math.floor(j / PARALLELISM)
@@ -296,11 +298,12 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             promises[groupIndex] = promises[groupIndex] || Promise.resolve()
             promises[groupIndex] = promises[groupIndex].then(() => uploadPart(j, 0))
           }
-        
+
           await Promise.all(promises)
-        
+
           URL.revokeObjectURL(workerUrl)
         }
+
       }
 
       // notification.close(`upload-${file.uid}`)
