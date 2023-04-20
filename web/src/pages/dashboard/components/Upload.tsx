@@ -6,6 +6,8 @@ import { Api } from 'telegram'
 import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 import { telegramClient } from '../../../utils/Telegram'
+import { Worker, isMainThread, parentPort, workerData } from 'worker_threads'
+
 
 interface Props {
   dataFileList: [any[], (data: any[]) => void],
@@ -209,76 +211,89 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         }
       } else {
         const PARALLELISM = 8
-        const uploadFile = async (file: File, parent?: { id: string }): Promise<void> => {
+        const uploadPart = async (j, i, file, responses) => {
+          const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+          const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+          const data = new FormData()
+          data.append('upload', blobPart)
+          const beginUpload = async () => {
+            const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+              params: {
+                ...parent?.id ? { parent_id: parent.id } : {},
+                relative_path: file.webkitRelativePath || null,
+                name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                size: fileBlob.size,
+                mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                chunk: i,
+                chunks: fileParts,
+                retry: RETRY_COUNT,
+              },
+            })
+            responses[j] = { ...responses[j], file: response }
+          }
+          const doUpload = async () => {
+            try {
+              await beginUpload()
+            } catch (e) {
+              if (e.response?.status === 403) {
+                await beginUpload()
+              } else {
+                throw e
+              }
+            }
+          }
+          await doUpload()
+        }
+        
+        const uploadFile = async (file, parent = null) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
-          const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
-          let totalParts = 0
-          let deleted = false
-          const responses: any[] = []
-          const uploadPart = async (j: number, i: number): Promise<any> => {
-            if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
-              await Promise.all(responses.map(async response => {
-                try {
-                  await req.delete(`/files/${response?.file.id}`)
-                } catch (error) {
-                  // ignore
-                }
-              }))
-              cancelUploading.current = null
-              deleted = true
-              window.onbeforeunload = undefined as any
-            } else {
-              const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
-              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
-              const data = new FormData()
-              data.append('upload', blobPart)
-              const beginUpload = async () => {
-                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-                  params: {
-                    ...parent?.id ? { parent_id: parent.id } : {},
-                    relative_path: file.webkitRelativePath || null,
-                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                    size: fileBlob.size,
-                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                    part: i,
-                    total_part: fileParts, // fix: replace `parts` with `fileParts`
-                  },
-                })
-                return response
-              }
-              let trial = 0
-              while (trial < RETRY_COUNT) {
-                try {
-                  responses[j] = await beginUpload()
-                  trial = RETRY_COUNT
-                } catch (error) {
-                  if (trial >= RETRY_COUNT) {
-                    throw error
-                  }
-                  await new Promise(res => setTimeout(res, ++trial * 3000))
-                }
-              }
-              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-              onProgress({ percent }, file)
+          const responses = Array.from({ length: fileParts }, () => ({}))
+          await Promise.all(
+            Array.from({ length: fileParts * PARALLELISM }, (_, i) => {
+              const j = Math.floor(i / fileParts)
+              return uploadPart(j, i % fileParts, file, responses)
+            })
+          )
+          const { data: response } = await req.post(`/files/complete`, {}, {
+            params: {
+              ...parent?.id ? { parent_id: parent.id } : {},
+              relative_path: file.webkitRelativePath || null,
+              name: file.name,
+              size: file.size,
+              mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+            },
+          })
+          return response
+        }
+        
+        if (isMainThread) {
+          const workerData = { file: null, parent: null }
+          const parseArgs = () => {
+            const args = process.argv.slice(2)
+            const options = {}
+            for (let i = 0; i < args.length; i += 2) {
+              const key = args[i].replace(/^--/, '')
+              options[key] = args[i + 1]
             }
+            return options
           }
-          const groups = Math.ceil(fileParts / PARALLELISM)
-          for (let j = 0; j < fileParts; j++) {
-            if (deleted) break
-            let groupPromises: Promise<any[][]> = Promise.resolve([]) // initialize with a promise that resolves to an empty array
-            for (let g = 0; g < groups; g++) {
-              const group: Promise<any>[] = [] // initialize as an array of promises
-              for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, fileParts); i++) {
-                group.push(uploadPart(j, i)) // add the promises returned by uploadPart to the group array
-              }
-              groupPromises = groupPromises.then((prevResults) => {
-                return Promise.all(group).then((results) => {
-                  return prevResults.concat([results]) // concatenate the results of the current group to the previous results
-                })
-              })
+          const main = async () => {
+            const options = parseArgs()
+            const file = new File([fs.readFileSync(options.input)], options.input.split('/').pop())
+            workerData.file = file
+            if (options.parent) {
+              workerData.parent = await req.get(`/files/show`, { params: { id: options.parent } }).then(({ data }) => data)
             }
-            await groupPromises // wait for all promises in the current group to resolve
+            new Array(PARALLELISM).fill().forEach(() => {
+              new Worker(__filename, { workerData })
+            })
           }
+          main()
+        } else {
+          uploadFile(workerData.file, workerData.parent).catch((e) => {
+            console.error(e)
+            process.exit(1)
+          })
         }
       }
 
