@@ -210,7 +210,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           let deleted = false
           const responses: any[] = []
           const uploadPart = async (j: number, i: number): Promise<any> => {
-            if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
+            if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
               await Promise.all(responses.map(async response => {
                 try {
                   await req.delete(`/files/${response?.file.id}`)
