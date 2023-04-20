@@ -265,7 +265,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const groups = Math.ceil(fileParts / PARALLELISM) // fix: replace `parts` with `fileParts`
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
-            const groupPromises = []
+            const groupPromises: Promise<any[][]> = []
             for (let g = 0; g < groups; g++) {
               const group = []
               for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, fileParts); i++) { // fix: replace `parts` with `fileParts`
