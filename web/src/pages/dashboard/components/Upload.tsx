@@ -208,8 +208,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
           let deleted = false
-          let responses: any[] = []
-        
+          const responses: any[] = []
           const uploadPart = async (j: number, i: number): Promise<any> => {
             if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
               await Promise.all(responses.map(async response => {
@@ -227,7 +226,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
               const data = new FormData()
               data.append('upload', blobPart)
-        
               const beginUpload = async () => {
                 const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
                   params: {
@@ -242,7 +240,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                 })
                 return response
               }
-        
               let trial = 0
               while (trial < RETRY_COUNT) {
                 try {
@@ -255,12 +252,10 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                   await new Promise(res => setTimeout(res, ++trial * 3000))
                 }
               }
-        
               const percent = (++totalParts / totalAllParts * 100).toFixed(1)
               onProgress({ percent }, file)
             }
           }
-        
           const groups = Math.ceil(parts / PARALLELISM)
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
@@ -274,7 +269,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             }
             await Promise.all(groupPromises)
           }
-        }        
+        }
       }
 
       // notification.close(`upload-${file.uid}`)
