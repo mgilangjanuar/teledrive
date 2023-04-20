@@ -37,14 +37,16 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         await new Promise(res => setTimeout(res, 3000 * ++retry))
         await cb?.()
         if (retry === RETRY_COUNT) {
-          notification.error({ message: 'Failed to upload file', description: <>
-            <Typography.Paragraph>
-              {error?.response?.data?.error || error.message || 'Something error'}
-            </Typography.Paragraph>
-            <Typography.Paragraph code>
-              {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
-            </Typography.Paragraph>
-          </> })
+          notification.error({
+            message: 'Failed to upload file', description: <>
+              <Typography.Paragraph>
+                {error?.response?.data?.error || error.message || 'Something error'}
+              </Typography.Paragraph>
+              <Typography.Paragraph code>
+                {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+              </Typography.Paragraph>
+            </>
+          })
           throw error
         }
       }
@@ -138,14 +140,17 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                         if (type === 'channel') {
                           peer = new Api.InputPeerChannel({
                             channelId: BigInt(peerId) as any,
-                            accessHash: BigInt(accessHash as string) as any })
+                            accessHash: BigInt(accessHash as string) as any
+                          })
                         } else if (type === 'user') {
                           peer = new Api.InputPeerUser({
                             userId: BigInt(peerId.toString()) as any,
-                            accessHash: BigInt(accessHash.toString()) as any })
+                            accessHash: BigInt(accessHash.toString()) as any
+                          })
                         } else if (type === 'chat') {
                           peer = new Api.InputPeerChat({
-                            chatId: BigInt(peerId) as any })
+                            chatId: BigInt(peerId) as any
+                          })
                         }
                       }
                       return await client.sendFile(peer || 'me', {
@@ -262,7 +267,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             const groupPromises = []
             for (let g = 0; g < groups; g++) {
               const group = []
-              for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, parts - 1); i++) {
+              for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, parts); i++) {
                 group.push(uploadPart(j, i))
               }
               groupPromises.push(Promise.all(group))
@@ -290,14 +295,16 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       notification.error({
         key: 'fileUploadError',
         message: error?.response?.status || 'Something error',
-        ...error?.response?.data ? { description: <>
-          <Typography.Paragraph>
-            {error?.response?.data?.error || error.message || 'Something error'}
-          </Typography.Paragraph>
-          <Typography.Paragraph code>
-            {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
-          </Typography.Paragraph>
-        </> } : {}
+        ...error?.response?.data ? {
+          description: <>
+            <Typography.Paragraph>
+              {error?.response?.data?.error || error.message || 'Something error'}
+            </Typography.Paragraph>
+            <Typography.Paragraph code>
+              {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
+            </Typography.Paragraph>
+          </>
+        } : {}
       })
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
