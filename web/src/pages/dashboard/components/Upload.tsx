@@ -216,7 +216,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
 
-        const uploadFile = async (file: File, parent?: { id: string }) => {
+        const uploadFile = async (file: File, parent?: { id: string }, onProgress?: (progress: any, file: File) => void) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
@@ -225,33 +225,43 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
           const uploadPart = async (j: number, i: number) => {
             if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
-              await Promise.all(responses.map(async response => {
-                try {
-                  await req.delete(`/files/${response?.file.id}`)
-                } catch (error) {
-                  // ignore
-                }
-              }))
+              await Promise.all(
+                responses.map(async (response) => {
+                  try {
+                    await req.delete(`/files/${response?.file?.id}`)
+                  } catch (error) {
+                    // ignore
+                  }
+                })
+              )
               cancelUploading.current = null
               deleted = true
               window.onbeforeunload = undefined as any
             } else {
-              const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+              const fileBlob = file.slice(
+                j * MAX_UPLOAD_SIZE,
+                Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)
+              )
               const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
               const data = new FormData()
               data.append('upload', blobPart)
               const beginUpload = async () => {
-                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
-                  params: {
-                    ...parent?.id ? { parent_id: parent.id } : {},
-                    relative_path: file.webkitRelativePath || null,
-                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                    size: fileBlob.size,
-                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                    part: i,
-                    total_part: fileParts,
-                  },
-                })
+                const { data: response } = await req.post(
+                  `/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''
+                  }`,
+                  data,
+                  {
+                    params: {
+                      ...(parent?.id ? { parent_id: parent.id } : {}),
+                      relative_path: file.webkitRelativePath || null,
+                      name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                      size: fileBlob.size,
+                      mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                      part: i,
+                      total_part: fileParts,
+                    },
+                  }
+                )
                 return response
               }
               let trial = 0
@@ -263,15 +273,15 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                   if (trial >= RETRY_COUNT) {
                     throw error
                   }
-                  await new Promise(res => setTimeout(res, ++trial * 3000))
+                  await new Promise((res) => setTimeout(res, ++trial * 3000))
                 }
               }
               const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-              onProgress({ percent }, file)
+              onProgress?.({ percent }, file)
             }
           }
 
-          const promises = []
+          const promises: Promise<void>[] = []
 
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
