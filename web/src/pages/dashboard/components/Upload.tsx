@@ -247,7 +247,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               data.append('upload', blobPart)
               const beginUpload = async () => {
                 const { data: response } = await req.post(
-                  `/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''
+                  `/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file?.id}` : ''
                   }`,
                   data,
                   {
