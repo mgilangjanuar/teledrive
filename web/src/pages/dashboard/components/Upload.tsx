@@ -6,8 +6,8 @@ import { Api } from 'telegram'
 import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 import { telegramClient } from '../../../utils/Telegram'
-import { Worker, isMainThread, parentPort, workerData } from 'worker_threads'
 
+const { Worker, isMainThread, parentPort, workerData } = require('worker_threads')
 
 interface Props {
   dataFileList: [any[], (data: any[]) => void],
