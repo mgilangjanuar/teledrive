@@ -215,14 +215,51 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             id: string
           }
         }
-
+        
         const uploadFile = async (file: File, parent?: { id: string }, onProgress?: (progress: any, file: File) => void) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
           let deleted = false
           const responses: Response[] = []
-
+        
+          const workerScript = `
+            const uploadPart = async (file, j, i) => {
+              const fileBlob = file.slice(
+                j * MAX_UPLOAD_SIZE,
+                Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)
+              )
+              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+              const data = new FormData()
+              data.append('upload', blobPart)
+              const { data: response } = await axios.post(
+                \`/files/upload\${i > 0 && responses[j]?.file?.id ? \`/\${responses[j]?.file?.id}\` : ''}\`,
+                data,
+                {
+                  params: {
+                    ...parent?.id ? { parent_id: parent.id } : {},
+                    relative_path: file.webkitRelativePath || null,
+                    name: \`\${file.name}\${fileParts > 1 ? \`.part\${String(j + 1).padStart(3, '0')}\` : ''}\`,
+                    size: fileBlob.size,
+                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                    part: i,
+                    total_part: fileParts,
+                  },
+                }
+              )
+              responses[j] = response
+              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+              self.postMessage({ percent })
+            }
+        
+            self.onmessage = (event) => {
+              const { file, j, partIndex } = event.data
+              uploadPart(file, j, partIndex)
+            }
+          `
+          const workerBlob = new Blob([workerScript], { type: 'application/javascript' })
+          const workerUrl = URL.createObjectURL(workerBlob)
+        
           const uploadPart = async (j: number, i: number) => {
             if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
               await Promise.all(
@@ -238,60 +275,31 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               deleted = true
               window.onbeforeunload = undefined as any
             } else {
-              const fileBlob = file.slice(
-                j * MAX_UPLOAD_SIZE,
-                Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)
-              )
-              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
-              const data = new FormData()
-              data.append('upload', blobPart)
-              const beginUpload = async () => {
-                const { data: response } = await req.post(
-                  `/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file?.id}` : ''
-                  }`,
-                  data,
-                  {
-                    params: {
-                      ...parent?.id ? { parent_id: parent.id } : {},
-                      relative_path: file.webkitRelativePath || null,
-                      name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                      size: fileBlob.size,
-                      mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                      part: i,
-                      total_part: fileParts,
-                    },
-                  }
-                )
-                return response
-              }
-              let trial = 0
-              while (trial < RETRY_COUNT) {
-                try {
-                  responses[j] = await beginUpload()
-                  trial = RETRY_COUNT
-                } catch (error) {
-                  if (trial >= RETRY_COUNT) {
-                    throw error
-                  }
-                  await new Promise((res) => setTimeout(res, ++trial * 3000))
+              const worker = new Worker(workerUrl)
+              worker.postMessage({ file, j, partIndex: i })
+              worker.onmessage = (event) => {
+                const { percent } = event.data
+                onProgress?.({ percent }, file)
+                if (++i < fileParts) {
+                  uploadPart(j, i)
                 }
               }
-              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-              onProgress?.({ percent }, file)
             }
           }
-
+        
           const promises: Promise<void>[] = []
-
+        
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
             const groupIndex = Math.floor(j / PARALLELISM)
             const partIndex = j % PARALLELISM
             promises[groupIndex] = promises[groupIndex] || Promise.resolve()
-            promises[groupIndex] = promises[groupIndex].then(() => uploadPart(j, partIndex))
+            promises[groupIndex] = promises[groupIndex].then(() => uploadPart(j, 0))
           }
-
+        
           await Promise.all(promises)
+        
+          URL.revokeObjectURL(workerUrl)
         }
       }
 
