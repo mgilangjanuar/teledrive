@@ -209,42 +209,73 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         }
       } else {
         const PARALLELISM = 8
-        const uploadFile = async (file: File, parent?: { id: string }): Promise<void> => {
+
+        const uploadFile = async (file: File, parent?: { id: string }) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
           let deleted = false
-          const responses: any[] = []
-          const uploadPart = async (j: number, i: number): Promise<any> => {
-            // ...
-          }
-          const promises = []
-          for (let j = 0; j < fileParts; j++) {
-            if (deleted) break
-            for (let i = 0; i < fileParts; i++) {
-              promises.push(uploadPart(j, i))
+          const responses = []
+
+          const uploadPart = async (j: number, i: number) => {
+            if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
+              await Promise.all(responses.map(async response => {
+                try {
+                  await req.delete(`/files/${response?.file.id}`)
+                } catch (error) {
+                  // ignore
+                }
+              }))
+              cancelUploading.current = null
+              deleted = true
+              window.onbeforeunload = undefined as any
+            } else {
+              const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+              const data = new FormData()
+              data.append('upload', blobPart)
+              const beginUpload = async () => {
+                const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                  params: {
+                    ...parent?.id ? { parent_id: parent.id } : {},
+                    relative_path: file.webkitRelativePath || null,
+                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                    size: fileBlob.size,
+                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                    part: i,
+                    total_part: fileParts, // fix: replace `parts` with `fileParts`
+                  },
+                })
+                return response
+              }
+              let trial = 0
+              while (trial < RETRY_COUNT) {
+                try {
+                  responses[j] = await beginUpload()
+                  trial = RETRY_COUNT
+                } catch (error) {
+                  if (trial >= RETRY_COUNT) {
+                    throw error
+                  }
+                  await new Promise(res => setTimeout(res, ++trial * 3000))
+                }
+              }
+              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+              onProgress({ percent }, file)
             }
-          }
-          await Promise.all(promises.slice(0, PARALLELISM))  // Execute first PARALLELISM promises
-          let completed = PARALLELISM
-          while (completed < promises.length) {
-            const values = await Promise.all(promises.slice(completed, completed + PARALLELISM))
-            completed += PARALLELISM
           }
 
-          const groupPromises: Promise<any[][]> = Promise.resolve([]) // initialize with a promise that resolves to an empty array
-          for (let g = 0; g < groups; g++) {
-            const group: Promise<any>[] = [] // initialize as an array of promises
-            for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, fileParts); i++) {
-              group.push(uploadPart(j, i)) // add the promises returned by uploadPart to the group array
-            }
-            groupPromises = groupPromises.then((prevResults) => {
-              return Promise.all(group).then((results) => {
-                return prevResults.concat([results]) // concatenate the results of the current group to the previous results
-              })
-            })
+          const promises = []
+
+          for (let j = 0; j < fileParts; j++) {
+            if (deleted) break
+            const groupIndex = Math.floor(j / PARALLELISM)
+            const partIndex = j % PARALLELISM
+            promises[groupIndex] = promises[groupIndex] || Promise.resolve()
+            promises[groupIndex] = promises[groupIndex].then(() => uploadPart(j, partIndex))
           }
-          await groupPromises // wait for all promises in the current group to resolve  
+
+          await Promise.all(promises)
         }
       }
 
