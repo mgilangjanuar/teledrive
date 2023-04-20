@@ -262,18 +262,22 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               onProgress({ percent }, file)
             }
           }
-          const groups = Math.ceil(fileParts / PARALLELISM) // fix: replace `parts` with `fileParts`
+          const groups = Math.ceil(fileParts / PARALLELISM)
           for (let j = 0; j < fileParts; j++) {
             if (deleted) break
-            const groupPromises: Promise<any[][]> = []
+            const groupPromises: Promise<any[][]> = Promise.resolve([]) // initialize with a promise that resolves to an empty array
             for (let g = 0; g < groups; g++) {
-              const group = []
-              for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, fileParts); i++) { // fix: replace `parts` with `fileParts`
-                group.push(uploadPart(j, i))
+              const group: Promise<any>[] = [] // initialize as an array of promises
+              for (let i = g * PARALLELISM; i < Math.min((g + 1) * PARALLELISM, fileParts); i++) {
+                group.push(uploadPart(j, i)) // add the promises returned by uploadPart to the group array
               }
-              groupPromises.push(Promise.all(group))
+              groupPromises = groupPromises.then((prevResults) => {
+                return Promise.all(group).then((results) => {
+                  return prevResults.concat([results]) // concatenate the results of the current group to the previous results
+                })
+              })
             }
-            await Promise.all(groupPromises)
+            await groupPromises // wait for all promises in the current group to resolve
           }
         }
       }
