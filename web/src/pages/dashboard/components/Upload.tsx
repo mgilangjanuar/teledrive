@@ -209,76 +209,99 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         }
       } else {
         const PARALLELISM = 8
+
         interface Response {
           file?: {
-            id: string,
-          },
+            id: string
+          }
         }
-        interface Progress {
-          percent: string,
-        }
-        const uploadFile = async (
-          file: File,
-          parent?: { id: string },
-          onProgress?: (progress: Progress, file: File) => void,
-        ) => {
+        
+        const uploadFile = async (file: File, parent?: { id: string }, onProgress?: (progress: any, file: File) => void) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
+          let deleted = false
           const responses: Response[] = []
+        
           const workerScript = `
-              const uploadPart = async (file, j, i) => {
-                const fileBlob = file.slice(
-                  j * MAX_UPLOAD_SIZE,
-                  Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)
-                )
-                const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
-                const data = new FormData()
-                data.append('upload', blobPart)
-                const { data: response } = await axios.post(
-                  \`/files/upload\${responses[j]?.file?.id ? \`/\${responses[j]?.file?.id}\` : ''}\`,
-                  data
-                )
-                responses[j] = response
-                const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-                postMessage({ percent })
-              }
-              onmessage = (event) => {
-                const { file, j, i } = event.data
-                uploadPart(file, j, i)
-              }
-            `
+            const uploadPart = async (file, j, i) => {
+              const fileBlob = file.slice(
+                j * MAX_UPLOAD_SIZE,
+                Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)
+              )
+              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+              const data = new FormData()
+              data.append('upload', blobPart)
+              const { data: response } = await axios.post(
+                \`/files/upload\${i > 0 && responses[j]?.file?.id ? \`/\${responses[j]?.file?.id}\` : ''}\`,
+                data,
+                {
+                  params: {
+                    ...parent?.id ? { parent_id: parent.id } : {},
+                    relative_path: file.webkitRelativePath || null,
+                    name: \`\${file.name}\${fileParts > 1 ? \`.part\${String(j + 1).padStart(3, '0')}\` : ''}\`,
+                    size: fileBlob.size,
+                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                    part: i,
+                    total_part: fileParts,
+                  },
+                }
+              )
+              responses[j] = response
+              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+              self.postMessage({ percent })
+            }
+        
+            self.onmessage = (event) => {
+              const { file, j, partIndex } = event.data
+              uploadPart(file, j, partIndex)
+            }
+          `
           const workerBlob = new Blob([workerScript], { type: 'application/javascript' })
           const workerUrl = URL.createObjectURL(workerBlob)
-          const promises: Promise<void>[] = []
-          const workers: Worker[] = []
-          const queue: { file: File; j: number; i: number }[] = []
-          for (let i = 0; i < PARALLELISM; i++) {
-            workers[i] = new Worker(workerUrl)
-          }
-          const processQueue = async () => {
-            for (const { file, j, i } of queue) {
-              workers[i].postMessage({ file, j, i })
+        
+          const uploadPart = async (j: number, i: number) => {
+            if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
+              await Promise.all(
+                responses.map(async (response) => {
+                  try {
+                    await req.delete(`/files/${response?.file?.id}`)
+                  } catch (error) {
+                    // ignore
+                  }
+                })
+              )
+              cancelUploading.current = null
+              deleted = true
+              window.onbeforeunload = undefined as any
+            } else {
+              const worker = new Worker(workerUrl)
+              worker.postMessage({ file, j, partIndex: i })
+              worker.onmessage = (event) => {
+                const { percent } = event.data
+                onProgress?.({ percent }, file)
+                if (++i < fileParts) {
+                  uploadPart(j, i)
+                }
+              }
             }
           }
+        
+          const promises: Promise<void>[] = []
+        
           for (let j = 0; j < fileParts; j++) {
-            const groupIndex = j % PARALLELISM
-            queue.push({ file, j, i: groupIndex })
+            if (deleted) break
+            const groupIndex = Math.floor(j / PARALLELISM)
+            const partIndex = j % PARALLELISM
             promises[groupIndex] = promises[groupIndex] || Promise.resolve()
-            promises[groupIndex] = promises[groupIndex].then(async () => {
-              totalParts += 1
-              await processQueue()
-              const percent = (totalParts / totalAllParts * 100).toFixed(1)
-              onProgress?.({ percent }, file)
-            })
+            promises[groupIndex] = promises[groupIndex].then(() => uploadPart(j, 0))
           }
+        
           await Promise.all(promises)
-          workers.forEach((worker) => worker.terminate())
-          const { id } = responses[0]?.file || {}
-          return { id }
+        
+          URL.revokeObjectURL(workerUrl)
         }
       }
-
 
       // notification.close(`upload-${file.uid}`)
       if (!deleted) {
