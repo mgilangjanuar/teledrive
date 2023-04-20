@@ -211,16 +211,16 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         const PARALLELISM = 8
         interface Response {
           file?: {
-            id: string
-          }
+            id: string,
+          },
         }
         interface Progress {
-          percent: string
+          percent: string,
         }
         const uploadFile = async (
           file: File,
           parent?: { id: string },
-          onProgress?: (progress: Progress, file: File) => void
+          onProgress?: (progress: Progress, file: File) => void,
         ) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
