@@ -210,12 +210,18 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       } else {
         const PARALLELISM = 8
 
+        interface Response {
+          file?: {
+            id: string
+          }
+        }
+
         const uploadFile = async (file: File, parent?: { id: string }) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
           let deleted = false
-          const responses = []
+          const responses: Response[] = []
 
           const uploadPart = async (j: number, i: number) => {
             if (responses?.length && cancelUploading.current && file.name === cancelUploading.current) {
@@ -243,7 +249,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                     size: fileBlob.size,
                     mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
                     part: i,
-                    total_part: fileParts, // fix: replace `parts` with `fileParts`
+                    total_part: fileParts,
                   },
                 })
                 return response
