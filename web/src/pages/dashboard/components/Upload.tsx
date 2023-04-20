@@ -214,11 +214,9 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             id: string
           }
         }
-
         interface Progress {
           percent: string
         }
-
         const uploadFile = async (
           file: File,
           parent?: { id: string },
@@ -228,7 +226,6 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
           const responses: Response[] = []
-
           const workerScript = `
             const uploadPart = async (file, j, i) => {
               const fileBlob = file.slice(
@@ -239,48 +236,31 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               const data = new FormData()
               data.append('upload', blobPart)
               const { data: response } = await axios.post(
-                \`/files/upload\${i > 0 && responses[j]?.file?.id ? \`/\${responses[j]?.file?.id}\` : ''}\`,
-                data,
-                {
-                  params: {
-                    ...parent?.id ? { parent_id: parent.id } : {},
-                    relative_path: file.webkitRelativePath || null,
-                    name: \`\${file.name}\${fileParts > 1 ? \`.part\${String(j + 1).padStart(3, '0')}\` : ''}\`,
-                    size: fileBlob.size,
-                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                    part: i,
-        total_part: fileParts,
-                  }
-                }
+                \`/files/upload\${responses[j]?.file?.id ? \`/\${responses[j]?.file?.id}\` : ''}\`,
+                data
               )
               responses[j] = response
               const percent = (++totalParts / totalAllParts * 100).toFixed(1)
               postMessage({ percent })
             }
-          
             onmessage = (event) => {
-              const { file, j, partIndex } = event.data
-              uploadPart(file, j, partIndex)
+              const { file, j, i } = event.data
+              uploadPart(file, j, i)
             }
           `
           const workerBlob = new Blob([workerScript], { type: 'application/javascript' })
           const workerUrl = URL.createObjectURL(workerBlob)
-
           const promises: Promise<void>[] = []
           const workers: Worker[] = []
           const queue: { file: File; j: number; i: number }[] = []
-
           for (let i = 0; i < PARALLELISM; i++) {
             workers[i] = new Worker(workerUrl)
           }
-
           const processQueue = async () => {
             for (const { file, j, i } of queue) {
-              if (deleted) break
-              workers[i].postMessage({ file, j, partIndex: 0 })
+              workers[i].postMessage({ file, j, i })
             }
           }
-
           for (let j = 0; j < fileParts; j++) {
             const groupIndex = j % PARALLELISM
             queue.push({ file, j, i: groupIndex })
@@ -292,9 +272,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
               onProgress?.({ percent }, file)
             })
           }
-
           await Promise.all(promises)
-
           URL.revokeObjectURL(workerUrl)
         }
       }
