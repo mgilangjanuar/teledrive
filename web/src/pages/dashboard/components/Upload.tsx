@@ -208,7 +208,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        const PARALLELISM = 4
+        const PARALLELISM = 8
         const uploadFile = async (file: File, parent?: { id: string }): Promise<void> => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
