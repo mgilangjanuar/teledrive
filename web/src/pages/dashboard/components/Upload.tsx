@@ -252,7 +252,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                   data,
                   {
                     params: {
-                      ...(parent?.id ? { parent_id: parent.id } : {}),
+                      ...parent?.id ? { parent_id: parent.id } : {},
                       relative_path: file.webkitRelativePath || null,
                       name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
                       size: fileBlob.size,
