@@ -220,34 +220,34 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         const uploadFile = async (
           file: File,
           parent?: { id: string },
-          onProgress?: (progress: Progress, file: File) => void,
+          onProgress?: (progress: Progress, file: File) => void
         ) => {
           const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let totalParts = 0
           const responses: Response[] = []
           const workerScript = `
-            const uploadPart = async (file, j, i) => {
-              const fileBlob = file.slice(
-                j * MAX_UPLOAD_SIZE,
-                Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)
-              )
-              const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
-              const data = new FormData()
-              data.append('upload', blobPart)
-              const { data: response } = await axios.post(
-                \`/files/upload\${responses[j]?.file?.id ? \`/\${responses[j]?.file?.id}\` : ''}\`,
-                data
-              )
-              responses[j] = response
-              const percent = (++totalParts / totalAllParts * 100).toFixed(1)
-              postMessage({ percent })
-            }
-            onmessage = (event) => {
-              const { file, j, i } = event.data
-              uploadPart(file, j, i)
-            }
-          `
+                  const uploadPart = async (file, j, i) => {
+                    const fileBlob = file.slice(
+                      j * MAX_UPLOAD_SIZE,
+                      Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)
+                    )
+                    const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+                    const data = new FormData()
+                    data.append('upload', blobPart)
+                    const { data: response } = await axios.post(
+                      \`/files/upload\${responses[j]?.file?.id ? \`/\${responses[j]?.file?.id}\` : ''}\`,
+                      data
+                    )
+                    responses[j] = response
+                    const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+                    postMessage({ percent })
+                  }
+                  onmessage = (event) => {
+                    const { file, j, i } = event.data
+                    uploadPart(file, j, i)
+                  }
+                `
           const workerBlob = new Blob([workerScript], { type: 'application/javascript' })
           const workerUrl = URL.createObjectURL(workerBlob)
           const promises: Promise<void>[] = []
@@ -273,9 +273,12 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             })
           }
           await Promise.all(promises)
-          URL.revokeObjectURL(workerUrl)
+          workers.forEach((worker) => worker.terminate())
+          const { id } = responses[0]?.file || {}
+          return { id }
         }
-      }
+      }      
+
 
       // notification.close(`upload-${file.uid}`)
       if (!deleted) {
