@@ -212,7 +212,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         interface Response {
           file?: {
             id: string
-          },
+          }
         }
         interface Progress {
           percent: string
@@ -276,7 +276,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           workers.forEach((worker) => worker.terminate())
           const { id } = responses[0]?.file || {}
           return { id }
-        }        
+        }
       }
 
 
