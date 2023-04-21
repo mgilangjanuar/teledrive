@@ -3,7 +3,7 @@ import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
 import { concat } from 'concat-stream'
 import FastPriorityQueue from 'fastpriorityqueue'
-import { LinkedList } from 'linked-list-typescript'
+import { LinkedList, LinkedListNode } from 'linked-list-typescript'
 class ConnectionPool {
   private connections: Promise<any>[]
   public maxSize: number
