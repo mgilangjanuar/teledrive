@@ -37,14 +37,14 @@ class ConnectionPool {
 type FileIterator = {
   [Symbol.asyncIterator]: () => AsyncGenerator<Uint8Array, void, unknown>
 }
-const connectionPool = new ConnectionPool(5) // set maximum pool size to 5 
-const cache = new Map<string, Uint8Array>() // create a cache for downloaded data 
+const connectionPool = new ConnectionPool(5) // set maximum pool size to 5
+const cache = new Map<string, Uint8Array>() // create a cache for downloaded data
 async function* generateChunks(
   clients: any[],
   media: any,
   i: number,
   numParallel: number,
-  bufferSize: number = 1024 * 1024 // set buffer size to 1 MB 
+  bufferSize: number = 1024 * 1024 // set buffer size to 1 MB
 ): AsyncGenerator<Uint8Array, void, unknown> {
   const numConnections = clients.length
   let connIndex = i % numConnections
@@ -143,13 +143,13 @@ export const directDownload = async (
   const writer = fileStream.getWriter()
   try {
     const streams = await download(id, numParallel)
-    // Combine the streams using a function like mergeStreams in place of [stream1, stream2, ..., streamN] 
+    // Combine the streams using a function like mergeStreams in place of [stream1, stream2, ..., streamN]
     const mergedStream = mergeStreams(streams)
     const reader = mergedStream.getReader()
     const pump = async () => {
       const { done, value } = await reader.read()
       if (done) {
-        if (value) { // add null check here 
+        if (value) { // add null check here
           cache.set(id, value)
         }
         writer.close()
@@ -197,7 +197,7 @@ export function mergeStreams(...streams: ReadableStream<Uint8Array>[]): Readable
     }
   }
 
-  // Initialize heap with first chunk from each stream 
+  // Initialize heap with first chunk from each stream
   const leftReader = left.getReader()
   const rightReader = right.getReader()
   const read = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
