@@ -1,16 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e -x
 
 # Check if configuration file exists
-if [ ! -f docker/.env ]; then
+if [[ ! -f docker/.env ]]; then
   echo "Error: Configuration file not found."
   exit 1
 fi
 
 # Create /docker directory if it doesn't exist
-if [ ! -d docker ]; then
-  mkdir docker
+if [[ ! -d docker ]]; then
+  mkdir -p docker
 fi
 
 # Configure Node.js and cURL
@@ -29,20 +29,24 @@ export BUILDKIT_INLINE_CACHE=1
 export BUILDKIT_ENABLE_LEGACY_GIT=0
 
 # If no parameters are provided, start services using Docker Compose
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
   # Stop and start services using Docker Compose
   docker compose down
   docker compose up --build --force-recreate -d
   sleep 2
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   # Update PostgreSQL password
-  DB_PASSWORD=$(openssl rand -hex 16)
+  DB_PASSWORD=$(openssl rand -hex 16 || true)
+  if [[ -z "$DB_PASSWORD" ]]; then
+    echo "Error: Failed to generate a random password."
+    exit 1
+  fi
   docker compose exec docker-db-1 psql -U postgres -c "ALTER USER postgres PASSWORD '${DB_PASSWORD}';"
   printf "Generated random DB_PASSWORD: %s\n" "$DB_PASSWORD"
 fi
 
 # If "update" parameter is provided, update services using Docker Compose
-if [ "$1" == "update" ]; then
+if [[ "$1" == "update" ]]; then
   cd docker
   if ! git branch --list experiment >/dev/null; then
     git branch experiment origin/experiment
@@ -59,8 +63,8 @@ if [ "$1" == "update" ]; then
 fi
 
 # If "permissions" parameter is provided, check if the current user has permission to modify necessary directories and files
-if [ "$1" == "permissions" ]; then
-  if [ ! -w /var/run/docker.sock ] || [ ! -w ./docker/.env ] || [ ! -w ./docker/data ]; then
+if [[ "$1" == "permissions" ]]; then
+  if [[ ! -w /var/run/docker.sock ]] || [[ ! -w ./docker/.env ]] || [[ ! -w ./docker/data ]]; then
     printf "This script requires permission to modify some files and directories.\n"
     printf "Giving permission to the current user...\n"
     sudo chown -R "$(whoami)" /var/run/docker.sock ./docker/.env ./docker/data
