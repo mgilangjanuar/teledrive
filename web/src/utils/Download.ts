@@ -33,7 +33,7 @@ class ConnectionPool {
     this.connections.push(connection)
   }
 }
-// Declare the proper type for file iterators 
+// Declare the proper type for file iterators
 type FileIterator = {
   [Symbol.asyncIterator]: () => AsyncGenerator<Uint8Array, void, unknown>
 }
