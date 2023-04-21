@@ -173,7 +173,7 @@ function mergeStreams(...streams: ReadableStream<Uint8Array>[]): ReadableStream<
   const left = mergeStreams(...streams.slice(0, mid))
   const right = mergeStreams(...streams.slice(mid))
   // Use FastPriorityQueue instead of an array and custom heapify/siftDown functions
-  const heap = new FastPriorityQueue((a, b) => a[0] > b[0])
+  const heap = new FastPriorityQueue((a: any, b: any) => a[0] > b[0])
   // Initialize heap with the first chunk from each stream
   const leftReader = left.getReader()
   const rightReader = right.getReader()
