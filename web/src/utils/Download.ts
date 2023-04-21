@@ -43,35 +43,38 @@ const cache = new Map<string, Uint8Array>() // create a cache for downloaded dat
 async function* generateChunks(
   clients: any[],
   media: any,
-  i: number,
   numParallel: number,
   bufferSize: number = 1024 * 1024 // set buffer size to 1 MB
 ): AsyncGenerator<Uint8Array, void, unknown> {
   const numConnections = clients.length
-  let connIndex = i % numConnections
-  let offset = Math.floor(i / numConnections) * media.size / numParallel
   const limit = media.size / numParallel
-  const promises: Promise<Uint8Array[]>[] = []
+  let offset = 0
   let buffer: Uint8Array[] = []
   let bufferLength = 0
-  for (let j = 0; j < numParallel; j++) {
-    const client = clients[connIndex]
-    promises.push(
-      client.downloadMedia(media, { offset, limit })
-    )
-    offset += limit
-    connIndex = (connIndex + 1) % numConnections
-  }
-  const chunksArray = await Promise.all(promises)
-  for (const chunks of chunksArray) {
-    for (const chunk of chunks) {
-      buffer.push(chunk)
-      bufferLength += chunk.byteLength
-      if (bufferLength >= bufferSize) {
-        const concatenated = concat(buffer)
-        yield concatenated
-        buffer = []
-        bufferLength = 0
+  while (offset < media.size) {
+    const promises: Promise<Uint8Array>[] = []
+    for (let j = 0; j < numParallel; j++) {
+      const client = clients[j % numConnections]
+      const promise = client.downloadMedia(media, { offset, limit })
+      promises.push(promise)
+      offset += limit
+    }
+    const chunksArray = await Promise.allSettled(promises)
+    for (const result of chunksArray) {
+      if (result.status === 'fulfilled') {
+        const chunks = result.value
+        for (const chunk of chunks) {
+          buffer.push(chunk)
+          bufferLength += chunk.byteLength
+          if (bufferLength >= bufferSize) {
+            const concatenated = concat(buffer)
+            yield concatenated
+            buffer = []
+            bufferLength = 0
+          }
+        }
+      } else {
+        console.error(result.reason)
       }
     }
   }
