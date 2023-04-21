@@ -2,7 +2,7 @@ import streamSaver from 'streamsaver'
 import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
 import { concat } from 'concat-stream'
-import { FastPriorityQueue } from 'fastpriorityqueue'
+import FastPriorityQueue from 'fastpriorityqueue'
 class ConnectionPool {
   private connections: Promise<any>[]
   public maxSize: number
