@@ -2,6 +2,7 @@ import streamSaver from 'streamsaver'
 import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
 import { concat } from 'concat-stream'
+import { FastPriorityQueue } from 'fastpriorityqueue'
 class ConnectionPool {
   private connections: Promise<any>[]
   public maxSize: number
@@ -164,66 +165,40 @@ export const directDownload = async (
   }
 }
 
-export function mergeStreams(...streams: ReadableStream<Uint8Array>[]): ReadableStream<Uint8Array> {
+function mergeStreams(...streams: ReadableStream<Uint8Array>[]): ReadableStream<Uint8Array> {
   if (streams.length === 1) {
     return streams[0]
   }
-
   const mid = Math.floor(streams.length / 2)
   const left = mergeStreams(...streams.slice(0, mid))
   const right = mergeStreams(...streams.slice(mid))
-
-  const heap: [number, ReadableStreamDefaultReader<Uint8Array>][] = []
-
-  function heapify<T>(arr: [number, T][]): void {
-    for (let i = Math.floor(arr.length / 2); i >= 0; i--) {
-      siftDown(arr, i)
-    }
-  }
-
-  function siftDown<T>(arr: [number, T][], idx: number): void {
-    const left = 2 * idx + 1
-    const right = 2 * idx + 2
-    let maxIdx = idx
-    if (left < arr.length && arr[left][0] > arr[maxIdx][0]) {
-      maxIdx = left
-    }
-    if (right < arr.length && arr[right][0] > arr[maxIdx][0]) {
-      maxIdx = right
-    }
-    if (maxIdx !== idx) {
-      [arr[idx], arr[maxIdx]] = [arr[maxIdx], arr[idx]]
-      siftDown(arr, maxIdx)
-    }
-  }
-
-  // Initialize heap with first chunk from each stream
+  // Use FastPriorityQueue instead of an array and custom heapify/siftDown functions
+  const heap = new FastPriorityQueue((a, b) => a[0] > b[0])
+  // Initialize heap with the first chunk from each stream
   const leftReader = left.getReader()
   const rightReader = right.getReader()
   const read = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
     const { done, value } = await reader.read()
     if (!done && value !== undefined) {
-      heap.push([value.byteLength, reader])
-      heapify(heap)
+      heap.add([value.byteLength, reader])
     }
   }
   read(leftReader)
   read(rightReader)
-
   const combinedStream = new ReadableStream({
     async start(controller) {
-      while (heap.length > 0) {
-        const [_, reader] = heap[0]
+      while (!heap.isEmpty()) {
+        const [_, reader] = heap.poll()
         const { done, value } = await reader.read()
         if (done) {
-          heap[0] = heap[heap.length - 1]
-          heap.pop()
-          heapify(heap)
+          if (!heap.isEmpty()) {
+            const next = heap.poll()
+            heap.add(next)
+          }
         } else {
           if (value !== undefined) {
             controller.enqueue(value)
-            heap[0] = [value.byteLength, reader]
-            heapify(heap)
+            heap.add([value.byteLength, reader])
           }
         }
       }
