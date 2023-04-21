@@ -92,13 +92,13 @@ async function* generateChunks(
 function concatenateLinkedList(list: LinkedList<Uint8Array>): Uint8Array {
   let length = 0
   for (
-    let node: LinkedListModule.LinkedListNode<Uint8Array> | null = list.head
-    node
+    let node: LinkedListModule.LinkedListNode<Uint8Array> | null = list.head;
+    node;
     node = node.next
   ) {
     length += node.data.byteLength
   }
-  const result = new Uint8Array(length)
+  const result = new Uint8Array(length);
   let offset = 0
   for (let node = list.head; node; node = node.next) {
     result.set(node.data, offset)
