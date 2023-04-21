@@ -3,9 +3,9 @@ import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
 import { concat } from 'concat-stream'
 import FastPriorityQueue from 'fastpriorityqueue'
-import * as LinkedListModule from 'linked-list-typescript'
+import { LinkedList, LinkedListNode } from 'linked-list-typescript'
 // Access LinkedListNode class
-const node = new LinkedListModule.LinkedListNode(1)
+const node = new LinkedListNode(1)
 class ConnectionPool {
   private connections: Promise<any>[]
   public maxSize: number
@@ -92,7 +92,7 @@ async function* generateChunks(
 function concatenateLinkedList(list: LinkedList<Uint8Array>): Uint8Array {
   let length = 0
   for (
-    let node: LinkedListModule.LinkedListNode<Uint8Array> | null = list.head;
+    let node: LinkedListNode<Uint8Array> | null = list.head;
     node;
     node = node.next
   ) {
