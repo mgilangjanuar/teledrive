@@ -52,7 +52,8 @@
     "world_countries_lists": "^2.5.1",
     "concat-stream": "^2.0.0",
     "axios-parallel": "^1.1.2",
-    "fastpriorityqueue": "0.7.4"
+    "fastpriorityqueue": "0.7.4",
+    "linked-list-typescript": "^1.0.15"
   },
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider --no-experimental-fetch start",
