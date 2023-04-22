@@ -32,6 +32,7 @@ CREATE TABLE "files" (
     "file_id" VARCHAR,
     "link_id" UUID,
     "forward_info" VARCHAR,
+    "password" VARCHAR,
 
     CONSTRAINT "PK_6c16b9093a142e0e7613b04a3d9" PRIMARY KEY ("id")
 );
@@ -105,3 +106,5 @@ ALTER TABLE "files" ADD CONSTRAINT "files_files_fkey" FOREIGN KEY ("parent_id") 
 
 -- AddForeignKey
 ALTER TABLE "files" ADD CONSTRAINT "files_users_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "files" ADD COLUMN "password" VARCHAR;
