@@ -12,7 +12,7 @@ COPY docker/.env .
 RUN yarn cache clean
 RUN yarn install
 RUN yarn global add prisma
-RUN npx prisma migrate reset
+RUN npx prisma migrate reset --schema=api/prisma/schema.prisma
 COPY . .
 RUN export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 RUN yarn workspaces run build
