@@ -13,7 +13,7 @@
     "web": "yarn workspace web",
     "server": "yarn workspace api",
     "api": "yarn workspace api",
-    "build": "yarn workspaces run build",
+    "build": "export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch" && yarn workspaces run build",
     "start": "cd api && node dist/index.js",
     "docs": "USE_SSH=true cd docs && yarn deploy"
   },
