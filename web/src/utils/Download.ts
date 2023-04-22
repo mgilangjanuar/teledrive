@@ -3,9 +3,6 @@ import { Api } from 'telegram'
 import { telegramClient } from './Telegram'
 import { concat } from 'concat-stream'
 import FastPriorityQueue from 'fastpriorityqueue'
-import { LinkedList, LinkedListNode } from 'linked-list-typescript'
-// Access LinkedListNode class
-const node = new LinkedListNode(1)
 class ConnectionPool {
   private connections: Promise<any>[]
   public maxSize: number
@@ -55,7 +52,7 @@ async function* generateChunks(
   let offset = Math.floor(i / numConnections) * media.size / numParallel
   const limit = media.size / numParallel
   const promises: Promise<Uint8Array[]>[] = []
-  let buffer = new LinkedList<Uint8Array>()
+  let buffer: Uint8Array[] = []
   let bufferLength = 0
   for (let j = 0; j < numParallel; j++) {
     const client = clients[connIndex]
@@ -70,12 +67,12 @@ async function* generateChunks(
     if (result.status === 'fulfilled') {
       const chunks = result.value
       for (const chunk of chunks) {
-        buffer.append(chunk)
+        buffer.push(chunk)
         bufferLength += chunk.byteLength
         if (bufferLength >= bufferSize) {
-          const concatenated = concatenateLinkedList(buffer)
+          const concatenated = concat(buffer)
           yield concatenated
-          buffer = new LinkedList<Uint8Array>()
+          buffer = []
           bufferLength = 0
         }
       }
@@ -84,27 +81,9 @@ async function* generateChunks(
     }
   }
   if (bufferLength > 0) {
-    const concatenated = concatenateLinkedList(buffer)
+    const concatenated = concat(buffer)
     yield concatenated
   }
-}
-
-function concatenateLinkedList(list: LinkedList<Uint8Array>): Uint8Array {
-  let length = 0
-  for (
-    let node: LinkedListNode<Uint8Array> | null = list.head;
-    node;
-    node = node.next
-  ) {
-    length += node.data.byteLength
-  }
-  const result = new Uint8Array(length)
-  let offset = 0
-  for (let node = list.head; node; node = node.next) {
-    result.set(node.data, offset)
-    offset += node.data.byteLength
-  }
-  return result
 }
 export async function download(
   id: string,
