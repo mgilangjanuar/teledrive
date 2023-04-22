@@ -52,8 +52,8 @@ if [ ! -f docker/.env ]; then
 else
   cd docker
   git fetch origin
-  if ! git rev-parse --verify staging >/dev/null 2>&1; then
-    git branch staging origin/staging
+  if ! git rev-parse --verify experiment >/dev/null 2>&1; then
+    git branch staging origin/experiment
   fi
   git checkout staging
   export $(cat docker/.env | xargs)
