@@ -11,6 +11,7 @@ COPY web/package.json web/package.json
 COPY docker/.env .
 RUN yarn cache clean
 RUN yarn install
+RUN yarn global add prisma
 COPY . .
 RUN export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 RUN yarn workspaces run build
