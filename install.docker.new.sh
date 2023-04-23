@@ -7,6 +7,7 @@ echo "cURL Version: $(curl --version | head -n 1)"
 echo "Docker Version: $(docker -v)"
 echo "Docker Compose Version: $(docker compose version)"
 
+
 if [ ! -f docker/.env ]
 then
   echo "Generating .env file..."
@@ -22,7 +23,8 @@ then
   read -p "Enter your PORT: " PORT
   PORT="${PORT:=4000}"
 
-  DB_PASSWORD=$(openssl rand -hex 48)
+  read -p "Enter your DB_PASSWORD: " DB_PASSWORD
+  echo
 
   echo "ENV=$ENV" > docker/.env
   echo "PORT=$PORT" >> docker/.env
@@ -36,13 +38,9 @@ then
   docker compose build teledrive
   docker compose up -d
   sleep 2
-  docker compose exec teledrive yarn workspace api prisma migrate reset
   docker compose exec teledrive yarn workspace api prisma migrate deploy
-  docker run --rm --network=docker_teledrive --name=postgres-client postgres psql -h db -U postgres -c "alter user postgres with password '$DB_PASSWORD';"
-  docker compose down
-  docker compose up -d
 else
-  git pull origin experiment
+  git pull origin main
 
   export $(cat docker/.env | xargs)
 
@@ -50,11 +48,9 @@ else
   docker compose down
   docker compose up --build --force-recreate -d
   sleep 2
-  docker compose exec teledrive yarn workspace api prisma migrate deploy
-  docker run --rm --network=docker_teledrive --name=postgres-client postgres psql -h db -U postgres -c "alter user postgres with password '$DB_PASSWORD';"
-  docker compose down
   docker compose up -d
+  docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull origin experiment
+  git pull staging
 fi
