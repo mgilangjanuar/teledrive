@@ -802,7 +802,7 @@ export class Files {
         attributes: forceDocument ? [
           new Api.DocumentAttributeFilename({ fileName: model.name })
         ] : undefined,
-        workers: 4
+        workers: 1
       })
     }
 
@@ -1240,6 +1240,13 @@ export class Files {
     res.setHeader('Accept-Ranges', 'bytes')
 
     let downloaded: number = 0
+
+    // Sort the files based on their ".part" number
+    files.sort((a, b) => {
+      const aPart = Number(a.name.match(/\.part(\d+)$/i)?.[1] || 0)
+      const bPart = Number(b.name.match(/\.part(\d+)$/i)?.[1] || 0)
+      return aPart - bPart
+    })
     try {
       writeFileSync(filename('process-'), '')
     } catch (error) {
@@ -1275,7 +1282,7 @@ export class Files {
             if (cancel) {
               throw { status: 422, body: { error: 'canceled' } }
             } else {
-              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`)
+              console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`)
               try {
                 appendFileSync(filename('process-'), buffer)
               } catch (error) {
@@ -1285,7 +1292,7 @@ export class Files {
             }
           },
           close: () => {
-            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded/Number(totalFileSize)*100+'%'})`, '-end-')
+            console.log(`${chat['messages'][0].id} ${downloaded}/${chat['messages'][0].media.document.size.value} (${downloaded / Number(totalFileSize) * 100 + '%'})`, '-end-')
             if (countFiles++ >= files.length) {
               try {
                 const { size } = statSync(filename('process-'))

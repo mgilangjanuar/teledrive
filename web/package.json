@@ -49,7 +49,10 @@
     "typescript": "^4.0.3",
     "use-debounce": "^7.0.1",
     "web-vitals": "^0.2.4",
-    "world_countries_lists": "^2.5.1"
+    "world_countries_lists": "^2.5.1",
+    "concat-stream": "^2.0.0",
+    "axios-parallel": "^1.1.2",
+    "fastpriorityqueue": "0.7.4"
   },
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider --no-experimental-fetch start",
