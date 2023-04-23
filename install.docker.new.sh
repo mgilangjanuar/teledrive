@@ -38,6 +38,9 @@ then
   sleep 2
   docker compose exec teledrive yarn workspace api prisma migrate reset
   docker compose exec teledrive yarn workspace api prisma migrate deploy
+  docker run --rm --network=docker_teledrive --name=postgres-client postgres psql -h db -U postgres -c "alter user postgres with password '$DB_PASSWORD';"
+  docker compose down
+  docker compose up -d
 else
   git pull origin experiment
 
@@ -47,8 +50,10 @@ else
   docker compose down
   docker compose up --build --force-recreate -d
   sleep 2
-  docker compose up -d
   docker compose exec teledrive yarn workspace api prisma migrate deploy
+  docker run --rm --network=docker_teledrive --name=postgres-client postgres psql -h db -U postgres -c "alter user postgres with password '$DB_PASSWORD';"
+  docker compose down
+  docker compose up -d
   git reset --hard
   git clean -f
   git pull origin experiment
