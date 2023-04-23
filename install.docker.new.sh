@@ -36,6 +36,7 @@ then
   docker compose build teledrive
   docker compose up -d
   sleep 2
+  docker compose exec teledrive yarn workspace api prisma migrate reset
   docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
   git pull origin experiment
