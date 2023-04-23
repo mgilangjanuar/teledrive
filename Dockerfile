@@ -12,6 +12,7 @@ COPY docker/.env .
 RUN yarn cache clean
 RUN yarn install
 RUN yarn global add prisma
+RUN npx browserslist@latest --update-db
 COPY . .
 RUN export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 RUN yarn workspaces run build
