@@ -2,6 +2,7 @@
 
 set -e
 
+export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
 echo "Node Version: $(node -v)"
 echo "cURL Version: $(curl --version | head -n 1)"
 echo "Docker Version: $(docker -v)"

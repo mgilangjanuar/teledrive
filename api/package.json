@@ -1,6 +1,6 @@
 {
   "name": "api",
-  "version": "2.5.4",
+  "version": "2.5.5",
   "main": "dist/index.js",
   "license": "MIT",
   "private": true,
@@ -11,7 +11,7 @@
     "postbuild": "test -f keys || (node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" > keys && node -e \"console.log(require('crypto').randomBytes(48).toString('base64'));\" >> keys)"
   },
   "dependencies": {
-    "@prisma/client": "^3.14.0",
+    "@prisma/client": "^4.12.0",
     "@types/moment": "^2.13.0",
     "axios": "^0.21.4",
     "bcryptjs": "^2.4.3",
@@ -43,13 +43,15 @@
     "nanoid": "^3.1.25",
     "pg": "^8.7.1",
     "pg-connection-string": "^2.5.0",
-    "prisma": "^3.14.0",
+    "prisma": "^4.12.0",
     "redis": "^4.0.1",
     "serialize-error": "^8.1.0",
     "serverless-http": "^3.0.1",
     "source-map-support": "^0.5.19",
     "telegram": "^2.15.5",
-    "uuid-random": "^1.3.2"
+    "uuid-random": "^1.3.2",
+    "util": "0.12.5",
+    "path":"0.12.7"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",

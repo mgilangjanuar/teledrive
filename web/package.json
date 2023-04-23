@@ -1,12 +1,12 @@
 {
   "name": "web",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "private": true,
   "dependencies": {
     "@ideasio/add-to-homescreen-react": "^1.0.10",
     "antd": "4.18.3",
     "antd-country-phone-input": "^4.3.1",
-    "axios": "^0.21.4",
+    "axios": "^1.3.5",
     "base64url": "^3.0.1",
     "clipboardy": "^2.3.0",
     "js-cookie": "^3.0.1",
@@ -49,11 +49,14 @@
     "typescript": "^4.0.3",
     "use-debounce": "^7.0.1",
     "web-vitals": "^0.2.4",
-    "world_countries_lists": "^2.5.1"
+    "world_countries_lists": "^2.5.1",
+    "concat-stream": "^2.0.0",
+    "axios-parallel": "^1.1.2",
+    "fastpriorityqueue": "0.7.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-scripts --openssl-legacy-provider --no-experimental-fetch start",
+    "build": "react-scripts --openssl-legacy-provider --no-experimental-fetch build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
