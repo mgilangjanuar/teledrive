@@ -7,7 +7,6 @@ echo "cURL Version: $(curl --version | head -n 1)"
 echo "Docker Version: $(docker -v)"
 echo "Docker Compose Version: $(docker compose version)"
 
-
 if [ ! -f docker/.env ]
 then
   echo "Generating .env file..."
@@ -52,4 +51,4 @@ else
   git reset --hard
   git clean -f
   git pull origin experiment
-  fi
+fi
