@@ -2,7 +2,7 @@ version: '3'
 
 services:
   teledrive:
-    command: bash -c "export NODE_OPTIONS='--openssl-legacy-provider --no-experimental-fetch' && yarn api prisma migrate deploy && yarn api prisma migrate resolve --applied '20220420012853_init' && yarn api prisma migrate resolve --applied '20220525012308_add_password_files' && node api/dist/index.js"
+    command: bash -c "export NODE_OPTIONS='--openssl-legacy-provider --no-experimental-fetch' && yarn api prisma migrate deploy || yarn api prisma migrate resolve --applied "20220420012853_init" || yarn api prisma migrate resolve --applied "20220525012308_add_password_files" && node api/dist/index.js"
     labels:
       traefik.http.routers.server.rule: Host(`teledrive.localhost`)
       traefik.port: 4000
