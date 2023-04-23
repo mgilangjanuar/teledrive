@@ -39,7 +39,7 @@ then
   docker compose exec teledrive yarn workspace api prisma migrate reset
   docker compose exec teledrive yarn workspace api prisma migrate deploy
 else
-  git pull origin experiment
+  git pull origin main
 
   export $(cat docker/.env | xargs)
 
