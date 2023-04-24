@@ -74,7 +74,7 @@ docker compose down
 docker compose up --build --force-recreate -d
 sleep 2
 docker compose up -d
-if ! docker compose exec teledrive yarn workspace api prisma migrate deploy; then
+docker scompose exec teledrive yarn workspace api prisma migrate deploy || {
   echo "
   If you encounter the following error after deploying:
   failed to solve: error from sender: open /home/user/teledrive/docker/data: permission denied
@@ -85,7 +85,8 @@ if ! docker compose exec teledrive yarn workspace api prisma migrate deploy; the
   cd ../
   You can then start the script again, and the issue should be resolved. Note that the permissions will be reset, so you will need to perform this step every time you redeploy the docker.
   "
-fi
+  exit 1
+}
 git reset --hard
 git clean -f
 git pull origin main
