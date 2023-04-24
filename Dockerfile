@@ -1,3 +1,5 @@
+
+FROM node:18.16.0 as build
 RUN echo "# NOTE: If you encounter the following error after deploying:
 # failed to solve: error from sender: open /home/user/teledrive/docker/data: permission denied
 # Please run the following commands:
@@ -6,7 +8,6 @@ RUN echo "# NOTE: If you encounter the following error after deploying:
 # Then, you can go back to the root directory of the project with
 # cd ../
 # You can then start the script again, and the issue should be resolved. Note that the permissions will be reset, so you will need to perform this step every time you redeploy the docker."
-FROM node:18.16.0 as build
 ARG REACT_APP_TG_API_ID
 ARG REACT_APP_TG_API_HASH
 WORKDIR /apps
