@@ -51,5 +51,5 @@ else
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull origin experiment
+  git pull origin main
 fi
