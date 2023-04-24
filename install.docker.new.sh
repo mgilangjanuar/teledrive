@@ -70,11 +70,11 @@ git pull origin main
 export $(cat docker/.env | xargs)
 
 cd docker
-docker-compose down
-docker-compose up --build --force-recreate -d
+docker compose down
+docker compose up --build --force-recreate -d
 sleep 2
-docker-compose up -d
-if ! docker-compose exec teledrive yarn workspace api prisma migrate deploy; then
+docker compose up -d
+if ! docker compose exec teledrive yarn workspace api prisma migrate deploy; then
   echo "
   If you encounter the following error after deploying:
   failed to solve: error from sender: open /home/user/teledrive/docker/data: permission denied
