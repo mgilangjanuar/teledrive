@@ -70,12 +70,26 @@ else
   export $(cat docker/.env | xargs)
 
   cd docker
-  docker compose down
-  docker compose up --build --force-recreate -d
+  docker-compose down
+  docker-compose up --build --force-recreate -d
   sleep 2
-  docker compose up -d
-  docker compose exec teledrive yarn workspace api prisma migrate deploy
+  docker-compose up -d
+  docker-compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
   git pull origin main
+
+  echo "
+  If you encounter the following error after deploying:
+  failed to solve: error from sender: open /home/user/teledrive/docker/data: permission denied
+
+  Please run the following commands:
+  cd docker
+  sudo chmod -R 777 data
+
+  Then, you can go back to the root directory of the project with
+  cd ../
+
+  You can then start the script again, and the issue should be resolved. Note that the permissions will be reset, so you will need to perform this step every time you redeploy the docker.
+  "
 fi
