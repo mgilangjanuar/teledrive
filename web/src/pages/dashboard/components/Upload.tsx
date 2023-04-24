@@ -210,7 +210,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
           let deleted = false
 
-          const uploadPart = async (j, i) => {
+          async function uploadPart(j, i) {
             const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
             const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size))
             const data = new FormData()
@@ -218,7 +218,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
             const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
-            const beginUpload = async () => {
+            async function beginUpload() {
               const { data: response } = await req.post(
                 `/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`,
                 data,
