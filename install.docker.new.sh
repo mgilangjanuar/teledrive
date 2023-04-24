@@ -65,7 +65,7 @@ Enjoy your deployment!
 "
 
 else
-  git pull origin main
+  git pull origin staging
 
   export $(cat docker/.env | xargs)
 
@@ -77,5 +77,5 @@ else
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull origin main
+  git pull origin staging
 fi
