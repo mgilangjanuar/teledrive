@@ -38,6 +38,32 @@ then
   sleep 2
   docker compose exec teledrive yarn workspace api prisma migrate reset
   docker compose exec teledrive yarn workspace api prisma migrate deploy
+
+echo "If you get an error like this:
+
+A migration failed to apply. New migrations cannot be applied before the error is recovered from. Read more about how to resolve migration issues in a production database: https://pris.ly/d/migrate-resolve
+
+Migration name: 20220525012308_add_password_files
+
+Database error code: 42P01
+
+Database error:
+ERROR: relation \"files\" does not exist
+
+DbError { severity: \"ERROR\", parsed_severity: Some(Error), code: SqlState(E42P01), message: \"relation \\\"files\\\" does not exist\", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some(\"namespace.c\"), line: Some(432), routine: Some(\"RangeVarGetRelidExtended\") }
+
+Please run the following commands to resolve the issue:
+
+cd docker
+docker compose exec teledrive yarn workspace api prisma migrate reset
+docker compose exec teledrive yarn workspace api prisma migrate deploy
+
+Only run these commands once as these commands reset the database only use for initial setup. If you have any more errors please report on github 
+https://github.com/mgilangjanuar/teledrive/issues
+
+Enjoy your deployment!
+"
+
 else
   git pull origin main
 
@@ -51,5 +77,5 @@ else
   docker compose exec teledrive yarn workspace api prisma migrate deploy
   git reset --hard
   git clean -f
-  git pull origin experiment
+  git pull origin main
 fi
