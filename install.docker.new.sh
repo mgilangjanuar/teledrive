@@ -54,8 +54,15 @@ DbError { severity: \"ERROR\", parsed_severity: Some(Error), code: SqlState(E42P
 
 Please run the following commands to resolve the issue:
 
+cd docker
 docker compose exec teledrive yarn workspace api prisma migrate reset
-docker compose exec teledrive yarn workspace api prisma migrate deploy"
+docker compose exec teledrive yarn workspace api prisma migrate deploy
+
+Only run these commands once as these commands reset the database only use for initial setup. If you have any more errors please report on github 
+https://github.com/mgilangjanuar/teledrive/issues
+
+Enjoy your deployment!
+"
 
 else
   git pull origin main
