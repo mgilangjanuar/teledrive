@@ -14,5 +14,13 @@ RUN yarn install
 RUN yarn global add prisma
 RUN npx browserslist@latest --update-db
 COPY . .
-RUN export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch"
-RUN yarn workspaces run build
+
+# NOTE: If you encounter the following error after deploying:
+# failed to solve: error from sender: open /home/user/teledrive/docker/data: permission denied
+# Please run the following commands:
+# cd docker
+# sudo chmod -R 777 data
+# Then, you can go back to the root directory of the project with
+# cd ../
+# You can then start the script again, and the issue should be resolved. Note that the permissions will be reset, so you will need to perform this step every time you redeploy the docker.
+RUN export NODE_OPTIONS="--openssl-legacy-provider --no-experimental-fetch" && yarn workspaces run build
