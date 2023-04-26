@@ -1,6 +1,5 @@
 
 FROM node:18.16.0 as build
-RUN echo Fix error: `cd docker && chmod -R 777 data'
 ARG REACT_APP_TG_API_ID
 ARG REACT_APP_TG_API_HASH
 WORKDIR /apps
