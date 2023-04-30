@@ -203,92 +203,72 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           }
         }
       } else {
-        async function uploadFile(file, parent, onProgress, req) {
-          const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
-          const responses = new Array(fileParts).fill(null)
-          let totalParts = 0
-          const totalAllParts = fileParts * Math.ceil(file.size / CHUNK_SIZE)
-          let deleted = false
+        for (let j = 0; j < fileParts; j++) {
+          const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
+          const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
 
-          async function uploadPart(j, i) {
-            const fileBlob = file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size))
-            const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, fileBlob.size))
-            const data = new FormData()
-            data.append('upload', blobPart)
+          if (!deleted) {
+            const uploadPart = async (i: number) => {
+              if (responses?.length && cancelUploading.current && file.uid === cancelUploading.current) {
+                await Promise.all(responses.map(async response => {
+                  try {
+                    await req.delete(`/files/${response?.file.id}`)
+                  } catch (error) {
+                    // ignore
+                  }
+                }))
+                cancelUploading.current = null
+                deleted = true
+                window.onbeforeunload = undefined as any
+              } else {
+                const blobPart = fileBlob.slice(i * CHUNK_SIZE, Math.min(i * CHUNK_SIZE + CHUNK_SIZE, file.size))
+                const data = new FormData()
+                data.append('upload', blobPart)
 
-            const parts = Math.ceil(fileBlob.size / CHUNK_SIZE)
-
-            async function beginUpload() {
-              const { data: response } = await req.post(
-                `/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`,
-                data,
-                {
-                  params: {
-                    ...parent?.id ? { parent_id: parent.id } : {},
-                    relative_path: file.webkitRelativePath || null,
-                    name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
-                    size: fileBlob.size,
-                    mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-                    part: i,
-                    total_part: parts,
-                  },
-                },
-              )
-              responses[j] = response
-            }
-
-            let trial = 0
-            while (trial < RETRY_COUNT) {
-              try {
-                await beginUpload()
-                trial = RETRY_COUNT
-              } catch (error) {
-                if (trial >= RETRY_COUNT) {
-                  throw error
+                const beginUpload = async () => {
+                  const { data: response } = await req.post(`/files/upload${i > 0 && responses[j]?.file?.id ? `/${responses[j]?.file.id}` : ''}`, data, {
+                    params: {
+                      ...parent?.id ? { parent_id: parent.id } : {},
+                      relative_path: file.webkitRelativePath || null,
+                      name: `${file.name}${fileParts > 1 ? `.part${String(j + 1).padStart(3, '0')}` : ''}`,
+                      size: fileBlob.size,
+                      mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
+                      part: i,
+                      total_part: parts,
+                    },
+                  })
+                  return response
                 }
-                const delay = Math.pow(2, trial) * 1000
-                await new Promise((resolve) => setTimeout(resolve, delay))
-                trial++
+
+                let trial = 0
+                while (trial < RETRY_COUNT) {
+                  try {
+                    responses[j] = await beginUpload()
+                    trial = RETRY_COUNT
+                  } catch (error) {
+                    if (trial >= RETRY_COUNT) {
+                      throw error
+                    }
+                    await new Promise(res => setTimeout(res, ++trial * 3000))
+                  }
+                }
+
+                const percent = (++totalParts / totalAllParts * 100).toFixed(1)
+                onProgress({ percent }, file)
               }
             }
 
-            totalParts++
-            const percent = (totalParts / totalAllParts * 100).toFixed(1)
-            onProgress({ percent }, file)
-          }
-
-          for (let j = 0; j < fileParts; j++) {
-            const parts = Math.ceil(file.slice(j * MAX_UPLOAD_SIZE, Math.min(j * MAX_UPLOAD_SIZE + MAX_UPLOAD_SIZE, file.size)).size / CHUNK_SIZE)
-
-            const promises = []
-            for (let i = 0; i < parts; i++) {
-              promises.push(uploadPart(j, i))
+            const group = 2
+            await uploadPart(0)
+            for (let i = 1; i < parts - 1; i += group) {
+              if (deleted) break
+              const others = Array.from(Array(i + group).keys()).slice(i, Math.min(parts - 1, i + group))
+              await Promise.all(others.map(async j => await uploadPart(j)))
             }
-
-            await Promise.all(promises)
-
-            if (cancelUploading.current && file.uid === cancelUploading.current) {
-              await Promise.all(responses.flat().filter((r) => !!r).map((r) => req.delete(`/files/${r.id}`)))
-              deleted = true
-              break
+            if (!deleted && parts - 1 > 0) {
+              await uploadPart(parts - 1)
             }
           }
-
-          if (deleted) {
-            throw new Error('File upload cancelled')
-          }
-
-          await req.post('/files/complete', null, {
-            params: {
-              ...parent?.id ? { parent_id: parent.id } : {},
-              relative_path: file.webkitRelativePath || null,
-              name: `${file.name}${fileParts > 1 ? '.part' : ''}`,
-              size: file.size,
-              mime_type: file.type || mime.lookup(file.name) || 'application/octet-stream',
-              parts: responses.map((r) => r.part),
-              files: responses.map((r) => r.file?.id),
-            },
-          })
         }
       }
 
