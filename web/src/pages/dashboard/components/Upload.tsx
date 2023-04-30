@@ -71,11 +71,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
     try {
       const { data: exists } = await req.get('/files', { params: { parent_id: parent?.id, name: file.name } })
       if (/\.part0*\d*$/.test(file.name))
-        throw { status: 400, body: { error: 'The file name cannot end with ".part", even if followed by digits!' } }
+        throw { message: 'Upload error', description: 'The file name cannot end with ".part", even if followed by digits!' }
       if (/\(\d+\).+/.test(file.name))
-        throw { status: 400, body: { error: 'The file name cannot contain text after parentheses with digits inside!' } }
+        throw { message: 'Upload error', description: 'The file name cannot contain text after parentheses with digits inside!' }
       if (exists.length > 0)
-        throw { status: 400, body: { error: `A file/folder named "${file.name}" already exists!` } }
+        throw { message: 'Upload error', description: `A file/folder named "${file.name}" already exists!` }
 
       while (filesWantToUpload.current?.findIndex(f => f.uid === file.uid) !== 0) {
         await new Promise(res => setTimeout(res, 1000))
@@ -289,7 +289,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       notification.close(`upload-${file.uid}`)
       notification.error({
         key: 'fileUploadError',
-        message: error?.response?.status || 'Something error',
+        message: error?.response?.status || error?.message || 'Something error',
         ...error?.response?.data ? { description: <>
           <Typography.Paragraph>
             {error?.response?.data?.error || error.message || 'Something error'}
@@ -297,10 +297,11 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
           <Typography.Paragraph code>
             {JSON.stringify(error?.response?.data || error?.data || error, null, 2)}
           </Typography.Paragraph>
-        </> } : {}
+        </> } : error?.description ? { description: error.description } : {}
       })
       // filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? { ...f, status: 'done' } : f)
       filesWantToUpload.current = filesWantToUpload.current?.map(f => f.uid === file.uid ? null : f).filter(Boolean)
+      window.onbeforeunload = undefined as any
       return onError(error.response?.data || error.response || { error: error.message }, file)
     }
   }
