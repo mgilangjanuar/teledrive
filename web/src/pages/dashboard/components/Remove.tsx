@@ -1,5 +1,5 @@
 import { WarningOutlined } from '@ant-design/icons'
-import { Modal, Typography } from 'antd'
+import { Checkbox, Form, Modal, Typography } from 'antd'
 import React, { useState } from 'react'
 import { req } from '../../../utils/Fetcher'
 
@@ -15,13 +15,13 @@ const Remove: React.FC<Props> = ({
   onFinish }) => {
 
   const [loadingRemove, setLoadingRemove] = useState<boolean>()
-  // const [deleteMessage, setDeleteMessage] = useState<boolean>()
+  const [deleteMessage, setDeleteMessage] = useState<boolean>()
 
   const remove = async (ids: string[]) => {
     setLoadingRemove(true)
     try {
       await Promise.all(ids.map(async id => await req.delete(`/files/${id}`, {
-        // params: { deleteMessage: deleteMessage ? 'true' : undefined }
+        params: { deleteMessage: deleteMessage ? 'true' : undefined }
       })))
     } catch (error) {
       // ignore
@@ -31,6 +31,15 @@ const Remove: React.FC<Props> = ({
     setSelectDeleted([])
     setLoadingRemove(false)
     onFinish?.(newData)
+  }
+
+  const folderSelected = (): boolean => {
+    let hasFolder = false
+    selectDeleted?.forEach(element => {
+      if (element.type === 'folder')
+        hasFolder = true
+    })
+    return hasFolder
   }
 
   return <Modal visible={!!selectDeleted?.length}
@@ -43,11 +52,12 @@ const Remove: React.FC<Props> = ({
     <Typography.Paragraph>
       Are you sure to delete {selectDeleted?.length > 1 ? `${selectDeleted?.length} objects` : selectDeleted?.[0]?.name.replace(/\.part0*\d+$/, '') }?
     </Typography.Paragraph>
-    {/* <Form.Item>
-      <Checkbox checked={deleteMessage} onChange={({ target }) => setDeleteMessage(target.checked)}>
-        Delete from Saved Messages too
-      </Checkbox>
-    </Form.Item> */}
+    { !folderSelected() ?
+      <Form.Item>
+        <Checkbox checked={deleteMessage} onChange={({ target }) => setDeleteMessage(target.checked)}>
+        Delete from <code>Telegram</code> too? This cannot be reverted.
+        </Checkbox>
+      </Form.Item> : '' }
   </Modal>
 }
 

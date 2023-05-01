@@ -460,17 +460,34 @@ export class Files {
     if (!file) {
       throw { status: 404, body: { error: 'File not found' } }
     }
-    await prisma.files.delete({ where: { id } })
 
-    if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
-      try {
-        await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
-      } catch (error) {
-        try {
-          await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: 'me' }))
-        } catch (error) {
-          // ignore
+    const peerTelegram = async (file: files): Promise<any> => {
+      let peer: Api.InputPeerChannel | Api.InputPeerChat
+      if (file?.forward_info) {
+        const [type, peerId, _id, accessHash] = file.forward_info.split('/')
+        if (type === 'channel') {
+          peer = new Api.InputPeerChannel({
+            channelId: bigInt(peerId),
+            accessHash: bigInt(accessHash as string) })
+        } else if (type === 'chat') {
+          peer = new Api.InputPeerChat({
+            chatId: bigInt(peerId)
+          })
         }
+      }
+      return peer
+    }
+
+    const removeFromTelegram = async (peer: any, file: files) => {
+      // Checks whether the peer is defined and is a channel
+      if (peer && 'accessHash' in peer) {
+        try {
+          await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: peer }))
+        } catch (error) { /* ignore */ }
+      } else {
+        try {
+          await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
+        } catch (error) { /* ignore */ }
       }
     }
 
@@ -491,18 +508,17 @@ export class Files {
       })
       files.map(async (file: files) => {
         await prisma.files.delete({ where: { id: file.id } })
-        if (deleteMessage && ['true', '1'].includes(deleteMessage as string) && !file?.forward_info) {
-          try {
-            await req.tg.invoke(new Api.messages.DeleteMessages({ id: [Number(file.message_id)], revoke: true }))
-          } catch (error) {
-            try {
-              await req.tg.invoke(new Api.channels.DeleteMessages({ id: [Number(file.message_id)], channel: 'me' }))
-            } catch (error) {
-              // ignore
-            }
-          }
+        if (deleteMessage && ['true', '1'].includes(deleteMessage as string)) {
+          const peer = await peerTelegram(file)
+          await removeFromTelegram(peer, file)
         }
       })
+    } else if (deleteMessage && ['true', '1'].includes(deleteMessage as string)) {
+      await prisma.files.delete({ where: { id } })
+      const peer = await peerTelegram(file)
+      await removeFromTelegram(peer, file)
+    } else {
+      await prisma.files.delete({ where: { id } })
     }
     return res.send({ file })
   }
