@@ -1013,17 +1013,17 @@ export class Files {
     // }
 
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    const [peerType, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string)?.split('/') || [null, null, null, null]
     if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
-      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
-      if (type === 'channel') {
+      if (peerType === 'channel') {
         peer = new Api.InputPeerChannel({
           channelId: bigInt(peerId),
           accessHash: accessHash ? bigInt(accessHash as string) : null })
-      } else if (type === 'user') {
+      } else if (peerType === 'user') {
         peer = new Api.InputPeerUser({
           userId: bigInt(peerId),
           accessHash: bigInt(accessHash as string) })
-      } else if (type === 'chat') {
+      } else if (peerType === 'chat') {
         peer = new Api.InputPeerChat({
           chatId: bigInt(peerId) })
       }
@@ -1090,7 +1090,8 @@ export class Files {
               user_id: req.user.id,
               uploaded_at: new Date(file.date * 1000),
               type,
-              parent_id: parentId ? parentId.toString() : null
+              parent_id: parentId ? parentId.toString() : null,
+              forward_info: peer ? `${peerType}/${peerId}/${file.id.toString()}/${accessHash}` : null
             }
           })
         })
