@@ -265,7 +265,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
                     if (trial >= RETRY_COUNT) {
                       throw error
                     }
-                    await new Promise((res) => setTimeout(res, ++trial * 3000))
+                    await new Promise((res) => setTimeout(res, ++trial * 500))
                   }
                 }
 
