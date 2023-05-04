@@ -199,7 +199,7 @@ export class Messages {
 
   @Endpoint.POST('/forward/:msgId', { middlewares: [Auth] })
   public async forward(req: Request, res: Response): Promise<any> {
-    const { msgId } = req.params
+    const { msgId, silent=false, dropAuthor=false, cloneFile=false } = req.params
     const { from, to } = req.body as { from?: {
       type: string,
       id: number,
@@ -248,9 +248,11 @@ export class Messages {
       id: [Number(msgId)],
       fromPeer,
       toPeer,
-      randomId: [bigInt.randBetween('-1e100', '1e100')]
+      randomId: [bigInt.randBetween('-1e100', '1e100')],
+      silent: Boolean(silent),
+      dropAuthor: Boolean(dropAuthor)
     }))
-    return res.send({ message: result })
+    return cloneFile ? result : res.send({ message: result })
   }
 
   @Endpoint.GET('/search', { middlewares: [Auth] })
