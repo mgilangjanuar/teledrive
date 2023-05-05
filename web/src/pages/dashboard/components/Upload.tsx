@@ -289,7 +289,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
             if (!deleted && parts - 1 > 0) {
               promises.push(uploadPart(parts - 1))
             }
-            await Promise.all(promises)
+            await Promise.allSettled(promises)
           }
         }
       }
