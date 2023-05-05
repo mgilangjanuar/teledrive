@@ -3,7 +3,7 @@ import { notification, Typography, Upload as BaseUpload } from 'antd'
 import mime from 'mime-types'
 import React, { useEffect, useRef } from 'react'
 import { Api } from 'telegram'
-import { CHUNK_SIZE, MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
+import { CHUNK_SIZE, DEFAULT_MAX_UPLOAD_SIZE, RETRY_COUNT } from '../../../utils/Constant'
 import { req } from '../../../utils/Fetcher'
 import { telegramClient } from '../../../utils/Telegram'
 
@@ -64,7 +64,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
     // notification.info({ key: 'prepareToUpload', message: 'Preparing...', duration: 3 })
     // await new Promise(res => setTimeout(res, 3000))
-
+    
+    const MAX_UPLOAD_SIZE = await (await req.get('/auth/me')).data.user.premium ? DEFAULT_MAX_UPLOAD_SIZE*2 : DEFAULT_MAX_UPLOAD_SIZE
     const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
     let deleted = false
 
