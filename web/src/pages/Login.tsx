@@ -57,21 +57,20 @@ const Login: React.FC<Props> = ({ me }) => {
       if (localStorage.getItem('experimental')) {
         const client = await anonymousTelegramClient.connect()
         if (phoneCodeHash) {
-          const { newPhoneCodeHash, timeout } = await client.invoke(new Api.auth.ResendCode({
-            phone_number: phoneNumber, phone_code_hash: phoneCodeHash
-          }))
+          const { phoneCodeHash: newPhoneCodeHash, timeout } = await client.invoke(new Api.auth.ResendCode({
+            phoneNumber, phoneCodeHash }))
           const session = client.session.save() as any
           localStorage.setItem('session', session)
           data = { phoneCodeHash: newPhoneCodeHash, timeout }
         } else {
           const { phoneCodeHash, timeout } = await client.invoke(new Api.auth.SendCode({
-            api_id: Number(process.env.REACT_APP_TG_API_ID),
-            api_hash: process.env.REACT_APP_TG_API_HASH,
-            phone_number: phoneNumber,
+            apiId: Number(process.env.REACT_APP_TG_API_ID),
+            apiHash: process.env.REACT_APP_TG_API_HASH,
+            phoneNumber,
             settings: new Api.CodeSettings({
-              allow_flashcall: true,
-              current_number: true,
-              allow_app_hash: true,
+              allowFlashcall: true,
+              currentNumber: true,
+              allowAppHash: true,
             })
           }))
           const session = client.session.save() as any
