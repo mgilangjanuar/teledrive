@@ -44,7 +44,7 @@
     "streamsaver": "^2.0.5",
     "sw-precache-cra": "^1.0.0",
     "swr": "^1.0.0",
-    "telegram": "^2.16.4",
+    "telegram": "^2.15.3",
     "through2": "^4.0.2",
     "typescript": "^4.0.3",
     "use-debounce": "^7.0.1",
