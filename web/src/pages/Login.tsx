@@ -57,7 +57,7 @@ const Login: React.FC<Props> = ({ me }) => {
       if (localStorage.getItem('experimental')) {
         const client = await anonymousTelegramClient.connect()
         if (phoneCodeHash) {
-          const { phone_code_hash: newPhoneCodeHash, timeout } = await client.invoke(new Api.auth.ResendCode({
+          const { phone_code: newPhoneCodeHash, timeout } = await client.invoke(new Api.auth.ResendCode({
             phone_number: phoneNumber, phone_code_hash: phoneCodeHash
           }))
           const session = client.session.save() as any
