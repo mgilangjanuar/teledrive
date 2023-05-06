@@ -83,20 +83,23 @@ const Share: React.FC<Props> = ({
         })
         dataSource?.[1](dataSource?.[0].map(file => file.id === id ? { ...file, sharing_options: sharing } : file))
       } else {
-        const [type, peerId, _id, accessHash] = selectShare.row.forward_info?.split('/') || [null, null, null, null]
-        await req.post(`/messages/forward/${selectShare.row.message_id}`, {
-          ...selectShare.row.forward_info ? {
-            from: {
-              id: peerId,
-              type,
-              accessHash
-            }
-          } : {},
-          to: username
-        })
+        const { data: files } = await req.get('/files', { params: { name: { startsWith: selectShare.row.name.replace(/\.part0*\d+$/, '') } } })
+        for (const file of files.files) {
+          const [type, peerId, _id, accessHash] = file.forward_info?.split('/') || [null, null, null, null]
+          await req.post(`/messages/forward/${file.message_id}`, {
+            ...file.forward_info ? {
+              from: {
+                id: peerId,
+                type,
+                accessHash
+              }
+            } : {},
+            to: username
+          })
+        }
         notification.success({
           message: 'Success',
-          description: `${selectShare?.row.name} sent to @${username} successfully`
+          description: `${selectShare?.row.name.replace(/\.part0*\d+$/, '')} sent to @${username} successfully`
         })
         formShare.setFieldsValue({ username: null })
       }

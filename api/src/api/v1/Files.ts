@@ -17,6 +17,7 @@ import { CACHE_FILES_LIMIT, CONNECTION_RETRIES, FILES_JWT_SECRET, TG_CREDS } fro
 import { buildSort } from '../../utils/FilterQuery'
 import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
+import { Messages } from './Messages'
 
 const CACHE_DIR = `${__dirname}/../../../../.cached`
 
@@ -80,17 +81,19 @@ export class Files {
       let select = null
       if (fullProperties !== 'true' && fullProperties !== '1') {
         select = {
+          created_at: true,
           id: true,
           name: true,
           type: true,
+          message_id: true,
           size: true,
-          sharing_options: true,
+          uploaded_at: true,
           upload_progress: true,
-          link_id: true,
           user_id: true,
           parent_id: true,
-          uploaded_at: true,
-          created_at: true,
+          sharing_options: true,
+          link_id: true,
+          forward_info: true,
           password: true
         }
       }
@@ -327,50 +330,36 @@ export class Files {
     delete body.key
     let countFiles = 0
     for (const file of files) {
-      const { forward_info: forwardInfo, message_id: messageId, mime_type: mimeType } = file
-      let peerFrom: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      let peerTo: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
-      if (forwardInfo && forwardInfo.match(/^channel\//gi)) {
-        const [type, peerId, _id, accessHash] = forwardInfo?.split('/') ?? []
-        if (type === 'channel') {
-          peerFrom = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: accessHash ? bigInt(accessHash as string) : null })
-        } else if (type === 'user') {
-          peerFrom = new Api.InputPeerUser({
-            userId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
-        } else if (type === 'chat') {
-          peerFrom = new Api.InputPeerChat({
-            chatId: bigInt(peerId) })
+      const { forward_info: forwardInfo, message_id: msgId, mime_type: mimeType } = file
+      let infoFrom, infoTo
+      if (forwardInfo) {
+        const [type, id, _id, accessHash] = forwardInfo?.split('/')
+        infoFrom = {
+          id,
+          type,
+          accessHash
         }
       }
-      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
-      if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
-        if (type === 'channel') {
-          peerTo = new Api.InputPeerChannel({
-            channelId: bigInt(peerId),
-            accessHash: accessHash ? bigInt(accessHash as string) : null })
-        } else if (type === 'user') {
-          peerTo = new Api.InputPeerUser({
-            userId: bigInt(peerId),
-            accessHash: bigInt(accessHash as string) })
-        } else if (type === 'chat') {
-          peerTo = new Api.InputPeerChat({
-            chatId: bigInt(peerId) })
+      if ((req.user.settings as Prisma.JsonObject).saved_location) {
+        const [type, id, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
+        infoTo = {
+          id,
+          type,
+          accessHash
         }
       }
 
-      const chat = await req.tg.invoke(new Api.messages.ForwardMessages({
-        fromPeer: peerFrom || 'me',
-        id: [Number(messageId)],
-        toPeer: peerTo || 'me',
-        randomId: [bigInt.randBetween('-1e100', '1e100')],
-        silent: true,
-        dropAuthor: true
-      })) as any
+      req.body['from'] = infoFrom
+      req.body['to'] = infoTo || 'me'
+      req.params = {
+        msgId,
+        silent: String(true),
+        dropAuthor: String(true),
+        cloneFile: String(true)
+      }
+      const chat = await new Messages().forward(req, res)
 
-      const newForwardInfo = peerTo ? `${type}/${peerId}/${chat.updates[0].id.toString()}/${accessHash}` : null
+      const newForwardInfo = infoTo ? `${infoTo.type}/${infoTo.id}/${chat.updates[0].id.toString()}/${infoTo.accessHash}` : null
       const message = {
         size: Number(file.size),
         message_id: chat.updates[0].id.toString(),
@@ -1024,17 +1013,17 @@ export class Files {
     // }
 
     let peer: Api.InputPeerChannel | Api.InputPeerUser | Api.InputPeerChat
+    const [peerType, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string)?.split('/') || [null, null, null, null]
     if ((req.user.settings as Prisma.JsonObject)?.saved_location) {
-      const [type, peerId, _, accessHash] = ((req.user.settings as Prisma.JsonObject).saved_location as string).split('/')
-      if (type === 'channel') {
+      if (peerType === 'channel') {
         peer = new Api.InputPeerChannel({
           channelId: bigInt(peerId),
           accessHash: accessHash ? bigInt(accessHash as string) : null })
-      } else if (type === 'user') {
+      } else if (peerType === 'user') {
         peer = new Api.InputPeerUser({
           userId: bigInt(peerId),
           accessHash: bigInt(accessHash as string) })
-      } else if (type === 'chat') {
+      } else if (peerType === 'chat') {
         peer = new Api.InputPeerChat({
           chatId: bigInt(peerId) })
       }
@@ -1101,7 +1090,8 @@ export class Files {
               user_id: req.user.id,
               uploaded_at: new Date(file.date * 1000),
               type,
-              parent_id: parentId ? parentId.toString() : null
+              parent_id: parentId ? parentId.toString() : null,
+              forward_info: peer ? `${peerType}/${peerId}/${file.id.toString()}/${accessHash}` : null
             }
           })
         })
