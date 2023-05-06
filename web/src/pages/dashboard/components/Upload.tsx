@@ -350,7 +350,7 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
         '100%': '#87d068',
       },
       strokeWidth: 5,
-      format: (percent: any) => `🌟 ${percent}% 🌟`
+      format: (percent: any) => `${percent}%`
     }
   }
 
