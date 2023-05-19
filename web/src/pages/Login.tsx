@@ -16,6 +16,7 @@ import { computeCheck } from 'telegram/Password'
 import en from 'world_countries_lists/data/countries/en/world.json'
 import { fetcher, req } from '../utils/Fetcher'
 import { anonymousTelegramClient, telegramClient } from '../utils/Telegram'
+import { getUserLocale } from 'get-user-locale'
 
 interface Props {
   me?: any
@@ -34,9 +35,10 @@ const Login: React.FC<Props> = ({ me }) => {
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
   const [method, setMethod] = useState<'phoneNumber' | 'qrCode'>('phoneNumber')
-  const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
+  const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || country }) })
   const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken?: string, session?: string }>()
   const { currentTheme } = useThemeSwitcher()
+  const country = getUserLocale()?.substring(3, 5)?.toString() || 'ID'
 
   // useEffect(() => {
   //   // init config
