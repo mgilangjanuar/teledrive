@@ -5,7 +5,7 @@
   "dependencies": {
     "@ideasio/add-to-homescreen-react": "^1.0.10",
     "antd": "4.18.3",
-    "antd-country-phone-input": "^4.3.1",
+    "antd-country-phone-input": "^4.5.1",
     "axios": "^1.3.5",
     "base64url": "^3.0.1",
     "clipboardy": "^2.3.0",
