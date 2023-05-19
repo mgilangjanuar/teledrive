@@ -1,5 +1,5 @@
 import { ArrowRightOutlined, LoginOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
+import { Button, Card, Checkbox, Col, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
 import base64url from 'base64url'
@@ -38,6 +38,7 @@ const Login: React.FC<Props> = ({ me }) => {
   const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || country }) })
   const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken?: string, session?: string }>()
   const { currentTheme } = useThemeSwitcher()
+  const [unknownNumber, setUnknownNumber] = useState<boolean>(false)
   const country = getUserLocale()?.substring(3, 5)?.toString() || 'ID'
 
   // useEffect(() => {
@@ -46,7 +47,7 @@ const Login: React.FC<Props> = ({ me }) => {
   // }, [])
 
   const sendCode = async (phoneNumber?: string) => {
-    phoneNumber = phoneNumber || phoneData.phone ? `+${phoneData.code}${phoneData.phone}` : ''
+    phoneNumber = phoneNumber || phoneData.phone ? `+${unknownNumber ? 888 : phoneData.code}${phoneData.phone}` : ''
     if (!phoneNumber) {
       return notification.error({
         message: 'Error',
@@ -121,7 +122,7 @@ const Login: React.FC<Props> = ({ me }) => {
       return sendCode()
     }
     setLoadingLogin(true)
-    const phoneNumber = `+${phoneData.code}${phoneData.phone}`
+    const phoneNumber = `+${unknownNumber ? 888 : phoneData.code}${phoneData.phone}`
     const phoneCode = otp
     const { password } = formLogin.getFieldsValue()
     try {
@@ -503,9 +504,16 @@ const Login: React.FC<Props> = ({ me }) => {
                 {currentStep === 0 && <>
                   <Form.Item>
                     <ConfigProvider locale={en}>
-                      <CountryPhoneInput value={phoneData} type="tel" onChange={e => setPhoneData(e)} />
+                      <CountryPhoneInput value={{ phone: phoneData.phone, code: unknownNumber ? 888 : phoneData.code, short: !unknownNumber ? phoneData.short || country : undefined }} type="tel" onChange={(e) => {
+                        setPhoneData({ phone: e.phone, code: unknownNumber ? undefined : e.code, short: unknownNumber ? undefined : e.short })
+                      }} />
                     </ConfigProvider>
                     {/* <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} /> */}
+                  </Form.Item>
+                  <Form.Item>
+                    <Checkbox checked={unknownNumber} onChange={({ target }) => setUnknownNumber(target.checked)}>
+                      Use Fragment Number (+888).
+                    </Checkbox>
                   </Form.Item>
                   <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
                     <Button disabled={!phoneData?.phone} type="primary" size="large" htmlType="submit" icon={<ArrowRightOutlined />} shape="round" loading={loadingSendCode}>{phoneCodeHash ? 'Re-send code' : 'Send code'}</Button>
