@@ -61,7 +61,8 @@ const Login: React.FC<Props> = ({ me }) => {
         const client = await anonymousTelegramClient.connect()
         if (phoneCodeHash) {
           const { phoneCodeHash: newPhoneCodeHash, timeout } = await client.invoke(new Api.auth.ResendCode({
-            phoneNumber, phoneCodeHash }))
+            phoneNumber, phoneCodeHash
+          }))
           const session = client.session.save() as any
           localStorage.setItem('session', session)
           data = { phoneCodeHash: newPhoneCodeHash, timeout }
@@ -409,9 +410,11 @@ const Login: React.FC<Props> = ({ me }) => {
               _qrCodeSignIn().then(resolve).catch(reject)
             } else {
               const invitationCode = location.search.replace('?code=', '')
-              req.post('/auth/qrCodeSignIn', { invitationCode }, { headers: {
-                'Authorization': `Bearer ${qrCode.accessToken}`
-              } }).then(({ data }) => resolve(data)).catch(reject)
+              req.post('/auth/qrCodeSignIn', { invitationCode }, {
+                headers: {
+                  'Authorization': `Bearer ${qrCode.accessToken}`
+                }
+              }).then(({ data }) => resolve(data)).catch(reject)
             }
           }).then((data: any) => {
             // console.log(data)
@@ -535,7 +538,8 @@ const Login: React.FC<Props> = ({ me }) => {
                       borderRadius: '4px',
                       fontSize: '1.2rem',
                       background: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : undefined,
-                      border: '1px solid rgba(0, 0, 0, 0.3)' }} />
+                      border: '1px solid rgba(0, 0, 0, 0.3)'
+                    }} />
                     {countdown ? <Typography.Paragraph type="secondary">Re-send in {countdown}s...</Typography.Paragraph> : <Typography.Paragraph>
                       <Button type="link" onClick={() => sendCode()}>Re-send code</Button>
                     </Typography.Paragraph>}
