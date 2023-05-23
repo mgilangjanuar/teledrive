@@ -15,7 +15,7 @@ import {
   TeamOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons'
-import { Descriptions, Menu, Modal, Table, Tag, Typography } from 'antd'
+import { Descriptions, Image, Menu, Modal, Table, Tag, Typography } from 'antd'
 import { SorterResult } from 'antd/lib/table/interface'
 import moment from 'moment'
 import prettyBytes from 'pretty-bytes'
@@ -70,6 +70,8 @@ const TableFiles: React.FC<Props> = ({
   const { data: user } = useSWR(showDetails ? `/users/${showDetails.user_id}` : null, fetcher)
   const { data: filesParts } = useSWR(showDetails ? `/files?name.like=${showDetails.name.replace(/\.part0*\d+$/, '')}&user_id=${showDetails.user_id}&parent_id${showDetails.parent_id ? `=${showDetails.parent_id}` : '=null'}${tab === 'shared' ? '&shared=1' : ''}` : null, fetcher)
   const pasteEnabled = useRef<boolean | null>(null)
+  const [visible, setVisible] = useState(false)
+  const [linkRaw, setLinkRaw] = useState<string>('')
 
   useEffect(() => {
     pasteEnabled.current = Boolean(selected?.length && action)
@@ -123,6 +125,14 @@ const TableFiles: React.FC<Props> = ({
           key="details"
           onClick={() => setShowDetails(popup?.row)}>Details</Menu.Item>
         {tab === 'mine' && <>
+          {popup?.row.type === 'image' ? <Menu.Item {...baseProps}
+            icon={<FileImageOutlined />}
+            key="viewImage"
+            onClick={() => {
+              setLinkRaw(`${process.env.REACT_APP_API_URL || window.location.origin}/api/v1/files/${popup?.row.id}?raw=1&password=${sessionStorage.getItem(`pass-${popup?.row.id}`)}`)
+              setVisible(true)
+              console.log('row', popup?.row)
+            }}>View Image</Menu.Item> : ''}
           <Menu.Item {...baseProps}
             icon={<EditOutlined />}
             key="rename"
@@ -341,6 +351,19 @@ const TableFiles: React.FC<Props> = ({
         } : undefined} />
     </DndProvider>
     <ContextMenu />
+    <Image
+      width={200}
+      style={{ display: 'none' }}
+      src={linkRaw}
+      preview={{
+        visible,
+        src: linkRaw,
+        onVisibleChange: value => {
+          setLinkRaw('')
+          setVisible(value)
+        },
+      }}
+    />
     <Modal title={<Typography.Text ellipsis><Icon type={showDetails?.type} /> {showDetails?.name.replace(/\.part0*\d+$/, '')}</Typography.Text>}
       visible={Boolean(showDetails)}
       onCancel={() => setShowDetails(undefined)}

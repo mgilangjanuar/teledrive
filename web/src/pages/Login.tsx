@@ -1,5 +1,5 @@
 import { ArrowRightOutlined, LoginOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
+import { Button, Card, Checkbox, Col, Form, Input, Layout, notification, Row, Spin, Steps, Typography } from 'antd'
 import CountryPhoneInput, { ConfigProvider } from 'antd-country-phone-input'
 import { useForm } from 'antd/lib/form/Form'
 import base64url from 'base64url'
@@ -16,6 +16,7 @@ import { computeCheck } from 'telegram/Password'
 import en from 'world_countries_lists/data/countries/en/world.json'
 import { fetcher, req } from '../utils/Fetcher'
 import { anonymousTelegramClient, telegramClient } from '../utils/Telegram'
+import { getUserLocale } from 'get-user-locale'
 
 interface Props {
   me?: any
@@ -34,9 +35,11 @@ const Login: React.FC<Props> = ({ me }) => {
   const [phoneCodeHash, setPhoneCodeHash] = useState<string>()
   const [needPassword, setNeedPassword] = useState<boolean>()
   const [method, setMethod] = useState<'phoneNumber' | 'qrCode'>('phoneNumber')
-  const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || 'ID' }) })
+  const { data: _ } = useSWRImmutable('/utils/ipinfo', fetcher, { onSuccess: ({ ipinfo }) => setPhoneData(phoneData?.short ? phoneData : { short: ipinfo?.country || country }) })
   const [qrCode, setQrCode] = useState<{ loginToken: string, accessToken?: string, session?: string }>()
   const { currentTheme } = useThemeSwitcher()
+  const [unknownNumber, setUnknownNumber] = useState<boolean>(false)
+  const country = getUserLocale()?.substring(3, 5)?.toString() || 'ID'
 
   // useEffect(() => {
   //   // init config
@@ -44,7 +47,7 @@ const Login: React.FC<Props> = ({ me }) => {
   // }, [])
 
   const sendCode = async (phoneNumber?: string) => {
-    phoneNumber = phoneNumber || phoneData.phone ? `+${phoneData.code}${phoneData.phone}` : ''
+    phoneNumber = phoneNumber || phoneData.phone ? `+${unknownNumber ? 888 : phoneData.code}${phoneData.phone}` : ''
     if (!phoneNumber) {
       return notification.error({
         message: 'Error',
@@ -58,7 +61,8 @@ const Login: React.FC<Props> = ({ me }) => {
         const client = await anonymousTelegramClient.connect()
         if (phoneCodeHash) {
           const { phoneCodeHash: newPhoneCodeHash, timeout } = await client.invoke(new Api.auth.ResendCode({
-            phoneNumber, phoneCodeHash }))
+            phoneNumber, phoneCodeHash
+          }))
           const session = client.session.save() as any
           localStorage.setItem('session', session)
           data = { phoneCodeHash: newPhoneCodeHash, timeout }
@@ -119,7 +123,7 @@ const Login: React.FC<Props> = ({ me }) => {
       return sendCode()
     }
     setLoadingLogin(true)
-    const phoneNumber = `+${phoneData.code}${phoneData.phone}`
+    const phoneNumber = `+${unknownNumber ? 888 : phoneData.code}${phoneData.phone}`
     const phoneCode = otp
     const { password } = formLogin.getFieldsValue()
     try {
@@ -406,9 +410,11 @@ const Login: React.FC<Props> = ({ me }) => {
               _qrCodeSignIn().then(resolve).catch(reject)
             } else {
               const invitationCode = location.search.replace('?code=', '')
-              req.post('/auth/qrCodeSignIn', { invitationCode }, { headers: {
-                'Authorization': `Bearer ${qrCode.accessToken}`
-              } }).then(({ data }) => resolve(data)).catch(reject)
+              req.post('/auth/qrCodeSignIn', { invitationCode }, {
+                headers: {
+                  'Authorization': `Bearer ${qrCode.accessToken}`
+                }
+              }).then(({ data }) => resolve(data)).catch(reject)
             }
           }).then((data: any) => {
             // console.log(data)
@@ -501,9 +507,16 @@ const Login: React.FC<Props> = ({ me }) => {
                 {currentStep === 0 && <>
                   <Form.Item>
                     <ConfigProvider locale={en}>
-                      <CountryPhoneInput value={phoneData} type="tel" onChange={e => setPhoneData(e)} />
+                      <CountryPhoneInput value={{ phone: phoneData.phone, code: unknownNumber ? 888 : phoneData.code, short: !unknownNumber ? phoneData.short || country : undefined }} type="tel" onChange={(e) => {
+                        setPhoneData({ phone: e.phone, code: unknownNumber ? undefined : e.code, short: unknownNumber ? undefined : e.short })
+                      }} />
                     </ConfigProvider>
                     {/* <Input.Search placeholder="+6289123456789" type="tel" enterButton={countdown ? `Re-send in ${countdown}s...` : phoneCodeHash ? 'Re-send' : 'Send'} loading={loadingSendCode} onSearch={sendCode} /> */}
+                  </Form.Item>
+                  <Form.Item>
+                    <Checkbox checked={unknownNumber} onChange={({ target }) => setUnknownNumber(target.checked)}>
+                      Use Fragment Number (+888).
+                    </Checkbox>
                   </Form.Item>
                   <Form.Item style={{ marginTop: '50px', textAlign: 'center' }} wrapperCol={{ span: 24 }}>
                     <Button disabled={!phoneData?.phone} type="primary" size="large" htmlType="submit" icon={<ArrowRightOutlined />} shape="round" loading={loadingSendCode}>{phoneCodeHash ? 'Re-send code' : 'Send code'}</Button>
@@ -525,7 +538,8 @@ const Login: React.FC<Props> = ({ me }) => {
                       borderRadius: '4px',
                       fontSize: '1.2rem',
                       background: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : undefined,
-                      border: '1px solid rgba(0, 0, 0, 0.3)' }} />
+                      border: '1px solid rgba(0, 0, 0, 0.3)'
+                    }} />
                     {countdown ? <Typography.Paragraph type="secondary">Re-send in {countdown}s...</Typography.Paragraph> : <Typography.Paragraph>
                       <Button type="link" onClick={() => sendCode()}>Re-send code</Button>
                     </Typography.Paragraph>}
