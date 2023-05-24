@@ -1,0 +1,21 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main
+      - fly/deploy
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+jobs:
+  deploy:
+    name: Deploy to fly.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Set Environment Variables
+        run: flyctl secrets set ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }} ENV=${{ secrets.ENV }} REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} CACHE_FILES_LIMIT=${{ secrets.CACHE_FILES_LIMIT }} DATABASE_URL=${{ secrets.DATABASE_URL }} REACT_APP_TG_API_HASH=${{ secrets.REACT_APP_TG_API_HASH }} REACT_APP_TG_API_ID=${{ secrets.REACT_APP_TG_API_ID }} TG_API_HASH=${{ secrets.TG_API_HASH }} TG_API_ID=${{ secrets.TG_API_ID }} REDIS_URI=${{ secrets.REDIS_URI }} API_JWT_SECRET=${{ secrets.API_JWT_SECRET }} FILES_JWT_SECRET=${{ secrets.FILES_JWT_SECRET }}
+      - name: Deploy the app
+        run: flyctl deploy --dockerfile Dockerfile.fly
