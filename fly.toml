@@ -1,37 +1,26 @@
-# fly.toml app configuration file generated for tldrive on 2023-04-28T00:35:23+08:00
+# fly.toml app configuration file generated for tldrive on 2023-05-24T11:46:09+07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "tldrive" #your app name
+app = "tldrive"
+primary_region = "sin"
 kill_signal = "SIGINT"
-kill_timeout = 5
-primary_region = "sin" #your region
-processes = []
-
-[build]
-
-[env]
-
-[experimental]
-  auto_rollback = true
+kill_timeout = "5s"
 
 [[services]]
-  http_checks = []
-  internal_port = 4000 #internal port
-  processes = ["app"]
   protocol = "tcp"
-  script_checks = []
-  [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
+  internal_port = 4000
+  processes = ["app"]
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
 
   [[services.ports]]
-    force_https = true
-    handlers = ["http"]
     port = 80
+    handlers = ["http"]
+    force_https = true
 
   [[services.ports]]
-    handlers = ["tls", "http"]
     port = 443
+    handlers = ["tls", "http"]
