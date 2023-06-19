@@ -67,6 +67,8 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
 
     const fileParts = Math.ceil(file.size / MAX_UPLOAD_SIZE)
     let deleted = false
+    startUploadingTime.current = lastEtaTimeUpdate.current = new Date().getTime()
+    lastEtaPercentUpdate.current = 0
 
     try {
       const { data: exists } = await req.get('/files', { params: { parent_id: parent?.id, name: file.name } })
@@ -321,15 +323,53 @@ const Upload: React.FC<Props> = ({ dataFileList: [fileList, setFileList], parent
       }
       return false
     },
-    onChange: ({ fileList }) => setFileList(fileList),
+    onChange: ({ fileList }) => {
+      calculateEta()
+      setFileList(fileList)
+    },
     progress: {
       strokeColor: {
         '0%': '#108ee9',
         '100%': '#87d068',
       },
       strokeWidth: 3,
-      format: (percent: any) => `${percent}%`
+      format: (percent: any) => `ETA: ${formatEta(percent)} - ${percent}%`
     }
+  }
+
+  const startUploadingTime = useRef<number>(0)
+  const eta = useRef<number>(0)
+  const lastEtaPercentUpdate = useRef<number>(0)
+  const lastEtaTimeUpdate = useRef<number>(0)
+
+  const calculateEta = () => {
+    const now = new Date().getTime()
+    const fileSize = fileList[0]?.size
+    const filePercent = parseFloat(fileList[0]?.percent)
+
+    // Avoid output errors and update ETA every 5 seconds
+    if (filePercent == 0 || now - lastEtaTimeUpdate.current < 5000 && filePercent - lastEtaPercentUpdate.current < 10)
+      return
+    lastEtaTimeUpdate.current = now
+    lastEtaPercentUpdate.current = filePercent
+
+    // Calculate ETA
+    const elapsedTime = now - startUploadingTime.current
+    const uploaded = fileSize / 100 * filePercent
+    eta.current = fileSize / uploaded * elapsedTime - elapsedTime
+  }
+
+  const formatEta = (percent): string => {
+    if (percent == 0 || isNaN(eta.current))
+      return '∞'
+
+    // Convert ETA
+    const hours: number = Math.floor(eta.current / 3600000)
+    const minutes: number = Math.floor(eta.current % 3600000 / 60000)
+    const seconds: number = Math.floor(eta.current % 3600000 % 60000 / 1000)
+
+    // Return formatted ETA
+    return `${hours==0 ? '' : hours+'h '}${minutes==0 ? '' : minutes+'m '}${seconds}s`
   }
 
   return isDirectory ? <BaseUpload name="upload" directory {...params}>
