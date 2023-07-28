@@ -84,12 +84,14 @@ app.use(async (err: { status?: number, body?: Record<string, any> }, req: Reques
   return res.status(err.status || 500).send(err.body || { error: 'Something error', details: serializeError(err) })
 })
 
+const WEB_SERVE_DIR = process.env.WEB_SERVE_DIR || path.join(__dirname, '..', '..', 'web', 'build')
+
 // serve web
-app.use(serveStatic(path.join(__dirname, '..', '..', 'web', 'build')))
+app.use(serveStatic(`${WEB_SERVE_DIR}`))
 app.use((req: Request, res: Response) => {
   try {
     if (req.headers['accept'] !== 'application/json') {
-      return res.sendFile(path.join(__dirname, '..', '..','web', 'build', 'index.html'))
+      return res.sendFile(path.join(`${WEB_SERVE_DIR}`, 'index.html'))
     }
     return res.status(404).send({ error: 'Not found' })
   } catch (error) {

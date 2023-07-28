@@ -19,7 +19,7 @@ import { Endpoint } from '../base/Endpoint'
 import { Auth, AuthMaybe } from '../middlewares/Auth'
 import { Messages } from './Messages'
 
-const CACHE_DIR = `${__dirname}/../../../../.cached`
+const CACHE_DIR = process.env.CACHE_DIR || `${__dirname}/../../../../.cached`
 
 @Endpoint.API()
 export class Files {
