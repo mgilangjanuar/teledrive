@@ -66,6 +66,8 @@ variables in `./api/.env`, you can copy from `./api/.env.example`
   | ---------------------- | -------- | ----------------------------------------------------- |
   | ENV                    | no       | Hide the logs for production, default: develop        |
   | PORT                   | no       | Port for running API, default: 4000                   |
+  | CACHE_DIR              | no       | Directory to cache saved files                        |
+  | WEB_SERVE_DIR          | no       | Directory to serve the static web build, only needed when you build web workspace separately in somewhere else |
   | TG_API_ID              | yes      | Application ID from your Telegram App                 |
   | TG_API_HASH            | yes      | Application hash from Telegram App                    |
   | ADMIN_USERNAME         | yes      | Telegram username of the admin TeleDrive              |
